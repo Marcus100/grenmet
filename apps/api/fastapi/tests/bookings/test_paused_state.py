@@ -316,6 +316,36 @@ async def test_webhook_payment_resumes_a_paused_business(
     assert await _paused_at(db_async, studio.org_id) is None
 
 
+@pytest.mark.usefixtures("switch_on")
+async def test_a_failing_pause_check_never_blocks_the_subscription_update(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    studio = await _lapsed(db_async, async_client)
+    sub_id = await _subscribe(db_async, studio.org_id, "incomplete")
+
+    async def broken(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("bookings is down")
+
+    monkeypatch.setattr(paused, "evaluate_organisation", broken)
+    event = WebhookEventResult(
+        id=f"evt_{uuid.uuid4().hex[:10]}",
+        type="customer.subscription.updated",
+        object_id=sub_id,
+        created=int(utc_now().timestamp()) + 5,
+        data_object={"id": sub_id, "status": "active"},
+    )
+    assert await app_subscriptions.apply_stripe_event(db_async, event) == "applied"
+    await db_async.commit()
+    status = await db_async.scalar(
+        select(AppSubscription.status).where(
+            AppSubscription.stripe_subscription_id == sub_id
+        )
+    )
+    assert status == "active"
+
+
 # --- public effects -------------------------------------------------------------------
 
 

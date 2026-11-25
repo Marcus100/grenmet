@@ -532,12 +532,23 @@ def _move(subscription: AppSubscription, target: AppSubscriptionStatus) -> None:
 async def _re_evaluate_pause(
     session: AsyncSession, subscription: AppSubscription
 ) -> None:
-    """A status change can pause or resume a Bookings business (ADR-0066 item 6)."""
+    """A status change can pause or resume a Bookings business (ADR-0066 item 6).
+
+    Runs in its own savepoint and never fails the webhook: a bookings fault must
+    not stop the subscription update being saved (Stripe would retry it forever).
+    The daily ``evaluate_paused_businesses`` job repairs the pause state."""
     if subscription.app_key != "bookings":
         return
     from src.bookings import paused  # noqa: PLC0415  (bookings imports billing)
 
-    await paused.evaluate_organisation(session, subscription.organisation_id)
+    try:
+        async with session.begin_nested():
+            await paused.evaluate_organisation(session, subscription.organisation_id)
+    except Exception:
+        logger.exception(
+            "pause re-evaluation failed; the daily job will retry",
+            extra={"organisation_id": subscription.organisation_id},
+        )
 
 
 async def _checkout_completed(session: AsyncSession, obj: Mapping[str, Any]) -> str:
