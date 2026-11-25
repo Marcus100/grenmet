@@ -23,7 +23,7 @@ tooling. Start with `docs/technical-overview.md`.
 | `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (weekly posts; static Next.js on Cloudflare Pages) |
 | `apps/pwa/<app>/AGENTS.md` | Phone apps on `packages/pwa-kit` (`pnpm new:pwa`; script `dev:pwa:<app>`): printix (the Printix ticket scanner, a Barrels collaboration, 3064) |
 | `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) used by the bookings app; host owns server calls |
-| `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, pwa-kit, theme, ui |
+| `packages/<pkg>/AGENTS.md` | admin-kit, api-client, auth, email-templates, gms, pwa-kit, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
 ## Commands
