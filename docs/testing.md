@@ -161,7 +161,7 @@ suite was not needed.
   Schemathesis suite (`tests/test_api_fuzz.py`, marked `fuzz`) is deselected by
   `addopts = "-m 'not fuzz'"` in `pyproject.toml`; the fuzz job passes `-m fuzz`
   and the shards pass `-m 'not fuzz'`. The migration smoke steps (database
-  isolation contract, `alembic upgrade head`, CMS rollback) run in shard 1 only.
+  isolation contract, `alembic upgrade head`, CMS rollback) run in the fuzz job only, the lightest, so no slice waits on them.
 - **gaa-admin (`ci-web.yml`).** `gaa-admin-tests` runs
   `turbo run test --filter=@barrelsgd/web-gaa-admin -- --shard=i/3` for i = 1..3 (Vitest
   splits across its `node` and `dom` projects). The `tests` job runs every other

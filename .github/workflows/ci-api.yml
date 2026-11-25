@@ -256,17 +256,17 @@ jobs:
         run: uv run --frozen --package fast-back python -m scripts.fetch_iwxxm_schemas
 
       - name: Test database isolation contract
-        if: matrix.id == 'shard-1'
+        if: matrix.id == 'fuzz'
         run: uv run --frozen --package fast-back python -m unittest tests.test_database_target
 
       - name: Run migrations
         # Migration smoke checks are independent of the sharded pytest slices, so
-        # one job runs them rather than all four.
-        if: matrix.id == 'shard-1'
+        # one job runs them: the fuzz job, the lightest, so no slice waits on them.
+        if: matrix.id == 'fuzz'
         run: uv run --frozen --package fast-back alembic upgrade head
 
       - name: Verify CMS media migration rollback
-        if: matrix.id == 'shard-1'
+        if: matrix.id == 'fuzz'
         env:
           CMS_MIGRATION_TEST_DSN: postgresql://app:changethis@localhost:5432/app
         run: uv run --frozen --package fast-back python -m unittest discover -s ../../../scripts/production -p test_cms_migrations.py
