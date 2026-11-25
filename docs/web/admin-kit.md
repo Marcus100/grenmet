@@ -1,10 +1,7 @@
----
-version: alpha
-name: Barrels admin kit
-description: The one shell and page blocks every admin dashboard uses (ADR-0068). Layout from the GMS staff portal; colours come from each app.
----
-
 # Admin kit (`@barrelsgd/admin-kit`)
+
+The one shell and page blocks every admin dashboard uses. Layout from the GMS
+staff portal; colours come from each app's own lane spec in `docs/design/`.
 
 Every admin dashboard is built from this kit:
 
@@ -48,9 +45,14 @@ blocks. It never redefines the shell. Decision: ADR-0068.
 
 ## Navigation (`AdminNavGroup[]`)
 
-- Groups have a label. Items have a title, a URL, a lucide icon, an optional
-  badge (a count or "New"), optional sub-items, and an `isActive` matcher
-  (prefix by default).
+- Groups have a label. Items have a title, a URL, a lucide icon passed as an
+  element (`<House />`, so a Server Component can hand the config over), an
+  optional badge (a count, "new" or "soon"), optional sub-items, and
+  `activeMatch` (`"prefix"`, the default, or `"exact"`). Only the most specific
+  matching link is current. An `isActive` function works only when the config
+  lives in a client module.
+- Apps filter the navigation by role before passing it (`filterNavigation`),
+  so the sidebar, search and tab bar never offer what the person cannot use.
 - The current page gets `aria-current="page"`.
 - The same config feeds the sidebar, the search palette and the phone tab bar
   (items marked `tab: true`), so the three never disagree.
@@ -65,7 +67,8 @@ blocks. It never redefines the shell. Decision: ADR-0068.
 | `EmptyState` | An icon, one sentence on what is missing, and the next step as a link or button. |
 | `DataTable` | TanStack Table: sortable columns, a search box, pagination, row actions and a phone-friendly card view under `sm`. Loading and empty states are built in. |
 | `ConfirmAction` | Recorded or destructive actions sit behind a dialog that says what will change, with an optional reason field. The result comes back as a written notice. |
-| `FormSection` | Label, description and field in a grid. Errors sit next to the field. The Save button shows its pending state and never double-submits. |
+| `FormSection` | Label, description and field in a grid. Errors sit next to the field. |
+| `SaveButton` | Shows its pending state ("Saving…") and never double-submits. |
 
 ## Preferences
 
@@ -90,8 +93,11 @@ A business owner's app may hide the layout controls and keep only light/dark.
 
 ## Adoption checklist for an app
 
-1. Add `@barrelsgd/admin-kit` and pass `brand` (name, logo, preset class),
-   `navigation`, `user` and the optional slots.
+1. Add `@barrelsgd/admin-kit` and pass `brand` (name, href, logo),
+   `navigation`, `user` and the optional slots. The colour preset comes from
+   the app's CSS tokens and its `@barrelsgd/theme` defaults, not from `brand`.
+   `AdminShell` is the entry; `AdminShellFrame` is the low-level frame it
+   renders (tests and previews).
 2. Delete the app's own shell, sidebar, nav and page-header copies.
 3. Take before and after screenshots at 375 px and 1280 px, in light and dark.
 4. Run the app's tests and the kit's tests.
