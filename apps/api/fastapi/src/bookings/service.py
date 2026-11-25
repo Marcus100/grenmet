@@ -276,8 +276,9 @@ async def create_service(
     session: AsyncSession, *, organisation_id: str, payload: BookingServiceCreate
 ) -> Service:
     values = payload.model_dump()
+    values["also_add_on"] = values["also_add_on"] and not values["is_add_on"]
     values["add_on_categories"] = _add_on_restriction(
-        values["is_add_on"], values["add_on_categories"]
+        values["is_add_on"] or values["also_add_on"], values["add_on_categories"]
     )
     service = Service(organisation_id=organisation_id, **values)
     session.add(service)
@@ -288,7 +289,8 @@ async def create_service(
 def _add_on_restriction(
     is_add_on: bool, categories: Sequence[str] | None
 ) -> list[str] | None:
-    """Categories restrict add-ons only: a main service keeps none."""
+    """Categories restrict add-ons (add-on only, or also offered) only: any other
+    main service keeps none."""
     return add_ons.normalised_categories(categories) if is_add_on else None
 
 
@@ -315,8 +317,10 @@ async def update_service(
         setattr(service, key, value)
     if service.deposit_minor > service.price_minor:
         raise BookingValidationError("The deposit cannot exceed the price")
+    if service.is_add_on:
+        service.also_add_on = False
     service.add_on_categories = _add_on_restriction(
-        service.is_add_on, service.add_on_categories
+        service.is_add_on or service.also_add_on, service.add_on_categories
     )
     await session.flush()
     return service
@@ -342,11 +346,13 @@ async def resolve_add_ons(
         raise BookingValidationError(
             f"A booking takes at most {add_ons.MAX_PER_BOOKING} add-ons"
         )
+    if main.id in add_on_ids:
+        raise BookingValidationError("A service cannot be its own add-on")
     rows = await session.scalars(
         select(Service).where(
             Service.id.in_(add_on_ids),
             Service.organisation_id == profile.organisation_id,
-            Service.is_add_on.is_(True),
+            or_(Service.is_add_on.is_(True), Service.also_add_on.is_(True)),
             Service.active.is_(True),
         )
     )
@@ -899,12 +905,13 @@ def _public_add_ons(
         return []
     offered = []
     for add_on_service in all_services:
-        if not add_on_service.is_add_on:
+        if not (add_on_service.is_add_on or add_on_service.also_add_on):
             continue
         service_ids = [
             main.id
             for main in mains
-            if add_ons.offered_with(add_on_service.add_on_categories, main.category)
+            if main.id != add_on_service.id
+            and add_ons.offered_with(add_on_service.add_on_categories, main.category)
         ]
         if not service_ids:
             continue

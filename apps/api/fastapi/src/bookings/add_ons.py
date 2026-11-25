@@ -7,6 +7,10 @@ own buffers and its own deposit are not used. The deposit rule applies to the
 combined price (``deposit_payments``). Add-ons need no provider link: the
 provider who takes the main service takes them too.
 
+A main service flagged ``also_add_on`` is booked alone as a main service and can
+also be attached as an add-on (never to itself). ``is_add_on`` still means add-on
+only and clears ``also_add_on``.
+
 ``add_on_categories`` restricts an add-on to main services in those categories
 (compared exactly, as stored). Null or empty means any main service.
 """
