@@ -280,8 +280,9 @@ async def _ensure_enabled(
     app_key: str,
     source: EntitlementSource = EntitlementSource.MANUAL,
 ) -> None:
-    """Switch an entitlement on and give it ``source``, the same as the app it is
-    bundled with (never touches other keys)."""
+    """Switch a bundled entitlement on (never touches other keys). A row is created with
+    ``source``, or switched on with it when it was off. A bundled row that is already on
+    keeps its own source, so a separate grant never re-stamps it."""
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         session.add(
@@ -292,7 +293,7 @@ async def _ensure_enabled(
                 source=source.value,
             )
         )
-    else:
+    elif not row.enabled:
         row.enabled = True
         row.source = source.value
     await session.flush()

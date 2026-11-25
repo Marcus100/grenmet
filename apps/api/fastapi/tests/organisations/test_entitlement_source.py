@@ -85,3 +85,42 @@ async def test_a_new_organisation_has_no_creator(db_async: AsyncSession) -> None
     organisation = await db_async.get(PlatformOrganisation, org.id)
     assert organisation is not None
     assert organisation.created_by_user_id is None
+
+
+async def test_an_enabled_bundled_row_keeps_its_own_source(
+    db_async: AsyncSession,
+) -> None:
+    org_id = (await make_org(db_async, "Kept Source Ltd")).id
+    await service.set_app_enabled(
+        db_async,
+        organisation_id=org_id,
+        app_key="contacts",
+        enabled=True,
+        source=EntitlementSource.TRIAL,
+    )
+    await service.set_app_enabled(
+        db_async, organisation_id=org_id, app_key="bookings", enabled=True
+    )
+    await db_async.commit()
+
+    assert await _source(db_async, org_id, "bookings") == (True, "manual")
+    assert await _source(db_async, org_id, "contacts") == (True, "trial")
+
+
+async def test_a_switched_off_bundled_row_takes_the_new_source(
+    db_async: AsyncSession,
+) -> None:
+    org_id = (await make_org(db_async, "Off Then On Ltd")).id
+    await service.set_app_enabled(
+        db_async, organisation_id=org_id, app_key="contacts", enabled=False
+    )
+    await service.set_app_enabled(
+        db_async,
+        organisation_id=org_id,
+        app_key="bookings",
+        enabled=True,
+        source=EntitlementSource.TRIAL,
+    )
+    await db_async.commit()
+
+    assert await _source(db_async, org_id, "contacts") == (True, "trial")
