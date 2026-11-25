@@ -1,5 +1,6 @@
 """Content-minimising Sentry policy shared by HTTP and CAP workers."""
 
+import inspect
 import logging
 import os
 import re
@@ -33,7 +34,7 @@ SAFE_TEXT_LIMIT = 200
 
 
 def safe_error_text(text: str) -> str:
-    """Our own error message with anything that could be customer content masked.
+    """An error message with anything that could be customer content masked.
 
     Links, emails, long numbers, tokens and quoted text other than a code name
     become placeholders. Mirrors ``safeErrorText`` in
@@ -43,10 +44,11 @@ def safe_error_text(text: str) -> str:
     text = _EMAIL.sub("<email>", text)
     text = _TOKEN_TEXT.sub("<id>", text)
     text = _LONG_NUMBER.sub("<number>", text)
+    # Code names come in single quotes; double quotes hold data, always masked.
     text = _QUOTED_TEXT.sub(
         lambda m: (
             m.group(0)
-            if _IDENTIFIER.fullmatch(m.group(2))
+            if m.group(1) != '"' and _IDENTIFIER.fullmatch(m.group(2))
             else f"{m.group(1)}<text>{m.group(1)}"
         ),
         text,
@@ -54,18 +56,27 @@ def safe_error_text(text: str) -> str:
     return text[:SAFE_TEXT_LIMIT]
 
 
-def _own_error(hint: dict[str, Any]) -> bool:
-    """True when the event's exception is one of ours (an ``AppException``).
+def _fixed_message_error(hint: dict[str, Any]) -> bool:
+    """True when the raised exception is an ``AppException`` with a fixed message.
 
-    Our messages are fixed sentences written in this code base, so they are kept
-    after masking; any other exception's text may carry request data.
+    Only subclasses whose ``__init__`` takes no arguments qualify: their message
+    is a sentence written in this code base and cannot carry request data. A
+    message built with formatting (for example a provider's name) stays
+    redacted, because masking cannot recognise a name (ADR-0037).
     """
     from src.exceptions import AppException
 
     exc_info = hint.get("exc_info") if isinstance(hint, dict) else None
     if not isinstance(exc_info, tuple) or len(exc_info) < 2:
         return False
-    return isinstance(exc_info[1], AppException)
+    error = exc_info[1]
+    if not isinstance(error, AppException) or type(error) is AppException:
+        return False
+    try:
+        parameters = inspect.signature(type(error).__init__).parameters
+    except TypeError, ValueError:
+        return False
+    return list(parameters) == ["self"]
 
 
 def scrub_sentry_event(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any]:
@@ -95,7 +106,7 @@ def scrub_sentry_event(event: dict[str, Any], hint: dict[str, Any]) -> dict[str,
     elif had_logentry:
         event["message"] = "Log event (details redacted)"
     values = event.get("exception", {}).get("values", [])
-    own = _own_error(hint)
+    own = _fixed_message_error(hint)
     for index, exception in enumerate(values):
         if exception.get("value"):
             # Sentry lists chained exceptions oldest first; the raised one is last.

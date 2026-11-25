@@ -93,21 +93,38 @@ class SafeErrorTextTests(unittest.TestCase):
     def _event(self, value: str) -> dict:
         return {"exception": {"values": [{"type": "X", "value": value}]}}
 
-    def test_keeps_a_masked_message_for_our_own_errors(self):
+    def test_keeps_a_masked_message_for_fixed_message_errors(self):
         from src.exceptions import AppException
 
-        error = AppException(
-            "Booking for 'Jane Doe' at https://x.test/a?t=1 by jane@example.test "
-            "+1 473 555 0100 token a1b2c3d4e5f6a7b8c9d0e1f2 is not in 'pending'",
-            409,
-        )
+        class FixedError(AppException):
+            def __init__(self) -> None:
+                super().__init__(
+                    "Feed at https://x.test/a?t=1 for jane@example.test +1 473 555 0100 "
+                    "token a1b2c3d4e5f6a7b8c9d0e1f2 is not 'ready' ('Jane Doe')",
+                    503,
+                )
+
+        error = FixedError()
         result = scrub_sentry_event(
-            self._event(error.message), {"exc_info": (AppException, error, None)}
+            self._event(error.message), {"exc_info": (FixedError, error, None)}
         )
         self.assertEqual(
             result["exception"]["values"][0]["value"],
-            "Booking for '<text>' at <url> by <email> <number> token <id> is not in 'pending'",
+            "Feed at <url> for <email> <number> token <id> is not 'ready' ('<text>')",
         )
+
+    def test_formatted_app_errors_stay_redacted(self):
+        from src.bookings.exceptions import BookingValidationError
+        from src.exceptions import AppException
+
+        for error in (
+            AppException("Jane Doe is unavailable", 503),
+            BookingValidationError("Jane Doe does not offer Lashes"),
+        ):
+            result = scrub_sentry_event(
+                self._event(error.message), {"exc_info": (type(error), error, None)}
+            )
+            self.assertEqual(result["exception"]["values"][0]["value"], "[redacted]")
 
     def test_other_errors_stay_redacted(self):
         error = ValueError("Jane Doe")

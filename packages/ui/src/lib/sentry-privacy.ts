@@ -117,15 +117,21 @@ const IDENTIFIER = /^[A-Za-z_$][\w$.]{0,40}$/u;
  * links, emails, long numbers, tokens and quoted text other than a code name.
  */
 export function safeErrorText(text: string): string {
-  return text
-    .replace(URL_TEXT, "<url>")
-    .replace(EMAIL_TEXT, "<email>")
-    .replace(TOKEN_TEXT, "<id>")
-    .replace(LONG_NUMBER_TEXT, "<number>")
-    .replace(QUOTED_TEXT, (match, quote: string, inner: string) =>
-      IDENTIFIER.test(inner) ? match : `${quote}<text>${quote}`
-    )
-    .slice(0, SAFE_TEXT_LIMIT);
+  return (
+    text
+      .replace(URL_TEXT, "<url>")
+      .replace(EMAIL_TEXT, "<email>")
+      .replace(TOKEN_TEXT, "<id>")
+      .replace(LONG_NUMBER_TEXT, "<number>")
+      // Engines quote code names in single quotes ("reading 'name'"); double
+      // quotes hold data snippets (JSON.parse), so they are always masked.
+      .replace(QUOTED_TEXT, (match, quote: string, inner: string) =>
+        quote !== '"' && IDENTIFIER.test(inner)
+          ? match
+          : `${quote}<text>${quote}`
+      )
+      .slice(0, SAFE_TEXT_LIMIT)
+  );
 }
 
 /** Keep error types and stack locations, excluding customer content and identity. */

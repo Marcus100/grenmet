@@ -134,10 +134,14 @@ it("keeps a masked message for runtime error types only", () => {
             "Failed to fetch https://api.example.test/u/jane@example.test?t=1 for 'Jane Doe' +1 473 555 0100 a1b2c3d4e5f6a7b8c9d0e1f2",
         },
         { type: "Error", value: "Jane Doe could not book" },
+        {
+          type: "SyntaxError",
+          value: "Unexpected token 'J', \"Jane\" is not valid JSON",
+        },
       ],
     },
   });
-  const [kept, masked, appThrown] = result.exception.values;
+  const [kept, masked, appThrown, json] = result.exception.values;
   expect(kept?.value).toBe(
     "Cannot read properties of undefined (reading 'name')"
   );
@@ -145,5 +149,8 @@ it("keeps a masked message for runtime error types only", () => {
     "Failed to fetch <url> for '<text>' <number> <id>"
   );
   expect(appThrown?.value).toBe("[redacted]");
+  expect(json?.value).toBe(
+    "Unexpected token 'J', \"<text>\" is not valid JSON"
+  );
   expect(JSON.stringify(result)).not.toMatch(PERSONAL_TEXT);
 });
