@@ -1565,6 +1565,7 @@ export {
   bookingsGetAvailabilityStatus200Schema,
   bookingsGetAvailabilityStatus400Schema,
   bookingsGetAvailabilityStatus404Schema,
+  bookingsGetAvailabilityStatus409Schema,
   bookingsGetAvailabilityStatus422Schema,
 } from "./bookingsGetAvailabilitySchema.js";
 export {
@@ -1914,6 +1915,7 @@ export {
   bookingsRequestEmailCodeStatus200Schema,
   bookingsRequestEmailCodeStatus400Schema,
   bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus409Schema,
   bookingsRequestEmailCodeStatus422Schema,
   bookingsRequestEmailCodeStatus429Schema,
   bookingsRequestEmailCodeStatus503Schema,

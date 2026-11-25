@@ -16,6 +16,12 @@ import type { BookingPublicService } from "./BookingPublicService.js";
  * @type object
  */
 export type BookingStorefront = {
+  /**
+   * @description False while the business is paused (ADR-0066): show its `contact` and no booking form; availability and booking answer 409 `BUSINESS_PAUSED`.
+   * @default true
+   * @type boolean | undefined
+   */
+  accepting_bookings?: boolean;
   slug: string;
   display_name: string;
   timezone: string;

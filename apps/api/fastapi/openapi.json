@@ -14596,7 +14596,7 @@
           "bookings"
         ],
         "summary": "Get a business's booking page",
-        "description": "Active services and providers for a public booking page. Unknown and disabled pages both answer 404.",
+        "description": "Active services and providers for a public booking page. Unknown and disabled pages both answer 404. A paused business answers 200 with `accepting_bookings: false`, its contact details and nothing to book.",
         "operationId": "bookingsGetStorefront",
         "parameters": [
           {
@@ -14763,6 +14763,16 @@
           },
           "404": {
             "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -14950,6 +14960,16 @@
           },
           "404": {
             "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -80233,6 +80253,19 @@
           },
           "role": {
             "$ref": "#/components/schemas/MembershipRole"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At",
+            "description": "Set while the business is paused (ADR-0066)."
           }
         },
         "type": "object",
@@ -80736,6 +80769,19 @@
           "organisation_id": {
             "type": "string",
             "title": "Organisation Id"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At",
+            "description": "Set while the business is paused (ADR-0066): public booking is refused until its subscription is in order; Studio writes stay allowed in this slice."
           },
           "created_at": {
             "type": "string",
@@ -82814,6 +82860,12 @@
       },
       "BookingStorefront": {
         "properties": {
+          "accepting_bookings": {
+            "type": "boolean",
+            "title": "Accepting Bookings",
+            "description": "False while the business is paused (ADR-0066): show its `contact` and no booking form; availability and booking answer 409 `BUSINESS_PAUSED`.",
+            "default": true
+          },
           "slug": {
             "type": "string",
             "title": "Slug"

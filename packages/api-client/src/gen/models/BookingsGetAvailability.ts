@@ -49,6 +49,12 @@ export type BookingsGetAvailabilityStatus400 = ApiError;
 export type BookingsGetAvailabilityStatus404 = ApiError;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetAvailabilityStatus409 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -65,6 +71,7 @@ export type BookingsGetAvailabilityResponses = {
   "200": BookingsGetAvailabilityStatus200;
   "400": BookingsGetAvailabilityStatus400;
   "404": BookingsGetAvailabilityStatus404;
+  "409": BookingsGetAvailabilityStatus409;
   "422": BookingsGetAvailabilityStatus422;
 };
 

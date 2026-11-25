@@ -12,6 +12,10 @@ export const bookingMyOrganisationSchema = z
     name: z.string(),
     slug: z.string(),
     role: membershipRoleSchema,
+    paused_at: z
+      .union([z.iso.datetime(), z.null()])
+      .optional()
+      .describe("Set while the business is paused (ADR-0066)."),
   })
   .describe(
     "An organisation the caller can open in the studio, with their role in it."

@@ -44,3 +44,14 @@ class SelfSignupDisabledError(AppException):
 
     def __init__(self) -> None:
         super().__init__("Not Found", status.HTTP_404_NOT_FOUND)
+
+
+class BusinessPausedError(AppException):
+    """409 on public booking routes while the business is paused (ADR-0066 item 6)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This business is not taking online bookings right now",
+            status.HTTP_409_CONFLICT,
+        )
+        self.extra["code"] = "BUSINESS_PAUSED"

@@ -529,6 +529,17 @@ def _move(subscription: AppSubscription, target: AppSubscriptionStatus) -> None:
         )
 
 
+async def _re_evaluate_pause(
+    session: AsyncSession, subscription: AppSubscription
+) -> None:
+    """A status change can pause or resume a Bookings business (ADR-0066 item 6)."""
+    if subscription.app_key != "bookings":
+        return
+    from src.bookings import paused  # noqa: PLC0415  (bookings imports billing)
+
+    await paused.evaluate_organisation(session, subscription.organisation_id)
+
+
 async def _checkout_completed(session: AsyncSession, obj: Mapping[str, Any]) -> str:
     """Link the Stripe subscription and customer to our row. Status comes from the
     subscription events, so this does not move ``last_event_at`` (Stripe may send
@@ -604,6 +615,7 @@ async def _subscription_event(
     subscription.cancel_at_period_end = bool(obj.get("cancel_at_period_end"))
     subscription.trial_end = _optional_time(obj.get("trial_end"))
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 
@@ -620,6 +632,7 @@ async def _invoice_payment_failed(
         return "ignored"
     _move(subscription, _PAST_DUE)
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 

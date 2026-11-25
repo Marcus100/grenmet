@@ -1386,6 +1386,17 @@ ended more than 48 hours ago become `completed` through the hourly job
 `complete_finished_bookings`, recorded as the system's own move: no reward, email or
 webhook (a completion the business marks by hand still earns rewards).
 
+Paused businesses (ADR-0066 slice 4a, switch `BOOKINGS_ACCESS_FOLLOWS_SUBSCRIPTION`, off by
+default): `bookings.profile.paused_at` is set by the daily job `evaluate_paused_businesses`
+and the app-subscription webhook for a `trial` or `subscription` grant with no trial, no
+active or past-due subscription and the 7-day grace used up; `manual` grants never pause. While
+paused, `GET /bookings/public/{slug}` answers 200 with `accepting_bookings: false`, the
+`contact` and no services; `availability`, `email-code` and public `bookings` answer 409
+"This business is not taking online bookings right now" with `code: BUSINESS_PAUSED`; manage,
+cancel, reschedule and `.ics` by token, reminders and the calendar feed are unchanged; the
+home listing hides it. `GET /bookings/me/organisations` and the profile and settings reads
+carry `paused_at`. Studio writes are not refused yet (slice 4b).
+
 Deposits: when a service has a deposit (its own, or the business `deposit_mode` rule
 when the service has none) and the organisation holds the `payments`
 entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in

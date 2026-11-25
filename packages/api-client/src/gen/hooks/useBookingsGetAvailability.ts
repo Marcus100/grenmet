@@ -17,6 +17,7 @@ import type {
   BookingsGetAvailabilityStatus200,
   BookingsGetAvailabilityStatus400,
   BookingsGetAvailabilityStatus404,
+  BookingsGetAvailabilityStatus409,
   BookingsGetAvailabilityStatus422,
 } from "../models/BookingsGetAvailability.js";
 
@@ -45,6 +46,7 @@ export function bookingsGetAvailabilityQueryOptions(
     ResponseErrorConfig<
       | BookingsGetAvailabilityStatus400
       | BookingsGetAvailabilityStatus404
+      | BookingsGetAvailabilityStatus409
       | BookingsGetAvailabilityStatus422
     >,
     BookingsGetAvailabilityStatus200,
@@ -91,6 +93,7 @@ export function useBookingsGetAvailability<
         ResponseErrorConfig<
           | BookingsGetAvailabilityStatus400
           | BookingsGetAvailabilityStatus404
+          | BookingsGetAvailabilityStatus409
           | BookingsGetAvailabilityStatus422
         >,
         TData,
@@ -125,6 +128,7 @@ export function useBookingsGetAvailability<
     ResponseErrorConfig<
       | BookingsGetAvailabilityStatus400
       | BookingsGetAvailabilityStatus404
+      | BookingsGetAvailabilityStatus409
       | BookingsGetAvailabilityStatus422
     >
   > & { queryKey: TQueryKey };

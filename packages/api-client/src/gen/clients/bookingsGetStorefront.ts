@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsGetStorefront.js";
 
 /**
- * @description Active services and providers for a public booking page. Unknown and disabled pages both answer 404.
+ * @description Active services and providers for a public booking page. Unknown and disabled pages both answer 404. A paused business answers 200 with `accepting_bookings: false`, its contact details and nothing to book.
  * @summary Get a business's booking page
  * {@link /api/v1/bookings/public/:slug}
  */

@@ -39,6 +39,7 @@ from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
     BookingValidationError,
+    BusinessPausedError,
 )
 from .models import (
     ACTIVE_STATUSES,
@@ -756,6 +757,13 @@ async def get_public_profile(session: AsyncSession, slug: str) -> BookingProfile
     return profile
 
 
+def require_taking_bookings(profile: BookingProfile) -> None:
+    """409 while the business is paused (ADR-0066 item 6). Public availability, email
+    code and create call it; manage routes by token do not."""
+    if profile.paused_at is not None:
+        raise BusinessPausedError()
+
+
 async def require_bookings_entitlement(
     session: AsyncSession, profile: BookingProfile, *, what: str = "Booking page"
 ) -> None:
@@ -867,13 +875,22 @@ async def _public_cover_url(
 
 
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
-    all_services = await list_services(
-        session, profile.organisation_id, active_only=True
+    # Paused (ADR-0066): the page still answers with how to reach the business and
+    # nothing to book.
+    paused = profile.paused_at is not None
+    all_services = (
+        []
+        if paused
+        else await list_services(session, profile.organisation_id, active_only=True)
     )
     # Add-ons are never bookable alone: they leave the main list, and reach the
     # page only while the business has switched them on.
     services = [s for s in all_services if not s.is_add_on]
-    providers = await list_providers(session, profile.organisation_id, active_only=True)
+    providers = (
+        []
+        if paused
+        else await list_providers(session, profile.organisation_id, active_only=True)
+    )
     active_service_ids = {s.id for s in services}
     public_providers = [
         {
@@ -885,6 +902,7 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
     ]
     due = await deposit_payments.due_by_service(session, profile, services)
     return {
+        "accepting_bookings": not paused,
         "slug": profile.public_slug,
         "display_name": profile.display_name,
         "timezone": profile.timezone,
@@ -1006,6 +1024,7 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
         BookingProfile.listed.is_(True),
         BookingProfile.listing_approved_at.is_not(None),
         BookingProfile.enabled.is_(True),
+        BookingProfile.paused_at.is_(None),
         has_service,
         entitled,
         active_organisation,
@@ -1465,12 +1484,16 @@ async def my_choices(
 
 async def list_my_organisations(
     session: AsyncSession, user_id: uuid.UUID
-) -> list[tuple[PlatformOrganisation, str]]:
+) -> list[tuple[PlatformOrganisation, str, datetime | None]]:
     """Active organisations the user belongs to that hold the bookings entitlement,
-    with the user's role: ``(organisation, role)`` rows, filtered in SQL."""
+    with the user's role and the business's ``paused_at``: ``(organisation, role,
+    paused_at)`` rows, filtered in SQL."""
     rows = await session.execute(
-        select(PlatformOrganisation, Membership.role)
+        select(PlatformOrganisation, Membership.role, BookingProfile.paused_at)
         .join(Membership, Membership.organisation_id == PlatformOrganisation.id)
+        .outerjoin(
+            BookingProfile, BookingProfile.organisation_id == PlatformOrganisation.id
+        )
         .join(
             OrganisationApp,
             (OrganisationApp.organisation_id == PlatformOrganisation.id)
@@ -1484,4 +1507,4 @@ async def list_my_organisations(
         )
         .order_by(PlatformOrganisation.name, PlatformOrganisation.id)
     )
-    return [(o, role) for o, role in rows.all()]
+    return [(o, role, paused_at) for o, role, paused_at in rows.all()]
