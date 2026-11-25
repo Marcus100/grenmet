@@ -40,6 +40,13 @@ export const bookingStudioDetailSchema = z
       .describe(
         "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it."
       ),
+    returning_client: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer."
+      ),
     payment_kind: bookingPaymentKindSchema.describe(
       '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
     ),

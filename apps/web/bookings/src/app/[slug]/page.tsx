@@ -1,4 +1,5 @@
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
+import { PausedNotice } from "@barrelsgd/bookings-web/components/paused-notice";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
@@ -70,6 +71,9 @@ export default async function BusinessBookingPage({
   if (!storefront) {
     notFound();
   }
+  // While the business is paused the API sends no services: say so calmly and
+  // show its contact options instead of the form. Older payloads lack the field.
+  const accepting = storefront.accepting_bookings !== false;
   const { providers, services } = storefront;
   // Older cached payloads may lack these fields: both fall back to the shared
   // tokens and no logo. The accent is checked for contrast before it is used.
@@ -112,11 +116,13 @@ export default async function BusinessBookingPage({
         >
           {storefront.display_name}
         </h1>
-        <p className="text-muted-foreground">
-          Book an appointment online. Times are in{" "}
-          {timeZonePlace(storefront.timezone)} time.
-        </p>
-        {accountInvite && (
+        {accepting && (
+          <p className="text-muted-foreground">
+            Book an appointment online. Times are in{" "}
+            {timeZonePlace(storefront.timezone)} time.
+          </p>
+        )}
+        {accepting && accountInvite && (
           <p className="text-muted-foreground">
             Have a Barrels account?{" "}
             <a
@@ -128,8 +134,8 @@ export default async function BusinessBookingPage({
             to have your details filled in. You do not need one to book.
           </p>
         )}
-        <ContactStrip contact={storefront.contact} />
-        {services.length > 0 && (
+        {accepting && <ContactStrip contact={storefront.contact} />}
+        {accepting && services.length > 0 && (
           <p>
             <a className="btn btn-solid" href="#book-online">
               Book now
@@ -138,13 +144,20 @@ export default async function BusinessBookingPage({
         )}
       </header>
 
-      {services.length === 0 && (
+      {!accepting && (
+        <PausedNotice
+          businessName={storefront.display_name}
+          contact={storefront.contact}
+        />
+      )}
+
+      {accepting && services.length === 0 && (
         <p className="text-muted-foreground">
           Online booking is not open for this business yet.
         </p>
       )}
 
-      {providers.length > 0 && (
+      {accepting && providers.length > 0 && (
         <section aria-labelledby="providers-title" className="space-y-3">
           <h2 className="text-lg font-semibold" id="providers-title">
             Who you can book with
@@ -162,7 +175,7 @@ export default async function BusinessBookingPage({
         </section>
       )}
 
-      {services.length > 0 && (
+      {accepting && services.length > 0 && (
         <section
           aria-labelledby="book-title"
           className="scroll-mt-6 space-y-3"

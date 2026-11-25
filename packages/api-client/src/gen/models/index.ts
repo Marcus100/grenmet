@@ -1594,6 +1594,7 @@ export type {
   BookingsGetAvailabilityStatus200,
   BookingsGetAvailabilityStatus400,
   BookingsGetAvailabilityStatus404,
+  BookingsGetAvailabilityStatus409,
   BookingsGetAvailabilityStatus422,
 } from "./BookingsGetAvailability.js";
 export type {
@@ -1924,6 +1925,7 @@ export type {
   BookingsRequestEmailCodeStatus200,
   BookingsRequestEmailCodeStatus400,
   BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus409,
   BookingsRequestEmailCodeStatus422,
   BookingsRequestEmailCodeStatus429,
   BookingsRequestEmailCodeStatus503,

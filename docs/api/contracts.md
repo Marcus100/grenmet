@@ -1363,6 +1363,8 @@ the main service plus add-ons; the deposit rule applies to the combined price, a
 main service's own deposit wins (add-on deposits are ignored). `BookingPublicDetail`
 and the studio detail carry `add_ons` (name, duration, price as booked); the agenda
 items carry `add_on_names`. A main service can also be offered as an add-on (`also_add_on: true`, #1862): it stays bookable alone, is listed in `add_ons` too (never with itself) and can be sent in `add_on_ids` for main services in its `add_on_categories` (empty means any); `is_add_on` still means add-on only and clears `also_add_on`. Reschedules keep the add-ons. Mails and the ICS list them.
+
+New-client services (#1863): a service with `new_clients_only` is never refused, so no answer reveals a customer's history. Every public booking of it is a `pending` request staff confirm, even when the business auto-confirms (a deposit still starts `pending_payment`); the response and the "request received" mail are the same for everyone. When the customer is a returning client (their contact in that business, or one linked to the same account, has a confirmed or completed booking) the booking is flagged for staff: `returning_client` on `BookingStudioDetail` and `BookingAgendaItem`, plus a history note. The flag is never on a public payload or mail. Staff bookings are confirmed and unflagged. `new_clients_only` cannot be combined with `is_add_on` or `also_add_on` (422), and an explicit `null` for `active`, `is_add_on`, `also_add_on` or `new_clients_only` is 422 (leave it out to keep it). `first_visit_lead_days` (0 to 60) and `first_visit_categories` are kept only with `new_clients_only`, shown on the storefront service and `BookingPublicDetail`, and not enforced.
 `BookingPublicDetail.business_name` is the business's display name, the same one
 the storefront shows as `display_name`, so the manage page can name who to contact.
 
@@ -1385,6 +1387,17 @@ controls. Confirmed bookings that
 ended more than 48 hours ago become `completed` through the hourly job
 `complete_finished_bookings`, recorded as the system's own move: no reward, email or
 webhook (a completion the business marks by hand still earns rewards).
+
+Paused businesses (ADR-0066 slice 4a, switch `BOOKINGS_ACCESS_FOLLOWS_SUBSCRIPTION`, off by
+default): `bookings.profile.paused_at` is set by the daily job `evaluate_paused_businesses`
+and the app-subscription webhook for a `trial` or `subscription` grant with no trial, no
+active or past-due subscription and the 7-day grace used up; `manual` grants never pause. While
+paused, `GET /bookings/public/{slug}` answers 200 with `accepting_bookings: false`, the
+`contact` and no services; `availability`, `email-code` and public `bookings` answer 409
+"This business is not taking online bookings right now" with `code: BUSINESS_PAUSED`; manage,
+cancel, reschedule and `.ics` by token, reminders and the calendar feed are unchanged; the
+home listing hides it. `GET /bookings/me/organisations` and the profile and settings reads
+carry `paused_at`. Studio writes are not refused yet (slice 4b).
 
 Deposits: when a service has a deposit (its own, or the business `deposit_mode` rule
 when the service has none) and the organisation holds the `payments`

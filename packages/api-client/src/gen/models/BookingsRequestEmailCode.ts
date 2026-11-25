@@ -32,6 +32,12 @@ export type BookingsRequestEmailCodeStatus400 = ApiError;
 export type BookingsRequestEmailCodeStatus404 = ApiError;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsRequestEmailCodeStatus409 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -58,6 +64,7 @@ export type BookingsRequestEmailCodeResponses = {
   "200": BookingsRequestEmailCodeStatus200;
   "400": BookingsRequestEmailCodeStatus400;
   "404": BookingsRequestEmailCodeStatus404;
+  "409": BookingsRequestEmailCodeStatus409;
   "422": BookingsRequestEmailCodeStatus422;
   "429": BookingsRequestEmailCodeStatus429;
   "503": BookingsRequestEmailCodeStatus503;

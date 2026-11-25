@@ -137,9 +137,13 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
     rows = await service.list_my_organisations(session, user.id)
     return [
         BookingMyOrganisation(
-            id=o.id, name=o.name, slug=o.slug, role=MembershipRole(role)
+            id=o.id,
+            name=o.name,
+            slug=o.slug,
+            role=MembershipRole(role),
+            paused_at=paused_at,
         )
-        for o, role in rows
+        for o, role, paused_at in rows
     ]
 
 
@@ -1166,7 +1170,8 @@ async def list_public_businesses(
     summary="Get a business's booking page",
     description=(
         "Active services and providers for a public booking page. Unknown and "
-        "disabled pages both answer 404."
+        "disabled pages both answer 404. A paused business answers 200 with "
+        "`accepting_bookings: false`, its contact details and nothing to book."
     ),
     operation_id="bookingsGetStorefront",
     responses={**NOT_FOUND},
@@ -1190,7 +1195,7 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
         "those add-ons charges now, so the storefront can show the real amount."
     ),
     operation_id="bookingsGetAvailability",
-    responses={**BAD_REQUEST, **NOT_FOUND},
+    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
 )
 @limiter.limit("60/minute")
 async def get_availability(
@@ -1206,6 +1211,7 @@ async def get_availability(
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     slots = await service.available_slots(
         session,
         profile,
@@ -1292,6 +1298,7 @@ async def create_public_booking(
     idempotency_key: idempotency.RequiredIdempotencyKey,
 ) -> Any:
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     policy = await public.turnstile_policy(session, profile)
     if payload.website:
         # Honeypot: look successful, store nothing.
@@ -1340,6 +1347,7 @@ async def create_public_booking(
     responses={
         **BAD_REQUEST,
         **NOT_FOUND,
+        **CONFLICT,
         429: {
             "model": RateLimitedBody,
             "description": "Too many codes requested or attempts made",
@@ -1356,6 +1364,7 @@ async def request_email_code(
     payload: BookingEmailCodeRequest,
 ) -> Any:
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     await require_turnstile(
         request,
         payload.turnstile_token,

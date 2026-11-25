@@ -14,4 +14,8 @@ export type BookingMyOrganisation = {
   name: string;
   slug: string;
   role: MembershipRole;
+  /**
+   * @description Set while the business is paused (ADR-0066).
+   */
+  paused_at?: string | null;
 };

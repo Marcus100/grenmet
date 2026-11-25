@@ -33,6 +33,7 @@ AddOnCategories = Annotated[
     list[Annotated[str, Field(min_length=1, max_length=80)]] | None,
     Field(max_length=20),
 ]
+FirstVisitLeadDays = Annotated[int, Field(ge=0, le=60)] | None
 #: Path words of this domain's public routes that a business may not take as its
 #: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
 LISTING_PATH_WORDS = frozenset({"businesses"})
@@ -48,6 +49,9 @@ class BookingMyOrganisation(BaseModel):
     name: str
     slug: str
     role: MembershipRole
+    paused_at: UtcDateTime | None = Field(
+        default=None, description="Set while the business is paused (ADR-0066)."
+    )
 
 
 #: The starter template keys (``templates.STARTER_TEMPLATES``; a test keeps them equal).
@@ -513,6 +517,14 @@ class BookingProfileUpdate(BaseModel):
 class BookingProfilePublic(BookingProfileUpdate):
     id: uuid.UUID
     organisation_id: str
+    paused_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Set while the business is paused (ADR-0066): public booking is refused "
+            "until its subscription is in order; Studio writes stay allowed in this "
+            "slice."
+        ),
+    )
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
@@ -551,6 +563,28 @@ class BookingServiceCreate(BaseModel):
             "Ignored for any other main service."
         ),
     )
+    new_clients_only: bool = Field(
+        default=False,
+        description=(
+            "Every public booking of this service is a request the business "
+            "confirms (`pending`); one from a returning client (a confirmed or "
+            "completed booking with the business) is flagged for staff only. Cannot "
+            "be combined with `is_add_on` or `also_add_on`. Staff bookings are "
+            "never held or flagged."
+        ),
+    )
+    first_visit_lead_days: FirstVisitLeadDays = Field(
+        default=None,
+        description=(
+            "Only with `new_clients_only`: book at least this many days before the "
+            "first appointment in `first_visit_categories` (0 to 60). Shown to "
+            "customers; not enforced."
+        ),
+    )
+    first_visit_categories: AddOnCategories = Field(
+        default=None,
+        description="Categories the lead time refers to. Only with `new_clients_only`.",
+    )
 
     @model_validator(mode="after")
     def _deposit_within_price(self) -> Self:
@@ -573,6 +607,18 @@ class BookingServiceUpdate(BaseModel):
     is_add_on: bool | None = None
     also_add_on: bool | None = None
     add_on_categories: AddOnCategories = None
+    new_clients_only: bool | None = None
+    first_visit_lead_days: FirstVisitLeadDays = None
+    first_visit_categories: AddOnCategories = None
+
+    @field_validator("active", "is_add_on", "also_add_on", "new_clients_only")
+    @classmethod
+    def _not_null(cls, value: bool | None) -> bool | None:
+        # Leaving a flag out keeps it; an explicit null would write NULL to a
+        # NOT NULL column.
+        if value is None:
+            raise ValueError("Leave the field out to keep it; null is not allowed")
+        return value
 
 
 class BookingServicePublic(BaseModel):
@@ -590,6 +636,9 @@ class BookingServicePublic(BaseModel):
     is_add_on: bool = False
     also_add_on: bool = False
     add_on_categories: list[str] | None = None
+    new_clients_only: bool = False
+    first_visit_lead_days: int | None = None
+    first_visit_categories: list[str] | None = None
 
 
 # --- providers and hours ---------------------------------------------------------
@@ -774,6 +823,12 @@ class BookingAgendaItem(BaseModel):
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "Staff only: a returning client requested a new-clients-only service."
+        ),
+    )
     expires_at: UtcDateTime | None = Field(
         default=None,
         description=(
@@ -893,6 +948,14 @@ class BookingStudioDetail(BaseModel):
             "changes do not change it."
         ),
     )
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "A returning client (a confirmed or completed booking with the business) "
+            "requested a new-clients-only service. Staff only; never shown to the "
+            "customer."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -937,6 +1000,18 @@ class BookingPublicService(BaseModel):
             "More than 0 means the emailed-code step comes first."
         ),
     )
+    new_clients_only: bool = Field(
+        default=False,
+        description="First-time clients only: every booking of it is a request the business confirms.",
+    )
+    first_visit_lead_days: int | None = Field(
+        default=None,
+        description=(
+            "With `new_clients_only`: book at least this many days before the first "
+            "appointment in `first_visit_categories`. Informational."
+        ),
+    )
+    first_visit_categories: list[str] | None = None
 
 
 class BookingPublicAddOn(BaseModel):
@@ -991,6 +1066,13 @@ class BookingLateFee(BaseModel):
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
+    accepting_bookings: bool = Field(
+        default=True,
+        description=(
+            "False while the business is paused (ADR-0066): show its `contact` and no "
+            "booking form; availability and booking answer 409 `BUSINESS_PAUSED`."
+        ),
+    )
     slug: str
     display_name: str
     timezone: str
@@ -1368,6 +1450,17 @@ class BookingPublicDetail(BaseModel):
             "to an account."
         ),
     )
+    new_clients_only: bool = Field(
+        default=False, description="The service is for first-time clients only."
+    )
+    first_visit_lead_days: int | None = Field(
+        default=None,
+        description=(
+            "Only for a new-clients-only service: it is meant to be booked at least "
+            "this many days before the first appointment in `first_visit_categories`."
+        ),
+    )
+    first_visit_categories: list[str] | None = None
     hold_ends_at: UtcDateTime | None = Field(
         default=None,
         description=(

@@ -201,6 +201,10 @@ export type BookingProfilePublic = {
   id: string;
   organisation_id: string;
   /**
+   * @description Set while the business is paused (ADR-0066): public booking is refused until its subscription is in order; Studio writes stay allowed in this slice.
+   */
+  paused_at?: string | null;
+  /**
    * @description
    * Format: `date-time`
    * @type string

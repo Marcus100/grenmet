@@ -14596,7 +14596,7 @@
           "bookings"
         ],
         "summary": "Get a business's booking page",
-        "description": "Active services and providers for a public booking page. Unknown and disabled pages both answer 404.",
+        "description": "Active services and providers for a public booking page. Unknown and disabled pages both answer 404. A paused business answers 200 with `accepting_bookings: false`, its contact details and nothing to book.",
         "operationId": "bookingsGetStorefront",
         "parameters": [
           {
@@ -14763,6 +14763,16 @@
           },
           "404": {
             "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -14950,6 +14960,16 @@
           },
           "404": {
             "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -79227,6 +79247,12 @@
             "type": "array",
             "title": "Add On Names"
           },
+          "returning_client": {
+            "type": "boolean",
+            "title": "Returning Client",
+            "description": "Staff only: a returning client requested a new-clients-only service.",
+            "default": false
+          },
           "expires_at": {
             "anyOf": [
               {
@@ -80233,6 +80259,19 @@
           },
           "role": {
             "$ref": "#/components/schemas/MembershipRole"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At",
+            "description": "Set while the business is paused (ADR-0066)."
           }
         },
         "type": "object",
@@ -80736,6 +80775,19 @@
           "organisation_id": {
             "type": "string",
             "title": "Organisation Id"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At",
+            "description": "Set while the business is paused (ADR-0066): public booking is refused until its subscription is in order; Studio writes stay allowed in this slice."
           },
           "created_at": {
             "type": "string",
@@ -81882,6 +81934,38 @@
             "title": "Account Invite Url",
             "description": "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
           },
+          "new_clients_only": {
+            "type": "boolean",
+            "title": "New Clients Only",
+            "description": "The service is for first-time clients only.",
+            "default": false
+          },
+          "first_visit_lead_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Lead Days",
+            "description": "Only for a new-clients-only service: it is meant to be booked at least this many days before the first appointment in `first_visit_categories`."
+          },
+          "first_visit_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Categories"
+          },
           "hold_ends_at": {
             "anyOf": [
               {
@@ -82075,6 +82159,38 @@
             "title": "Due At Booking Minor",
             "description": "What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first.",
             "default": 0
+          },
+          "new_clients_only": {
+            "type": "boolean",
+            "title": "New Clients Only",
+            "description": "First-time clients only: every booking of it is a request the business confirms.",
+            "default": false
+          },
+          "first_visit_lead_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Lead Days",
+            "description": "With `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories`. Informational."
+          },
+          "first_visit_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Categories"
           }
         },
         "type": "object",
@@ -82196,6 +82312,44 @@
             ],
             "title": "Add On Categories",
             "description": "For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service."
+          },
+          "new_clients_only": {
+            "type": "boolean",
+            "title": "New Clients Only",
+            "description": "Every public booking of this service is a request the business confirms (`pending`); one from a returning client (a confirmed or completed booking with the business) is flagged for staff only. Cannot be combined with `is_add_on` or `also_add_on`. Staff bookings are never held or flagged.",
+            "default": false
+          },
+          "first_visit_lead_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Lead Days",
+            "description": "Only with `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories` (0 to 60). Shown to customers; not enforced."
+          },
+          "first_visit_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Categories",
+            "description": "Categories the lead time refers to. Only with `new_clients_only`."
           }
         },
         "type": "object",
@@ -82289,6 +82443,36 @@
               }
             ],
             "title": "Add On Categories"
+          },
+          "new_clients_only": {
+            "type": "boolean",
+            "title": "New Clients Only",
+            "default": false
+          },
+          "first_visit_lead_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Lead Days"
+          },
+          "first_visit_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Categories"
           }
         },
         "type": "object",
@@ -82473,6 +82657,47 @@
               }
             ],
             "title": "Add On Categories"
+          },
+          "new_clients_only": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Clients Only"
+          },
+          "first_visit_lead_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Lead Days"
+          },
+          "first_visit_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Visit Categories"
           }
         },
         "type": "object",
@@ -82814,6 +83039,12 @@
       },
       "BookingStorefront": {
         "properties": {
+          "accepting_bookings": {
+            "type": "boolean",
+            "title": "Accepting Bookings",
+            "description": "False while the business is paused (ADR-0066): show its `contact` and no booking form; availability and booking answer 409 `BUSINESS_PAUSED`.",
+            "default": true
+          },
           "slug": {
             "type": "string",
             "title": "Slug"
@@ -83199,6 +83430,12 @@
             "type": "boolean",
             "title": "Deposit Non Refundable",
             "description": "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.",
+            "default": false
+          },
+          "returning_client": {
+            "type": "boolean",
+            "title": "Returning Client",
+            "description": "A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer.",
             "default": false
           },
           "payment_kind": {

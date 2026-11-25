@@ -20,4 +20,7 @@ export const bookingServicePublicSchema = z.object({
   is_add_on: z.boolean().optional().default(false),
   also_add_on: z.boolean().optional().default(false),
   add_on_categories: z.union([z.array(z.string()), z.null()]).optional(),
+  new_clients_only: z.boolean().optional().default(false),
+  first_visit_lead_days: z.union([z.int(), z.null()]).optional(),
+  first_visit_categories: z.union([z.array(z.string()), z.null()]).optional(),
 });
