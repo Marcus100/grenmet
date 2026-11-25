@@ -27,7 +27,6 @@ from tests.bookings.test_public_bookings import (
 from tests.factories import make_user
 
 FLAG = "returning_client"
-NOTE = "Returning client booked a new-clients-only service"
 
 
 def _email() -> str:
@@ -120,6 +119,20 @@ async def test_a_returning_and_a_new_client_get_identical_public_answers(
     assert one["props"]["chip"] == two["props"]["chip"]
     assert one["props"]["title"] == two["props"]["title"]
 
+    # The calendar file the requester can download must not differ either: its
+    # SEQUENCE counts the booking's history events.
+    def sequence(ics: str) -> str:
+        return next(line for line in ics.splitlines() if line.startswith("SEQUENCE"))
+
+    new_ics = await async_client.get(
+        f"{API}/public/bookings/{new.json()['manage_token']}/ics"
+    )
+    old_ics = await async_client.get(
+        f"{API}/public/bookings/{returning.json()['manage_token']}/ics"
+    )
+    assert new_ics.status_code == old_ics.status_code == 200
+    assert sequence(new_ics.text) == sequence(old_ics.text) == "SEQUENCE:0"
+
 
 async def test_the_returning_client_is_flagged_for_staff_and_the_new_one_is_not(
     db_async: AsyncSession, async_client: httpx.AsyncClient
@@ -134,8 +147,8 @@ async def test_the_returning_client_is_flagged_for_staff_and_the_new_one_is_not(
     plain = await _studio_detail(async_client, studio, new)
     assert flagged[FLAG] is True
     assert plain[FLAG] is False
-    assert NOTE in [e["note"] for e in flagged["events"]]
-    assert NOTE not in [e["note"] for e in plain["events"]]
+    # Same history for both: the event count drives the public ICS SEQUENCE.
+    assert len(flagged["events"]) == len(plain["events"])
 
     agenda = await async_client.get(
         f"{API}/org/agenda",

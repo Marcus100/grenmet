@@ -958,15 +958,10 @@ async def _create_booking(
     if booking is None:
         raise BookingConflictError(SLOT_TAKEN)
 
+    # No extra history event for a returning client: the event count feeds the
+    # public ICS SEQUENCE, so one more row would tell the requester the email has
+    # booked here before. The flag column alone marks it for staff.
     record_event(session, booking, None, initial, note="Booked online")
-    if flag_returning:
-        record_event(
-            session,
-            booking,
-            initial,
-            initial,
-            note="Returning client booked a new-clients-only service",
-        )
     await emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
     )
