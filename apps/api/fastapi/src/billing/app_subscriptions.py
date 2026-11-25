@@ -93,6 +93,17 @@ def price_key(plan_key: str, currency: str) -> str:
     return f"{plan_key}:{currency}"
 
 
+def purchasable_prices() -> list[str]:
+    """``plan_key:currency`` keys a checkout can start for now: a Stripe key is
+    set and the plan has a price id. Says nothing about the key's mode; the
+    gateway still refuses a key that does not match it."""
+    if not billing_settings.STRIPE_SECRET_KEY:
+        return []
+    return sorted(
+        key for key, price_id in billing_settings.STRIPE_PRICES.items() if price_id
+    )
+
+
 def _view(subscription: AppSubscription, amount_minor: int) -> AppSubscriptionPublic:
     return AppSubscriptionPublic(
         id=subscription.id,

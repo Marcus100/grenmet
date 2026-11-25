@@ -65,7 +65,8 @@ def create_subscription_checkout(
         "Barrels app subscriptions of the organisation the request acts for, newest "
         "first, with each plan's amount in XCD minor units (ADR-0065). Organisation "
         "admins and owners only, signed in with an account or the bookings studio "
-        "session. Needs no app entitlement: the plan screen is how it is bought."
+        "session. Needs no app entitlement: the plan screen is how it is bought. "
+        "`purchasable` lists the plans a checkout can start for now."
     ),
     operation_id="billingListAppSubscriptions",
     tags=["billing"],
@@ -75,7 +76,9 @@ async def list_app_subscriptions(*, session: SessionDep, org: BillingOrgAdmin) -
     data = await app_subscriptions.list_subscriptions(
         session, organisation_id=org.organisation_id
     )
-    return AppSubscriptionListPublic(data=data)
+    return AppSubscriptionListPublic(
+        data=data, purchasable=app_subscriptions.purchasable_prices()
+    )
 
 
 @router.post(

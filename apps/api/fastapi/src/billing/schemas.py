@@ -51,6 +51,16 @@ class AppSubscriptionPublic(BaseModel):
 
 class AppSubscriptionListPublic(BaseModel):
     data: list[AppSubscriptionPublic]
+    #: Plans that can be bought now, as ``plan_key:currency``: Stripe is configured
+    #: and the plan has a Stripe price. Empty until billing is set up, so a plan
+    #: screen can say paid plans open soon instead of offering a checkout that fails.
+    purchasable: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Plans that can be bought now, as `plan_key:currency` (for example "
+            "`bookings-monthly:XCD`). Empty while billing is not set up."
+        ),
+    )
 
 
 class AppSubscriptionCheckoutPublic(BaseModel):

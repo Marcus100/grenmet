@@ -652,6 +652,30 @@ async def test_listing_shows_the_plan_amount_and_status(
     assert item["amount_minor"] == 3000
 
 
+@pytest.mark.usefixtures("plan_seed")
+async def test_listing_says_which_plans_can_be_bought_now(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    headers = headers_for(user, org.id)
+
+    monkeypatch.setattr(billing_settings, "STRIPE_SECRET_KEY", TEST_KEY)
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {f"{PLAN}:XCD": PRICE_ID})
+    ready = (await async_client.get(API, headers=headers)).json()
+    assert ready["purchasable"] == [f"{PLAN}:XCD"]
+
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {})
+    no_price = (await async_client.get(API, headers=headers)).json()
+    assert no_price["purchasable"] == []
+
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {f"{PLAN}:XCD": PRICE_ID})
+    monkeypatch.setattr(billing_settings, "STRIPE_SECRET_KEY", None)
+    no_key = (await async_client.get(API, headers=headers)).json()
+    assert no_key["purchasable"] == []
+
+
 # --- Stripe reports ----------------------------------------------------------------
 
 
