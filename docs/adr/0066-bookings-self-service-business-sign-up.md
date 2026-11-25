@@ -121,8 +121,9 @@ Option C.
 5. **Trial and subscription.**
    - **Trial.** A self-created business's trial starts at sign-up and ends at a
      stored `trial_ends_at` on the trial grant (`billing.app_subscription_trial`),
-     30 days later. A Checkout started during the trial passes only the whole days
-     left to Stripe, never a fresh 30, and no trial when less than a day is left. This amends ADR-0065's
+     30 days later. A Checkout started during the trial passes the days left to
+     Stripe, rounded up (amended 25 Nov 2026, so an owner never loses part of a
+     promised day), never a fresh 30, and no trial once it has ended. This amends ADR-0065's
      trial, which counts from Checkout, for self-created businesses only. Babydoll's
      seeded grant is unchanged.
    - **Where access came from.** `org.organisation_app` gains a `source` column:
