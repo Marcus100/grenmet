@@ -19,6 +19,9 @@ class BillingConfig(BaseSettings):
     STRIPE_PRICE_ID: str | None = None
     #: App subscription prices (ADR-0065): ``"<plan_key>:<currency>": "<Stripe price id>"``.
     STRIPE_PRICES: dict[str, str] = Field(default_factory=dict)
+    #: Live mode switch (ADR-0065 "Going live"). Off: test keys only and live
+    #: events refused. On: live keys only and live-mode events only. Owner-set.
+    STRIPE_LIVE_ENABLED: bool = False
     #: Fallback return URLs, used only when an organisation has no slug or the
     #: bookings app address is unset. App subscriptions return to the organisation's
     #: studio plan page instead (ADR-0065 amendment).
