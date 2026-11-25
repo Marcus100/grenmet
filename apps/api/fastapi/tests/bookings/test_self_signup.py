@@ -452,3 +452,19 @@ def test_a_template_is_a_fixed_list_with_no_deposit_or_policy() -> None:
             assert service.price_ec > 0 or template.key == "blank"
     assert STARTER_TEMPLATES["blank"].services == ()
     assert set(get_args(BookingSignupTemplate)) == set(STARTER_TEMPLATES)
+
+
+async def test_two_accounts_racing_with_one_name_get_different_addresses(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    _, first = await _member(db_async)
+    _, second = await _member(db_async)
+    results = await asyncio.gather(
+        _post(async_client, first, _body(name="Twin Nails")),
+        _post(async_client, second, _body(name="Twin Nails")),
+    )
+    assert [r.status_code for r in results] == [201, 201], [r.text for r in results]
+    slugs = {r.json()["public_slug"] for r in results}
+    assert slugs == {"twin-nails", "twin-nails-2"}
+    organisation_slugs = {r.json()["slug"] for r in results}
+    assert len(organisation_slugs) == 2

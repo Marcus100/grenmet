@@ -104,6 +104,7 @@ async def prepare_organisation(
     """Lock the account, then create this key's organisation unless it already exists.
     Flushes; the caller's transaction decides whether it is kept."""
     await grants.lock_user(session, user.id)
+    await lock_name(session, name)
     organisation_id = organisation_id_for(user.id, key)
     existing = await session.get(PlatformOrganisation, organisation_id)
     if existing is not None:
@@ -114,6 +115,23 @@ async def prepare_organisation(
         kind=OrganisationKind.BUSINESS,
         organisation_id=organisation_id,
         created_by_user_id=user.id,
+    )
+
+
+async def lock_name(session: AsyncSession, name: str) -> None:
+    """Serialise sign-ups whose names make the same address. Both slugs (the
+    organisation's and the booking page's) are chosen by a read and then inserted into
+    a unique column, so two accounts signing up as "Nail Bar" at once would both pick
+    ``nail-bar`` and the second would fail. Under this transaction-scoped lock the second
+    waits, then sees the first's row and takes ``nail-bar-2``. Taken after the account
+    lock, so the lock order is always account, then name."""
+    base = organisation_service.slugify(name)[:_MAX_SLUG_LENGTH].strip("-")
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtextextended(f"bookings-signup-name:{base}", 0)
+            )
+        )
     )
 
 

@@ -1,7 +1,7 @@
 """ADR-0066 item 5: a self-created business's trial ends at a stored time.
 
-A Checkout started during the trial passes only the whole days left to Stripe, none
-when less than a day is left. A grant without ``trial_ends_at`` (Babydoll's seed) keeps
+A Checkout started during the trial passes the days left to Stripe, rounded up so
+the owner never loses part of a promised day, and none once the trial has ended. A grant without ``trial_ends_at`` (Babydoll's seed) keeps
 its fixed ``trial_days``.
 """
 
@@ -35,7 +35,7 @@ async def plan_seed(db_async: AsyncSession) -> AsyncGenerator[None]:
     yield
 
 
-async def test_checkout_passes_only_the_whole_days_left_of_the_trial(
+async def test_checkout_passes_the_days_left_of_the_trial_rounded_up(
     db_async: AsyncSession,
 ) -> None:
     org = await make_org(db_async, "Trial Days Salon")
@@ -49,10 +49,10 @@ async def test_checkout_passes_only_the_whole_days_left_of_the_trial(
     days = await app_subscriptions._trial_days(
         db_async, organisation_id=org.id, plan_key=PLAN
     )
-    assert days == 10
+    assert days == 11
 
 
-async def test_under_a_day_left_means_no_trial(db_async: AsyncSession) -> None:
+async def test_under_a_day_left_still_gives_a_day(db_async: AsyncSession) -> None:
     org = await make_org(db_async, "Short Trial Salon")
     await app_subscriptions.grant_trial(
         db_async,
@@ -65,7 +65,7 @@ async def test_under_a_day_left_means_no_trial(db_async: AsyncSession) -> None:
         await app_subscriptions._trial_days(
             db_async, organisation_id=org.id, plan_key=PLAN
         )
-        is None
+        == 1
     )
 
 

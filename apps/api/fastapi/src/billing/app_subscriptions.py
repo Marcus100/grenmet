@@ -8,6 +8,7 @@ Service functions flush and never commit; the router commits.
 """
 
 import logging
+import math
 import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
@@ -283,10 +284,11 @@ async def _trial_days(
         return None
     if trial_ends_at is None:
         return int(trial_days)
-    # A self-created business's trial ends at a stored time (ADR-0066): pass only the
-    # whole days left, and no trial at all when less than a day is left.
-    whole_days = (trial_ends_at - datetime.now(UTC).replace(tzinfo=None)).days
-    return whole_days if whole_days >= 1 else None
+    # A self-created business's trial ends at a stored time (ADR-0066): pass the days
+    # left rounded up, so the owner never loses part of a day they were promised (at
+    # most a few hours extra), and no trial once the end has passed.
+    left = (trial_ends_at - datetime.now(UTC).replace(tzinfo=None)).total_seconds()
+    return math.ceil(left / 86_400) if left > 0 else None
 
 
 async def start_checkout(

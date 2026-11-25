@@ -47,11 +47,15 @@ async def deposit_paid(session: AsyncSession, message: outbox.OutboxMessage) -> 
     )
 
 
+class DeferredRefundFailed(Exception):
+    """A queued deposit refund failed this run; the outbox retries it."""
+
+
 @outbox.handler(deposit_payments.REFUND_TOPIC)
 async def deposit_refund(session: AsyncSession, message: outbox.OutboxMessage) -> None:
     """Refund a declined booking's deposit after the cancel committed (slice 2 follow-up
-    a). ``refund_deposit`` is idempotent per booking and intent and never raises for a
-    provider problem, so a repeat run does nothing new."""
+    a). ``refund_deposit`` is idempotent per booking and intent, so a repeat run does
+    nothing new; a refund it could not make is raised so the outbox retries it."""
     if message.organisation_id is None:
         logger.warning("deposit_refund message without an organisation; dropped")
         return
@@ -64,4 +68,10 @@ async def deposit_refund(session: AsyncSession, message: outbox.OutboxMessage) -
     if booking is None or booking.organisation_id != message.organisation_id:
         logger.warning("deposit_refund for an unknown booking; dropped")
         return
-    await deposit_payments.refund_deposit(session, booking, reason="Booking cancelled")
+    if not await deposit_payments.refund_deposit(
+        session, booking, reason="Booking cancelled"
+    ):
+        # Raising rolls back and lets the outbox retry with backoff (dead after
+        # ``outbox.MAX_ATTEMPTS``). Each run reconciles with the provider's refunds
+        # before sending, so a retry cannot pay twice.
+        raise DeferredRefundFailed(str(booking.id))

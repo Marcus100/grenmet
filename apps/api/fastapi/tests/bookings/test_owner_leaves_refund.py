@@ -89,3 +89,33 @@ async def test_the_last_owner_leaving_queues_the_deposit_refund(
     await outbox.drain(db_async, only_topics={deposit_payments.REFUND_TOPIC})
     assert len(provider_calls) == 1
     assert await _refunded(db_async, booking_id) == -DEPOSIT
+
+
+async def test_a_queued_refund_that_fails_stays_queued_for_a_retry(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    studio, booking_id = await _paid_booking(
+        db_async, async_client, requires_confirmation=True
+    )
+    owner = await _mark_self_created(db_async, studio)
+    await auth_service.delete_user(session=db_async, user=owner)
+    await db_async.commit()
+
+    async def provider_down(*_args: Any, **_kwargs: Any) -> bool:
+        return False
+
+    monkeypatch.setattr(deposit_payments, "refund_deposit", provider_down)
+    await outbox.drain(db_async, only_topics={deposit_payments.REFUND_TOPIC})
+
+    db_async.expire_all()
+    queued = await db_async.scalar(
+        select(Outbox).where(Outbox.topic == deposit_payments.REFUND_TOPIC)
+    )
+    assert queued is not None
+    assert queued.status == "pending"
+    assert queued.attempts == 1
+    assert queued.last_error == "DeferredRefundFailed"
+    assert queued.next_attempt_at is not None
+    assert await _refunded(db_async, booking_id) == 0
