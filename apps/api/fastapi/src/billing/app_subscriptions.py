@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
+from src.bookings import paused
 from src.bookings.config import bookings_settings
 
 from .app_subscription_transitions import move_app_subscription
@@ -529,6 +530,26 @@ def _move(subscription: AppSubscription, target: AppSubscriptionStatus) -> None:
         )
 
 
+async def _re_evaluate_pause(
+    session: AsyncSession, subscription: AppSubscription
+) -> None:
+    """A status change can pause or resume a Bookings business (ADR-0066 item 6).
+
+    Runs in its own savepoint and never fails the webhook: a bookings fault must
+    not stop the subscription update being saved (Stripe would retry it forever).
+    The daily ``evaluate_paused_businesses`` job repairs the pause state."""
+    if subscription.app_key != "bookings":
+        return
+    try:
+        async with session.begin_nested():
+            await paused.evaluate_organisation(session, subscription.organisation_id)
+    except Exception:
+        logger.exception(
+            "pause re-evaluation failed; the daily job will retry",
+            extra={"organisation_id": subscription.organisation_id},
+        )
+
+
 async def _checkout_completed(session: AsyncSession, obj: Mapping[str, Any]) -> str:
     """Link the Stripe subscription and customer to our row. Status comes from the
     subscription events, so this does not move ``last_event_at`` (Stripe may send
@@ -604,6 +625,7 @@ async def _subscription_event(
     subscription.cancel_at_period_end = bool(obj.get("cancel_at_period_end"))
     subscription.trial_end = _optional_time(obj.get("trial_end"))
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 
@@ -620,6 +642,7 @@ async def _invoice_payment_failed(
         return "ignored"
     _move(subscription, _PAST_DUE)
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 

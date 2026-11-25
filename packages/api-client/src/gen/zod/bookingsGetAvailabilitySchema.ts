@@ -34,6 +34,10 @@ export const bookingsGetAvailabilityStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const bookingsGetAvailabilityStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const bookingsGetAvailabilityStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -45,6 +49,7 @@ export const bookingsGetAvailabilityResponseSchema =
 export const bookingsGetAvailabilityErrorSchema = z.union([
   bookingsGetAvailabilityStatus400Schema,
   bookingsGetAvailabilityStatus404Schema,
+  bookingsGetAvailabilityStatus409Schema,
   bookingsGetAvailabilityStatus422Schema,
 ]);
 

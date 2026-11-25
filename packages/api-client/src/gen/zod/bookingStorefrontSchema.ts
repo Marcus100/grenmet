@@ -14,6 +14,13 @@ import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
 
 export const bookingStorefrontSchema = z
   .object({
+    accepting_bookings: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe(
+        "False while the business is paused (ADR-0066): show its `contact` and no booking form; availability and booking answer 409 `BUSINESS_PAUSED`."
+      ),
     slug: z.string(),
     display_name: z.string(),
     timezone: z.string(),

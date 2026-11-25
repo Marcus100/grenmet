@@ -234,6 +234,10 @@ class BookingProfile(Base):
     #: Set when a self sign-up's name is refused by the sender-name guard: the business
     #: exists, its mail falls back to the default sender, and staff review it (ADR-0066).
     sender_name_flagged_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: Paused (ADR-0066 item 6): set by ``paused.py`` while the subscription switch is on
+    #: and a trial or subscription business has no trial, no active or past-due
+    #: subscription and an expired grace. Public booking is refused; nothing is deleted.
+    paused_at: Mapped[datetime | None] = mapped_column(default=None)
     #: The provider named after the owner when a self-created business signs up; renamed
     #: "Staff" when that owner leaves. Null for every other business.
     owner_provider_id: Mapped[uuid.UUID | None] = mapped_column(

@@ -198,6 +198,12 @@ export const bookingProfilePublicSchema = z.object({
     ),
   id: z.uuid(),
   organisation_id: z.string(),
+  paused_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "Set while the business is paused (ADR-0066): public booking is refused until its subscription is in order; Studio writes stay allowed in this slice."
+    ),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });

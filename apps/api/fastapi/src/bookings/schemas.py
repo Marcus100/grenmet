@@ -49,6 +49,9 @@ class BookingMyOrganisation(BaseModel):
     name: str
     slug: str
     role: MembershipRole
+    paused_at: UtcDateTime | None = Field(
+        default=None, description="Set while the business is paused (ADR-0066)."
+    )
 
 
 #: The starter template keys (``templates.STARTER_TEMPLATES``; a test keeps them equal).
@@ -514,6 +517,14 @@ class BookingProfileUpdate(BaseModel):
 class BookingProfilePublic(BookingProfileUpdate):
     id: uuid.UUID
     organisation_id: str
+    paused_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Set while the business is paused (ADR-0066): public booking is refused "
+            "until its subscription is in order; Studio writes stay allowed in this "
+            "slice."
+        ),
+    )
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
@@ -1055,6 +1066,13 @@ class BookingLateFee(BaseModel):
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
+    accepting_bookings: bool = Field(
+        default=True,
+        description=(
+            "False while the business is paused (ADR-0066): show its `contact` and no "
+            "booking form; availability and booking answer 409 `BUSINESS_PAUSED`."
+        ),
+    )
     slug: str
     display_name: str
     timezone: str
