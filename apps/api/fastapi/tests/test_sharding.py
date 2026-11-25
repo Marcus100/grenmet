@@ -1,6 +1,16 @@
+from pathlib import Path
+
 import pytest
 
-from tests.sharding import assign_files, parse_shard, shard_of
+from tests.sharding import (
+    assign_files,
+    duration_key,
+    durations_from_junit,
+    load_durations,
+    parse_shard,
+    shard_of,
+    weigh_files,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -33,3 +43,59 @@ def test_assignment_is_balanced_and_deterministic() -> None:
 
 def test_single_shard_keeps_everything() -> None:
     assert shard_of(["a.py", "b.py", "a.py"], 1, 1) == {"a.py", "b.py"}
+
+
+def test_measured_seconds_outweigh_test_counts() -> None:
+    # One slow file with few tests must not share a shard with the other heavy one.
+    paths = ["tests/slow.py"] * 2 + ["tests/big.py"] * 50 + ["tests/small.py"] * 10
+    durations = {"tests/slow.py": 100.0, "tests/big.py": 90.0, "tests/small.py": 5.0}
+    first = shard_of(paths, 1, 2, durations)
+    second = shard_of(paths, 2, 2, durations)
+    assert first == {"tests/slow.py"}
+    assert second == {"tests/big.py", "tests/small.py"}
+
+
+def test_unmeasured_files_weigh_their_count_times_the_average() -> None:
+    counts = {"/ci/work/tests/known.py": 10, "/ci/work/tests/new.py": 20}
+    weights = weigh_files(counts, {"tests/known.py": 30.0})
+    assert weights == {"/ci/work/tests/known.py": 30.0, "/ci/work/tests/new.py": 60.0}
+    assert weigh_files({"a.py": 4}, {}) == {"a.py": 2.0}
+
+
+def test_duration_key_ignores_the_checkout_path() -> None:
+    assert duration_key("/home/x/apps/api/fastapi/tests/hr/test_a.py") == (
+        "tests/hr/test_a.py"
+    )
+    assert duration_key("a.py") == "a.py"
+
+
+def test_load_durations_tolerates_a_missing_or_bad_file(tmp_path: Path) -> None:
+    assert load_durations(tmp_path / "absent.json") == {}
+    bad = tmp_path / "bad.json"
+    bad.write_text("[1, 2]")
+    assert load_durations(bad) == {}
+    good = tmp_path / "good.json"
+    good.write_text('{"tests/a.py": 1.5, "tests/b.py": "x", "tests/c.py": -1}')
+    assert load_durations(good) == {"tests/a.py": 1.5}
+
+
+def test_durations_from_junit_sums_seconds_per_file(tmp_path: Path) -> None:
+    report = tmp_path / "report.xml"
+    report.write_text(
+        "<testsuites><testsuite>"
+        '<testcase classname="tests.hr.test_a.TestX" name="one" time="1.25"/>'
+        '<testcase classname="tests.hr.test_a" name="two" time="0.5"/>'
+        '<testcase classname="tests.test_b" name="three" time="2"/>'
+        '<testcase classname="other" name="skipped" time="9"/>'
+        "</testsuite></testsuites>"
+    )
+    assert durations_from_junit([report]) == {
+        "tests/hr/test_a.py": 1.8,
+        "tests/test_b.py": 2.0,
+    }
+
+
+def test_the_committed_durations_file_is_valid() -> None:
+    durations = load_durations()
+    assert durations, "run python -m tests.sharding <reports> to create it"
+    assert all(key.startswith("tests/") and key.endswith(".py") for key in durations)

@@ -280,3 +280,18 @@ approved synthetic event without introducing real user data.
 - [Testing Library principles](https://testing-library.com/docs/guiding-principles/)
 - [Vitest network mocking](https://vitest.dev/guide/mocking/requests)
 - [Playwright best practices](https://playwright.dev/docs/best-practices)
+
+## Flaky tests
+
+A test that fails at random blocks every agent's merge and invites re-run
+loops. Do not re-run until it passes. Instead:
+
+1. File an issue with the test's name, the run link and what you saw.
+2. Add one line to `apps/api/fastapi/tests/quarantine.txt`:
+   `tests/<path>.py::<test name> #<issue number>`.
+3. Fix the cause in its own PR and remove the line there.
+
+A quarantined test still runs and is reported, but its failure no longer fails
+the run. `tests/test_quarantine.py` refuses an entry without an issue number
+and a list longer than 10, so quarantine cannot become a place to park
+failures. A test that fails every time is a bug, not a flaky test: fix it.

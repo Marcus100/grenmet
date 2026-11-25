@@ -38,7 +38,8 @@ from tests.database_target import (
 
 configure_database(os.environ)
 
-from tests.sharding import parse_shard, shard_of
+from tests.quarantine import load_quarantine, quarantine_key
+from tests.sharding import load_durations, parse_shard, shard_of
 
 
 def _bootstrap_test_database() -> None:
@@ -507,7 +508,10 @@ class _ShardSelector:
         self, config: pytest.Config, items: list[pytest.Item]
     ) -> None:
         mine = shard_of(
-            [item.path.as_posix() for item in items], self.index, self.total
+            [item.path.as_posix() for item in items],
+            self.index,
+            self.total,
+            load_durations(),
         )
         kept = [item for item in items if item.path.as_posix() in mine]
         dropped = [item for item in items if item.path.as_posix() not in mine]
@@ -541,6 +545,15 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             else "unit"
         )
         item.add_marker(marker)
+    # Tests that fail at random (tests/quarantine.txt): still run and reported,
+    # but a failure does not fail the run until the linked issue is fixed.
+    quarantined = load_quarantine()
+    for item in items:
+        issue = quarantined.get(quarantine_key(item.nodeid))
+        if issue is not None:
+            item.add_marker(
+                pytest.mark.xfail(strict=False, reason=f"quarantined, issue #{issue}")
+            )
 
 
 @pytest.fixture(autouse=True)
