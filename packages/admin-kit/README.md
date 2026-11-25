@@ -1,6 +1,6 @@
 # @barrelsgd/admin-kit
 
-The shared admin dashboard shell and page blocks (ADR-0068, `docs/design/admin-kit.md`). One layout for every admin; each app brings its own colours.
+The shared admin dashboard shell and page blocks (ADR-0068, `docs/web/admin-kit.md`). One layout for every admin; each app brings its own colours.
 
 ## Use it
 
@@ -76,7 +76,7 @@ import { DataTable } from "@barrelsgd/admin-kit/components/data-table";
 
 ## Rules (read before changing the kit)
 
-The standard is `docs/design/admin-kit.md` (ADR-0068). Layout comes from the GMS staff portal; colour comes from each app.
+The standard is `docs/web/admin-kit.md` (ADR-0068). Layout comes from the GMS staff portal; colour comes from each app.
 
 - The kit draws, the app decides: no API calls, no session reading, no permission checks, no `process.env`, no brand colours (semantic tokens only: no `--gm-*`, no hard-coded colours), never a GAA or Barrels mark. Apps pass `brand`, `navigation` (already filtered by role, `filterNavigation`), `user` and the optional slots.
 - Pass icons as elements (`<House />`), not components, so a Server Component can hand the navigation to the shell. Functions (`isActive`) cannot cross that boundary: use `activeMatch` unless the config lives in a client module.
