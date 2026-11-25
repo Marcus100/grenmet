@@ -2,7 +2,8 @@
 
 Client website for Babydoll Beauty Bar (lashes, brows and skin, St. George's,
 Grenada), built by Barrels Grenada. Next.js App Router, fully static, hosted on
-Cloudflare Pages at `https://babydoll.barrels.gd` (since the cutover of 15 to 16 Nov 2026).
+Cloudflare Pages at `https://babydollbeautybar.com`, the client's domain (since 25 Nov 2026),
+and `https://babydoll.barrels.gd` (previews; since the cutover of 15 to 16 Nov 2026).
 
 ```bash
 pnpm dev:web:babydoll                      # http://localhost:3014 (host only)
@@ -19,7 +20,8 @@ site has no backend.
 - Cloudflare Pages: build command and output directory are in
   `docs/operations/vercel-exit-plan.md`; headers and redirects come from
   `public/_headers` and `public/_redirects`. Node 24.
-- Domain: `babydoll.barrels.gd`, an explicit DNS record so it does not fall
+- Domains: `babydollbeautybar.com` (its own Cloudflare zone, the official address in
+  `SITE_URL`) and `babydoll.barrels.gd`, an explicit DNS record so it does not fall
   through the DigitalOcean wildcard.
 - No environment variables are needed.
 - The old Vercel project (`babydoll-beauty-bar`, settings in `vercel.json`) is
