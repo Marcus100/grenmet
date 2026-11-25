@@ -1,7 +1,7 @@
 # Babydoll Beauty Bar
 
 Port **3014**. Package: `@barrelsgd/web-babydoll`. Lane spec: `docs/design/babydoll.md`.
-Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflare Pages since the cutover of 15 to 16 Nov 2026.
+Static site at `babydollbeautybar.com` (the client's domain, `SITE_URL`; DNS on Barrels' Cloudflare since 25 Nov 2026, email stays on Google) and `babydoll.barrels.gd` (same Pages project, kept for previews; canonical links point to the client's domain). Production only, no staging, on Cloudflare Pages since the cutover of 15 to 16 Nov 2026.
 
 ## Client boundary
 
@@ -11,8 +11,8 @@ Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflar
 - Keep the "Website by Barrels Grenada" footer credit. Never add Barrels or GMS
   branding elsewhere, and never use `--gm-*` tokens: this site uses the client's
   own brand tokens in `src/app/globals.css` (plain CSS, no Tailwind).
-- The client's later domain is `babydollbeautybar.com`; update `SITE_URL` in
-  `src/data/site.ts` when it moves.
+- `SITE_URL` in `src/data/site.ts` is `https://babydollbeautybar.com`; every page sets a
+  relative canonical, so both hostnames name the client's domain.
 
 ## Content rules
 

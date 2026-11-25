@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { NewTabNote } from "@/components/new-tab-note";
@@ -10,6 +11,12 @@ import {
   RATING,
 } from "@/data/site";
 import { siteBookingLink } from "@/lib/book-link";
+
+// The official address is the client's own domain (SITE_URL), also when the page is
+// opened on babydoll.barrels.gd.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   const booking = siteBookingLink();
