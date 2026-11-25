@@ -159,6 +159,48 @@ describe("AdminShellFrame", () => {
   });
 });
 
+describe("touch targets", () => {
+  it("grows to 44 px on coarse pointers and stays dense with a mouse", () => {
+    renderShell({ tabBar: false });
+    expect(screen.getByRole("link", { name: "Home" }).className).toContain(
+      "pointer-coarse:h-11"
+    );
+    expect(screen.getByRole("button", { name: RE_0 }).className).toContain(
+      "pointer-coarse:min-h-11"
+    );
+    expect(
+      screen.getByRole("button", { name: "Toggle Sidebar" }).className
+    ).toContain("pointer-coarse:size-11");
+  });
+});
+
+describe("detail pages", () => {
+  it("keeps the owning item current in the sidebar", () => {
+    navigationState.pathname = "/agenda/bookings/9";
+    renderShell({
+      tabBar: false,
+      navigation: [
+        {
+          id: "g",
+          items: [
+            {
+              activePrefixes: ["/agenda/bookings"],
+              id: "agenda",
+              title: "Agenda",
+              url: "/agenda",
+            },
+            { id: "people", title: "People", url: "/people" },
+          ],
+        },
+      ],
+    });
+    expect(screen.getByRole("link", { name: "Agenda" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+  });
+});
+
 describe("disabled items and clearance", () => {
   it("renders a disabled item without a link", () => {
     renderShell({

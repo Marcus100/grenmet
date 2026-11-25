@@ -28,7 +28,8 @@ blocks. It never redefines the shell. Decision: ADR-0068.
   - `@barrelsgd/gms` for GMS and GAA;
   - the kit has no palette of its own (ADR-0011).
 - **Phone first for business owners.** Studio is run from a phone. Every shell
-  part works at 360 px, and touch targets are at least 44 px.
+  part works at 360 px. Touch targets are at least 44 px on touch screens
+  (`pointer-coarse:`) and keep the dense 32 px with a mouse.
 - **Quiet and dense for staff.** Tables, written statuses and no decoration.
   Colour is never the only signal.
 - **Show empty sections.** An empty section says what to do next, with a link.
@@ -55,6 +56,9 @@ blocks. It never redefines the shell. Decision: ADR-0068.
   `activeMatch` (`"prefix"`, the default, or `"exact"`). Only the most specific
   matching link is current. An `isActive` function works only when the config
   lives in a client module.
+- `activePrefixes` (plain strings) lets an item own pages it does not link to:
+  Agenda stays current on `/studio/x/bookings/<id>`. A direct URL match on
+  another item still wins over a listed prefix.
 - Apps filter the navigation by role before passing it (`filterNavigation`),
   so the sidebar, search and tab bar never offer what the person cannot use.
 - The current page gets `aria-current="page"`.

@@ -133,7 +133,12 @@ export function LayoutControls({ fontOptions }: LayoutControlsProps) {
     <Popover>
       <PopoverTrigger
         render={
-          <Button aria-label="Layout preferences" size="icon" variant="ghost" />
+          <Button
+            aria-label="Layout preferences"
+            className="pointer-coarse:size-11"
+            size="icon"
+            variant="ghost"
+          />
         }
       >
         <Settings />

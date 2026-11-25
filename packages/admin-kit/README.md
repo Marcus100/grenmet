@@ -80,6 +80,8 @@ The standard is `docs/web/admin-kit.md` (ADR-0068). Layout comes from the GMS st
 
 - The kit draws, the app decides: no API calls, no session reading, no permission checks, no `process.env`, no brand colours (semantic tokens only: no `--gm-*`, no hard-coded colours), never a GAA or Barrels mark. Apps pass `brand`, `navigation` (already filtered by role, `filterNavigation`), `user` and the optional slots.
 - Pass icons as elements (`<House />`), not components, so a Server Component can hand the navigation to the shell. Functions (`isActive`) cannot cross that boundary: use `activeMatch` unless the config lives in a client module.
+- Detail pages: `activePrefixes: ["/studio/x/bookings"]` keeps an item current on pages it owns; a direct match on another item still wins.
+- Touch: sidebar rows, the sidebar toggle, search and the icon buttons are 44 px under `pointer-coarse:` and 32 px with a mouse.
 - Phone tab bar: flag up to four link items with `tab: true`; "More" opens the sidebar sheet.
 - Needs `PreferencesStoreProvider` from `@barrelsgd/theme` above it. Apps add `@source "../../node_modules/@barrelsgd/admin-kit/src";` to `globals.css` so Tailwind sees the kit's classes.
 - `DataTable` uses TanStack Table's legacy hook (`useLegacyTable`, as `gaa-admin` does) and carries `"use no memo"`.

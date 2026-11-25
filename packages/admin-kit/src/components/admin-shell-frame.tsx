@@ -124,7 +124,7 @@ export function AdminShellFrame({
           >
             <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
               <div className="flex min-w-0 items-center gap-1 lg:gap-2">
-                <SidebarTrigger className="-ml-1" />
+                <SidebarTrigger className="-ml-1 pointer-coarse:size-11" />
                 <Separator
                   className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                   orientation="vertical"

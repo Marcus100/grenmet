@@ -41,6 +41,13 @@ interface AdminNavMatch {
    */
   activeMatch?: "exact" | "prefix";
   /**
+   * Extra address prefixes that also make this item current, for pages the
+   * item owns but does not link to (Agenda owns `/studio/x/bookings/<id>`).
+   * Plain strings, so a server-built config can pass them. A direct match on
+   * another item's own URL still wins over a prefix listed here.
+   */
+  activePrefixes?: readonly string[];
+  /**
    * Overrides `activeMatch`. A function cannot cross from a Server Component
    * to the shell, so use it only when the config lives in a client module.
    */
@@ -95,6 +102,9 @@ function isExternal(url: string): boolean {
   return SCHEME.test(url) || url.startsWith("//");
 }
 
+/** Direct URL matches outrank `activePrefixes` matches. */
+const DIRECT_MATCH = 1_000_000;
+
 /** Length of the match between `url` and `pathname`, or -1 when none. */
 function matchLength(
   entry: AdminNavMatch & { url: string },
@@ -105,13 +115,25 @@ function matchLength(
   }
   const base = stripQuery(entry.url);
   if (pathname === base) {
-    return base.length;
+    return DIRECT_MATCH + base.length;
   }
   const prefix = (entry.activeMatch ?? "prefix") === "prefix";
   if (prefix && base !== "/" && pathname.startsWith(`${base}/`)) {
-    return base.length;
+    return DIRECT_MATCH + base.length;
   }
-  return -1;
+  // Listed prefixes rank below any direct match, longest first.
+  let best = -1;
+  for (const extra of entry.activePrefixes ?? []) {
+    const root = extra.endsWith("/") ? extra.slice(0, -1) : extra;
+    if (
+      root !== "" &&
+      (pathname === root || pathname.startsWith(`${root}/`)) &&
+      root.length > best
+    ) {
+      best = root.length;
+    }
+  }
+  return best;
 }
 
 /**
