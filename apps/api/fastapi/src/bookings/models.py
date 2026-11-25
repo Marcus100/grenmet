@@ -49,6 +49,16 @@ class BookingPaymentMode(str, Enum):
     FULL_PRICE = "full_price"
 
 
+class BookingDepositCollection(str, Enum):
+    """Who collects the deposit. ``online``: Barrels does, through payments (today's
+    behaviour). ``business``: the customer pays the business by hand (PayPal, bank
+    transfer, cash), outside Barrels; the booking only shows the amount and the
+    business's instructions."""
+
+    ONLINE = "online"
+    BUSINESS = "business"
+
+
 class BookingDepositMode(str, Enum):
     """The business-wide deposit rule (owner request 23 Nov 2026), used for a
     service only when its own ``deposit_minor`` is 0.
@@ -132,6 +142,22 @@ class BookingProfile(Base):
         sa.CheckConstraint(
             "booking_policy IS NULL OR char_length(booking_policy) BETWEEN 1 AND 1000",
             name="booking_policy",
+        ),
+        sa.CheckConstraint(
+            f"deposit_collection IN ({_values(BookingDepositCollection)})",
+            name="deposit_collection",
+        ),
+        sa.CheckConstraint(
+            "deposit_instructions IS NULL"
+            " OR char_length(deposit_instructions) BETWEEN 1 AND 500",
+            name="deposit_instructions",
+        ),
+        sa.CheckConstraint(
+            "late_fee_minor IS NULL OR late_fee_minor > 0", name="late_fee"
+        ),
+        sa.CheckConstraint(
+            "late_grace_min IS NULL OR late_grace_min BETWEEN 0 AND 240",
+            name="late_grace",
         ),
         sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
@@ -246,6 +272,17 @@ class BookingProfile(Base):
     #: Plain-text booking policy (late fees and so on), shown before booking and in
     #: the confirmation. Never HTML: every surface renders it as text.
     booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
+    #: ``BookingDepositCollection``: ``online`` (default) or ``business`` (display only).
+    deposit_collection: Mapped[str] = mapped_column(
+        String(20),
+        default=BookingDepositCollection.ONLINE.value,
+        server_default=BookingDepositCollection.ONLINE.value,
+    )
+    #: Plain text: how to pay the deposit to the business. Never HTML.
+    deposit_instructions: Mapped[str | None] = mapped_column(String(500), default=None)
+    #: The late-arrival fee (minor units) and the minutes of grace before it applies.
+    late_fee_minor: Mapped[int | None] = mapped_column(default=None)
+    late_grace_min: Mapped[int | None] = mapped_column(default=None)
     #: Hours a booking request waits for the business to confirm it before it
     #: expires (1 to 168). Null: it expires only at its start time. A request whose
     #: start has passed always expires (``lifecycle.expire_stale_requests``).
@@ -483,6 +520,9 @@ class Booking(Base):
         sa.CheckConstraint(f"source IN ({_values(BookingSource)})", name="source"),
         sa.CheckConstraint("ends_at > starts_at", name="period"),
         sa.CheckConstraint(
+            "deposit_to_business_minor >= 0", name="deposit_to_business"
+        ),
+        sa.CheckConstraint(
             "blocked_from <= starts_at AND blocked_until >= ends_at", name="blocked"
         ),
         sa.UniqueConstraint(
@@ -516,6 +556,11 @@ class Booking(Base):
     source: Mapped[str] = mapped_column(String(20), default=BookingSource.ONLINE.value)
     price_minor: Mapped[int] = mapped_column(default=0)
     deposit_minor: Mapped[int] = mapped_column(default=0)
+    #: Display only: the deposit the customer was told to pay the business by hand
+    #: (profile ``deposit_collection`` ``business``). Nothing moves through Barrels.
+    deposit_to_business_minor: Mapped[int] = mapped_column(
+        default=0, server_default="0"
+    )
     #: The deposit terms this booking was made on, copied from the profile at
     #: creation. A later profile change never changes a booking already made.
     deposit_non_refundable: Mapped[bool] = mapped_column(

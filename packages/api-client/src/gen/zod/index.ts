@@ -1223,6 +1223,7 @@ export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js"
 export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
 export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
 export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
+export { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
 export { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
@@ -1232,6 +1233,7 @@ export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js"
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
 export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
+export { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 export { bookingListingQueueSchema } from "./bookingListingQueueSchema.js";
 export { bookingListingReviewListSchema } from "./bookingListingReviewListSchema.js";
 export { bookingListingReviewSchema } from "./bookingListingReviewSchema.js";

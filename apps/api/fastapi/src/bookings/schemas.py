@@ -16,6 +16,7 @@ from . import contact
 from .availability import MAX_CLOSURE_DAYS
 from .models import (
     BookingBusinessType,
+    BookingDepositCollection,
     BookingDepositMode,
     BookingExceptionKind,
     BookingPaymentMode,
@@ -338,6 +339,41 @@ class BookingProfileUpdate(BaseModel):
             "the stored value is kept."
         ),
     )
+    deposit_collection: BookingDepositCollection = Field(
+        default=BookingDepositCollection.ONLINE,
+        description=(
+            "Who collects the deposit. `online` (the default): Barrels, through "
+            "payments, as before. `business`: the customer pays the business by hand "
+            "(PayPal, bank transfer, cash), outside Barrels. Booking then shows the "
+            "amount and `deposit_instructions`, takes no online payment and needs no "
+            "payments entitlement. The amount follows the usual deposit rules. Left "
+            "out, the stored value is kept."
+        ),
+    )
+    deposit_instructions: Annotated[str, Field(max_length=500)] | None = Field(
+        default=None,
+        description=(
+            "Plain text, up to 500 characters: how the customer pays the deposit to "
+            "the business (a payment link, bank details, cash). Shown on the booking "
+            "page, the confirmation and the request and confirmation emails when a "
+            "deposit is due to the business. Never HTML; line breaks are kept. Blank "
+            "clears it. Left out, the stored value is kept."
+        ),
+    )
+    late_fee_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
+        default=None,
+        description=(
+            "The fee in minor units for arriving late, paid at the appointment. Null "
+            "means no late fee. Left out, the stored value is kept."
+        ),
+    )
+    late_grace_min: Annotated[int, Field(ge=0, le=240)] | None = Field(
+        default=None,
+        description=(
+            "Minutes of lateness allowed before `late_fee_minor` applies (0 to 240). "
+            "Null counts as 0. Left out, the stored value is kept."
+        ),
+    )
     brand_color: str | None = Field(
         default=None,
         max_length=7,
@@ -418,7 +454,7 @@ class BookingProfileUpdate(BaseModel):
             return value.strip() or None
         return value
 
-    @field_validator("booking_policy", mode="before")
+    @field_validator("booking_policy", "deposit_instructions", mode="before")
     @classmethod
     def _policy_text(cls, value: object) -> object:
         return normalise_policy(value)
@@ -842,6 +878,13 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer was told to pay the business by hand, outside "
+            "Barrels (0 = none)."
+        ),
+    )
     deposit_non_refundable: bool = Field(
         default=False,
         description=(
@@ -879,6 +922,13 @@ class BookingPublicService(BaseModel):
     duration_min: int
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "With `deposit_collection` `business`: the deposit the customer pays the "
+            "business by hand for this service (0 = none). Always 0 otherwise."
+        ),
+    )
     due_at_booking_minor: int = Field(
         default=0,
         description=(
@@ -930,6 +980,14 @@ class BookingBusinessContact(BaseModel):
     email: str | None = Field(description="For a mailto: link.")
 
 
+class BookingLateFee(BaseModel):
+    """The business's late-arrival rule: the fee, paid at the appointment, applies
+    once the customer is more than `grace_min` minutes late."""
+
+    amount_minor: int
+    grace_min: int = Field(description="Minutes of lateness allowed first (0 = none).")
+
+
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
@@ -945,6 +1003,21 @@ class BookingStorefront(BaseModel):
     booking_policy: str | None = Field(
         default=None,
         description="The business's plain-text booking policy, or null when it has none.",
+    )
+    deposit_collection: BookingDepositCollection = Field(
+        default=BookingDepositCollection.ONLINE,
+        description=(
+            "`business`: the deposit is paid to the business by hand, outside "
+            "Barrels; show each service's `deposit_to_business_minor` and "
+            "`deposit_instructions`, and take no online payment for it."
+        ),
+    )
+    deposit_instructions: str | None = Field(
+        default=None,
+        description="Plain text: how to pay the deposit to the business, or null.",
+    )
+    late_fee: BookingLateFee | None = Field(
+        default=None, description="The late-arrival fee rule, or null when none."
     )
     contact: BookingBusinessContact
     brand_color: str | None = Field(
@@ -1259,6 +1332,23 @@ class BookingPublicDetail(BaseModel):
     booking_policy: str | None = Field(
         default=None,
         description="The business's plain-text booking policy, or null when it has none.",
+    )
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer pays the business by hand, outside Barrels "
+            "(0 = none). Set when the booking was made."
+        ),
+    )
+    deposit_instructions: str | None = Field(
+        default=None,
+        description=(
+            "How to pay that deposit (plain text); only set while "
+            "`deposit_to_business_minor` is above 0."
+        ),
+    )
+    late_fee: BookingLateFee | None = Field(
+        default=None, description="The late-arrival fee rule, or null when none."
     )
     can_cancel: bool = Field(
         description="True while the booking is active and before the cancellation cutoff."

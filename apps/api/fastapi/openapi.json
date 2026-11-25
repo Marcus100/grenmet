@@ -79612,6 +79612,15 @@
         ],
         "title": "BookingClosurePublic"
       },
+      "BookingDepositCollection": {
+        "type": "string",
+        "enum": [
+          "online",
+          "business"
+        ],
+        "title": "BookingDepositCollection",
+        "description": "Who collects the deposit. ``online``: Barrels does, through payments (today's\nbehaviour). ``business``: the customer pays the business by hand (PayPal, bank\ntransfer, cash), outside Barrels; the booking only shows the amount and the\nbusiness's instructions."
+      },
       "BookingDepositMode": {
         "type": "string",
         "enum": [
@@ -79874,6 +79883,26 @@
         ],
         "title": "BookingFeaturedService",
         "description": "A service shown on a home page card. Public fields only."
+      },
+      "BookingLateFee": {
+        "properties": {
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "grace_min": {
+            "type": "integer",
+            "title": "Grace Min",
+            "description": "Minutes of lateness allowed first (0 = none)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount_minor",
+          "grace_min"
+        ],
+        "title": "BookingLateFee",
+        "description": "The business's late-arrival rule: the fee, paid at the appointment, applies\nonce the customer is more than `grace_min` minutes late."
       },
       "BookingListingQueue": {
         "type": "string",
@@ -80558,6 +80587,52 @@
             "title": "Booking Policy",
             "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
+          "deposit_collection": {
+            "$ref": "#/components/schemas/BookingDepositCollection",
+            "description": "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.",
+            "default": "online"
+          },
+          "deposit_instructions": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Instructions",
+            "description": "Plain text, up to 500 characters: how the customer pays the deposit to the business (a payment link, bank details, cash). Shown on the booking page, the confirmation and the request and confirmation emails when a deposit is due to the business. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
+          "late_fee_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Late Fee Minor",
+            "description": "The fee in minor units for arriving late, paid at the appointment. Null means no late fee. Left out, the stored value is kept."
+          },
+          "late_grace_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Late Grace Min",
+            "description": "Minutes of lateness allowed before `late_fee_minor` applies (0 to 240). Null counts as 0. Left out, the stored value is kept."
+          },
           "brand_color": {
             "anyOf": [
               {
@@ -80925,6 +81000,52 @@
             ],
             "title": "Booking Policy",
             "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
+          "deposit_collection": {
+            "$ref": "#/components/schemas/BookingDepositCollection",
+            "description": "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.",
+            "default": "online"
+          },
+          "deposit_instructions": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Instructions",
+            "description": "Plain text, up to 500 characters: how the customer pays the deposit to the business (a payment link, bank details, cash). Shown on the booking page, the confirmation and the request and confirmation emails when a deposit is due to the business. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
+          "late_fee_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Late Fee Minor",
+            "description": "The fee in minor units for arriving late, paid at the appointment. Null means no late fee. Left out, the stored value is kept."
+          },
+          "late_grace_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Late Grace Min",
+            "description": "Minutes of lateness allowed before `late_fee_minor` applies (0 to 240). Null counts as 0. Left out, the stored value is kept."
           },
           "brand_color": {
             "anyOf": [
@@ -81700,6 +81821,35 @@
             "title": "Booking Policy",
             "description": "The business's plain-text booking policy, or null when it has none."
           },
+          "deposit_to_business_minor": {
+            "type": "integer",
+            "title": "Deposit To Business Minor",
+            "description": "The deposit the customer pays the business by hand, outside Barrels (0 = none). Set when the booking was made.",
+            "default": 0
+          },
+          "deposit_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Instructions",
+            "description": "How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0."
+          },
+          "late_fee": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingLateFee"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The late-arrival fee rule, or null when none."
+          },
           "can_cancel": {
             "type": "boolean",
             "title": "Can Cancel",
@@ -81913,6 +82063,12 @@
           "deposit_minor": {
             "type": "integer",
             "title": "Deposit Minor"
+          },
+          "deposit_to_business_minor": {
+            "type": "integer",
+            "title": "Deposit To Business Minor",
+            "description": "With `deposit_collection` `business`: the deposit the customer pays the business by hand for this service (0 = none). Always 0 otherwise.",
+            "default": 0
           },
           "due_at_booking_minor": {
             "type": "integer",
@@ -82696,6 +82852,34 @@
             "title": "Booking Policy",
             "description": "The business's plain-text booking policy, or null when it has none."
           },
+          "deposit_collection": {
+            "$ref": "#/components/schemas/BookingDepositCollection",
+            "description": "`business`: the deposit is paid to the business by hand, outside Barrels; show each service's `deposit_to_business_minor` and `deposit_instructions`, and take no online payment for it.",
+            "default": "online"
+          },
+          "deposit_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Instructions",
+            "description": "Plain text: how to pay the deposit to the business, or null."
+          },
+          "late_fee": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingLateFee"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The late-arrival fee rule, or null when none."
+          },
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact"
           },
@@ -83004,6 +83188,12 @@
           "deposit_minor": {
             "type": "integer",
             "title": "Deposit Minor"
+          },
+          "deposit_to_business_minor": {
+            "type": "integer",
+            "title": "Deposit To Business Minor",
+            "description": "The deposit the customer was told to pay the business by hand, outside Barrels (0 = none).",
+            "default": 0
           },
           "deposit_non_refundable": {
             "type": "boolean",

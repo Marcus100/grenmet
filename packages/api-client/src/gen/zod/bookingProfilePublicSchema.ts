@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
+import { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
 import { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
@@ -121,6 +122,30 @@ export const bookingProfilePublicSchema = z.object({
     .optional()
     .describe(
       "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+    ),
+  deposit_collection: bookingDepositCollectionSchema
+    .optional()
+    .default("online")
+    .describe(
+      "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept."
+    ),
+  deposit_instructions: z
+    .union([z.string().max(500), z.null()])
+    .optional()
+    .describe(
+      "Plain text, up to 500 characters: how the customer pays the deposit to the business (a payment link, bank details, cash). Shown on the booking page, the confirmation and the request and confirmation emails when a deposit is due to the business. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+    ),
+  late_fee_minor: z
+    .union([z.int().min(1).max(100000000), z.null()])
+    .optional()
+    .describe(
+      "The fee in minor units for arriving late, paid at the appointment. Null means no late fee. Left out, the stored value is kept."
+    ),
+  late_grace_min: z
+    .union([z.int().min(0).max(240), z.null()])
+    .optional()
+    .describe(
+      "Minutes of lateness allowed before `late_fee_minor` applies (0 to 240). Null counts as 0. Left out, the stored value is kept."
     ),
   brand_color: z
     .union([z.string().max(7), z.null()])

@@ -6,6 +6,8 @@
 import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
+import { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
+import { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 import { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
 import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
@@ -28,6 +30,20 @@ export const bookingStorefrontSchema = z
       .describe(
         "The business's plain-text booking policy, or null when it has none."
       ),
+    deposit_collection: bookingDepositCollectionSchema
+      .optional()
+      .default("online")
+      .describe(
+        "`business`: the deposit is paid to the business by hand, outside Barrels; show each service's `deposit_to_business_minor` and `deposit_instructions`, and take no online payment for it."
+      ),
+    deposit_instructions: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe("Plain text: how to pay the deposit to the business, or null."),
+    late_fee: z
+      .union([bookingLateFeeSchema, z.null()])
+      .optional()
+      .describe("The late-arrival fee rule, or null when none."),
     contact: bookingBusinessContactSchema.describe(
       "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
     ),

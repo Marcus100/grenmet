@@ -17,6 +17,12 @@ export type BookingPublicService = {
   price_minor: number;
   deposit_minor: number;
   /**
+   * @description With `deposit_collection` `business`: the deposit the customer pays the business by hand for this service (0 = none). Always 0 otherwise.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
    * @description What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first.
    * @default 0
    * @type integer | undefined
