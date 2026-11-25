@@ -21,11 +21,14 @@ import { keepTyped, SettingsResult } from "./settings-ui";
  */
 export function PaymentsForm({
   cardPaymentsAvailable,
+  onCollectionChange,
   orgSlug,
   profile,
 }: {
   /** The platform takes card payments online (Stripe test mode). */
   cardPaymentsAvailable: boolean;
+  /** Told when the radio changes, saved or not. */
+  onCollectionChange?: (value: BookingDepositCollection) => void;
   orgSlug: string;
   profile: BookingProfilePublic;
 }) {
@@ -48,7 +51,10 @@ export function PaymentsForm({
       <input name="section" type="hidden" value="payments" />
       <DepositCollection
         collection={collection}
-        onCollectionChange={setCollection}
+        onCollectionChange={(value) => {
+          setCollection(value);
+          onCollectionChange?.(value);
+        }}
         onTextChange={setInstructions}
         text={instructions}
       />

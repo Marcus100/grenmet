@@ -282,21 +282,19 @@ function AddOnFields({
       </p>
       <Label className="min-h-11 items-center gap-3">
         <input
-          aria-checked={alsoAddOn}
           aria-describedby={`${prefixId}-also-hint`}
           checked={alsoAddOn}
           className="accent-primary size-5"
           name="alsoAddOn"
           onChange={(event) => onAlsoChange(event.target.checked)}
-          role="switch"
           type="checkbox"
         />
         Also offer as an add-on
       </Label>
       <p className="text-muted-foreground text-sm" id={`${prefixId}-also-hint`}>
-        Customers can still book this service on its own, and can also tick it
-        as an extra on another service. Turning this on turns off &quot;This is
-        an add-on&quot;, because an add-on is never booked alone.
+        {addOnsEnabled
+          ? 'Customers can still book this service on its own, and can also tick it as an extra on another service. Turning this on turns off "This is an add-on", because an add-on is never booked alone.'
+          : 'Customers can still book this service on its own. They will not see it as an extra until you switch add-ons on under Services. Turning this on turns off "This is an add-on", because an add-on is never booked alone.'}
       </p>
       {offered ? (
         <fieldset className="space-y-1">

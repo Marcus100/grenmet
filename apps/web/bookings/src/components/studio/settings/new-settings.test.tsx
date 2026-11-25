@@ -13,6 +13,7 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
 import { BookingPolicyForm } from "./booking-policy-form";
 import { DepositRuleForm } from "./deposit-rule-form";
 import { PaymentsForm } from "./payments-form";
+import { PaymentsPanel } from "./payments-panel";
 import { ServiceForm } from "./service-form";
 import { PaymentsSummary } from "./settings-sections";
 
@@ -28,6 +29,9 @@ const COLLECTS_NOTHING = /Barrels collects nothing/u;
 const FEE = /^Late fee \(EC\$\)/u;
 const GRACE = "Grace period (minutes)";
 const PREVIEW = "late-fee-preview";
+const SAVE_NOTE = /Save the payment choice above to update this section/u;
+const ALSO_OFF_HINT =
+  /They will not see it as an extra until you switch add-ons on/u;
 const ONLINE_ONLY = /Deposits are collected online only/u;
 const TICK_NONE = /Tick none to offer it with every main service/u;
 const PAID_DIRECT = /Paid to you directly by the customer/u;
@@ -264,14 +268,16 @@ describe("service add-on switches", () => {
 
   it("starts with both off and no category picker", () => {
     renderService();
-    expect(screen.getByRole("switch", { name: ALSO_ADD_ON })).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: ALSO_ADD_ON })
+    ).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: IS_ADD_ON })).not.toBeChecked();
     expect(screen.queryByText("Offer it with these categories")).toBeNull();
   });
 
   it("also-add-on shows the category picker and says empty means every main service", () => {
     renderService({ also_add_on: true, add_on_categories: ["Lashes"] });
-    expect(screen.getByRole("switch", { name: ALSO_ADD_ON })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: ALSO_ADD_ON })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Lashes" })).toBeChecked();
     expect(screen.getByText(TICK_NONE)).toBeVisible();
   });
@@ -279,7 +285,7 @@ describe("service add-on switches", () => {
   it("turning one on turns the other off, both ways", () => {
     renderService({ also_add_on: true });
     const only = screen.getByRole("checkbox", { name: IS_ADD_ON });
-    const also = screen.getByRole("switch", { name: ALSO_ADD_ON });
+    const also = screen.getByRole("checkbox", { name: ALSO_ADD_ON });
     fireEvent.click(only);
     expect(only).toBeChecked();
     expect(also).not.toBeChecked();
@@ -294,7 +300,9 @@ describe("service add-on switches", () => {
   it("shows a stored service with both flags as add-on only", () => {
     renderService({ is_add_on: true, also_add_on: true });
     expect(screen.getByRole("checkbox", { name: IS_ADD_ON })).toBeChecked();
-    expect(screen.getByRole("switch", { name: ALSO_ADD_ON })).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: ALSO_ADD_ON })
+    ).not.toBeChecked();
   });
 
   it("says every main service when there are no categories to follow", () => {
@@ -307,7 +315,7 @@ describe("service add-on switches", () => {
         orgSlug="salon"
       />
     );
-    fireEvent.click(screen.getByRole("switch", { name: ALSO_ADD_ON }));
+    fireEvent.click(screen.getByRole("checkbox", { name: ALSO_ADD_ON }));
     expect(screen.getByText(EVERY_MAIN)).toBeVisible();
   });
 
@@ -388,5 +396,77 @@ describe("read-only payments summary", () => {
       />
     );
     expect(screen.getByText("None yet")).toBeVisible();
+  });
+});
+
+describe("deposit rule follows the saved choice", () => {
+  const example = { name: "Full set", priceMinor: 20_000, ownDepositMinor: 0 };
+
+  function renderPanel(overrides: Partial<BookingProfilePublic> = {}) {
+    render(
+      <PaymentsPanel
+        cardPaymentsAvailable
+        currency="XCD"
+        depositsAvailable={false}
+        example={example}
+        orgSlug="salon"
+        profile={profile(overrides)}
+      />
+    );
+  }
+
+  it("shows no note while the radio matches the saved choice", () => {
+    renderPanel();
+    expect(screen.queryByText(SAVE_NOTE)).toBeNull();
+  });
+
+  it("says to save when the radio differs, and the note goes when it matches again", () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole("radio", { name: BUSINESS }));
+    expect(screen.getByText(SAVE_NOTE)).toBeVisible();
+    // The rule below still follows the saved (online) choice.
+    expect(screen.getByText(ONLINE_ONLY)).toBeVisible();
+    fireEvent.click(screen.getByRole("radio", { name: ONLINE }));
+    expect(screen.queryByText(SAVE_NOTE)).toBeNull();
+  });
+
+  it("also notes the other direction from a saved paid-to-me choice", () => {
+    renderPanel({ deposit_collection: "business" });
+    fireEvent.click(screen.getByRole("radio", { name: ONLINE }));
+    expect(screen.getByText(SAVE_NOTE)).toBeVisible();
+  });
+});
+
+describe("also-add-on hint", () => {
+  it("says add-ons must be switched on when they are off", () => {
+    render(<ServiceForm currency="XCD" depositsAvailable orgSlug="salon" />);
+    expect(screen.getByText(ALSO_OFF_HINT)).toBeVisible();
+  });
+
+  it("does not say it when add-ons are on", () => {
+    render(
+      <ServiceForm
+        addOnsEnabled
+        currency="XCD"
+        depositsAvailable
+        orgSlug="salon"
+      />
+    );
+    expect(screen.queryByText(ALSO_OFF_HINT)).toBeNull();
+  });
+
+  it("is a plain checkbox like the add-on-only box, with the hint attached", () => {
+    render(
+      <ServiceForm
+        addOnsEnabled
+        currency="XCD"
+        depositsAvailable
+        orgSlug="salon"
+      />
+    );
+    const box = screen.getByRole("checkbox", { name: ALSO_ADD_ON });
+    expect(box).not.toHaveAttribute("role");
+    expect(box).not.toHaveAttribute("aria-checked");
+    expect(box.getAttribute("aria-describedby")).toContain("also-hint");
   });
 });

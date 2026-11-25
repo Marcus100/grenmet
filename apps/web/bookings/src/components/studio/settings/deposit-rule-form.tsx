@@ -196,6 +196,7 @@ function ruleProblem(
  * and Save button; the API keeps every other profile field as stored.
  */
 export function DepositRuleForm({
+  chosenCollection,
   collection = "online",
   currency,
   depositsAvailable,
@@ -203,6 +204,8 @@ export function DepositRuleForm({
   orgSlug,
   profile,
 }: {
+  /** The payment choice as it is on the page now, saved or not. */
+  chosenCollection?: BookingDepositCollection;
   /** Who collects the deposit (saved in the payment choice above). */
   collection?: BookingDepositCollection;
   currency: string;
@@ -271,6 +274,15 @@ export function DepositRuleForm({
           rule. To change a service&apos;s own deposit, edit that service under
           Services.
         </p>
+        {chosenCollection !== undefined && chosenCollection !== collection ? (
+          <p
+            className="border-border bg-muted rounded-md border p-3 text-base font-medium"
+            role="status"
+          >
+            Save the payment choice above to update this section. It still
+            follows the saved choice.
+          </p>
+        ) : null}
         <Label className="min-h-11 items-center gap-3">
           <input
             aria-checked={on}

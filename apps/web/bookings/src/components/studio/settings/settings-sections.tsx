@@ -26,9 +26,8 @@ import { AddOnsForm } from "@/components/studio/settings/add-ons-form";
 import { BookingPolicyForm } from "@/components/studio/settings/booking-policy-form";
 import { BookingRequestsForm } from "@/components/studio/settings/booking-requests-form";
 import { ContactForm } from "@/components/studio/settings/contact-form";
-import { DepositRuleForm } from "@/components/studio/settings/deposit-rule-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
-import { PaymentsForm } from "@/components/studio/settings/payments-form";
+import { PaymentsPanel } from "@/components/studio/settings/payments-panel";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
@@ -454,15 +453,8 @@ export function PaymentsSection({
         />
       ) : null}
       {profile !== null && editable ? (
-        <PaymentsForm
+        <PaymentsPanel
           cardPaymentsAvailable={cardPaymentsAvailable}
-          orgSlug={orgSlug}
-          profile={profile}
-        />
-      ) : null}
-      {profile !== null && editable ? (
-        <DepositRuleForm
-          collection={profile.deposit_collection ?? "online"}
           currency={currency}
           depositsAvailable={depositsAvailable}
           example={example}
