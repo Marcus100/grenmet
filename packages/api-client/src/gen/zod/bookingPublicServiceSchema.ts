@@ -27,4 +27,18 @@ export const bookingPublicServiceSchema = z.object({
     .describe(
       "What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first."
     ),
+  new_clients_only: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "First-time clients only: every booking of it is a request the business confirms."
+    ),
+  first_visit_lead_days: z
+    .union([z.int(), z.null()])
+    .optional()
+    .describe(
+      "With `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories`. Informational."
+    ),
+  first_visit_categories: z.union([z.array(z.string()), z.null()]).optional(),
 });

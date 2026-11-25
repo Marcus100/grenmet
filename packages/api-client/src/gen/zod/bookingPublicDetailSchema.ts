@@ -81,6 +81,18 @@ export const bookingPublicDetailSchema = z
       .describe(
         "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
       ),
+    new_clients_only: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("The service is for first-time clients only."),
+    first_visit_lead_days: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "Only for a new-clients-only service: it is meant to be booked at least this many days before the first appointment in `first_visit_categories`."
+      ),
+    first_visit_categories: z.union([z.array(z.string()), z.null()]).optional(),
     hold_ends_at: z
       .union([z.iso.datetime(), z.null()])
       .optional()

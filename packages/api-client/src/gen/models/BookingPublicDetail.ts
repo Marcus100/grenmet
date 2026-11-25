@@ -102,6 +102,17 @@ export type BookingPublicDetail = {
    */
   account_invite_url?: string | null;
   /**
+   * @description The service is for first-time clients only.
+   * @default false
+   * @type boolean | undefined
+   */
+  new_clients_only?: boolean;
+  /**
+   * @description Only for a new-clients-only service: it is meant to be booked at least this many days before the first appointment in `first_visit_categories`.
+   */
+  first_visit_lead_days?: number | null;
+  first_visit_categories?: string[] | null;
+  /**
    * @description While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise.
    */
   hold_ends_at?: string | null;
