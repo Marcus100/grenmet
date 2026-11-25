@@ -25,7 +25,7 @@ Three admin shells now exist, each written by hand:
 
 | App | Shell | Size | Notes |
 | --- | --- | --- | --- |
-| GMS portal (`gaa-admin`) | `components/layout/*`: app shell, sidebar, nav, user menu, search, layout controls, theme switcher, page header | about 1,250 lines | Tied to GMS: logo, CAP desk links, notification bell |
+| GMS portal (`gaa-admin`) | `components/layout/*`: app shell, sidebar, nav, user menu, search, layout controls, theme switcher, page header | about 1,350 lines (excluding tests) | Tied to GMS: logo, CAP desk links, notification bell |
 | Barrels admin (`admin`) | `components/console-sidebar.tsx` | 164 lines | A copy of the GMS layout from shared primitives (`docs/design/admin.md`) |
 | Bookings Studio (`bookings` `/studio`) | `components/studio/studio-shell.tsx`, `studio-nav.tsx`, `studio-ui.tsx` | about 490 lines | Like the GMS portal, plus a phone bottom tab bar (#1818) |
 
@@ -94,11 +94,11 @@ Option 3.
    GAA's marks never appear on Barrels products, and the reverse.
 3. **`@barrelsgd/admin-kit`** (`packages/admin-kit`) exports:
    - `AdminShell` with slots;
-   - navigation types (`AdminNavGroup`, items with an icon, badge, `requires`
-     hint and active matching);
+   - navigation types (`AdminNavGroup`, items with an icon element, a badge,
+     a `requires` hint and `activeMatch`) and `filterNavigation`;
    - `NavUser`, `AdminSearch`;
    - page blocks: `PageHeader`, `PageSection`, `StatTile`, `EmptyState`,
-     `DataTable` (TanStack Table), `ConfirmAction`, `FormSection`;
+     `DataTable` (TanStack Table), `ConfirmAction`, `FormSection`, `SaveButton`;
    - a phone bottom tab bar.
 
    It depends on `@barrelsgd/ui` (primitives) and `@barrelsgd/theme`
