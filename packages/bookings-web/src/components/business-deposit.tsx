@@ -13,27 +13,32 @@ const NEW_TAB_HINT = "(opens in a new tab)";
  * typed, in a new tab with no referrer and no search credit.
  */
 export function PlainText({ text }: { text: string }) {
+  const parts = splitLinks(text);
+  const hasLink = parts.some((part) => part.kind === "link");
   return (
-    <p className="deposit-instructions">
-      {splitLinks(text).map((part, index) =>
-        part.kind === "link" ? (
-          <a
-            className="deposit-link"
-            href={part.href}
-            // biome-ignore lint/suspicious/noArrayIndexKey: parts are static for one text
-            key={index}
-            rel="noopener noreferrer nofollow"
-            target="_blank"
-          >
-            {part.text}
-            <span className="contact-hint"> {NEW_TAB_HINT}</span>
-          </a>
-        ) : (
-          // biome-ignore lint/suspicious/noArrayIndexKey: parts are static for one text
-          <span key={index}>{part.text}</span>
-        )
-      )}
-    </p>
+    <>
+      <p className="deposit-instructions">
+        {parts.map((part) =>
+          part.kind === "link" ? (
+            <a
+              className="deposit-link"
+              href={part.href}
+              key={part.start}
+              rel="noopener noreferrer nofollow"
+              target="_blank"
+            >
+              {part.text}
+              <span className="contact-hint"> {NEW_TAB_HINT}</span>
+            </a>
+          ) : (
+            <span key={part.start}>{part.text}</span>
+          )
+        )}
+      </p>
+      {hasLink ? (
+        <p className="muted">Check the web address before you pay.</p>
+      ) : null}
+    </>
   );
 }
 

@@ -271,7 +271,7 @@ function BookingDone({
           <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
         ) : null}
         <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
-        {lateFee ? <p>{lateFee}</p> : null}
+        {lateFee ? <p className="book-late-fee">{lateFee}</p> : null}
         <dl className="summary">
           <div>
             <dt>Service</dt>
@@ -1563,6 +1563,7 @@ export function BookingFlow(props: BookingFlowProps) {
         businessName={storefront.display_name}
         contact={storefront.contact}
         Heading="h3"
+        swapped
       />
     );
   }

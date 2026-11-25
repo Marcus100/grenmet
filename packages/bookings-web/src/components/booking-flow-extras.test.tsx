@@ -48,6 +48,7 @@ const NO_INSTRUCTIONS = /has not added payment instructions/u;
 const PAUSED_TITLE = "Test Studio is not taking online bookings right now";
 const NEW_TAB = /\(opens in a new tab\)/u;
 const REQUEST_SENT = /sent as a request/u;
+const CHECK_ADDRESS = /Check the web address/u;
 const NO_PAYMENT = /No payment online/u;
 
 const slots = {
@@ -157,6 +158,7 @@ describe("deposit paid to the business", () => {
       "Send EC$53 to account 12345.\nUse your name."
     );
     expect(text.closest("p")?.className).toContain("deposit-instructions");
+    expect(screen.queryByText(CHECK_ADDRESS)).toBeNull();
   });
 
   it("says plainly when the business gave no instructions", async () => {
@@ -193,6 +195,9 @@ describe("deposit paid to the business", () => {
     expect(box?.querySelector("b, script")).toBeNull();
     expect(box?.textContent).toContain("<b>bold</b>");
     expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(
+      screen.getByText("Check the web address before you pay.")
+    ).toBeVisible();
   });
 
   it("asks for the deposit again, with the total unknown, when add-ons are ticked on a rule", async () => {
@@ -315,6 +320,21 @@ describe("new clients only", () => {
     expect(screen.queryByText(RX_10)).toBeNull();
   });
 
+  it("marks the confirm-step note phone-only so one page shows it once", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFlow(shop({}, newClients));
+    await user.click(screen.getByRole("radio", { name: HYBRID }));
+    const notes = container.querySelectorAll(".new-clients-note");
+    expect(notes).toHaveLength(2);
+    expect(notes[0]?.classList.contains("book-phone-only")).toBe(false);
+    expect(notes[1]?.classList.contains("book-phone-only")).toBe(true);
+  });
+
+  it("puts no stray space after an ordinary service name", () => {
+    renderFlow(shop());
+    expect(screen.getByText("Hybrid").textContent).toBe("Hybrid");
+  });
+
   it("keeps the note short without lead days or categories", async () => {
     const user = userEvent.setup();
     renderFlow(shop({}, { new_clients_only: true }));
@@ -357,6 +377,10 @@ describe("paused business", () => {
       await screen.findByRole("heading", { name: PAUSED_TITLE })
     ).toBeVisible();
     expect(screen.queryByRole("form")).toBeNull();
+    expect(screen.getByRole("heading", { name: PAUSED_TITLE })).toHaveFocus();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Your booking was not made and your details were not saved."
+    );
   });
 
   it("does the same when the emailed code is refused", async () => {

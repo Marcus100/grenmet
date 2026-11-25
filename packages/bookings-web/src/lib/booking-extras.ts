@@ -132,11 +132,33 @@ export function newClientsNote(
 
 /** The segments of a plain-text message: text, or an http(s) address safe to link. */
 export type TextPart =
-  | { kind: "text"; text: string }
-  | { kind: "link"; href: string; text: string };
+  | { kind: "text"; start: number; text: string }
+  | { kind: "link"; start: number; href: string; text: string };
 
 const URL_CANDIDATE = /https?:\/\/[^\s<>"'`]+/giu;
-const TRAILING_PUNCTUATION = /[.,;:!?)\]}]+$/u;
+const TRAILING_PUNCTUATION = /[.,;:!?]+$/u;
+const CLOSERS: Record<string, string> = { ")": "(", "]": "[", "}": "{" };
+
+/**
+ * Drops the punctuation that ends a sentence from the address, and a closing
+ * bracket only when the address has no opening one for it, so a link such as
+ * https://x.org/a_(b) keeps its ")" and "(see https://x.org)" loses it.
+ */
+function trimAddress(raw: string): string {
+  let text = raw;
+  while (true) {
+    const stripped = text.replace(TRAILING_PUNCTUATION, "");
+    const last = stripped.at(-1);
+    const opener = last ? CLOSERS[last] : undefined;
+    const unmatched =
+      opener !== undefined &&
+      stripped.split(last ?? "").length > stripped.split(opener).length;
+    if (stripped === text && !unmatched) {
+      return text;
+    }
+    text = unmatched ? stripped.slice(0, -1) : stripped;
+  }
+}
 
 /** The address when it is a plain http(s) URL with no embedded sign-in; else null. */
 function safeHref(candidate: string): string | null {
@@ -162,20 +184,20 @@ export function splitLinks(text: string): TextPart[] {
   let last = 0;
   for (const match of text.matchAll(URL_CANDIDATE)) {
     const raw = match[0];
-    const typed = raw.replace(TRAILING_PUNCTUATION, "");
+    const typed = trimAddress(raw);
     const href = safeHref(typed);
     if (!href) {
       continue;
     }
     const start = match.index;
     if (start > last) {
-      parts.push({ kind: "text", text: text.slice(last, start) });
+      parts.push({ kind: "text", start: last, text: text.slice(last, start) });
     }
-    parts.push({ kind: "link", href, text: typed });
+    parts.push({ kind: "link", start, href, text: typed });
     last = start + typed.length;
   }
   if (last < text.length) {
-    parts.push({ kind: "text", text: text.slice(last) });
+    parts.push({ kind: "text", start: last, text: text.slice(last) });
   }
   return parts;
 }

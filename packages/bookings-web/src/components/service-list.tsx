@@ -53,9 +53,12 @@ function ServiceOption({
       />
       <span className="service-text">
         <span className="service-name">
-          {item.name}{" "}
+          {item.name}
           {item.new_clients_only ? (
-            <span className="service-badge">New clients</span>
+            <>
+              {" "}
+              <span className="service-badge">New clients</span>
+            </>
           ) : null}
         </span>
         <span className="muted">

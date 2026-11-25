@@ -916,7 +916,7 @@ fieldset.notice {
     animation: book-fade-in 150ms linear both;
   }
 }
-/* The summary list keeps its gap under a rule line (late fee) inside a notice. */
-.notice > .summary {
-  margin-top: 0.75rem;
+/* The late-fee line sits above the summary list, which has no top margin of its own. */
+.book-late-fee {
+  margin-bottom: 0.75rem;
 }

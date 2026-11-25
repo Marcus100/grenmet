@@ -111,19 +111,20 @@ describe("newClientsNote", () => {
 describe("splitLinks", () => {
   it("keeps plain text whole", () => {
     expect(splitLinks("Send to account 123\nthen WhatsApp us")).toEqual([
-      { kind: "text", text: "Send to account 123\nthen WhatsApp us" },
+      { kind: "text", start: 0, text: "Send to account 123\nthen WhatsApp us" },
     ]);
   });
 
   it("links an http(s) address and keeps trailing punctuation as text", () => {
     expect(splitLinks("Pay at https://pay.example.com/babydoll.")).toEqual([
-      { kind: "text", text: "Pay at " },
+      { kind: "text", start: 0, text: "Pay at " },
       {
         kind: "link",
+        start: 7,
         href: "https://pay.example.com/babydoll",
         text: "https://pay.example.com/babydoll",
       },
-      { kind: "text", text: "." },
+      { kind: "text", start: 39, text: "." },
     ]);
   });
 
@@ -137,5 +138,24 @@ describe("splitLinks", () => {
     ]) {
       expect(splitLinks(text).every((part) => part.kind === "text")).toBe(true);
     }
+  });
+});
+
+describe("splitLinks brackets", () => {
+  const hrefs = (text: string) =>
+    splitLinks(text).flatMap((part) =>
+      part.kind === "link" ? [part.text] : []
+    );
+
+  it("keeps a balanced closing bracket in the address", () => {
+    expect(hrefs("Pay at https://x.org/a_(b) today")).toEqual([
+      "https://x.org/a_(b)",
+    ]);
+    expect(hrefs("https://x.org/a_(b).")).toEqual(["https://x.org/a_(b)"]);
+  });
+
+  it("drops a closing bracket that has no opener", () => {
+    expect(hrefs("(see https://x.org/pay)")).toEqual(["https://x.org/pay"]);
+    expect(hrefs("(see https://x.org/pay).")).toEqual(["https://x.org/pay"]);
   });
 });
