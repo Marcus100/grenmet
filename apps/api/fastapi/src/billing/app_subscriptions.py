@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
+from src.bookings import paused
 from src.bookings.config import bookings_settings
 
 from .app_subscription_transitions import move_app_subscription
@@ -539,8 +540,6 @@ async def _re_evaluate_pause(
     The daily ``evaluate_paused_businesses`` job repairs the pause state."""
     if subscription.app_key != "bookings":
         return
-    from src.bookings import paused  # noqa: PLC0415  (bookings imports billing)
-
     try:
         async with session.begin_nested():
             await paused.evaluate_organisation(session, subscription.organisation_id)

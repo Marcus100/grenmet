@@ -7,6 +7,7 @@ daily job and the subscription webhook) and the public effects of a pause.
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 import pytest
@@ -42,8 +43,8 @@ MESSAGE = "This business is not taking online bookings right now"
 # --- pure decision -----------------------------------------------------------------
 
 
-def _decide(**overrides: object) -> bool:
-    facts: dict[str, object] = {
+def _decide(**overrides: Any) -> bool:
+    facts: dict[str, Any] = {
         "switch_on": True,
         "grant_enabled": True,
         "source": "trial",
@@ -54,7 +55,7 @@ def _decide(**overrides: object) -> bool:
         "subscription_ended_at": None,
     }
     facts.update(overrides)
-    return paused.should_pause(**facts)  # type: ignore[arg-type]
+    return paused.should_pause(**facts)
 
 
 def test_pause_after_trial_and_grace() -> None:
