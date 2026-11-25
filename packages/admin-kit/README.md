@@ -74,8 +74,14 @@ import { DataTable } from "@barrelsgd/admin-kit/components/data-table";
 | `components/form-section` | `FormSection`, `SaveButton` |
 | `lib/navigation` | `AdminNavGroup`, `AdminNavItem`, `getActiveIds`, `getTabItems`, `getSearchEntries`, `filterNavigation`, `MAX_TAB_ITEMS` |
 
-## Rules
+## Rules (read before changing the kit)
 
-- No brand colours, no API calls, no session reading, no permission checks. The app passes everything in.
-- Pass icons as elements (`<House />`).
+The standard is `docs/design/admin-kit.md` (ADR-0068). Layout comes from the GMS staff portal; colour comes from each app.
+
+- The kit draws, the app decides: no API calls, no session reading, no permission checks, no `process.env`, no brand colours (semantic tokens only: no `--gm-*`, no hard-coded colours), never a GAA or Barrels mark. Apps pass `brand`, `navigation` (already filtered by role, `filterNavigation`), `user` and the optional slots.
+- Pass icons as elements (`<House />`), not components, so a Server Component can hand the navigation to the shell. Functions (`isActive`) cannot cross that boundary: use `activeMatch` unless the config lives in a client module.
 - Phone tab bar: flag up to four link items with `tab: true`; "More" opens the sidebar sheet.
+- Needs `PreferencesStoreProvider` from `@barrelsgd/theme` above it. Apps add `@source "../../node_modules/@barrelsgd/admin-kit/src";` to `globals.css` so Tailwind sees the kit's classes.
+- `DataTable` uses TanStack Table's legacy hook (`useLegacyTable`, as `gaa-admin` does) and carries `"use no memo"`.
+- A kit change affects every admin: run every consumer's tests and take before and after screenshots of each (375 px and 1280 px, light and dark).
+- Tests: `turbo run type-check test --filter=@barrelsgd/admin-kit`.
