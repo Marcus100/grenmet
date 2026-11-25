@@ -1,7 +1,10 @@
 # Airport operations programme
 
-Owner: Barrels Grenada. Status: planning, 25 November 2026. Nothing below is
-built unless the table says so. Architecture: ADR-0067.
+**Status:** Planning; nothing below is built unless the table says so  
+**Owner:** Barrels Grenada  
+**Last updated:** 2026-11-25
+
+Architecture: ADR-0067.
 
 ## Why
 
