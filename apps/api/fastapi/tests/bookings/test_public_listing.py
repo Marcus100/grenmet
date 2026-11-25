@@ -15,10 +15,12 @@ import pytest
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bookings.models import BookingProfile
 from src.config import settings
 from src.organisations import service as organisation_service
 from src.organisations.models import PlatformOrganisation
 from src.storage.models import OrgUpload
+from src.utils.datetime import utc_now
 from tests.bookings.test_brand import API_BASE, _logo
 from tests.bookings.test_public_bookings import API, MANAGE, Studio, _studio
 
@@ -41,8 +43,16 @@ PAGE_KEYS = {"items", "page", "has_more", "categories", "types_available"}
 async def _business(
     db: AsyncSession, client: httpx.AsyncClient, **profile: Any
 ) -> Studio:
-    """A studio that has opted in to the listing, with one active service."""
-    return await _studio(db, client, **({"listed": True} | profile))
+    """A studio that opted in to the listing and that staff approved (ADR-0066), with
+    one active service. Approval is set directly: the staff route has its own tests."""
+    studio = await _studio(db, client, **({"listed": True} | profile))
+    await db.execute(
+        update(BookingProfile)
+        .where(BookingProfile.organisation_id == studio.org_id)
+        .values(listing_approved_at=utc_now())
+    )
+    await db.commit()
+    return studio
 
 
 async def _page(client: httpx.AsyncClient, **params: object) -> dict[str, Any]:

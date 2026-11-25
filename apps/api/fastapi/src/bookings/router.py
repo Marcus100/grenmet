@@ -15,6 +15,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from src import idempotency
 from src.auth.models import User
 from src.dependencies import (
+    CurrentUser,
     OwnAccountAnyUser,
     SessionDep,
     TokenDep,
@@ -40,7 +41,7 @@ from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
-from . import calendar_feed, deposit_payments, public, service, studio
+from . import calendar_feed, deposit_payments, listing_review, public, service, studio
 from .models import BookingBusinessType, BookingStatus
 from .schemas import (
     BookingAgenda,
@@ -57,6 +58,7 @@ from .schemas import (
     BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingListingReview,
     BookingManualDepositCreate,
     BookingMyBooking,
     BookingMyBookingList,
@@ -1409,3 +1411,80 @@ async def get_public_calendar_feed(
         media_type="text/calendar; charset=utf-8",
         headers={"Cache-Control": "private, max-age=300"},
     )
+
+
+# --- Barrels staff: listing review (ADR-0066) ----------------------------------------
+# Admin zone: a Barrels staff account with ``bookings.listing.approve`` (superusers hold
+# it). The permission is checked in ``listing_review``; these routes take no organisation.
+
+_REVIEW_ERRORS = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
+
+
+@router.get(
+    "/admin/businesses/{organisation_id}/listing",
+    response_model=BookingListingReview,
+    summary="Get a business's listing review (Barrels staff)",
+    description=(
+        "Whether the business asked for the home page listing, whether staff approved "
+        "it, and the flags staff review (a self-created business, an owner who left)."
+    ),
+    operation_id="bookingsGetListingReview",
+    responses=_REVIEW_ERRORS,
+)
+async def get_listing_review(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    return await listing_review.get_review(
+        session, actor=user, organisation_id=organisation_id
+    )
+
+
+@router.post(
+    "/admin/businesses/{organisation_id}/listing/approve",
+    response_model=BookingListingReview,
+    summary="Approve a business's home page listing (Barrels staff)",
+    description=(
+        "Lets a listed business appear on the home page. Audited. 409 when it is "
+        "already approved."
+    ),
+    operation_id="bookingsApproveListing",
+    responses=_REVIEW_ERRORS,
+)
+async def approve_listing(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    review = await listing_review.approve(
+        session, actor=user, organisation_id=organisation_id
+    )
+    await session.commit()
+    return review
+
+
+@router.post(
+    "/admin/businesses/{organisation_id}/listing/withdraw",
+    response_model=BookingListingReview,
+    summary="Withdraw a business's home page listing approval (Barrels staff)",
+    description=(
+        "Takes a business off the home page. Its booking page still works by its link. "
+        "Audited. 409 when it is not approved."
+    ),
+    operation_id="bookingsWithdrawListing",
+    responses=_REVIEW_ERRORS,
+)
+async def withdraw_listing(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    review = await listing_review.withdraw(
+        session, actor=user, organisation_id=organisation_id
+    )
+    await session.commit()
+    return review

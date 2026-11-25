@@ -28,6 +28,7 @@ from src.storage.uploads import (
 )
 from src.utils.datetime import utc_now
 from tests.bookings.test_public_bookings import API, MANAGE, Studio, _studio
+from tests.bookings.test_public_listing import _business
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 from tests.storage.test_booking_logo import (
@@ -290,7 +291,7 @@ async def test_cover_url_is_null_until_a_cover_is_set(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
-    studio = await _studio(db_async, async_client, listed=True)
+    studio = await _business(db_async, async_client)
     storefront = await async_client.get(f"{API}/public/{studio.slug}")
     assert storefront.status_code == 200, storefront.text
     assert storefront.json()["cover_url"] is None
@@ -306,7 +307,7 @@ async def test_cover_url_is_the_public_address_once_a_cover_is_set(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
-    studio = await _studio(db_async, async_client, listed=True)
+    studio = await _business(db_async, async_client)
     cover = await _file(db_async, studio.org_id)
     saved = await async_client.put(
         f"{API}/org/profile",

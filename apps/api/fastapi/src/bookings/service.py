@@ -932,9 +932,10 @@ def _contains_pattern(text: str) -> str:
 
 
 def _open_for_listing() -> list[ColumnElement[bool]]:
-    """Filters for a business that may appear on the home page: it opted in, is
-    enabled, holds the bookings entitlement, sits in an active organisation and
-    has at least one active service. Evaluated in SQL."""
+    """Filters for a business that may appear on the home page: it opted in, Barrels
+    approved the listing (ADR-0066), it is enabled, holds the bookings entitlement,
+    sits in an active organisation and has at least one active service. Evaluated in
+    SQL."""
     has_service = (
         select(Service.id)
         .where(
@@ -962,6 +963,7 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
     )
     return [
         BookingProfile.listed.is_(True),
+        BookingProfile.listing_approved_at.is_not(None),
         BookingProfile.enabled.is_(True),
         has_service,
         entitled,

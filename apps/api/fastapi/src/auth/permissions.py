@@ -422,6 +422,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
     PermissionDef("app.bookings.access", "Sign in to Barrels Bookings"),
+    PermissionDef(
+        "bookings.listing.approve",
+        "Approve or withdraw a Barrels Bookings business on the public home page listing",
+    ),
     PermissionDef("app.account.access", "Sign in to your Barrels account"),
     PermissionDef(
         "gmsdash.guidance.view",
