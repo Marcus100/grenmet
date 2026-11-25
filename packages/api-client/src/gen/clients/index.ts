@@ -136,6 +136,7 @@ export { bookingsGetWorkingHours } from "./bookingsGetWorkingHours.js";
 export { bookingsListBusinessTemplates } from "./bookingsListBusinessTemplates.js";
 export { bookingsListClosures } from "./bookingsListClosures.js";
 export { bookingsListExceptions } from "./bookingsListExceptions.js";
+export { bookingsListListingReviews } from "./bookingsListListingReviews.js";
 export { bookingsListMyBookings } from "./bookingsListMyBookings.js";
 export { bookingsListMyOrganisations } from "./bookingsListMyOrganisations.js";
 export { bookingsListProviders } from "./bookingsListProviders.js";

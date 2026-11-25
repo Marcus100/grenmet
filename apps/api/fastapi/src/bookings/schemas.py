@@ -1372,3 +1372,26 @@ class BookingListingReview(BaseModel):
     self_created: bool
     #: Set when the last owner of a self-created business deleted their account.
     owner_left_at: UtcDateTime | None
+    #: Set when the sign-up name was refused by the sender-name guard (ADR-0066).
+    sender_name_flagged_at: UtcDateTime | None = None
+
+
+class BookingListingQueue(str, Enum):
+    """Which listings the staff list shows."""
+
+    #: Asked for the home page listing and not approved yet: the work queue.
+    PENDING = "pending"
+    #: Approved, whether or not the business still asks to be listed.
+    APPROVED = "approved"
+    #: The owner left, or the sign-up name was refused by the sender-name guard.
+    FLAGGED = "flagged"
+    ALL = "all"
+
+
+class BookingListingReviewList(BaseModel):
+    """One page of listings for staff review, oldest business first."""
+
+    data: list[BookingListingReview]
+    count: int
+    page: int
+    size: int

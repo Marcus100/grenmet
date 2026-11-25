@@ -15,6 +15,7 @@ export const bookingListingReviewSchema = z
     listing_approved_by_user_id: z.union([z.uuid(), z.null()]),
     self_created: z.boolean(),
     owner_left_at: z.union([z.iso.datetime(), z.null()]),
+    sender_name_flagged_at: z.union([z.iso.datetime(), z.null()]).optional(),
   })
   .describe(
     "Staff view of one business's home page listing and the flags staff review."

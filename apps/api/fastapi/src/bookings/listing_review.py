@@ -7,18 +7,19 @@ booking page works by its link either way (``service._open_for_listing``).
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.organisations.models import PlatformOrganisation
+from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import BookingProfile
-from .schemas import BookingListingReview
+from .schemas import BookingListingQueue, BookingListingReview
 
 LISTING_PERMISSION = "bookings.listing.approve"
 AUDIT_ENTITY = "booking_profile"
@@ -56,6 +57,7 @@ def _review(
         listing_approved_by_user_id=profile.listing_approved_by_user_id,
         self_created=organisation.created_by_user_id is not None,
         owner_left_at=profile.owner_left_at,
+        sender_name_flagged_at=profile.sender_name_flagged_at,
     )
 
 
@@ -65,6 +67,54 @@ async def get_review(
     require_permission(current_user=actor, permission_key=LISTING_PERMISSION)
     profile, organisation = await _load(session, organisation_id)
     return _review(profile, organisation)
+
+
+def _queue_filter(queue: BookingListingQueue) -> ColumnElement[bool] | None:
+    if queue is BookingListingQueue.PENDING:
+        return and_(
+            BookingProfile.listed.is_(True),
+            BookingProfile.listing_approved_at.is_(None),
+        )
+    if queue is BookingListingQueue.APPROVED:
+        return BookingProfile.listing_approved_at.is_not(None)
+    if queue is BookingListingQueue.FLAGGED:
+        return or_(
+            BookingProfile.owner_left_at.is_not(None),
+            BookingProfile.sender_name_flagged_at.is_not(None),
+        )
+    return None
+
+
+async def list_reviews(
+    session: AsyncSession,
+    *,
+    actor: User,
+    queue: BookingListingQueue,
+    pagination: PaginationParams,
+) -> tuple[list[BookingListingReview], int]:
+    """One SQL page of listings for staff, oldest business first so the longest
+    wait is at the top."""
+    require_permission(current_user=actor, permission_key=LISTING_PERMISSION)
+    query = select(BookingProfile, PlatformOrganisation).join(
+        PlatformOrganisation,
+        PlatformOrganisation.id == BookingProfile.organisation_id,
+    )
+    condition = _queue_filter(queue)
+    if condition is not None:
+        query = query.where(condition)
+    total = await session.scalar(
+        select(func.count()).select_from(query.order_by(None).subquery())
+    )
+    rows = (
+        await session.execute(
+            query.order_by(PlatformOrganisation.created_at, BookingProfile.id)
+            .offset(pagination.skip)
+            .limit(pagination.limit)
+        )
+    ).all()
+    return [_review(profile, organisation) for profile, organisation in rows], int(
+        total or 0
+    )
 
 
 async def approve(

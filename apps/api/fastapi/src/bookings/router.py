@@ -68,7 +68,9 @@ from .schemas import (
     BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingListingQueue,
     BookingListingReview,
+    BookingListingReviewList,
     BookingManualDepositCreate,
     BookingMyBooking,
     BookingMyBookingList,
@@ -1524,6 +1526,37 @@ async def get_public_calendar_feed(
 # it). The permission is checked in ``listing_review``; these routes take no organisation.
 
 _REVIEW_ERRORS = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
+
+
+@router.get(
+    "/admin/listing-reviews",
+    response_model=BookingListingReviewList,
+    summary="List business listings for review (Barrels staff)",
+    description=(
+        "Businesses by review state, oldest business first. `queue=pending` (the "
+        "default) lists businesses that asked for the home page listing and wait for "
+        "approval; `approved` lists approved ones; `flagged` lists businesses whose "
+        "owner left or whose sign-up name was refused for email; `all` lists every "
+        "business. Page with `page` and `size`."
+    ),
+    operation_id="bookingsListListingReviews",
+    responses=AUTHENTICATED,
+)
+async def list_listing_reviews(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    pagination: PaginationDep,
+    queue: Annotated[
+        BookingListingQueue, Query(description="Which listings to show.")
+    ] = BookingListingQueue.PENDING,
+) -> Any:
+    reviews, total = await listing_review.list_reviews(
+        session, actor=user, queue=queue, pagination=pagination
+    )
+    return BookingListingReviewList(
+        data=reviews, count=total, page=pagination.page, size=pagination.size
+    )
 
 
 @router.get(
