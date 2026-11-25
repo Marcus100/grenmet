@@ -73,6 +73,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0065](0065-barrels-app-subscriptions.md) | Barrels sells its own app subscriptions through Stripe Billing (XCD, test mode first; `billing.app_subscription`, idempotent Stripe reports, entitlement link not built) | Accepted 22 Nov 2026, test mode only; live gated by ADR-0027 |
 | [0064](0064-one-ticket-registry-for-all-tickets.md) | One ticket registry for every ticket: `printix.ticket` holds printed, online, outlet, RSVP and external tickets; Barrels Events issues and voids in the same transaction and keeps its tickets as line items; one scanner endpoint; no personal data beyond an account id; expand → dual-write → per-event switch, with a 15–27 Dec freeze protecting the 26 Dec gate | Accepted 21 Nov 2026, not built |
 | [0065](0065-admin-console-roles-and-step-up.md) | Admin console roles and step-up: one workplace for Barrels developers, staff, admins and superusers; permission-key admission, recent-MFA step-up, second approver for money, global audit log, Cloudflare Access; amends 0039 and 0059 | Accepted 22 Nov 2026; not built |
+| [0067](0067-airport-operations-modules.md) | Airport operations modules (log, incidents, case engine, work orders and more): one organisation-scoped domain and entitlement per module, linked only through outbox messages and `(kind, id)` references; audited history and locking on close; "corrective actions" and "environmental management" naming | Proposed 25 Nov 2026; not built |
 
 ## Template
 
