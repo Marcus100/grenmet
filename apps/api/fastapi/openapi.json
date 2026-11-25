@@ -2544,7 +2544,7 @@
           "billing"
         ],
         "summary": "Create subscription Checkout Session",
-        "description": "Create a Stripe-hosted Checkout Session for the current user.",
+        "description": "Create a Stripe-hosted Checkout Session for the current user. Test mode only: refused with 503 while live mode is on (ADR-0065). Not an app subscription; use POST /billing/org/subscriptions/checkout.",
         "operationId": "billingCreateSubscriptionCheckout",
         "responses": {
           "201": {
@@ -2581,7 +2581,7 @@
             "description": "Stripe request failed"
           },
           "503": {
-            "description": "Billing is not configured"
+            "description": "Billing is not configured, or live mode is on"
           }
         },
         "security": [
@@ -2597,7 +2597,7 @@
           "billing"
         ],
         "summary": "List the organisation's app subscriptions",
-        "description": "Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only, signed in with an account or the bookings studio session. Needs no app entitlement: the plan screen is how it is bought.",
+        "description": "Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only, signed in with an account or the bookings studio session. Needs no app entitlement: the plan screen is how it is bought. `purchasable` lists the plans a checkout can start for now.",
         "operationId": "billingListAppSubscriptions",
         "security": [
           {
@@ -2786,7 +2786,7 @@
             "description": "Stripe request failed"
           },
           "503": {
-            "description": "Billing is not configured or test mode is not in use"
+            "description": "Billing is not configured, or the Stripe key does not match the billing mode"
           }
         }
       }
@@ -76135,6 +76135,14 @@
             },
             "type": "array",
             "title": "Data"
+          },
+          "purchasable": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Purchasable",
+            "description": "Plans that can be bought now, as `plan_key:currency` (for example `bookings-monthly:XCD`). Empty while billing is not set up."
           }
         },
         "type": "object",

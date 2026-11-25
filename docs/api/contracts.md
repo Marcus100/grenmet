@@ -1412,12 +1412,13 @@ does not persist customers/subscriptions or provision paid access yet.
 
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
-| `POST /api/v1/billing/checkout-sessions` | Bearer token required | Creates a Stripe Checkout Session in `subscription` mode and returns `{"id":"cs_...","url":"https://checkout.stripe.com/..."}` |
+| `POST /api/v1/billing/checkout-sessions` | Bearer token required | Creates a Stripe Checkout Session in `subscription` mode and returns `{"id":"cs_...","url":"https://checkout.stripe.com/..."}`. Test-only: 503 while `BILLING_STRIPE_LIVE_ENABLED` is on (ADR-0065) |
 
 The Checkout Session associates the authenticated user with Stripe using
 `client_reference_id` plus `user_id` metadata on both the Session and resulting
 Subscription. Stripe API failures return 502. Missing billing configuration returns
-503.
+503, and so does a key that does not match the billing mode (see the live switch in
+`docs/env.md`; the owner steps are in ADR-0065 "Going live").
 
 Local Stripe test-mode flow:
 
@@ -1482,8 +1483,8 @@ days), once per organisation and plan.
 
 | Endpoint | Operation id | Contract |
 | --- | --- | --- |
-| `GET /api/v1/billing/org/subscriptions` | `billingListAppSubscriptions` | `{"data": [...]}`, newest first. Each item: `id`, `app_key`, `plan_key`, `channel` (`stripe`), `status` (`incomplete`, `active`, `past_due`, `canceled`, `unpaid`), `currency`, `amount_minor`, `current_period_end`, `cancel_at_period_end`, `trial_end`, `created_at` |
-| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. A repeat call while the pending Checkout is still open returns the same `id` and `url` (201, no second Stripe session). Once that Checkout has expired, the pending row is canceled and a new one is created (new `id`). 404 unknown plan, 409 the app already has a live subscription, or the first Checkout is paid and Stripe has not reported it yet, 422 no price in that currency, 503 no Stripe price configured or a live key |
+| `GET /api/v1/billing/org/subscriptions` | `billingListAppSubscriptions` | `{"data": [...]}`, newest first. Each item: `id`, `app_key`, `plan_key`, `channel` (`stripe`), `status` (`incomplete`, `active`, `past_due`, `canceled`, `unpaid`), `currency`, `amount_minor`, `current_period_end`, `cancel_at_period_end`, `trial_end`, `created_at`. Also `purchasable`: the `plan_key:currency` keys a checkout can start for now (Stripe key and price configured); empty while billing is not set up |
+| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. A repeat call while the pending Checkout is still open returns the same `id` and `url` (201, no second Stripe session). Once that Checkout has expired, the pending row is canceled and a new one is created (new `id`). 404 unknown plan, 409 the app already has a live subscription, or the first Checkout is paid and Stripe has not reported it yet, 422 no price in that currency, 503 no Stripe price configured, or a Stripe key that does not match `BILLING_STRIPE_LIVE_ENABLED` |
 
 The Checkout Session carries `client_reference_id` and metadata
 (`organisation_id`, `app_subscription_id`, `plan_key`, `app_key`) on the Session and
@@ -1492,8 +1493,9 @@ OpenAPI) applies `checkout.session.completed`, `checkout.session.expired`,
 `customer.subscription.created|updated|deleted` and `invoice.payment_failed`
 once per event id. An event strictly older than the last applied event is ignored;
 a same-second event is applied in delivery order (the transition table refuses a
-backward move). A live-mode event is refused with 503 and not recorded, since the
-product is test-only. An event that names one of our rows that is not written yet
+backward move). An event whose mode does not match `BILLING_STRIPE_LIVE_ENABLED` is refused with 503
+and not recorded: while the switch is off, `livemode: true` events are refused; while
+it is on, only `livemode: true` events are accepted. An event that names one of our rows that is not written yet
 is answered 503 and not recorded for up to two hours after Stripe created it, so Stripe
 sends it again. A canceled subscription stays canceled.
 

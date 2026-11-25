@@ -33,9 +33,10 @@ from .exceptions import (
     AppSubscriptionPriceNotConfiguredError,
     AppSubscriptionPriceNotFoundError,
     AppSubscriptionStateError,
-    BillingLiveModeRefusedError,
 )
 from .gateway import (
+    LIVE_KEY_PREFIX,
+    TEST_KEY_PREFIX,
     CheckoutSessionResult,
     CheckoutSessionState,
     StripeGateway,
@@ -91,6 +92,24 @@ _SUBSCRIPTION_EVENTS = frozenset(
 def price_key(plan_key: str, currency: str) -> str:
     """The ``BILLING_STRIPE_PRICES`` key for one plan and currency."""
     return f"{plan_key}:{currency}"
+
+
+def purchasable_prices() -> list[str]:
+    """``plan_key:currency`` keys a checkout can start for now: the Stripe key
+    matches the live switch (``sk_live_`` when on, ``sk_test_`` when off) and the
+    plan has a price id. Mirrors the gateway's key check, so a listed plan is
+    never refused for its key."""
+    key = billing_settings.STRIPE_SECRET_KEY or ""
+    prefix = (
+        LIVE_KEY_PREFIX if billing_settings.STRIPE_LIVE_ENABLED else TEST_KEY_PREFIX
+    )
+    if not key.startswith(prefix):
+        return []
+    return sorted(
+        price_key
+        for price_key, price_id in billing_settings.STRIPE_PRICES.items()
+        if price_id
+    )
 
 
 def _view(subscription: AppSubscription, amount_minor: int) -> AppSubscriptionPublic:
@@ -610,22 +629,14 @@ async def _apply_event(
 async def apply_stripe_event(session: AsyncSession, event: WebhookEventResult) -> str:
     """Apply one verified Stripe event exactly once.
 
-    A live-mode event is refused (503) before anything is written: the product is
-    test-only (ADR-0027), and the refusal leaves the event unrecorded so a later
-    delivery can still be applied.
+    The gateway (``construct_webhook_event``) has already checked the event's mode
+    against the billing mode, so a refused event never gets here.
 
     The event id is inserted first (ON CONFLICT DO NOTHING) inside a savepoint, so a
     repeat delivery finds it and changes nothing. An event whose row is not written yet
     returns ``retry``: the savepoint is rolled back, the id is not kept, and the caller
     answers 503 so Stripe sends it again (issue #1723). Returns ``duplicate``,
     ``applied`` or ``ignored``."""
-    if event.livemode is True:
-        logger.warning(
-            "Live-mode Stripe event refused: app subscriptions are test-only",
-            extra={"stripe_event_type": event.type},
-        )
-        raise BillingLiveModeRefusedError()
-
     obj = event.data_object
     async with session.begin_nested():
         recorded = await session.scalar(

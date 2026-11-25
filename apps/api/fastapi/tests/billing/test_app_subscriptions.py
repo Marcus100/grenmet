@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.billing import app_subscription_transitions as transitions
 from src.billing.config import BillingConfig, billing_settings
 from src.billing.dependencies import get_stripe_gateway
+from src.billing.exceptions import BillingLiveModeRefusedError
 from src.billing.gateway import (
     CheckoutSessionResult,
     CheckoutSessionState,
@@ -402,7 +403,7 @@ async def test_business_admin_and_owner_without_superuser_can_list_and_checkout(
     )
 
     assert listing.status_code == 200
-    assert listing.json() == {"data": []}
+    assert listing.json()["data"] == []
     assert checkout.status_code == 201
     assert len(fake_gateway.calls) == 1
 
@@ -650,6 +651,36 @@ async def test_listing_shows_the_plan_amount_and_status(
     assert item["channel"] == "stripe"
     assert item["currency"] == "XCD"
     assert item["amount_minor"] == 3000
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_listing_says_which_plans_can_be_bought_now(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    headers = headers_for(user, org.id)
+
+    monkeypatch.setattr(billing_settings, "STRIPE_SECRET_KEY", TEST_KEY)
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {f"{PLAN}:XCD": PRICE_ID})
+    ready = (await async_client.get(API, headers=headers)).json()
+    assert ready["purchasable"] == [f"{PLAN}:XCD"]
+
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {})
+    no_price = (await async_client.get(API, headers=headers)).json()
+    assert no_price["purchasable"] == []
+
+    monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {f"{PLAN}:XCD": PRICE_ID})
+    monkeypatch.setattr(billing_settings, "STRIPE_SECRET_KEY", None)
+    no_key = (await async_client.get(API, headers=headers)).json()
+    assert no_key["purchasable"] == []
+
+    # A key that does not match the live switch is not purchasable either.
+    monkeypatch.setattr(billing_settings, "STRIPE_SECRET_KEY", TEST_KEY)
+    monkeypatch.setattr(billing_settings, "STRIPE_LIVE_ENABLED", True)
+    wrong_mode = (await async_client.get(API, headers=headers)).json()
+    assert wrong_mode["purchasable"] == []
 
 
 # --- Stripe reports ----------------------------------------------------------------
@@ -1431,3 +1462,231 @@ def test_checkout_session_column_is_added_and_removed(
     assert has_column()
     checkout.module.downgrade()
     assert not has_column()
+
+
+# --- Live-mode switch (ADR-0065 "Going live") ---------------------------------------
+# BILLING_STRIPE_LIVE_ENABLED is OFF by default. Off: test keys only and live events
+# refused (today's behaviour). On: live keys only and live events only. A mixed state
+# (for example a test key with the switch on) fails closed, and nothing reaches Stripe.
+
+LIVE_KEY_OK = "sk_live_app_subscriptions"
+TEST_MODE_REFUSAL = "Only Stripe test mode is permitted"
+LIVE_KEY_REFUSAL = "Live mode is on: only a live Stripe key is accepted"
+LIVE_EVENT_REFUSAL = "Live mode is on: only live-mode Stripe events are accepted"
+
+
+class _StripeSpy:
+    """Stands in for the Stripe SDK client: records each client constructed (with its
+    API key) and each Checkout Session create. Nothing is sent."""
+
+    def __init__(self) -> None:
+        self.api_keys: list[str] = []
+        self.creates: list[dict[str, Any]] = []
+
+
+@pytest.fixture
+def stripe_spy(monkeypatch: pytest.MonkeyPatch) -> _StripeSpy:
+    spy = _StripeSpy()
+
+    class Sessions:
+        def create(
+            self, params: dict[str, Any], options: dict[str, Any] | None = None
+        ) -> SimpleNamespace:
+            spy.creates.append(params)
+            return SimpleNamespace(
+                id="cs_test_mode_switch",
+                url="https://checkout.stripe.com/c/pay/cs_test_mode_switch",
+            )
+
+    def client(*args: object, **_kwargs: object) -> SimpleNamespace:
+        spy.api_keys.append(str(args[0]))
+        return SimpleNamespace(
+            v1=SimpleNamespace(checkout=SimpleNamespace(sessions=Sessions()))
+        )
+
+    monkeypatch.setattr(stripe, "StripeClient", client)
+    return spy
+
+
+def _legacy_gateway(*, live_enabled: bool, key: str) -> StripeSdkGateway:
+    return StripeSdkGateway(
+        BillingConfig(
+            _env_file=None,
+            STRIPE_SECRET_KEY=key,
+            STRIPE_PRICE_ID="price_legacy",
+            STRIPE_LIVE_ENABLED=live_enabled,
+        )
+    )
+
+
+def _app_checkout(gateway: StripeSdkGateway) -> None:
+    gateway.create_app_subscription_checkout(
+        subscription_id=str(uuid.uuid4()),
+        organisation_id=str(uuid.uuid4()),
+        plan_key=PLAN,
+        app_key="bookings",
+        price_id=PRICE_ID,
+        customer_id=None,
+        customer_email="owner@example.com",
+        trial_period_days=None,
+        success_url="https://example.com/ok",
+        cancel_url="https://example.com/cancel",
+    )
+
+
+@pytest.mark.parametrize(
+    ("live_enabled", "key", "sends"),
+    [
+        (False, TEST_KEY, True),
+        (False, LIVE_KEY_OK, False),
+        (True, TEST_KEY, False),
+        (True, LIVE_KEY_OK, True),
+        (True, "rk_live_xyz", False),
+    ],
+)
+def test_app_checkout_key_matrix(
+    stripe_spy: _StripeSpy, live_enabled: bool, key: str, sends: bool
+) -> None:
+    """Switch x key: only the key that matches the switch reaches the SDK."""
+    gateway = _real_gateway_for_matrix(live_enabled=live_enabled, key=key)
+    if sends:
+        _app_checkout(gateway)
+        assert stripe_spy.api_keys == [key]
+        assert len(stripe_spy.creates) == 1
+    else:
+        with pytest.raises(BillingLiveModeRefusedError):
+            _app_checkout(gateway)
+        assert stripe_spy.api_keys == []
+        assert stripe_spy.creates == []
+
+
+def _real_gateway_for_matrix(*, live_enabled: bool, key: str) -> StripeSdkGateway:
+    return StripeSdkGateway(
+        BillingConfig(
+            _env_file=None,
+            STRIPE_SECRET_KEY=key,
+            STRIPE_WEBHOOK_SECRET=WEBHOOK_SECRET,
+            STRIPE_LIVE_ENABLED=live_enabled,
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    ("live_enabled", "key", "sends"),
+    [
+        (False, TEST_KEY, True),
+        (False, LIVE_KEY_OK, False),
+        (True, TEST_KEY, False),
+        (True, LIVE_KEY_OK, False),
+    ],
+)
+def test_legacy_checkout_is_test_only_in_every_mode(
+    stripe_spy: _StripeSpy, live_enabled: bool, key: str, sends: bool
+) -> None:
+    """The invoicing-era route creates no app subscription row, so it never runs with
+    live mode on (ADR-0065: removed or moved before live mode)."""
+    gateway = _legacy_gateway(live_enabled=live_enabled, key=key)
+    if sends:
+        gateway.create_subscription_checkout(
+            customer_email="x@example.com", client_reference_id="u1"
+        )
+        assert stripe_spy.api_keys == [key]
+    else:
+        with pytest.raises(BillingLiveModeRefusedError):
+            gateway.create_subscription_checkout(
+                customer_email="x@example.com", client_reference_id="u1"
+            )
+        assert stripe_spy.api_keys == []
+        assert stripe_spy.creates == []
+
+
+@pytest.mark.usefixtures("plan_seed")
+@pytest.mark.parametrize(
+    ("live_enabled", "key", "status", "detail"),
+    [
+        (False, TEST_KEY, 201, None),
+        (False, LIVE_KEY_OK, 503, TEST_MODE_REFUSAL),
+        (True, TEST_KEY, 503, LIVE_KEY_REFUSAL),
+        (True, LIVE_KEY_OK, 201, None),
+    ],
+)
+async def test_checkout_route_key_matrix(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_spy: _StripeSpy,
+    live_enabled: bool,
+    key: str,
+    status: int,
+    detail: str | None,
+) -> None:
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    _real_gateway(STRIPE_SECRET_KEY=key, STRIPE_LIVE_ENABLED=live_enabled)
+
+    response = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers_for(user, org.id)
+    )
+
+    assert response.status_code == status
+    if detail is None:
+        assert stripe_spy.api_keys == [key]
+        assert len(stripe_spy.creates) == 1
+    else:
+        assert response.json() == {"detail": detail}
+        assert stripe_spy.api_keys == []
+        rows = await db_async.scalars(
+            select(AppSubscription).where(AppSubscription.organisation_id == org.id)
+        )
+        assert rows.all() == []
+    app.dependency_overrides.pop(get_stripe_gateway, None)
+
+
+@pytest.mark.usefixtures("plan_seed")
+@pytest.mark.parametrize(
+    ("live_enabled", "livemode", "applied", "detail"),
+    [
+        (False, False, True, None),
+        (False, True, False, TEST_MODE_REFUSAL),
+        (False, None, True, None),
+        (True, True, True, None),
+        (True, False, False, LIVE_EVENT_REFUSAL),
+        (True, None, False, LIVE_EVENT_REFUSAL),
+    ],
+)
+async def test_webhook_livemode_matrix(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    live_enabled: bool,
+    livemode: bool | None,
+    applied: bool,
+    detail: str | None,
+) -> None:
+    """Switch x event mode: a refused event is answered 503 and nothing is written,
+    not even the event id, so a later delivery can still be applied."""
+    _real_gateway(STRIPE_LIVE_ENABLED=live_enabled)
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = await _row(db_async, org.id)
+    event_id = f"evt_matrix_{live_enabled}_{livemode}"
+    event = _event(
+        event_id,
+        "customer.subscription.created",
+        _subscription(row_id, sub_id=f"sub_{event_id}", status="active"),
+        livemode=bool(livemode),
+    )
+    if livemode is None:
+        del event["livemode"]
+
+    response = await _post_event(async_client, event)
+
+    row = await _fresh(db_async, row_id)
+    recorded = await _recorded(db_async, event_id)
+    if applied:
+        assert response.status_code == 200
+        assert row.status == "active"
+        assert len(recorded) == 1
+    else:
+        assert response.status_code == 503
+        assert response.json() == {"detail": detail}
+        assert row.status == "incomplete"
+        assert row.stripe_subscription_id is None
+        assert recorded == []
+    app.dependency_overrides.pop(get_stripe_gateway, None)

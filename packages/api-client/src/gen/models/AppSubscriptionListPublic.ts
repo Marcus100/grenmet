@@ -7,4 +7,9 @@ import type { AppSubscriptionPublic } from "./AppSubscriptionPublic.js";
 
 export type AppSubscriptionListPublic = {
   data: AppSubscriptionPublic[];
+  /**
+   * @description Plans that can be bought now, as `plan_key:currency` (for example `bookings-monthly:XCD`). Empty while billing is not set up.
+   * @type array | undefined
+   */
+  purchasable?: string[];
 };

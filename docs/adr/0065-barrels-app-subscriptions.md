@@ -78,9 +78,10 @@ events tickets, not for Barrels' subscriptions.
   (bookings deposits, events tickets) stay on the payments core under ADR-0027.
 - **Channels:** `stripe` (card, hosted Checkout, built) or `invoice` (column present,
   not built).
-- **Test mode:** every Stripe call is refused with 503 unless the secret key starts
-  with `sk_test_`. The refusal happens before any request. Live mode starts only when
-  the owner says so and the ADR-0027 live gate is met. Webhook events that Stripe
+- **Test mode (default):** every Stripe call is refused with 503 unless the secret key starts
+  with `sk_test_`. The refusal happens before any request. Live mode is the owner's
+  switch `BILLING_STRIPE_LIVE_ENABLED` (built, off by default, see "Going live"): on,
+  only `sk_live_` keys are accepted. Live money also needs the ADR-0027 live gate. Webhook events that Stripe
   marks `livemode: true` are refused with 503 before anything is written or recorded,
   so a live event is never applied by accident and can be delivered again later.
 - **Access:** the checkout and listing routes are gated by the organisation role
@@ -152,8 +153,38 @@ events tickets, not for Barrels' subscriptions.
   the tax treatment for Barrels' own sales (accountant), and a reconciliation exercise.
 - The older `POST /billing/checkout-sessions` route (the invoicing-era one-off
   Checkout for the signed-in user, `src/billing/service.py`) is **guarded now**: it
-  goes through the same `_require_test_key` check in `gateway.py`, so a live key is
-  refused with 503 before any request (test in `tests/billing/test_app_subscriptions.py`).
+  is test-only in every mode: `create_subscription_checkout` in `gateway.py` refuses
+  with 503 before any request whenever the live switch is on, and a non-test key while
+  it is off (tests in `tests/billing/test_app_subscriptions.py`).
   It is not an app subscription: it creates no row and no `app_subscription_id`
   metadata, so its webhook events are not applied here. It stays for compatibility
   and must be removed or moved onto the app subscription flow before live mode.
+
+## Going live
+
+The live switch (`BILLING_STRIPE_LIVE_ENABLED`, default off, `docs/env.md`) is built.
+Flipping it does not clear the ADR-0027 live gate: the owner still settles the payout
+route, the charge model, the tax and licence checks, the fee statement and a
+reconciliation before live money moves. With the switch on, only `sk_live_` keys and
+`livemode: true` events are accepted; the legacy `POST /billing/checkout-sessions` stays
+refused with 503.
+
+Owner steps, in order:
+
+1. In the live Stripe dashboard (NZ account), create the live Product and a recurring
+   monthly XCD price for `bookings-monthly` (3000 minor units, as in `billing.plan_price`).
+   Confirm Stripe accepts XCD presentment on this account first (open uncertainty above).
+2. Create a live webhook endpoint at `https://api.<BASE_DOMAIN>/api/v1/billing/webhooks/stripe`
+   with exactly these five events: `checkout.session.completed`,
+   `customer.subscription.created`, `customer.subscription.updated`,
+   `customer.subscription.deleted`, `invoice.payment_failed`. Keep its signing secret.
+3. Set the production secrets: `BILLING_STRIPE_SECRET_KEY` (`sk_live_...`),
+   `BILLING_STRIPE_WEBHOOK_SECRET` (the live `whsec_...`) and `BILLING_STRIPE_PRICES`
+   (`bookings-monthly:XCD` to the live price id). Then set `BILLING_STRIPE_LIVE_ENABLED=true`.
+   The deploy file must pass the switch through (see the PR that added it).
+4. Check that production has no app subscription rows from test mode. A test customer,
+   session or subscription id is not valid in live mode, so such a row must be
+   cancelled or removed by the owner before the switch is flipped.
+5. Flip the switch, then watch the first live checkout and the webhook deliveries in
+   Stripe and Sentry. To roll back, set the switch to `false`: live keys are refused
+   again at once and live events return 503 (Stripe retries them).
