@@ -578,6 +578,12 @@ async def delete_user(
         organisation_id: await printix_app_role.holders_of(session, organisation_id)
         for organisation_id in locked_organisations
     }
+    # A self-created Bookings business whose last owner this is closes online booking
+    # and is flagged for staff (ADR-0066 item 7). Before the memberships end, so the
+    # owner check still sees this account. Local import: bookings imports auth.
+    from src.bookings import owner_leaves as bookings_owner_leaves
+
+    await bookings_owner_leaves.on_owner_leaves(session, user_id=user_id, now=now)
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.

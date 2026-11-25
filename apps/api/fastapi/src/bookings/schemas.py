@@ -1296,3 +1296,23 @@ class BookingSettings(BaseModel):
 
 class BookingPublicCancelBody(RootModel[BookingPublicCancel | None]):
     """Optional cancellation request. An absent body and null are both accepted."""
+
+
+# --- Barrels staff: listing review (ADR-0066) ---------------------------------------
+
+
+class BookingListingReview(BaseModel):
+    """Staff view of one business's home page listing and the flags staff review."""
+
+    organisation_id: str
+    public_slug: str
+    display_name: str
+    #: The business asked to appear on the home page.
+    listed: bool
+    #: Set once staff approved the listing; null while it waits for review.
+    listing_approved_at: UtcDateTime | None
+    listing_approved_by_user_id: uuid.UUID | None
+    #: The business was created by its own account, not by Barrels staff.
+    self_created: bool
+    #: Set when the last owner of a self-created business deleted their account.
+    owner_left_at: UtcDateTime | None

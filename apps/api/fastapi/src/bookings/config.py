@@ -17,6 +17,10 @@ class BookingsConfig(BaseSettings):
     #: cancels it and releases the slot.
     DEPOSIT_HOLD_MINUTES: int = 30
 
+    #: Businesses sign themselves up (ADR-0066). Off by default, so nothing changes
+    #: until the owner turns it on. Slice 1 only declares it: no route reads it yet.
+    SELF_SIGNUP_ENABLED: bool = False
+
     # Public address of the Babydoll Beauty Bar site. The seed builds the
     # public site row from it. Move it when the client's own domain goes live
     # (apps/web/babydoll/src/data/site.ts).

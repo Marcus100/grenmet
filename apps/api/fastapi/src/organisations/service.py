@@ -27,6 +27,7 @@ from src.organisations.exceptions import (
     OrganisationSuspendedError,
 )
 from src.organisations.models import (
+    EntitlementSource,
     Membership,
     MembershipRole,
     MembershipStatus,
@@ -232,8 +233,16 @@ async def add_member(
 
 
 async def set_app_enabled(
-    session: AsyncSession, *, organisation_id: str, app_key: str, enabled: bool
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    app_key: str,
+    enabled: bool,
+    source: EntitlementSource = EntitlementSource.MANUAL,
 ) -> OrganisationApp:
+    """Switch an entitlement on or off and record why (ADR-0066). Staff grants keep the
+    default ``manual``, which also opts the business out of any subscription switch.
+    Bundled rows take the same source."""
     if not entitlements.is_known(app_key):
         raise AppException("Unknown app", 404)
     switching_printix_off = not enabled and app_key == printix_app_role.APP_KEY
@@ -245,11 +254,15 @@ async def set_app_enabled(
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         row = OrganisationApp(
-            organisation_id=organisation_id, app_key=app_key, enabled=enabled
+            organisation_id=organisation_id,
+            app_key=app_key,
+            enabled=enabled,
+            source=source.value,
         )
         session.add(row)
     else:
         row.enabled = enabled
+        row.source = source.value
     await session.flush()
     if switching_printix_off:
         # No organisation keys left from here: drop the sign-in role of anyone whose
@@ -257,23 +270,31 @@ async def set_app_enabled(
         await printix_app_role.release_lost(session, organisation_id, printix_holders)
     if enabled:
         for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
-            await _ensure_enabled(session, organisation_id, bundled)
+            await _ensure_enabled(session, organisation_id, bundled, source)
     return row
 
 
 async def _ensure_enabled(
-    session: AsyncSession, organisation_id: str, app_key: str
+    session: AsyncSession,
+    organisation_id: str,
+    app_key: str,
+    source: EntitlementSource = EntitlementSource.MANUAL,
 ) -> None:
-    """Switch an entitlement on if it is missing or off (never touches others)."""
+    """Switch an entitlement on and give it ``source``, the same as the app it is
+    bundled with (never touches other keys)."""
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         session.add(
             OrganisationApp(
-                organisation_id=organisation_id, app_key=app_key, enabled=True
+                organisation_id=organisation_id,
+                app_key=app_key,
+                enabled=True,
+                source=source.value,
             )
         )
-    elif not row.enabled:
+    else:
         row.enabled = True
+        row.source = source.value
     await session.flush()
 
 

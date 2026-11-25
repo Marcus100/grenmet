@@ -195,6 +195,21 @@ class BookingProfile(Base):
     #: Opt-in to the Barrels Bookings home page listing (off by default). The
     #: listing shows only enabled, entitled, active businesses with a service.
     listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: Listing approval (ADR-0066): Barrels staff approve a listed business under
+    #: ``bookings.listing.approve`` before it shows on the home page. Null means not
+    #: approved. The migration approved every profile that existed before it.
+    listing_approved_at: Mapped[datetime | None] = mapped_column(default=None)
+    listing_approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), default=None
+    )
+    #: Set when the last owner of a self-created business deleted their account. Staff
+    #: review the business; nothing is deleted (ADR-0066 item 7).
+    owner_left_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: The provider named after the owner when a self-created business signs up; renamed
+    #: "Staff" when that owner leaves. Null for every other business.
+    owner_provider_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("bookings.provider.id", ondelete="SET NULL"), default=None
+    )
     #: Listing text: a short category (chips on the home page), a one-line
     #: description and a city. Blank means not shown.
     category: Mapped[str | None] = mapped_column(String(80))
