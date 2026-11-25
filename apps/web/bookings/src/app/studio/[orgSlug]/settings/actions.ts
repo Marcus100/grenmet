@@ -27,7 +27,9 @@ import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import { parseBusinessType } from "@/lib/business-types";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
+import { DEPOSIT_INSTRUCTIONS_MAX } from "@/lib/deposit-instructions";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
+import { graceMinutes, lateFeeMinor } from "@/lib/late-fee";
 import { reportError } from "@/lib/report-error";
 import { checkExpiry, checkMaxOpen } from "@/lib/request-hygiene";
 import { getSession } from "@/lib/session";
@@ -524,6 +526,15 @@ async function savePaymentsSection(
   auth: Granted,
   formData: FormData
 ): Promise<ProfileState> {
+  // Fields the form leaves out (the instructions box is on the page only in
+  // "paid to me" mode; the card choice only in online mode) keep what is stored.
+  const instructions = field(formData, "depositInstructions");
+  if (policyLength(instructions) > DEPOSIT_INSTRUCTIONS_MAX) {
+    return invalid(
+      `The payment instructions are at most ${DEPOSIT_INSTRUCTIONS_MAX} characters.`
+    );
+  }
+  const collection = formData.get("depositCollection");
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -533,7 +544,15 @@ async function savePaymentsSection(
     }
     await saveProfile(auth.accessToken, auth.organisationId, {
       ...storedFields(current),
-      payment_at_booking: paymentAtBooking(formData),
+      ...(formData.has("paymentAtBooking")
+        ? { payment_at_booking: paymentAtBooking(formData) }
+        : {}),
+      ...(collection === "online" || collection === "business"
+        ? { deposit_collection: collection }
+        : {}),
+      ...(formData.has("depositInstructions")
+        ? { deposit_instructions: cleanPolicy(instructions) }
+        : {}),
     });
   } catch (error) {
     return failed(orgSlug, error);
@@ -662,6 +681,20 @@ async function savePolicySection(
       `The booking policy is at most ${BOOKING_POLICY_MAX} characters.`
     );
   }
+  // The late fee fields are on the form together; a form without them keeps
+  // the stored fee and grace period.
+  const lateFee = formData.has("lateFee")
+    ? lateFeeMinor(field(formData, "lateFee"))
+    : null;
+  if (lateFee && !lateFee.ok) {
+    return invalid(lateFee.message);
+  }
+  const grace = formData.has("lateGrace")
+    ? graceMinutes(field(formData, "lateGrace"))
+    : null;
+  if (grace && !grace.ok) {
+    return invalid(grace.message);
+  }
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -672,6 +705,8 @@ async function savePolicySection(
     await saveProfile(auth.accessToken, auth.organisationId, {
       ...storedFields(current),
       booking_policy: cleanPolicy(text),
+      ...(lateFee?.ok ? { late_fee_minor: lateFee.value } : {}),
+      ...(grace?.ok ? { late_grace_min: grace.value } : {}),
     });
   } catch (error) {
     return failed(orgSlug, error);
@@ -840,14 +875,19 @@ function logoFailed(
 }
 
 /**
- * "This is an add-on" and the categories it is offered with. Categories are
- * sent only for an add-on; none ticked means every main service.
+ * "This is an add-on" (only as an add-on), "Also offer as an add-on" (booked
+ * alone and as an add-on) and the categories it is offered with. Categories are
+ * sent only for an add-on or an also-add-on service; none ticked means every main service.
  */
 function addOnFields(formData: FormData): {
   add_on_categories: string[] | null;
+  also_add_on: boolean;
   is_add_on: boolean;
 } {
+  // The API lets an add-on-only service win over "also an add-on"; the form
+  // never sends both, and this keeps a hand-made request to the same rule.
   const isAddOn = formData.get("isAddOn") === "on";
+  const alsoAddOn = !isAddOn && formData.get("alsoAddOn") === "on";
   const categories = formData
     .getAll("addOnCategory")
     .filter((value): value is string => typeof value === "string")
@@ -855,7 +895,9 @@ function addOnFields(formData: FormData): {
     .filter(Boolean);
   return {
     is_add_on: isAddOn,
-    add_on_categories: isAddOn && categories.length > 0 ? categories : null,
+    also_add_on: alsoAddOn,
+    add_on_categories:
+      (isAddOn || alsoAddOn) && categories.length > 0 ? categories : null,
   };
 }
 

@@ -746,6 +746,7 @@ describe("services", () => {
       deposit_minor: 2550,
       active: true,
       is_add_on: false,
+      also_add_on: false,
       add_on_categories: null,
     });
   });
@@ -1682,5 +1683,348 @@ describe("booking request hygiene", () => {
     const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
     expect(result).toMatchObject({ status: "error", kind: "forbidden" });
     expect(saveProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("deposit collection and instructions", () => {
+  beforeEach(() => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_collection: "online",
+      deposit_instructions: "Old note",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+  });
+
+  it("saves paid-to-me with trimmed plain-text instructions and keeps the card choice as stored", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "  Send it to account 1234.\r\nThen reply.  ",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    const body = vi.mocked(saveProfile).mock.calls[0]?.[2] as Record<
+      string,
+      unknown
+    >;
+    expect(body).toMatchObject({
+      deposit_collection: "business",
+      deposit_instructions: "Send it to account 1234.\nThen reply.",
+      payment_at_booking: "full_price",
+    });
+  });
+
+  it("clears the instructions when the box is blank", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "   ",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_instructions: null })
+    );
+  });
+
+  it("keeps the stored instructions when switching to online, where the box is not on the page", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "online",
+        paymentAtBooking: "deposit",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+        payment_at_booking: "deposit",
+      })
+    );
+  });
+
+  it("keeps everything stored when a payments save names neither field", async () => {
+    await saveProfileAction(SLUG, IDLE, form({ section: "payments" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+        payment_at_booking: "full_price",
+      })
+    );
+  });
+
+  it("ignores an unknown collection value instead of sending it", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", depositCollection: "cheque" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_collection: "online" })
+    );
+  });
+
+  it("refuses instructions over 500 characters and accepts exactly 500", async () => {
+    const over = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "a".repeat(501),
+      })
+    );
+    expect(over).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+    const exact = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "a".repeat(500),
+      })
+    );
+    expect(exact).toMatchObject({ status: "success" });
+  });
+
+  it("maps a refusal from the API to plain wording", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(403, { detail: "Forbidden" })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", depositCollection: "business" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+  });
+
+  it("leaves the instructions and collection alone when another section saves", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "20",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+      })
+    );
+  });
+});
+
+describe("late fee", () => {
+  beforeEach(() => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      late_fee_minor: 2000,
+      late_grace_min: 15,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+  });
+
+  it("saves the fee in minor units and the grace in minutes with the policy", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "policy",
+        bookingPolicy: "Be kind",
+        lateFee: "25.50",
+        lateGrace: "10",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        booking_policy: "Be kind",
+        late_fee_minor: 2550,
+        late_grace_min: 10,
+      })
+    );
+  });
+
+  it("sends null for a blank or zero fee (no late fee) and 0 for a blank grace", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "", lateFee: "", lateGrace: "" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: null, late_grace_min: 0 })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "policy",
+        bookingPolicy: "",
+        lateFee: "0",
+        lateGrace: "0",
+      })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: null, late_grace_min: 0 })
+    );
+  });
+
+  it("keeps the stored fee and grace when the form does not carry them", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "Text" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: 2000, late_grace_min: 15 })
+    );
+  });
+
+  it("keeps the stored fee when another section saves", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "addons", addOnsEnabled: "on" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: 2000, late_grace_min: 15 })
+    );
+  });
+
+  it.each([
+    ["abc", "15"],
+    ["-5", "15"],
+    ["20.555", "15"],
+    ["2000000", "15"],
+    ["20", "241"],
+    ["20", "-1"],
+    ["20", "1.5"],
+  ])(
+    "refuses fee %s with grace %s without calling the API",
+    async (fee, grace) => {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({
+          section: "policy",
+          bookingPolicy: "",
+          lateFee: fee,
+          lateGrace: grace,
+        })
+      );
+      expect(result).toMatchObject({ status: "error", kind: "invalid" });
+      expect(saveProfile).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts the grace limits 0 and 240", async () => {
+    for (const grace of ["0", "240"]) {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({
+          section: "policy",
+          bookingPolicy: "",
+          lateFee: "20",
+          lateGrace: grace,
+        })
+      );
+      expect(result).toMatchObject({ status: "success" });
+    }
+  });
+});
+
+describe("also offer as an add-on", () => {
+  it("sends also_add_on with the categories", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, alsoAddOn: "on", addOnCategory: ["Lashes"] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        is_add_on: false,
+        also_add_on: true,
+        add_on_categories: ["Lashes"],
+      })
+    );
+  });
+
+  it("sends also_add_on with no categories as null (every main service)", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(SLUG, IDLE, form({ ...SERVICE, alsoAddOn: "on" }));
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ also_add_on: true, add_on_categories: null })
+    );
+  });
+
+  it("never sends both: add-on only wins", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, isAddOn: "on", alsoAddOn: "on" })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: true, also_add_on: false })
+    );
+  });
+
+  it("sends false, never null, for a plain main service so it can be switched off", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, serviceId: SERVICE_ID })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({ also_add_on: false, is_add_on: false })
+    );
   });
 });
