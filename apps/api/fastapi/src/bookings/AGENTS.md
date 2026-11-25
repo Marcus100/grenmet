@@ -79,7 +79,7 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **Tests:** `tests/bookings/test_manage_link.py` (pure) and `test_manage_links.py` (mail links, 404s, revocation, read-only, invitation, logs).
 
 ## Add-ons (off by default)
-- `add_ons.py` rules; `service.resolve_add_ons` validates. Totals use the combined length and price. Tests: `test_add_ons*.py`.
+- `add_ons.py` rules; `service.resolve_add_ons` validates. Totals use the combined length and price. `also_add_on`: bookable alone and as an add-on. Tests: `test_add_on*.py`.
 
 ## Monitoring (booking jobs)
 - `enqueue_booking_reminders` (`7 * * * *`) and `expire_unpaid_bookings` (`2,7,12,...,57 * * * *`, every 5 minutes) are `@monitored` (Sentry Cron check-ins, slug `<env>-worker-<job name>`) and listed in `operational_metrics.JOBS`. The schedules must match the ARQ `cron(...)` minutes in `src/worker/main.py`; `tests/worker/test_cron_monitor.py` checks the check-in schedule.
@@ -111,4 +111,4 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 
 - Brand (#1622): `brand_color`, `logo_file_id`. Type and cover (`bookingtypecover20261124`): `business_type`, `cover_file_id`.
 - **Turnstile and replays:** Turnstile is verified *inside* the idempotent handler (`create_once`, `router.py`): tokens are single-use, so a retry with the same `Idempotency-Key` and body replays the stored receipt without a second token; a new key must pass, and a failed check is not stored and releases the key (tests in `test_public_bookings.py`).
-- `deposit_collection` `business`: display only; `deposit_to_business_minor` = `planned_deposit`, `deposit_minor` 0, no intent. `deposit_instructions` (public only in this mode, labelled as the business's), `late_fee_minor`, `late_grace_min`. Tests: `test_deposit_to_business.py`.
+- `deposit_collection` `business`: display only; `deposit_to_business_minor` = `planned_deposit`, `deposit_minor` 0; `deposit_instructions` (public in this mode only), `late_fee_minor`, `late_grace_min`. Tests: `test_deposit_to_business.py`.

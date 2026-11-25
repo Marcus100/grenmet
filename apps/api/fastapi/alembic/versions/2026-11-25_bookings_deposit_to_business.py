@@ -13,7 +13,7 @@ business by hand (PayPal, bank transfer, cash), outside Barrels:
 The downgrade drops these columns and their checks, nothing else.
 
 Revision ID: bookingdepositbiz20261125
-Revises: bookingsignup20261124
+Revises: bookingalsoaddon20261125
 """
 
 import sqlalchemy as sa
@@ -21,7 +21,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "bookingdepositbiz20261125"
-down_revision = "bookingsignup20261124"
+down_revision = "bookingalsoaddon20261125"
 branch_labels = None
 depends_on = None
 

@@ -21,10 +21,17 @@ export const bookingServiceCreateSchema = z.object({
     .optional()
     .default(false)
     .describe("An add-on is booked with a main service, never alone."),
+  also_add_on: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "A main service that is also offered as an add-on: bookable alone, and attachable to other services (see `add_on_categories`). Ignored when `is_add_on` is true."
+    ),
   add_on_categories: z
     .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
     .optional()
     .describe(
-      "For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service."
+      "For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service."
     ),
 });

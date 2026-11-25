@@ -82173,6 +82173,12 @@
             "description": "An add-on is booked with a main service, never alone.",
             "default": false
           },
+          "also_add_on": {
+            "type": "boolean",
+            "title": "Also Add On",
+            "description": "A main service that is also offered as an add-on: bookable alone, and attachable to other services (see `add_on_categories`). Ignored when `is_add_on` is true.",
+            "default": false
+          },
           "add_on_categories": {
             "anyOf": [
               {
@@ -82189,7 +82195,7 @@
               }
             ],
             "title": "Add On Categories",
-            "description": "For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service."
+            "description": "For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service."
           }
         },
         "type": "object",
@@ -82263,6 +82269,11 @@
           "is_add_on": {
             "type": "boolean",
             "title": "Is Add On",
+            "default": false
+          },
+          "also_add_on": {
+            "type": "boolean",
+            "title": "Also Add On",
             "default": false
           },
           "add_on_categories": {
@@ -82434,6 +82445,17 @@
               }
             ],
             "title": "Is Add On"
+          },
+          "also_add_on": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Also Add On"
           },
           "add_on_categories": {
             "anyOf": [

@@ -15,5 +15,6 @@ export type BookingServiceUpdate = {
   active?: boolean | null;
   sort_order?: number | null;
   is_add_on?: boolean | null;
+  also_add_on?: boolean | null;
   add_on_categories?: string[] | null;
 };
