@@ -17,4 +17,7 @@ export type BookingServiceUpdate = {
   is_add_on?: boolean | null;
   also_add_on?: boolean | null;
   add_on_categories?: string[] | null;
+  new_clients_only?: boolean | null;
+  first_visit_lead_days?: number | null;
+  first_visit_categories?: string[] | null;
 };

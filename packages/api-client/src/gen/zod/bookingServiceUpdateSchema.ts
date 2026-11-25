@@ -21,4 +21,9 @@ export const bookingServiceUpdateSchema = z.object({
   add_on_categories: z
     .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
     .optional(),
+  new_clients_only: z.union([z.boolean(), z.null()]).optional(),
+  first_visit_lead_days: z.union([z.int().min(0).max(60), z.null()]).optional(),
+  first_visit_categories: z
+    .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
+    .optional(),
 });

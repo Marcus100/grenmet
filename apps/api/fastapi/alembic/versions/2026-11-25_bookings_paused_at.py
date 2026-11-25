@@ -5,7 +5,7 @@ business, so nothing changes until the subscription switch is turned on. The dow
 drops the column and nothing else.
 
 Revision ID: bookingpaused20261125
-Revises: bookingdepositbiz20261125
+Revises: bookingnewclient20261125
 """
 
 import sqlalchemy as sa
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "bookingpaused20261125"
-down_revision = "bookingdepositbiz20261125"
+down_revision = "bookingnewclient20261125"
 branch_labels = None
 depends_on = None
 

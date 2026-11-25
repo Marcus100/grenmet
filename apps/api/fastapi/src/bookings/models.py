@@ -311,6 +311,10 @@ class Service(Base):
             "price_minor >= 0 AND deposit_minor >= 0 AND deposit_minor <= price_minor",
             name="money",
         ),
+        sa.CheckConstraint(
+            "first_visit_lead_days IS NULL OR first_visit_lead_days BETWEEN 0 AND 60",
+            name="first_visit_lead_days",
+        ),
         SCHEMA,
     )
 
@@ -336,6 +340,18 @@ class Service(Base):
     #: For an add-on (``is_add_on`` or ``also_add_on``): the main-service categories
     #: it is offered with. Null or empty means any main service.
     add_on_categories: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(80)), default=None
+    )
+    #: Public bookings of this service are always requests staff confirm, and one
+    #: from a returning client (a confirmed or completed booking) is flagged for
+    #: staff. Never refused, so nothing reveals a client's history.
+    new_clients_only: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: Informational: this service is ideally booked at least this many days before
+    #: the client's first appointment in ``first_visit_categories``. Not enforced.
+    first_visit_lead_days: Mapped[int | None] = mapped_column(default=None)
+    first_visit_categories: Mapped[list[str] | None] = mapped_column(
         ARRAY(String(80)), default=None
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
@@ -576,6 +592,9 @@ class Booking(Base):
     idempotency_key: Mapped[str | None] = mapped_column(String(100))
     cancel_reason: Mapped[str | None] = mapped_column(String(300))
     cancelled_at: Mapped[datetime | None]
+    #: Staff only, never public: set when a returning client requested a
+    #: new-clients-only service (so the request is held for staff to decide).
+    returning_client_flagged_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

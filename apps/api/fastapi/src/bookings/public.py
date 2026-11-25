@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -350,6 +350,9 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
             else None
         ),
         late_fee=service.late_fee_of(profile),
+        new_clients_only=managed.service.new_clients_only,
+        first_visit_lead_days=managed.service.first_visit_lead_days,
+        first_visit_categories=managed.service.first_visit_categories,
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
@@ -809,6 +812,37 @@ async def _require_under_open_cap(
         raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
+#: A booking that makes its customer a returning client of the business.
+RETURNING_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.COMPLETED.value)
+
+
+async def _is_returning_client(
+    session: AsyncSession, profile: BookingProfile, contact: Contact
+) -> bool:
+    """True for a returning client of the business: the business's
+    contact (matched by email in ``upsert_contact``, ADR-0058) or another contact of
+    the same organisation linked to the same account has a confirmed or completed
+    booking. Cancelled, expired, declined and unpaid or pending bookings do not count.
+    Only staff ever see the answer (never the customer), so a caller cannot learn
+    whether an email has booked."""
+    same_person = Contact.id == contact.id
+    if contact.user_id is not None:
+        same_person = or_(same_person, Contact.user_id == contact.user_id)
+    returning = await session.scalar(
+        select(Booking.id)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == profile.organisation_id,
+            Booking.status.in_(RETURNING_STATUSES),
+            Contact.organisation_id == profile.organisation_id,
+            same_person,
+        )
+        .limit(1)
+    )
+    return returning is not None
+
+
 async def _create_booking(
     session: AsyncSession,
     profile: BookingProfile,
@@ -851,6 +885,9 @@ async def _create_booking(
         contacts_service.take_name_from_linked_account(
             contact, name=_single_line(payload.customer_name), user_id=payer.id
         )
+    flag_returning = svc.new_clients_only and await _is_returning_client(
+        session, profile, contact
+    )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(
         minutes=svc.duration_min + sum(a.duration_min for a in chosen)
@@ -860,7 +897,9 @@ async def _create_booking(
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT
-    elif profile.requires_confirmation:
+    elif profile.requires_confirmation or svc.new_clients_only:
+        # A new-clients-only service is always a request staff confirm, so every
+        # client gets the same answer whatever their history.
         initial = BookingStatus.PENDING
     else:
         initial = BookingStatus.CONFIRMED
@@ -885,6 +924,9 @@ async def _create_booking(
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
+            returning_client_flagged_at=(
+                service.as_naive_utc(moment) if flag_returning else None
+            ),
         )
         try:
             # A savepoint: losing a race to the exclusion constraint rolls back
@@ -916,6 +958,9 @@ async def _create_booking(
     if booking is None:
         raise BookingConflictError(SLOT_TAKEN)
 
+    # No extra history event for a returning client: the event count feeds the
+    # public ICS SEQUENCE, so one more row would tell the requester the email has
+    # booked here before. The flag column alone marks it for staff.
     record_event(session, booking, None, initial, note="Booked online")
     await emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"

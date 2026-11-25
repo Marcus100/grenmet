@@ -26,6 +26,13 @@ export const bookingAgendaItemSchema = z.object({
   ),
   currency: z.string(),
   add_on_names: z.array(z.string()).optional(),
+  returning_client: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Staff only: a returning client requested a new-clients-only service."
+    ),
   expires_at: z
     .union([z.iso.datetime(), z.null()])
     .optional()

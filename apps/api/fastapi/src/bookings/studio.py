@@ -93,6 +93,7 @@ async def _detail(
         deposit_minor=booking.deposit_minor,
         deposit_to_business_minor=booking.deposit_to_business_minor,
         deposit_non_refundable=booking.deposit_non_refundable,
+        returning_client=booking.returning_client_flagged_at is not None,
         payment_kind=deposit_payments.payment_kind(booking),
         balance_at_salon_minor=deposit_payments.balance_at_salon(
             booking.price_minor, booking.deposit_minor
@@ -199,6 +200,7 @@ async def agenda(
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
                 add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
+                returning_client=booking.returning_client_flagged_at is not None,
                 expires_at=lifecycle.pending_expires_at(booking, profile),
             )
         )
