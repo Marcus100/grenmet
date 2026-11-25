@@ -35,6 +35,7 @@ import { ServiceForm } from "@/components/studio/settings/service-form";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
+import { lateFeeSentence } from "@/lib/late-fee";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 
 /** The jump menu's targets, in the order the sections appear. */
@@ -371,6 +372,54 @@ export function HoursSection({
   );
 }
 
+/** What a member (not owner or admin) sees of the payment settings. */
+export function PaymentsSummary({
+  currency,
+  profile,
+}: {
+  currency: string;
+  profile: BookingProfilePublic;
+}) {
+  const business = profile.deposit_collection === "business";
+  const fee = lateFeeSentence(
+    profile.late_fee_minor ?? null,
+    profile.late_grace_min ?? 0,
+    currency
+  );
+  const rows: [string, string][] = [
+    [
+      "How customers pay a deposit",
+      business ? "Paid to the business directly" : "Online, by card at booking",
+    ],
+    ...(business
+      ? [
+          [
+            "Payment instructions",
+            profile.deposit_instructions?.trim() || "None yet",
+          ] as [string, string],
+        ]
+      : [
+          [
+            "Payment when booking",
+            profile.payment_at_booking === "full_price"
+              ? "Full price by card"
+              : "Service deposit",
+          ] as [string, string],
+        ]),
+    ["Late fee", fee === null ? "None" : fee],
+  ];
+  return (
+    <dl className="grid gap-3">
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt className="text-muted-foreground text-sm">{label}</dt>
+          <dd className="font-medium whitespace-pre-line">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function PaymentsSection({
   cardPaymentsAvailable,
   currency,
@@ -432,18 +481,7 @@ export function PaymentsSection({
         <BookingRequestsForm orgSlug={orgSlug} profile={profile} />
       ) : null}
       {profile !== null && !editable ? (
-        <dl className="grid gap-3">
-          <div>
-            <dt className="text-muted-foreground text-sm">
-              Payment when booking
-            </dt>
-            <dd className="font-medium">
-              {profile.payment_at_booking === "full_price"
-                ? "Full price by card"
-                : "Service deposit"}
-            </dd>
-          </div>
-        </dl>
+        <PaymentsSummary currency={currency} profile={profile} />
       ) : null}
     </Section>
   );

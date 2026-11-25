@@ -14,6 +14,7 @@ import { BookingPolicyForm } from "./booking-policy-form";
 import { DepositRuleForm } from "./deposit-rule-form";
 import { PaymentsForm } from "./payments-form";
 import { ServiceForm } from "./service-form";
+import { PaymentsSummary } from "./settings-sections";
 
 const ONLINE = "Online, by card at booking";
 const BUSINESS = "Paid to me directly (bank transfer, PayPal, cash)";
@@ -30,6 +31,8 @@ const PREVIEW = "late-fee-preview";
 const ONLINE_ONLY = /Deposits are collected online only/u;
 const TICK_NONE = /Tick none to offer it with every main service/u;
 const PAID_DIRECT = /Paid to you directly by the customer/u;
+const KEPT = /the deposit is kept if the customer cancels/u;
+const NEVER_HOLDS = /Barrels never holds this money/u;
 const IS_ADD_ON = "This is an add-on";
 const ALSO_ADD_ON = "Also offer as an add-on";
 const EVERY_MAIN = /offered with every main service/u;
@@ -318,5 +321,72 @@ describe("service add-on switches", () => {
       />
     );
     expect(screen.getByText(PAID_DIRECT)).toBeVisible();
+  });
+});
+
+describe("non-refundable wording", () => {
+  const example = { name: "Full set", priceMinor: 20_000, ownDepositMinor: 0 };
+  function renderRule(collection: "online" | "business") {
+    render(
+      <DepositRuleForm
+        collection={collection}
+        currency="XCD"
+        depositsAvailable
+        example={example}
+        orgSlug="salon"
+        profile={profile()}
+      />
+    );
+  }
+
+  it("online keeps the refund wording", () => {
+    renderRule("online");
+    expect(screen.getByText(KEPT)).toBeVisible();
+  });
+
+  it("paid to me says Barrels never holds the money and any refund is the business's own", () => {
+    renderRule("business");
+    expect(screen.getByText(NEVER_HOLDS)).toBeVisible();
+    expect(screen.queryByText(KEPT)).toBeNull();
+  });
+});
+
+describe("read-only payments summary", () => {
+  it("shows online collection, the card choice and no late fee", () => {
+    render(<PaymentsSummary currency="XCD" profile={profile()} />);
+    expect(screen.getByText("Online, by card at booking")).toBeVisible();
+    expect(screen.getByText("Service deposit")).toBeVisible();
+    expect(screen.getByText("None")).toBeVisible();
+  });
+
+  it("shows paid-to-me, the instructions and the late fee with its grace", () => {
+    render(
+      <PaymentsSummary
+        currency="XCD"
+        profile={profile({
+          deposit_collection: "business",
+          deposit_instructions: "Send to 1234",
+          late_fee_minor: 2000,
+          late_grace_min: 15,
+        })}
+      />
+    );
+    expect(screen.getByText("Paid to the business directly")).toBeVisible();
+    expect(screen.getByText("Send to 1234")).toBeVisible();
+    expect(
+      screen.getByText(
+        "Arriving more than 15 minutes late adds a late fee of EC$20."
+      )
+    ).toBeVisible();
+  });
+
+  it("says none yet when paid-to-me has no instructions", () => {
+    render(
+      <PaymentsSummary
+        currency="XCD"
+        profile={profile({ deposit_collection: "business" })}
+      />
+    );
+    expect(screen.getByText("None yet")).toBeVisible();
   });
 });
