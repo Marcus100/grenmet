@@ -37,6 +37,7 @@ from src.payments import return_urls
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.config import payments_settings
+from src.payments.exceptions import RefundFailedAtProvider
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
 from .config import bookings_settings
@@ -502,17 +503,29 @@ def refund_by_policy(
     return booking.starts_at - now >= timedelta(hours=profile.cancel_cutoff_hours)
 
 
+#: Attempts at one refund. A provider that marks each attempt failed ends the loop.
+REFUND_MAX_ATTEMPTS = 5
+
+
 def refund_id_for(
-    booking_id: uuid.UUID, intent_id: uuid.UUID, amount_minor: int, occasion: str
+    booking_id: uuid.UUID,
+    intent_id: uuid.UUID,
+    amount_minor: int,
+    occasion: str,
+    attempt: int = 1,
 ) -> uuid.UUID:
     """The refund id of one deposit refund, derived from the booking, the intent,
-    the amount and the occasion (the reason). A retry after a lost commit derives the
-    same id, so the provider sees the same idempotency key and refunds once. A partial
-    refund (another amount) gets its own id."""
-    return uuid.uuid5(
-        uuid.NAMESPACE_URL,
-        f"bookings.deposit-refund:{booking_id}:{intent_id}:{amount_minor}:{occasion}",
-    )
+    the amount, the occasion (the reason) and the attempt. A retry after a lost commit
+    derives the same id, so the provider sees the same idempotency key and refunds
+    once. A partial refund (another amount) gets its own id. After the provider marks
+    an attempt failed, the next attempt (2, 3, ...) gets its own id; attempt 1 keeps
+    the id it always had, so refunds already in flight still match."""
+    if attempt < 1:
+        raise ValueError("a refund attempt starts at 1")
+    name = f"bookings.deposit-refund:{booking_id}:{intent_id}:{amount_minor}:{occasion}"
+    if attempt > 1:
+        name += f":attempt:{attempt}"
+    return uuid.uuid5(uuid.NAMESPACE_URL, name)
 
 
 async def refund_deposit(
@@ -524,30 +537,48 @@ async def refund_deposit(
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return True
     remaining = intent.captured_minor - intent.refunded_minor
-    try:
-        async with session.begin_nested():
-            await payments_service.refund_intent(
-                session,
-                organisation_id=booking.organisation_id,
-                intent_id=intent.id,
-                actor=None,
-                payload=payment_schemas.PaymentRefundCreate(reason=reason),
-                refund_id=refund_id_for(booking.id, intent.id, remaining, reason),
+    for attempt in range(1, REFUND_MAX_ATTEMPTS + 1):
+        try:
+            async with session.begin_nested():
+                await payments_service.refund_intent(
+                    session,
+                    organisation_id=booking.organisation_id,
+                    intent_id=intent.id,
+                    actor=None,
+                    payload=payment_schemas.PaymentRefundCreate(reason=reason),
+                    refund_id=refund_id_for(
+                        booking.id, intent.id, remaining, reason, attempt
+                    ),
+                )
+        except RefundFailedAtProvider:
+            # The provider marked an earlier attempt failed, so the money is due
+            # again: the next attempt has its own id.
+            continue
+        except AppException as error:
+            # Error level so Sentry alerts: the money is still held and needs a refund
+            # by hand. Only ids, amounts and the status code are logged (no provider
+            # text).
+            logger.error(
+                "booking deposit refund failed; refund it by hand",
+                extra={
+                    "booking_id": str(booking.id),
+                    "intent_id": str(intent.id),
+                    "amount_minor": remaining,
+                    "status_code": error.status_code,
+                },
             )
-    except AppException as error:
-        # Error level so Sentry alerts: the money is still held and needs a refund by
-        # hand. Only ids, amounts and the status code are logged (no provider text).
-        logger.error(
-            "booking deposit refund failed; refund it by hand",
-            extra={
-                "booking_id": str(booking.id),
-                "intent_id": str(intent.id),
-                "amount_minor": intent.captured_minor - intent.refunded_minor,
-                "status_code": error.status_code,
-            },
-        )
-        return False
-    return True
+            return False
+        return True
+    logger.error(
+        "booking deposit refund failed every attempt; refund it by hand",
+        extra={
+            "booking_id": str(booking.id),
+            "intent_id": str(intent.id),
+            "amount_minor": remaining,
+            "attempts": REFUND_MAX_ATTEMPTS,
+        },
+    )
+    return False
 
 
 async def settle_cancellation(

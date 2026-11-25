@@ -744,6 +744,10 @@ async def refund_intent(
     sees a second refund for the same request."""
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
     if refund_id is not None:
+        if await session.get(Refund, refund_id) is None:
+            # Our copy is gone (a lost commit, or the key expired at the provider):
+            # the provider may still hold this refund, so ask before sending it again.
+            await _adopt_provider_refund(session, intent, refund_id)
         existing = await session.get(Refund, refund_id)
         if existing is not None:
             if existing.intent_id != intent.id:
@@ -808,6 +812,33 @@ async def refund_intent(
         extra={"intent_id": str(intent.id), "refund_id": str(refund.id)},
     )
     return _refund_public(refund)
+
+
+async def _adopt_provider_refund(
+    session: AsyncSession, intent: Intent, refund_id: uuid.UUID
+) -> None:
+    """Before a refund under ``refund_id`` is sent (again), record the copy the provider
+    already holds under that id, so no second refund is made. A copy the provider
+    marked failed is not recorded and not sent again: the caller gets
+    ``RefundFailedAtProvider``. Nothing is written for a failed copy, so a refund
+    attempt that failed leaves no row behind. Only the refund under this id is read
+    from the listing: other refunds are the reconciliation job's business."""
+    listing = await registry.get_provider(intent.provider).list_refunds(intent)
+    ours = [refund for refund in listing.refunds if refund.refund_id == refund_id]
+    if any(
+        transitions.PROVIDER_REFUND_STATE.get(refund.status) is RefundStatus.FAILED
+        for refund in ours
+    ):
+        raise RefundFailedAtProvider("That refund failed at the provider; refund again")
+    if not ours and not listing.complete:
+        # The listing stopped early, so it cannot show whether this refund exists.
+        raise ProviderRequestError(
+            "The provider's refund list is incomplete; the refund was not sent"
+        )
+    for refund in ours:
+        await _reconcile_listed_refund(
+            session, intent, refund, provider=intent.provider, event_id=None
+        )
 
 
 async def _totals(session: AsyncSession, intent_id: uuid.UUID) -> tuple[int, int]:

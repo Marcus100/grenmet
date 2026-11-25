@@ -144,7 +144,7 @@ async def test_a_refund_lost_before_commit_is_counted_once_after_the_webhook_and
     assert rows[0].provider_ref == "re_test_1"
     ledger = await _refund_ledger(db_async, intent_id)
     assert [entry.amount_minor for entry in ledger] == [-2000]
-    assert [r.url.path for r in stripe_env.requests].count("/v1/refunds") == 1
+    assert stripe_env.refunds_created == 1 and len(stripe_env.refund_keys()) == 1
     assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
 
 
@@ -385,11 +385,15 @@ async def test_a_charge_refunded_without_a_refund_list_records_nothing_then_the_
     await db_async.commit()
     assert [row.id for row in await _refund_rows(db_async, intent_id)] == [refund_id]
     assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
-    # Nothing was recorded, so the retry sends again, under the same idempotency key:
-    # Stripe answers with the refund it already made, and moves no more money.
-    sent = [r for r in stripe_env.requests if r.url.path == "/v1/refunds"]
-    assert len(sent) == 2
-    assert {r.headers["idempotency-key"] for r in sent} == {f"refund-{refund_id}"}
+    # Nothing was recorded, but the provider's listing shows the refund it made, so
+    # the retry records that refund and sends nothing (#1824).
+    sent = [
+        r
+        for r in stripe_env.requests
+        if r.method == "POST" and r.url.path == "/v1/refunds"
+    ]
+    assert len(sent) == 1
+    assert stripe_env.refunds_created == 1
     assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
 
 
@@ -443,7 +447,7 @@ async def test_a_refund_created_after_a_lost_commit_is_counted_once_through_the_
     await db_async.commit()
     assert [row.id for row in await _refund_rows(db_async, intent_id)] == [refund_id]
     assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
-    assert [r.url.path for r in stripe_env.requests].count("/v1/refunds") == 1
+    assert stripe_env.refunds_created == 1 and len(stripe_env.refund_keys()) == 1
     assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
 
 

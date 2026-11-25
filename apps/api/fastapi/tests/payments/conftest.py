@@ -58,10 +58,24 @@ class StripeStub:
     #: Refunds Stripe actually created, by Idempotency-Key. A repeated key gets the
     #: stored answer back, as Stripe replays it, and creates no second refund.
     refunds_by_key: dict[str, dict[str, Any]] = field(default_factory=dict)
+    #: The request parameters each key was first used with. Stripe answers 400
+    #: ``idempotency_error`` when a key comes back with different parameters.
+    key_params: dict[str, dict[str, str]] = field(default_factory=dict)
+    #: Every refund Stripe holds, by id (listed by ``GET /v1/refunds``). Unlike the
+    #: idempotency memory this is never forgotten.
+    refunds: dict[str, dict[str, Any]] = field(default_factory=dict)
+    #: When True the refund listing says it has more pages but gives no cursor.
+    list_incomplete: bool = False
 
     @property
     def refunds_created(self) -> int:
-        return len(self.refunds_by_key)
+        return len(self.refunds)
+
+    def forget_keys(self) -> None:
+        """Stripe forgets idempotency keys after about 24 hours: the refunds stay, the
+        memory of the request that made them does not."""
+        self.refunds_by_key.clear()
+        self.key_params.clear()
 
     def refund_keys(self) -> list[str | None]:
         return [
@@ -95,16 +109,58 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
             if stub.fail_refund:
                 return httpx.Response(402, json={"error": {"message": "nope"}})
             key = request.headers.get("Idempotency-Key")
-            if key is not None and key in stub.refunds_by_key:
+            params = {
+                name: values[0]
+                for name, values in parse_qs(request.content.decode()).items()
+            }
+            if key is not None and key in stub.key_params:
+                if stub.key_params[key] != params:
+                    return httpx.Response(
+                        400,
+                        json={
+                            "error": {
+                                "type": "idempotency_error",
+                                "message": "Keys for idempotent requests can only be "
+                                "used with the same parameters they were first used with.",
+                            }
+                        },
+                    )
                 # Stripe replays the stored answer for a key it has seen.
                 return httpx.Response(200, json=stub.refunds_by_key[key])
+            intent_ref = params.get("payment_intent", "pi_test_1")
             refund = {
                 "id": f"re_test_{stub.refunds_created + 1}",
+                "object": "refund",
+                "amount": int(params["amount"]),
+                "currency": "xcd",
                 "status": stub.refund_status,
+                "payment_intent": intent_ref,
+                "charge": "ch_test_1",
+                "metadata": {
+                    name.removeprefix("metadata[").removesuffix("]"): value
+                    for name, value in params.items()
+                    if name.startswith("metadata[")
+                },
             }
+            stub.refunds[refund["id"]] = refund
             if key is not None:
                 stub.refunds_by_key[key] = refund
+                stub.key_params[key] = params
             return httpx.Response(200, json=refund)
+        if request.method == "GET" and request.url.path == "/v1/refunds":
+            if stub.list_incomplete:
+                return httpx.Response(
+                    200, json={"object": "list", "has_more": True, "data": []}
+                )
+            wanted = request.url.params.get("payment_intent")
+            listed = [
+                refund
+                for refund in reversed(list(stub.refunds.values()))
+                if wanted is None or refund["payment_intent"] == wanted
+            ]
+            return httpx.Response(
+                200, json={"object": "list", "has_more": False, "data": listed}
+            )
         if request.method == "GET" and request.url.path.startswith(
             "/v1/checkout/sessions/"
         ):

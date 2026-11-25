@@ -316,7 +316,11 @@ async def test_a_late_payment_for_an_expired_booking_is_refunded(
     assert await _drain(db_async) == 1
     booking = await _booking_for(db_async, booking_id)
     assert booking.status == BookingStatus.CANCELLED.value
-    refunds = [r for r in stripe_env.requests if r.url.path == "/v1/refunds"]
+    refunds = [
+        r
+        for r in stripe_env.requests
+        if r.method == "POST" and r.url.path == "/v1/refunds"
+    ]
     assert len(refunds) == 1
 
 
