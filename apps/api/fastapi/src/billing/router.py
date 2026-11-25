@@ -24,7 +24,11 @@ _APP_SUBSCRIPTION_WRITE_ERRORS = {
     **CONFLICT,
     422: {"model": ApiError, "description": "This plan has no price in that currency"},
     502: {"description": "Stripe request failed"},
-    503: {"description": "Billing is not configured or test mode is not in use"},
+    503: {
+        "description": (
+            "Billing is not configured, or the Stripe key does not match the billing mode"
+        )
+    },
 }
 
 
@@ -33,7 +37,11 @@ _APP_SUBSCRIPTION_WRITE_ERRORS = {
     response_model=CheckoutSessionPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create subscription Checkout Session",
-    description="Create a Stripe-hosted Checkout Session for the current user.",
+    description=(
+        "Create a Stripe-hosted Checkout Session for the current user. Test mode only: "
+        "refused with 503 while live mode is on (ADR-0065). Not an app subscription; "
+        "use POST /billing/org/subscriptions/checkout."
+    ),
     tags=["billing"],
     responses={
         status.HTTP_201_CREATED: {"description": "Checkout Session created"},
@@ -43,7 +51,7 @@ _APP_SUBSCRIPTION_WRITE_ERRORS = {
         },
         status.HTTP_502_BAD_GATEWAY: {"description": "Stripe request failed"},
         status.HTTP_503_SERVICE_UNAVAILABLE: {
-            "description": "Billing is not configured"
+            "description": "Billing is not configured, or live mode is on"
         },
     },
 )
@@ -135,7 +143,8 @@ async def create_app_subscription_checkout(
         },
         status.HTTP_503_SERVICE_UNAVAILABLE: {
             "description": (
-                "Billing is not configured, a live-mode event is refused, or the "
+                "Billing is not configured, an event does not match the billing mode "
+                "(live mode on: only live events; off: no live events), or the "
                 "subscription row is not written yet (Stripe sends the event again)"
             )
         },

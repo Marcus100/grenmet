@@ -2544,7 +2544,7 @@
           "billing"
         ],
         "summary": "Create subscription Checkout Session",
-        "description": "Create a Stripe-hosted Checkout Session for the current user.",
+        "description": "Create a Stripe-hosted Checkout Session for the current user. Test mode only: refused with 503 while live mode is on (ADR-0065). Not an app subscription; use POST /billing/org/subscriptions/checkout.",
         "operationId": "billingCreateSubscriptionCheckout",
         "responses": {
           "201": {
@@ -2581,7 +2581,7 @@
             "description": "Stripe request failed"
           },
           "503": {
-            "description": "Billing is not configured"
+            "description": "Billing is not configured, or live mode is on"
           }
         },
         "security": [
@@ -2786,7 +2786,7 @@
             "description": "Stripe request failed"
           },
           "503": {
-            "description": "Billing is not configured or test mode is not in use"
+            "description": "Billing is not configured, or the Stripe key does not match the billing mode"
           }
         }
       }
