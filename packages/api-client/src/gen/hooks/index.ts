@@ -659,6 +659,11 @@ export {
   useBookingsGetSettings,
 } from "./useBookingsGetSettings.js";
 export {
+  bookingsGetSetupChecklistQueryKey,
+  bookingsGetSetupChecklistQueryOptions,
+  useBookingsGetSetupChecklist,
+} from "./useBookingsGetSetupChecklist.js";
+export {
   bookingsGetStorefrontQueryKey,
   bookingsGetStorefrontQueryOptions,
   useBookingsGetStorefront,

@@ -1395,3 +1395,35 @@ class BookingListingReviewList(BaseModel):
     count: int
     page: int
     size: int
+
+
+# --- Setup checklist (ADR-0066 item 3) ---------------------------------------------
+
+
+class BookingSetupItemKey(str, Enum):
+    SERVICES = "services"
+    HOURS = "hours"
+    CONTACT = "contact"
+    BRANDING = "branding"
+
+
+class BookingSetupItem(BaseModel):
+    """One checklist item. ``services``: at least one active service. ``hours``: an
+    active provider with working hours who offers an active service. ``contact``: a
+    phone, WhatsApp, Instagram or email. ``branding``: a logo or colour (optional)."""
+
+    key: BookingSetupItemKey
+    done: bool
+    required: bool
+
+
+class BookingSetupChecklist(BaseModel):
+    """What a business still needs before it can open online booking."""
+
+    items: list[BookingSetupItem]
+    #: Required items not done yet, in checklist order; empty when ready.
+    missing: list[BookingSetupItemKey]
+    #: Every required item is done, so online booking can be opened.
+    ready: bool
+    #: Online booking is open now (``profile.enabled``).
+    live: bool

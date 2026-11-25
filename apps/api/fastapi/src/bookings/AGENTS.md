@@ -104,6 +104,7 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 - The idempotency claim is a foreign key to the organisation, so `prepare_organisation` locks the account and creates the row first, keyed by `organisation_id_for`; a refused request rolls it back. One business per account is counted under that lock.
 - `create_business` (one transaction): closed, unlisted profile (Grenada, XCD, confirmation on); owner; `bookings` and `contacts` with source `trial`; starter services at EC$ x 100, no deposit; owner provider with Mon-Fri 09-17 and `owner_provider_id`; trial with `trial_ends_at` (+30 days). A name the sender guard refuses sets `sender_name_flagged_at`.
 - `GET /bookings/me/business-templates` reads `templates.py`; `BookingSignupTemplate` must list the same keys.
+- Go-live gate (slice 3, `go_live.py`): `GET /org/setup-checklist`; `upsert_profile` refuses closed-to-open for a self-created business until services, hours and contact are done (409 `SETUP_INCOMPLETE`).
 
 ## Tests
 `tests/bookings/` per feature (`test_public_bookings.py` is the flow base); `tests/worker/test_platform_jobs.py` for jobs.

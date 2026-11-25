@@ -130,6 +130,7 @@ export { bookingsGetPublicBooking } from "./bookingsGetPublicBooking.js";
 export { bookingsGetPublicBookingIcs } from "./bookingsGetPublicBookingIcs.js";
 export { bookingsGetPublicCalendarFeed } from "./bookingsGetPublicCalendarFeed.js";
 export { bookingsGetSettings } from "./bookingsGetSettings.js";
+export { bookingsGetSetupChecklist } from "./bookingsGetSetupChecklist.js";
 export { bookingsGetStorefront } from "./bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./bookingsGetWorkingHours.js";

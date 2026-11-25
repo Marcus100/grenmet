@@ -1267,6 +1267,9 @@ export { bookingServiceCreateSchema } from "./bookingServiceCreateSchema.js";
 export { bookingServicePublicSchema } from "./bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./bookingServiceUpdateSchema.js";
 export { bookingSettingsSchema } from "./bookingSettingsSchema.js";
+export { bookingSetupChecklistSchema } from "./bookingSetupChecklistSchema.js";
+export { bookingSetupItemKeySchema } from "./bookingSetupItemKeySchema.js";
+export { bookingSetupItemSchema } from "./bookingSetupItemSchema.js";
 export { bookingSignupCreatePropertiesTemplateAnyOfEnumSchema } from "./bookingSignupCreatePropertiesTemplateAnyOfEnumSchema.js";
 export { bookingSignupCreateSchema } from "./bookingSignupCreateSchema.js";
 export { bookingSignupReceiptSchema } from "./bookingSignupReceiptSchema.js";
@@ -1650,6 +1653,18 @@ export {
   bookingsGetSettingsStatus404Schema,
   bookingsGetSettingsStatus422Schema,
 } from "./bookingsGetSettingsSchema.js";
+export {
+  bookingsGetSetupChecklistErrorSchema,
+  bookingsGetSetupChecklistHeadersSchema,
+  bookingsGetSetupChecklistHeaderXBarrelsOrganisationSchema,
+  bookingsGetSetupChecklistResponseSchema,
+  bookingsGetSetupChecklistStatus200Schema,
+  bookingsGetSetupChecklistStatus400Schema,
+  bookingsGetSetupChecklistStatus401Schema,
+  bookingsGetSetupChecklistStatus403Schema,
+  bookingsGetSetupChecklistStatus404Schema,
+  bookingsGetSetupChecklistStatus422Schema,
+} from "./bookingsGetSetupChecklistSchema.js";
 export {
   bookingsGetStorefrontErrorSchema,
   bookingsGetStorefrontPathSchema,
