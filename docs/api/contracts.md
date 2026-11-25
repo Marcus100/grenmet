@@ -1363,6 +1363,8 @@ the main service plus add-ons; the deposit rule applies to the combined price, a
 main service's own deposit wins (add-on deposits are ignored). `BookingPublicDetail`
 and the studio detail carry `add_ons` (name, duration, price as booked); the agenda
 items carry `add_on_names`. A main service can also be offered as an add-on (`also_add_on: true`, #1862): it stays bookable alone, is listed in `add_ons` too (never with itself) and can be sent in `add_on_ids` for main services in its `add_on_categories` (empty means any); `is_add_on` still means add-on only and clears `also_add_on`. Reschedules keep the add-ons. Mails and the ICS list them.
+
+New-client services (#1863): `new_clients_only` on a service makes the public create answer 409 `code: NEW_CLIENTS_ONLY` (one wording) when the customer's contact in that business (or one linked to the same account) has a confirmed or completed booking; cancelled, declined and expired bookings do not count. Staff bookings are never refused. `first_visit_lead_days` (0 to 60) and `first_visit_categories` are kept only with `new_clients_only`, shown on the storefront service and `BookingPublicDetail`, and not enforced.
 `BookingPublicDetail.business_name` is the business's display name, the same one
 the storefront shows as `display_name`, so the manage page can name who to contact.
 

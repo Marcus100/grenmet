@@ -307,6 +307,10 @@ class Service(Base):
             "price_minor >= 0 AND deposit_minor >= 0 AND deposit_minor <= price_minor",
             name="money",
         ),
+        sa.CheckConstraint(
+            "first_visit_lead_days IS NULL OR first_visit_lead_days BETWEEN 0 AND 60",
+            name="first_visit_lead_days",
+        ),
         SCHEMA,
     )
 
@@ -332,6 +336,17 @@ class Service(Base):
     #: For an add-on (``is_add_on`` or ``also_add_on``): the main-service categories
     #: it is offered with. Null or empty means any main service.
     add_on_categories: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(80)), default=None
+    )
+    #: Public bookings are refused for a returning client of the business (one with
+    #: a confirmed or completed booking). Staff bookings are never refused.
+    new_clients_only: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: Informational: this service is ideally booked at least this many days before
+    #: the client's first appointment in ``first_visit_categories``. Not enforced.
+    first_visit_lead_days: Mapped[int | None] = mapped_column(default=None)
+    first_visit_categories: Mapped[list[str] | None] = mapped_column(
         ARRAY(String(80)), default=None
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

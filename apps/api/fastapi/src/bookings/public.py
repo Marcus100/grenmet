@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -350,6 +350,9 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
             else None
         ),
         late_fee=service.late_fee_of(profile),
+        new_clients_only=managed.service.new_clients_only,
+        first_visit_lead_days=managed.service.first_visit_lead_days,
+        first_visit_categories=managed.service.first_visit_categories,
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
@@ -809,6 +812,50 @@ async def _require_under_open_cap(
         raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
+#: One wording whatever the reason, so a refusal tells a stranger nothing beyond the
+#: rule printed on the service itself.
+NEW_CLIENTS_ONLY_MESSAGE = (
+    "This service is for new clients only. "
+    "Please choose another service or contact the business."
+)
+
+
+class NewClientsOnlyError(BookingConflictError):
+    def __init__(self) -> None:
+        super().__init__(NEW_CLIENTS_ONLY_MESSAGE)
+        self.extra["code"] = "NEW_CLIENTS_ONLY"
+
+
+#: A booking that makes its customer a returning client of the business.
+RETURNING_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.COMPLETED.value)
+
+
+async def _require_new_client(
+    session: AsyncSession, profile: BookingProfile, contact: Contact
+) -> None:
+    """Refuse a new-clients-only service to a returning client: the business's
+    contact (matched by email in ``upsert_contact``, ADR-0058) or another contact of
+    the same organisation linked to the same account has a confirmed or completed
+    booking. Cancelled, expired, declined and unpaid or pending bookings do not count."""
+    same_person = Contact.id == contact.id
+    if contact.user_id is not None:
+        same_person = or_(same_person, Contact.user_id == contact.user_id)
+    returning = await session.scalar(
+        select(Booking.id)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == profile.organisation_id,
+            Booking.status.in_(RETURNING_STATUSES),
+            Contact.organisation_id == profile.organisation_id,
+            same_person,
+        )
+        .limit(1)
+    )
+    if returning is not None:
+        raise NewClientsOnlyError
+
+
 async def _create_booking(
     session: AsyncSession,
     profile: BookingProfile,
@@ -836,6 +883,8 @@ async def _create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     customer, contact = await _upsert_customer(session, profile, payload, moment)
+    if svc.new_clients_only:
+        await _require_new_client(session, profile, contact)
     await _require_under_open_cap(session, profile, customer, moment)
     if payer is not None:
         # Ties the organisation's contact to the account that booked with it,

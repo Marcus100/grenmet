@@ -287,6 +287,7 @@ async def create_service(
         values["is_add_on"] or values["also_add_on"], values["add_on_categories"]
     )
     service = Service(organisation_id=organisation_id, **values)
+    _first_visit_rule(service)
     session.add(service)
     await session.flush()
     return service
@@ -298,6 +299,18 @@ def _add_on_restriction(
     """Categories restrict add-ons (add-on only, or also offered) only: any other
     main service keeps none."""
     return add_ons.normalised_categories(categories) if is_add_on else None
+
+
+def _first_visit_rule(service: Service) -> None:
+    """The lead time and its categories only mean something on a new-clients-only
+    service; any other service keeps none."""
+    if not service.new_clients_only:
+        service.first_visit_lead_days = None
+        service.first_visit_categories = None
+    else:
+        service.first_visit_categories = add_ons.normalised_categories(
+            service.first_visit_categories
+        )
 
 
 async def update_service(
@@ -328,6 +341,7 @@ async def update_service(
     service.add_on_categories = _add_on_restriction(
         service.is_add_on or service.also_add_on, service.add_on_categories
     )
+    _first_visit_rule(service)
     await session.flush()
     return service
 
