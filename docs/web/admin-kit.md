@@ -1,5 +1,9 @@
 # Admin kit (`@barrelsgd/admin-kit`)
 
+**Status:** Active standard (ADR-0068)  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-11-25
+
 The one shell and page blocks every admin dashboard uses. Layout from the GMS
 staff portal; colours come from each app's own lane spec in `docs/design/`.
 
