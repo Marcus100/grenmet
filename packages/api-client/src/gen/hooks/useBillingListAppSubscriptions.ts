@@ -59,7 +59,7 @@ export function billingListAppSubscriptionsQueryOptions(
 }
 
 /**
- * @description Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only, signed in with an account or the bookings studio session. Needs no app entitlement: the plan screen is how it is bought.
+ * @description Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only, signed in with an account or the bookings studio session. Needs no app entitlement: the plan screen is how it is bought. `purchasable` lists the plans a checkout can start for now.
  * @summary List the organisation's app subscriptions
  * {@link /api/v1/billing/org/subscriptions}
  */

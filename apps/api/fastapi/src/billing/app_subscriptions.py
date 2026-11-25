@@ -35,6 +35,8 @@ from .exceptions import (
     AppSubscriptionStateError,
 )
 from .gateway import (
+    LIVE_KEY_PREFIX,
+    TEST_KEY_PREFIX,
     CheckoutSessionResult,
     CheckoutSessionState,
     StripeGateway,
@@ -90,6 +92,24 @@ _SUBSCRIPTION_EVENTS = frozenset(
 def price_key(plan_key: str, currency: str) -> str:
     """The ``BILLING_STRIPE_PRICES`` key for one plan and currency."""
     return f"{plan_key}:{currency}"
+
+
+def purchasable_prices() -> list[str]:
+    """``plan_key:currency`` keys a checkout can start for now: the Stripe key
+    matches the live switch (``sk_live_`` when on, ``sk_test_`` when off) and the
+    plan has a price id. Mirrors the gateway's key check, so a listed plan is
+    never refused for its key."""
+    key = billing_settings.STRIPE_SECRET_KEY or ""
+    prefix = (
+        LIVE_KEY_PREFIX if billing_settings.STRIPE_LIVE_ENABLED else TEST_KEY_PREFIX
+    )
+    if not key.startswith(prefix):
+        return []
+    return sorted(
+        price_key
+        for price_key, price_id in billing_settings.STRIPE_PRICES.items()
+        if price_id
+    )
 
 
 def _view(subscription: AppSubscription, amount_minor: int) -> AppSubscriptionPublic:
