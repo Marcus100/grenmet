@@ -97,7 +97,7 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 ## A1.2: settings screen (`settings.py`)
 `GET /bookings/org/settings` returns profile (nullable), services, providers (with `service_ids` and `working_hours`, two queries) and `deposits_available` (payments entitlement) in one call. `PUT /bookings/org/services/order` and `/providers/order` set `sort_order` to list position (all ids must be the organisation's, else 404). Services are deactivated, never deleted (bookings reference them). Its router is registered separately in `main.py`; tests: `tests/bookings/test_settings.py`.
 
-- Self sign-up (ADR-0066 slice 1): `listing_review.py` and `owner_leaves.py` hold the rules; `BOOKINGS_SELF_SIGNUP_ENABLED` is unused until slice 2.
+- Self sign-up (ADR-0066 slice 1): `listing_review.py` (review, approve, withdraw, staff queue `GET /admin/listing-reviews`) and `owner_leaves.py` hold the rules.
 
 ## Self sign-up (ADR-0066 slice 2: `signup.py`, `templates.py`)
 - `POST /bookings/me/organisations` (`bookingsCreateMyOrganisation`, zone `me`): account or bookings app session with `app.bookings.access` and a verified email; `Idempotency-Key` required; Turnstile in the handler, always enforced outside `local`; 3 an hour per visitor address. The switch dependency runs first: 404 while `BOOKINGS_SELF_SIGNUP_ENABLED` is false.

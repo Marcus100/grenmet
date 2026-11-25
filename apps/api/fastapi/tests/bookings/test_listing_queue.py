@@ -13,6 +13,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings.models import BookingProfile
+from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 from tests.bookings.test_public_bookings import API, Studio, _studio
 
@@ -141,3 +142,60 @@ async def test_an_unknown_queue_is_422(
         URL, headers=superuser_token_headers_async, params={"queue": "everything"}
     )
     assert response.status_code == 422
+
+
+async def test_an_approved_business_that_stopped_asking_stays_in_approved(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    studio = await _studio(db_async, async_client, display_name="Quiet", listed=True)
+    await _approve(async_client, superuser_token_headers_async, studio.org_id)
+    await _set(db_async, studio, listed=False)
+
+    done = await _queue(async_client, superuser_token_headers_async, queue="approved")
+    waiting = await _queue(async_client, superuser_token_headers_async)
+
+    assert _ids(done) == [studio.org_id]
+    assert _ids(waiting) == []
+
+
+async def test_a_flagged_business_shows_whether_or_not_it_is_approved(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    approved = await _studio(db_async, async_client, display_name="Was ok", listed=True)
+    await _approve(async_client, superuser_token_headers_async, approved.org_id)
+    await _set(db_async, approved, sender_name_flagged_at=utc_now())
+
+    body = await _queue(async_client, superuser_token_headers_async, queue="flagged")
+
+    assert _ids(body) == [approved.org_id]
+    assert body["data"][0]["listing_approved_at"] is not None
+
+
+async def test_businesses_made_at_the_same_moment_page_without_repeats(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    studios = [
+        await _studio(db_async, async_client, display_name=f"Twin {n}", listed=True)
+        for n in range(3)
+    ]
+    moment = utc_now()
+    await db_async.execute(
+        update(PlatformOrganisation)
+        .where(PlatformOrganisation.id.in_([s.org_id for s in studios]))
+        .values(created_at=moment)
+    )
+    await db_async.commit()
+
+    pages = [
+        _ids(await _queue(async_client, superuser_token_headers_async, page=n, size=1))
+        for n in (1, 2, 3)
+    ]
+
+    seen = [org for page in pages for org in page]
+    assert sorted(seen) == sorted(s.org_id for s in studios)

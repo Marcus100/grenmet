@@ -99,12 +99,12 @@ async def list_reviews(
         PlatformOrganisation,
         PlatformOrganisation.id == BookingProfile.organisation_id,
     )
+    count = select(func.count(BookingProfile.id))
     condition = _queue_filter(queue)
     if condition is not None:
         query = query.where(condition)
-    total = await session.scalar(
-        select(func.count()).select_from(query.order_by(None).subquery())
-    )
+        count = count.where(condition)
+    total = await session.scalar(count)
     rows = (
         await session.execute(
             query.order_by(PlatformOrganisation.created_at, BookingProfile.id)
