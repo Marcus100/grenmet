@@ -46,7 +46,7 @@ describe("studio shell", () => {
     expect(
       screen.getByRole("link", { name: "Sea Salt Spa home" })
     ).toHaveAttribute("href", "/studio/sea-salt/agenda");
-    expect(screen.getByText("Sea Salt Spa")).toBeInTheDocument();
+    expect(screen.getAllByText("Sea Salt Spa").length).toBeGreaterThan(0);
     const main = document.getElementById("main-content");
     expect(main).toHaveAttribute("tabindex", "-1");
     expect(
@@ -143,6 +143,16 @@ describe("studio shell", () => {
     expect(out.closest("form")).toHaveAttribute("method", "post");
   });
 
+  it("shows the business name in the top bar for phones, linked to the agenda", () => {
+    render(shell());
+    const bar = screen.getByRole("banner");
+    const link = within(bar).getByRole("link", {
+      name: "Sea Salt Spa, agenda",
+    });
+    expect(link).toHaveAttribute("href", "/studio/sea-salt/agenda");
+    expect(link).toHaveClass("md:hidden");
+  });
+
   it("is light only: no theme switch and no layout controls", () => {
     render(shell());
     expect(screen.queryByRole("button", { name: THEME })).toBeNull();
@@ -154,6 +164,17 @@ describe("studio shell", () => {
 });
 
 describe("studio plain frame", () => {
+  it("brings its own skip link under a business path", () => {
+    render(
+      <StudioPlainFrame>
+        <p>Page</p>
+      </StudioPlainFrame>
+    );
+    expect(
+      screen.getByRole("link", { name: "Skip to content" })
+    ).toHaveAttribute("href", "#main-content");
+  });
+
   it("shows the name and Sign out for a signed-in person", () => {
     render(
       <StudioPlainFrame userName="Maya">

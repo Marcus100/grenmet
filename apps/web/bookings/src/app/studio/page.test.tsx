@@ -9,6 +9,7 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/studio-api", () => ({ listMyOrganisations: vi.fn() }));
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/studio",
   redirect: vi.fn((to: string) => {
     throw new Error(`NEXT_REDIRECT ${to}`);
   }),

@@ -2,6 +2,7 @@ import { AdminShell } from "@barrelsgd/admin-kit/components/admin-shell";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CalendarPlus } from "lucide-react";
 import Link from "next/link";
+import { StudioSkipLink } from "@/components/root-skip-link";
 import { FOCUS } from "@/components/studio/studio-ui";
 import { studioNavigation } from "@/lib/studio-navigation";
 
@@ -73,6 +74,21 @@ export function StudioShell({
         logo: <BusinessBrand name={name} />,
         name,
       }}
+      // On phones the sidebar is a sheet, so the business name sits in the top
+      // bar (it is already in the sidebar from md up).
+      breadcrumb={
+        <Link
+          aria-label={`${name}, agenda`}
+          className={cn(
+            FOCUS,
+            "text-foreground flex min-h-11 max-w-[9rem] items-center truncate text-sm font-semibold sm:max-w-[14rem] md:hidden"
+          )}
+          href={{ pathname: `/studio/${orgSlug}/agenda` }}
+          title={name}
+        >
+          <span className="truncate">{name}</span>
+        </Link>
+      }
       layoutControls={false}
       navigation={studioNavigation({
         canManage,
@@ -83,14 +99,15 @@ export function StudioShell({
       notifications={
         canManage ? (
           <Link
+            aria-label="New booking"
             className={cn(
               FOCUS,
-              "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-[120ms] [&_svg]:size-4"
+              "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-primary-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-[120ms] focus-visible:outline-offset-[-3px] [&_svg]:size-4"
             )}
             href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
           >
             <CalendarPlus aria-hidden="true" />
-            New booking
+            New<span className="max-sm:hidden">{" booking"}</span>
           </Link>
         ) : null
       }
@@ -109,6 +126,7 @@ export function StudioPlainFrame({
 }: Readonly<{ children: React.ReactNode; userName?: string }>) {
   return (
     <div className="bg-ground min-h-screen">
+      <StudioSkipLink />
       {userName ? (
         <header className="border-border bg-background border-b">
           <div className="mx-auto flex min-h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 md:px-8">

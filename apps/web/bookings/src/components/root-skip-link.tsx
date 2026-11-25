@@ -15,3 +15,13 @@ export function RootSkipLink() {
   const pathname = usePathname();
   return STUDIO_SHELL.test(pathname) ? null : <SkipLink />;
 }
+
+/**
+ * The plain frame's own skip link, for the rare `/studio/<slug>` page that
+ * draws it (no session, so no shell). Elsewhere the root link already shows,
+ * so there is never more than one.
+ */
+export function StudioSkipLink() {
+  const pathname = usePathname();
+  return STUDIO_SHELL.test(pathname) ? <SkipLink /> : null;
+}

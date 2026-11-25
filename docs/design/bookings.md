@@ -232,7 +232,7 @@ documented map (below).
 
 The business side, run from a phone as much as a laptop. The layout pattern
 follows the Met Service admin portal: persistent navigation, a page header
-with the title and the page's primary action, content in cards. The colours do
+with the title and the page's actions, content in cards. The colours do
 not: the Studio uses the Bookings tokens only, never `--gm-*`.
 
 - **Shell** (`components/studio/studio-shell.tsx`, drawn by
@@ -241,10 +241,10 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   portal layout in the Bookings colours. Laptops: an inset collapsible sidebar
   with the business name and a navy "B" mark on top, grouped navigation
   (Bookings: Agenda, New booking; Business: Services, People, Settings, Plan &
-  billing; Your page: View my page), and the signed-in person with Sign out at
+  billing; Your page: View my page, which opens in a new tab), and the signed-in person with Sign out at
   the bottom; a slim top bar with the sidebar toggle, search (command palette
   fed by the same navigation) and, for owners and admins, New booking. Phones:
-  the same top bar (sticky) and a bottom tab bar of Agenda, Services, People
+  the same top bar (sticky, with the business name, which links to the agenda) and a bottom tab bar of Agenda, Services, People
   and More, which opens the sidebar as a sheet. The waiting count is Agenda's
   badge. Targets are 44 px or more, the current item carries
   `aria-current="page"`, and the page keeps bottom padding so the bar covers
@@ -253,9 +253,10 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   studio's surfaces have no dark values. The organisation picker (`/studio`)
   uses a plain frame (name, Sign out).
 - **Page pattern** (the kit's `PageHeader`, `studio-ui.tsx`). Each page: one
-  h1, a one-line description where there is one, the primary action on the
-  right (a full-width button on phones), then cards (radius 12 px, a hairline
-  ring) on the white content surface. Lists are rows with a 56 px tap area
+  h1, a one-line description where there is one, and the page's actions on
+  the right (they wrap under the title on phones), then cards (radius 12 px,
+  ringed with a hairline) on the white content surface. New booking is not a
+  page action: it lives in the shell's top bar. Lists are rows with a 56 px tap area
   inside a card. Press feedback is a 120 ms colour change
   and nothing else; no animation.
 - **Booking requests** (Settings > Profile area, its own Save): "Unconfirmed
