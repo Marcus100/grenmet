@@ -226,4 +226,15 @@ describe("bookingRulesLine", () => {
       "US$10 deposit, refunded if you cancel at least 1 hour before it starts. Change or cancel online up to 1 hour before; after that, contact the business."
     );
   });
+
+  it("says a business deposit is paid to the business, never at the salon", () => {
+    expect(
+      bookingRulesLine({
+        ...base,
+        businessDepositMinor: 5300,
+        dueMinor: 0,
+        ownDepositMinor: 5300,
+      })
+    ).toBe(`EC$53 deposit, paid to the business. ${CHANGE}`);
+  });
 });

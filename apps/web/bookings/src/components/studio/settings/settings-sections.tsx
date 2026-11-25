@@ -26,15 +26,15 @@ import { AddOnsForm } from "@/components/studio/settings/add-ons-form";
 import { BookingPolicyForm } from "@/components/studio/settings/booking-policy-form";
 import { BookingRequestsForm } from "@/components/studio/settings/booking-requests-form";
 import { ContactForm } from "@/components/studio/settings/contact-form";
-import { DepositRuleForm } from "@/components/studio/settings/deposit-rule-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
-import { PaymentsForm } from "@/components/studio/settings/payments-form";
+import { PaymentsPanel } from "@/components/studio/settings/payments-panel";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
+import { lateFeeSentence } from "@/lib/late-fee";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 
 /** The jump menu's targets, in the order the sections appear. */
@@ -175,6 +175,7 @@ export function ServicesSection({
   services: BookingServicePublic[];
 }) {
   const addOnsEnabled = profile?.add_ons_enabled ?? false;
+  const depositCollection = profile?.deposit_collection ?? "online";
   const addOnCategories = mainCategories(services);
   return (
     <Section
@@ -211,6 +212,7 @@ export function ServicesSection({
                       addOnCategories={addOnCategories}
                       addOnsEnabled={addOnsEnabled}
                       currency={currency}
+                      depositCollection={depositCollection}
                       depositsAvailable={depositsAvailable}
                       orgSlug={orgSlug}
                       service={item}
@@ -233,6 +235,7 @@ export function ServicesSection({
             addOnCategories={addOnCategories}
             addOnsEnabled={addOnsEnabled}
             currency={currency}
+            depositCollection={depositCollection}
             depositsAvailable={depositsAvailable}
             orgSlug={orgSlug}
           />
@@ -368,6 +371,54 @@ export function HoursSection({
   );
 }
 
+/** What a member (not owner or admin) sees of the payment settings. */
+export function PaymentsSummary({
+  currency,
+  profile,
+}: {
+  currency: string;
+  profile: BookingProfilePublic;
+}) {
+  const business = profile.deposit_collection === "business";
+  const fee = lateFeeSentence(
+    profile.late_fee_minor ?? null,
+    profile.late_grace_min ?? 0,
+    currency
+  );
+  const rows: [string, string][] = [
+    [
+      "How customers pay a deposit",
+      business ? "Paid to the business directly" : "Online, by card at booking",
+    ],
+    ...(business
+      ? [
+          [
+            "Payment instructions",
+            profile.deposit_instructions?.trim() || "None yet",
+          ] as [string, string],
+        ]
+      : [
+          [
+            "Payment when booking",
+            profile.payment_at_booking === "full_price"
+              ? "Full price by card"
+              : "Service deposit",
+          ] as [string, string],
+        ]),
+    ["Late fee", fee === null ? "None" : fee],
+  ];
+  return (
+    <dl className="grid gap-3">
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt className="text-muted-foreground text-sm">{label}</dt>
+          <dd className="font-medium whitespace-pre-line">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function PaymentsSection({
   cardPaymentsAvailable,
   currency,
@@ -387,7 +438,7 @@ export function PaymentsSection({
 }) {
   return (
     <Section
-      description="How an online booking is paid. A service's own deposit always wins over the business-wide deposit rule, which covers services without one."
+      description="Who collects a deposit and how, the deposit rule, your booking policy and late fee. A service's own deposit always wins over the business-wide deposit rule, which covers services without one."
       id="payments"
       title="Payments"
     >
@@ -402,14 +453,8 @@ export function PaymentsSection({
         />
       ) : null}
       {profile !== null && editable ? (
-        <PaymentsForm
+        <PaymentsPanel
           cardPaymentsAvailable={cardPaymentsAvailable}
-          orgSlug={orgSlug}
-          profile={profile}
-        />
-      ) : null}
-      {profile !== null && editable ? (
-        <DepositRuleForm
           currency={currency}
           depositsAvailable={depositsAvailable}
           example={example}
@@ -418,24 +463,17 @@ export function PaymentsSection({
         />
       ) : null}
       {profile !== null && editable ? (
-        <BookingPolicyForm orgSlug={orgSlug} profile={profile} />
+        <BookingPolicyForm
+          currency={currency}
+          orgSlug={orgSlug}
+          profile={profile}
+        />
       ) : null}
       {profile !== null && editable ? (
         <BookingRequestsForm orgSlug={orgSlug} profile={profile} />
       ) : null}
       {profile !== null && !editable ? (
-        <dl className="grid gap-3">
-          <div>
-            <dt className="text-muted-foreground text-sm">
-              Payment when booking
-            </dt>
-            <dd className="font-medium">
-              {profile.payment_at_booking === "full_price"
-                ? "Full price by card"
-                : "Service deposit"}
-            </dd>
-          </div>
-        </dl>
+        <PaymentsSummary currency={currency} profile={profile} />
       ) : null}
     </Section>
   );

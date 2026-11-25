@@ -1,7 +1,11 @@
 "use client";
 
-import type { BookingPublicService } from "@barrelsgd/api-client";
+import type {
+  BookingPublicService,
+  BookingStorefront,
+} from "@barrelsgd/api-client";
 import { useState } from "react";
+import { businessDepositLabel, businessDepositOf } from "../lib/booking-extras";
 import { formatDuration, formatMoney } from "../lib/booking-format";
 import { dueAtBooking } from "../lib/booking-payment";
 import {
@@ -14,6 +18,8 @@ export interface ServiceListProps {
   /** Services shown as "Book again" shortcuts; the first one's category opens by default. */
   bookAgainIds: string[];
   currency: string;
+  /** `business`: deposits are paid to the business by hand and shown per service. */
+  depositCollection?: BookingStorefront["deposit_collection"];
   /** Chooses a service (the flow clears the time and loads the new times). */
   onPick: (serviceId: string) => void;
   selectedId: string | null;
@@ -22,16 +28,20 @@ export interface ServiceListProps {
 
 function ServiceOption({
   currency,
+  depositCollection,
   item,
   onPick,
   selectedId,
 }: {
   currency: string;
+  depositCollection: ServiceListProps["depositCollection"];
   item: BookingPublicService;
   onPick: (serviceId: string) => void;
   selectedId: string | null;
 }) {
   const due = dueAtBooking(item);
+  const toBusiness =
+    depositCollection === "business" ? businessDepositOf(item) : 0;
   return (
     <label className="service-option">
       <input
@@ -42,11 +52,24 @@ function ServiceOption({
         value={item.id}
       />
       <span className="service-text">
-        <span className="service-name">{item.name}</span>
+        <span className="service-name">
+          {item.name}
+          {item.new_clients_only ? (
+            <>
+              {" "}
+              <span className="service-badge">New clients</span>
+            </>
+          ) : null}
+        </span>
         <span className="muted">
           {formatDuration(item.duration_min)}
           {item.description ? ` · ${item.description}` : ""}
         </span>
+        {toBusiness > 0 && (
+          <span className="muted">
+            {businessDepositLabel(toBusiness, currency)}
+          </span>
+        )}
         {due > 0 && (
           <span className="muted">
             {due < item.price_minor
@@ -71,6 +94,7 @@ function ServiceOption({
 export function ServiceList({
   bookAgainIds,
   currency,
+  depositCollection,
   onPick,
   selectedId,
   services,
@@ -107,6 +131,7 @@ export function ServiceList({
         {group.services.map((item) => (
           <ServiceOption
             currency={currency}
+            depositCollection={depositCollection}
             item={item}
             key={item.id}
             onPick={onPick}
@@ -149,6 +174,7 @@ export function ServiceList({
               {group.services.map((item) => (
                 <ServiceOption
                   currency={currency}
+                  depositCollection={depositCollection}
                   item={item}
                   key={item.id}
                   onPick={onPick}

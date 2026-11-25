@@ -1,6 +1,9 @@
 "use client";
 
-import type { BookingProfilePublic } from "@barrelsgd/api-client";
+import type {
+  BookingDepositCollection,
+  BookingProfilePublic,
+} from "@barrelsgd/api-client";
 import {
   currencyPrefix,
   formatMoney,
@@ -28,6 +31,7 @@ import { keepTyped, SettingsResult } from "./settings-ui";
  * sits in its own box at body size so it reads as an example, not a footnote.
  */
 function Preview({
+  collection,
   cutoffHours,
   currency,
   depositsAvailable,
@@ -35,6 +39,7 @@ function Preview({
   nonRefundable,
   rule,
 }: {
+  collection: BookingDepositCollection;
   cutoffHours: number | undefined;
   currency: string;
   depositsAvailable: boolean;
@@ -61,7 +66,8 @@ function Preview({
           currency,
           cutoffHours,
           depositsAvailable,
-          nonRefundable
+          nonRefundable,
+          collection
         )}
       </p>
     </div>
@@ -79,14 +85,19 @@ export function previewSentence(
   currency: string,
   cutoffHours: number | undefined,
   depositsAvailable = true,
-  nonRefundable = false
+  nonRefundable = false,
+  collection: BookingDepositCollection = "online"
 ): string {
   const price = formatMoney(example.priceMinor, currency);
-  if (!depositsAvailable) {
+  // Paid to the business directly: no online payment and no entitlement needed.
+  const business = collection === "business";
+  const where = business ? "to you directly" : "online";
+  if (!(depositsAvailable || business)) {
     return `${example.name} (${price}) is paid at the salon: online deposits need this business to have online payments switched on.`;
   }
   const refund =
-    cutoffHours === undefined
+    // Barrels holds no money in "paid to me" mode, so it promises no refund.
+    cutoffHours === undefined || business
       ? ""
       : ` ${depositRefundLine(cutoffHours, nonRefundable)}`;
   if (example.ownDepositMinor > 0) {
@@ -104,10 +115,10 @@ export function previewSentence(
       : `${example.name} (${price}) is booked without a deposit.`;
   }
   if (deposit >= example.priceMinor) {
-    return `${example.name} (${price}): the full price is paid online to hold the booking.`;
+    return `${example.name} (${price}): the full price is paid ${where} to hold the booking.`;
   }
   const remaining = formatMoney(example.priceMinor - deposit, currency);
-  return `${example.name} (${price}): a deposit of ${formatMoney(deposit, currency)} is paid online, and the remaining ${remaining} is paid at the salon.${refund}`;
+  return `${example.name} (${price}): a deposit of ${formatMoney(deposit, currency)} is paid ${where}, and the remaining ${remaining} is paid at the salon.${refund}`;
 }
 
 /**
@@ -185,12 +196,18 @@ function ruleProblem(
  * and Save button; the API keeps every other profile field as stored.
  */
 export function DepositRuleForm({
+  chosenCollection,
+  collection = "online",
   currency,
   depositsAvailable,
   example,
   orgSlug,
   profile,
 }: {
+  /** The payment choice as it is on the page now, saved or not. */
+  chosenCollection?: BookingDepositCollection;
+  /** Who collects the deposit (saved in the payment choice above). */
+  collection?: BookingDepositCollection;
   currency: string;
   /** The platform takes deposits online for this business (payments entitlement). */
   depositsAvailable: boolean;
@@ -200,6 +217,9 @@ export function DepositRuleForm({
 }) {
   // The cutoff is the business's own setting, never a fixed number of hours.
   const cutoffHours = profile.cancel_cutoff_hours;
+  const business = collection === "business";
+  // Paid to the business by hand needs no payments entitlement.
+  const usable = depositsAvailable || business;
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(
     saveProfileAction.bind(null, orgSlug),
     IDLE
@@ -247,11 +267,22 @@ export function DepositRuleForm({
       <fieldset className="border-border space-y-3 border-t pt-4">
         <legend className="pt-4 font-medium">Deposit for each booking</legend>
         <p className="text-muted-foreground text-base">
-          A deposit is paid online when the customer books. It counts toward the
-          price, and the customer pays the rest at the salon. If a service has
-          its own deposit, that amount is used instead of this rule. To change a
-          service&apos;s own deposit, edit that service under Services.
+          {business
+            ? "A deposit is paid to you directly: the customer sees the amount and your payment instructions when they book. It counts toward the price, and the customer pays the rest at the salon."
+            : "A deposit is paid online when the customer books. It counts toward the price, and the customer pays the rest at the salon."}{" "}
+          If a service has its own deposit, that amount is used instead of this
+          rule. To change a service&apos;s own deposit, edit that service under
+          Services.
         </p>
+        {chosenCollection !== undefined && chosenCollection !== collection ? (
+          <p
+            className="border-border bg-muted rounded-md border p-3 text-base font-medium"
+            role="status"
+          >
+            Save the payment choice above to update this section. It still
+            follows the saved choice.
+          </p>
+        ) : null}
         <Label className="min-h-11 items-center gap-3">
           <input
             aria-checked={on}
@@ -334,15 +365,16 @@ export function DepositRuleForm({
             />
             {problem === null ? (
               <Preview
+                collection={collection}
                 currency={currency}
                 cutoffHours={cutoffHours}
-                depositsAvailable={depositsAvailable}
+                depositsAvailable={usable}
                 example={example}
                 nonRefundable={nonRefundable}
                 rule={rule}
               />
             ) : null}
-            {depositsAvailable ? null : (
+            {usable ? null : (
               <p className="text-muted-foreground text-base">
                 Deposits are collected online only once this business has online
                 payments switched on. Until then a booking is not paid online:
@@ -377,13 +409,9 @@ export function DepositRuleForm({
           Non-refundable deposit
         </Label>
         <p className="text-muted-foreground text-base">
-          On: once you have confirmed a booking, the deposit is kept if the
-          customer cancels, unless you choose to refund it on that booking. A
-          request you have not confirmed yet is refunded if it is cancelled.
-          Off: the customer gets the deposit back when they cancel before the
-          cancellation cutoff. Either way, a customer can move a booking until
-          the cutoff and the deposit moves with it, and a booking you decline is
-          always refunded.
+          {business
+            ? "On: your booking page and emails tell customers the deposit is not refunded once you have confirmed the booking. Barrels never holds this money, so any refund is your own decision and you pay it back yourself."
+            : "On: once you have confirmed a booking, the deposit is kept if the customer cancels, unless you choose to refund it on that booking. A request you have not confirmed yet is refunded if it is cancelled. Off: the customer gets the deposit back when they cancel before the cancellation cutoff. Either way, a customer can move a booking until the cutoff and the deposit moves with it, and a booking you decline is always refunded."}
         </p>
       </fieldset>
       <SettingsResult pending={pending} state={state} />
