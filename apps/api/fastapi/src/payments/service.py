@@ -741,7 +741,11 @@ async def refund_intent(
     ``refund_id`` lets a caller that retries (an outbox handler) derive the refund's
     id from its own request: a refund with that id on this intent is returned as it
     is, and the provider (Stripe uses ``refund-<id>`` as its idempotency key) never
-    sees a second refund for the same request."""
+    sees a second refund for the same request. When our row for that id is missing
+    (a lost commit, or the provider's key expired), the provider's refund list is read
+    first: a copy it already holds is recorded instead of sent again, a copy it marked
+    failed raises ``RefundFailedAtProvider``, and an incomplete list that does not
+    show the id raises ``ProviderRequestError`` without sending anything (#1824)."""
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
     if refund_id is not None:
         if await session.get(Refund, refund_id) is None:

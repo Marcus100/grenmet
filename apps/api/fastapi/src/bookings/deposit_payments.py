@@ -37,7 +37,7 @@ from src.payments import return_urls
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.config import payments_settings
-from src.payments.exceptions import RefundFailedAtProvider
+from src.payments.exceptions import PaymentsValidationError, RefundFailedAtProvider
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
 from .config import bookings_settings
@@ -554,6 +554,26 @@ async def refund_deposit(
             # The provider marked an earlier attempt failed, so the money is due
             # again: the next attempt has its own id.
             continue
+        except PaymentsValidationError as error:
+            # The amount is no longer refundable. A concurrent refund may have
+            # covered it: then there is nothing left to do, which is not an error.
+            current = await find_deposit(session, booking)
+            if current is None or current.captured_minor - current.refunded_minor <= 0:
+                logger.info(
+                    "booking deposit already refunded",
+                    extra={"booking_id": str(booking.id), "intent_id": str(intent.id)},
+                )
+                return True
+            logger.error(
+                "booking deposit refund failed; refund it by hand",
+                extra={
+                    "booking_id": str(booking.id),
+                    "intent_id": str(intent.id),
+                    "amount_minor": remaining,
+                    "status_code": error.status_code,
+                },
+            )
+            return False
         except AppException as error:
             # Error level so Sentry alerts: the money is still held and needs a refund
             # by hand. Only ids, amounts and the status code are logged (no provider

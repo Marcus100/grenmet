@@ -2,14 +2,17 @@
 provider's idempotency key, so the provider refunds once."""
 
 import uuid
+from unittest.mock import MagicMock
 
 import httpx
+import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings import deposit_payments
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
+from src.payments.exceptions import PaymentsValidationError
 from src.payments.models import Intent, LedgerEntry
 from tests.bookings.test_deposits import (
     DEPOSIT,
@@ -257,3 +260,72 @@ async def test_a_refund_retried_after_the_key_is_forgotten_is_not_sent_twice(
     assert len(stripe_env.refund_keys()) == 1
     assert stripe_env.refunds_created == 1
     assert await _refunded(db_async, booking_id) == -DEPOSIT
+
+
+def _cover_by_a_concurrent_refund(
+    monkeypatch: pytest.MonkeyPatch, *, covered: bool
+) -> None:
+    """The deposit reads as refundable when refund_deposit starts, and the refund then
+    finds nothing left. With ``covered`` a concurrent partial refund has covered it, so
+    the re-read shows nothing left; without, the refusal is real."""
+    real_find = deposit_payments.find_deposit
+    reads = {"count": 0}
+
+    async def stale_then_current(
+        session: AsyncSession, booking: object
+    ) -> Intent | None:
+        intent = await real_find(session, booking)
+        reads["count"] += 1
+        if covered and reads["count"] > 1 and intent is not None:
+            intent = intent.model_copy(update={"refunded_minor": intent.captured_minor})
+        return intent
+
+    async def refused(*_args: object, **_kwargs: object) -> None:
+        raise PaymentsValidationError(
+            "Only 0 minor units can still be refunded on this payment"
+        )
+
+    monkeypatch.setattr(deposit_payments, "find_deposit", stale_then_current)
+    monkeypatch.setattr(payments_service, "refund_intent", refused)
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_refund_already_covered_by_a_concurrent_refund_is_info_not_error(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    booking_id, _ = await _stripe_paid_booking(db_async, async_client)
+    _cover_by_a_concurrent_refund(monkeypatch, covered=True)
+    log = MagicMock()
+    monkeypatch.setattr(deposit_payments, "logger", log)
+
+    booking = await _booking_for(db_async, booking_id)
+    assert await deposit_payments.refund_deposit(
+        db_async, booking, reason="Booking cancelled"
+    )
+
+    assert log.info.call_args.args == ("booking deposit already refunded",)
+    log.error.assert_not_called()
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_refusal_that_is_still_real_after_a_reread_is_an_error(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    booking_id, _ = await _stripe_paid_booking(db_async, async_client)
+    _cover_by_a_concurrent_refund(monkeypatch, covered=False)
+    log = MagicMock()
+    monkeypatch.setattr(deposit_payments, "logger", log)
+
+    booking = await _booking_for(db_async, booking_id)
+    assert not await deposit_payments.refund_deposit(
+        db_async, booking, reason="Booking cancelled"
+    )
+
+    assert log.error.call_args.args == (
+        "booking deposit refund failed; refund it by hand",
+    )
+    log.info.assert_not_called()

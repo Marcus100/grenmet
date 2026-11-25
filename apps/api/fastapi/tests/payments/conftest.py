@@ -66,6 +66,9 @@ class StripeStub:
     refunds: dict[str, dict[str, Any]] = field(default_factory=dict)
     #: When True the refund listing says it has more pages but gives no cursor.
     list_incomplete: bool = False
+    #: When True the refund listing also carries a refund of this payment with no
+    #: amount (one the core cannot read).
+    unreadable_listed: bool = False
 
     @property
     def refunds_created(self) -> int:
@@ -158,6 +161,17 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
                 for refund in reversed(list(stub.refunds.values()))
                 if wanted is None or refund["payment_intent"] == wanted
             ]
+            if stub.unreadable_listed:
+                listed.append(
+                    {
+                        "id": "re_unreadable",
+                        "object": "refund",
+                        "currency": "xcd",
+                        "status": "succeeded",
+                        "payment_intent": wanted or "pi_test_1",
+                        "metadata": {},
+                    }
+                )
             return httpx.Response(
                 200, json={"object": "list", "has_more": False, "data": listed}
             )

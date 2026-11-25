@@ -167,6 +167,26 @@ async def test_an_incomplete_provider_listing_stops_a_refund_retry(
     assert await _refund_rows(db_async, intent_id) == []
 
 
+async def test_an_unreadable_listed_refund_is_not_taken_for_absent(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_env: StripeStub,
+) -> None:
+    """A refund of this payment that cannot be read may be ours: the listing is then
+    incomplete, so the refund is not sent (502) rather than assumed absent."""
+    org, admin = await _org(db_async)
+    org_id = org.id
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    stripe_env.unreadable_listed = True
+
+    with pytest.raises(ProviderRequestError):
+        await _refund(db_async, org_id, intent_id, uuid.uuid4())
+    await db_async.rollback()
+
+    assert _posts(stripe_env) == 0
+    assert await _refund_rows(db_async, intent_id) == []
+
+
 async def test_a_first_refund_lists_the_provider_before_it_sends(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
