@@ -108,3 +108,25 @@ describe("AdminSearch", () => {
     open.mockRestore();
   });
 });
+
+describe("AdminSearch disabled entries", () => {
+  it("does not navigate to a disabled item", async () => {
+    render(
+      <AdminSearch
+        navigation={[
+          {
+            id: "g",
+            items: [
+              { disabled: true, id: "p", title: "Payroll", url: "/payroll" },
+            ],
+          },
+        ]}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: RE_0 }));
+    const option = await screen.findByRole("option", { name: "Payroll" });
+    expect(option).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(option);
+    expect(push).not.toHaveBeenCalled();
+  });
+});

@@ -159,3 +159,39 @@ describe("AdminSidebar brand", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("AdminTabBar links", () => {
+  it("opens new-tab items in a new tab and skips disabled ones", () => {
+    render(
+      <SidebarProvider>
+        <AdminTabBar
+          navigation={[
+            {
+              id: "g",
+              items: [
+                {
+                  id: "docs",
+                  newTab: true,
+                  tab: true,
+                  title: "Docs",
+                  url: "https://example.com",
+                },
+                {
+                  disabled: true,
+                  id: "off",
+                  tab: true,
+                  title: "Off",
+                  url: "/off",
+                },
+              ],
+            },
+          ]}
+        />
+      </SidebarProvider>
+    );
+    const docs = screen.getByRole("link", { name: "Docs" });
+    expect(docs).toHaveAttribute("target", "_blank");
+    expect(docs).toHaveAttribute("rel", "noreferrer");
+    expect(screen.queryByRole("link", { name: "Off" })).toBeNull();
+  });
+});

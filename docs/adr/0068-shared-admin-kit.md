@@ -9,7 +9,7 @@ same day the owner chose:
 - the same layout everywhere, with each product's own colours;
 - a new `@barrelsgd/admin-kit` package.
 
-Not built.
+Package built (#1908); no app migrated.
 
 ## Context
 

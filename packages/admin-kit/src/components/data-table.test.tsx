@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataTable, type DataTableColumn } from "./data-table";
 
 const RE_0 = /Name/u;
@@ -136,7 +136,7 @@ describe("DataTable", () => {
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
   });
 
-  it("adds row actions to the table and the cards", () => {
+  it("adds row actions to the table", () => {
     render(
       <DataTable
         columns={columns}
@@ -149,32 +149,8 @@ describe("DataTable", () => {
       />
     );
     expect(screen.getAllByRole("button", { name: "Edit Alice" })).toHaveLength(
-      2
+      1
     );
-  });
-
-  it("offers a card view for phones with labelled values", () => {
-    render(
-      <DataTable
-        cardTitle={(row) => row.name}
-        columns={columns}
-        data={PEOPLE}
-        empty={EMPTY}
-        label="People"
-      />
-    );
-    const list = screen.getByRole("list", { name: "People list" });
-    expect(list.parentElement).toHaveClass("sm:hidden");
-    expect(table().closest("[data-slot=data-table-table]")).toHaveClass(
-      "hidden",
-      "sm:block"
-    );
-    const first = within(list).getAllByRole("listitem")[0];
-    expect(first).toBeDefined();
-    if (first) {
-      expect(within(first).getByText("Role")).toBeInTheDocument();
-      expect(within(first).getByText("Owner")).toBeInTheDocument();
-    }
   });
 
   it("can hide the search box", () => {
@@ -188,5 +164,136 @@ describe("DataTable", () => {
       />
     );
     expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+});
+
+function setPhone(matches: boolean) {
+  window.matchMedia = ((query: string) => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })) as unknown as typeof window.matchMedia;
+}
+
+function make(n: number) {
+  return Array.from({ length: n }, (_, i) => ({
+    id: String(i),
+    name: `Person ${i}`,
+    role: "Staff",
+  }));
+}
+
+describe("DataTable page index", () => {
+  it("keeps the page when the parent passes a new array", async () => {
+    const { rerender } = render(
+      <DataTable
+        columns={columns}
+        data={make(6)}
+        empty={EMPTY}
+        label="People"
+        pageSize={2}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
+    rerender(
+      <DataTable
+        columns={columns}
+        data={make(6)}
+        empty={EMPTY}
+        label="People"
+        pageSize={2}
+      />
+    );
+    expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
+  });
+
+  it("steps back to the last page when rows shrink", async () => {
+    const { rerender } = render(
+      <DataTable
+        columns={columns}
+        data={make(6)}
+        empty={EMPTY}
+        label="People"
+        pageSize={2}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Page 3 of 3")).toBeInTheDocument();
+    rerender(
+      <DataTable
+        columns={columns}
+        data={make(3)}
+        empty={EMPTY}
+        label="People"
+        pageSize={2}
+      />
+    );
+    expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
+    expect(names()).toEqual(["Person 2"]);
+  });
+});
+
+describe("DataTable phone view", () => {
+  afterEach(() => setPhone(false));
+
+  it("renders only the table on wide screens, with row actions once", () => {
+    setPhone(false);
+    render(
+      <DataTable
+        columns={columns}
+        data={PEOPLE}
+        empty={EMPTY}
+        label="People"
+        rowActions={(row) => (
+          <button type="button">{`Edit ${row.name}`}</button>
+        )}
+      />
+    );
+    expect(screen.getByRole("table", { name: "People" })).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "People list" })).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Edit Alice" })).toHaveLength(
+      1
+    );
+  });
+
+  it("renders only cards on phones, with row actions once and a sort select", async () => {
+    setPhone(true);
+    render(
+      <DataTable
+        cardTitle={(row) => row.name}
+        columns={columns}
+        data={PEOPLE}
+        empty={EMPTY}
+        label="People"
+        rowActions={(row) => (
+          <button type="button">{`Edit ${row.name}`}</button>
+        )}
+      />
+    );
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Edit Alice" })).toHaveLength(
+      1
+    );
+    const cards = () =>
+      within(screen.getByRole("list", { name: "People list" }))
+        .getAllByRole("listitem")
+        .map((item) => item.querySelector("p")?.textContent);
+    expect(cards()).toEqual(["Carol", "Alice", "Bob"]);
+    await userEvent.selectOptions(screen.getByLabelText("Sort by"), "name:asc");
+    expect(cards()).toEqual(["Alice", "Bob", "Carol"]);
+    await userEvent.selectOptions(
+      screen.getByLabelText("Sort by"),
+      "name:desc"
+    );
+    expect(cards()).toEqual(["Carol", "Bob", "Alice"]);
+    await userEvent.selectOptions(screen.getByLabelText("Sort by"), "");
+    expect(cards()).toEqual(["Carol", "Alice", "Bob"]);
   });
 });

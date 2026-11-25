@@ -159,6 +159,38 @@ describe("AdminShellFrame", () => {
   });
 });
 
+describe("disabled items and clearance", () => {
+  it("renders a disabled item without a link", () => {
+    renderShell({
+      tabBar: false,
+      navigation: [
+        {
+          id: "g",
+          items: [
+            { disabled: true, id: "soon", title: "Payroll", url: "/payroll" },
+          ],
+        },
+      ],
+    });
+    expect(screen.queryByRole("link", { name: "Payroll" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Payroll" })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+  });
+
+  it("clears the content from the tab bar with the shared value", async () => {
+    const { TAB_BAR_CLEARANCE, TAB_BAR_CLEARANCE_CLASS } = await import(
+      "./admin-tab-bar"
+    );
+    expect(TAB_BAR_CLEARANCE_CLASS).toContain(TAB_BAR_CLEARANCE);
+    renderShell();
+    expect(document.getElementById("main-content")?.className).toContain(
+      TAB_BAR_CLEARANCE_CLASS
+    );
+  });
+});
+
 describe("AdminShell (server part)", () => {
   it("reads the saved sidebar state and renders the frame", async () => {
     const { AdminShell } = await import("./admin-shell");

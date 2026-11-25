@@ -107,8 +107,13 @@ function NavLinkItem({
       <SidebarMenuButton
         aria-current={active ? "page" : undefined}
         aria-disabled={item.disabled}
+        disabled={item.disabled}
         isActive={active}
-        render={<Link href={item.url as Route} {...linkProps(item)} />}
+        render={
+          item.disabled ? undefined : (
+            <Link href={item.url as Route} {...linkProps(item)} />
+          )
+        }
         tooltip={item.title}
       >
         {icon}
@@ -187,7 +192,13 @@ function NavSubLink({
         aria-current={active ? "page" : undefined}
         aria-disabled={sub.disabled}
         isActive={active}
-        render={<Link href={sub.url as Route} {...linkProps(sub)} />}
+        render={
+          sub.disabled ? (
+            <span />
+          ) : (
+            <Link href={sub.url as Route} {...linkProps(sub)} />
+          )
+        }
       >
         {sub.icon}
         <span>{sub.title}</span>

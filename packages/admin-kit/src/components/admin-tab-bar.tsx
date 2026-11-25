@@ -13,7 +13,15 @@ import {
 } from "../lib/navigation";
 
 /** Height of the bar, for the page's bottom padding (`pb-[…]`). */
-export const TAB_BAR_CLEARANCE = "calc(4.5rem+env(safe-area-inset-bottom))";
+export const TAB_BAR_CLEARANCE = "calc(5rem+env(safe-area-inset-bottom))";
+
+/**
+ * The same value as a class, written out in full so Tailwind sees it. The bar
+ * is about 4.1rem tall (a 3.5rem tab, padding and a border); 5rem leaves the
+ * last line of the page clear of it.
+ */
+export const TAB_BAR_CLEARANCE_CLASS =
+  "max-md:pb-[calc(5rem+env(safe-area-inset-bottom))]";
 
 const TAB =
   "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none [&_svg]:size-5";
@@ -61,6 +69,9 @@ export function AdminTabBar({
                   active ? "text-primary bg-muted" : "text-foreground"
                 )}
                 href={tab.url as Route}
+                {...(tab.newTab
+                  ? ({ rel: "noreferrer", target: "_blank" } as const)
+                  : {})}
               >
                 <span className="relative">
                   {tab.icon}

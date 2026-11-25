@@ -37,7 +37,11 @@ export interface ConfirmActionProps {
   readonly onConfirm: (input: {
     readonly reason: string;
   }) => ConfirmResult | Promise<ConfirmResult>;
-  /** Called after each result, for example to refresh the page. */
+  /**
+   * Called once when the dialog closes (Done or dismissed) with the last
+   * result, if the action ran. Refresh or remove the row here: doing it
+   * earlier would unmount the dialog before the notice is read.
+   */
   readonly onResult?: (result: ConfirmResult) => void;
   /** Ask for a reason, which the app can keep with the record. */
   readonly reason?: {
@@ -83,6 +87,9 @@ export function ConfirmAction({
     }
     setOpen(next);
     if (!next) {
+      if (result) {
+        onResult?.(result);
+      }
       setResult(null);
       setReasonText("");
     }
@@ -98,7 +105,6 @@ export function ConfirmAction({
     try {
       const outcome = await onConfirm({ reason: reasonText.trim() });
       setResult(outcome);
-      onResult?.(outcome);
     } catch (error) {
       // Unexpected errors belong to the app's error boundary.
       setFailure(() => {

@@ -17,7 +17,7 @@ import {
   AdminSidebar,
   type AdminUserSlot,
 } from "./admin-sidebar";
-import { AdminTabBar } from "./admin-tab-bar";
+import { AdminTabBar, TAB_BAR_CLEARANCE_CLASS } from "./admin-tab-bar";
 import { LayoutControls, type LayoutControlsProps } from "./layout-controls";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -63,9 +63,9 @@ function controlOptions(controls: AdminShellSlots["layoutControls"]) {
 }
 
 /**
- * The frame itself, given everything it needs. `AdminShell` reads the saved
- * sidebar state from cookies and renders this; render it directly when the
- * values are already known (tests, previews).
+ * LOW-LEVEL entry. Apps use `AdminShell`, which reads the saved sidebar state
+ * from cookies and renders this. Render the frame directly only when every
+ * value is already known (tests, previews, Storybook-style pages).
  */
 export function AdminShellFrame({
   breadcrumb,
@@ -147,8 +147,7 @@ export function AdminShellFrame({
             className={cn(
               "min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 outline-none has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0",
               // Keep the last line of the page clear of the phone tab bar.
-              hasTabBar &&
-                "max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
+              hasTabBar && TAB_BAR_CLEARANCE_CLASS
             )}
             id={MAIN_CONTENT_ID}
             tabIndex={-1}

@@ -65,7 +65,7 @@ import { DataTable } from "@barrelsgd/admin-kit/components/data-table";
 | Import path | Exports |
 | --- | --- |
 | `components/admin-shell` | `AdminShell` (server), types `AdminShellProps`, `AdminBrand`, `AdminUserSlot` |
-| `components/admin-shell-frame` | `AdminShellFrame` (values given, for tests and previews) |
+| `components/admin-shell-frame` | `AdminShellFrame` (low-level: values given, for tests and previews only; apps use `AdminShell`) |
 | `components/nav-main`, `admin-sidebar`, `admin-search`, `admin-tab-bar` | `NavMain`, `AdminSidebar`, `AdminSearch`, `AdminTabBar` |
 | `components/nav-user`, `theme-switcher`, `layout-controls` | `NavUser`, `ThemeSwitcher`, `LayoutControls` |
 | `components/page-header`, `page-section`, `stat-tile`, `empty-state`, `wide-content` | `PageHeader`, `PageSection`, `StatTile`, `EmptyState`, `WideContent` |

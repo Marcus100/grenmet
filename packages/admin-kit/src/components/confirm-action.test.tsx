@@ -150,3 +150,50 @@ describe("ConfirmAction errors", () => {
     container.remove();
   });
 });
+
+describe("ConfirmAction onResult", () => {
+  it("fires when the dialog closes, not before, and focus returns to the trigger", async () => {
+    const onResult = vi.fn();
+    render(
+      <ConfirmAction
+        confirmLabel="Remove"
+        description="Gone."
+        onConfirm={() => ({ ok: true, message: "Removed." })}
+        onResult={onResult}
+        title="Remove?"
+        triggerLabel="Remove item"
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Remove item" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Remove" })
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent("Removed.");
+    expect(onResult).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(onResult).toHaveBeenCalledWith({ ok: true, message: "Removed." });
+    expect(onResult).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Remove item" })).toHaveFocus()
+    );
+  });
+
+  it("does not fire when dismissed without running the action", async () => {
+    const onResult = vi.fn();
+    render(
+      <ConfirmAction
+        confirmLabel="Remove"
+        description="Gone."
+        onConfirm={() => ({ ok: true, message: "Removed." })}
+        onResult={onResult}
+        title="Remove?"
+        triggerLabel="Remove item"
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Remove item" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Cancel" })
+    );
+    expect(onResult).not.toHaveBeenCalled();
+  });
+});
