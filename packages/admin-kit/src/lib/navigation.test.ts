@@ -145,3 +145,37 @@ describe("getSearchEntries", () => {
     expect(entries[0]?.group).toBe("Pages");
   });
 });
+
+describe("activePrefixes", () => {
+  const groups: AdminNavGroup[] = [
+    {
+      id: "g",
+      items: [
+        {
+          activePrefixes: ["/studio/x/bookings"],
+          id: "agenda",
+          title: "Agenda",
+          url: "/studio/x/agenda",
+        },
+        { id: "new", title: "New booking", url: "/studio/x/bookings/new" },
+        { id: "people", title: "People", url: "/studio/x/people" },
+      ],
+    },
+  ];
+
+  it("keeps the owning item current on a detail page", () => {
+    expect([...getActiveIds(groups, "/studio/x/bookings/42")]).toEqual([
+      "agenda",
+    ]);
+  });
+
+  it("lets a more specific direct match win", () => {
+    expect([...getActiveIds(groups, "/studio/x/bookings/new")]).toEqual([
+      "new",
+    ]);
+  });
+
+  it("does not match a longer word that starts the same", () => {
+    expect(getActiveIds(groups, "/studio/x/bookingsx").size).toBe(0);
+  });
+});

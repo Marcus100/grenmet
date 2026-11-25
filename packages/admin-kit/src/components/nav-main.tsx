@@ -41,6 +41,10 @@ import {
   hasSubItems,
 } from "../lib/navigation";
 
+/** Sidebar rows grow to 44 px on touch screens and stay 32 px with a mouse. */
+export const TOUCH_BUTTON = "pointer-coarse:h-11";
+export const TOUCH_SUB_BUTTON = "pointer-coarse:h-11";
+
 interface NavMainProps {
   readonly items: readonly AdminNavGroup[];
 }
@@ -107,6 +111,7 @@ function NavLinkItem({
       <SidebarMenuButton
         aria-current={active ? "page" : undefined}
         aria-disabled={item.disabled}
+        className={TOUCH_BUTTON}
         disabled={item.disabled}
         isActive={active}
         render={
@@ -139,6 +144,7 @@ function NavDropdownItem({
         <DropdownMenuTrigger
           render={
             <SidebarMenuButton
+              className={TOUCH_BUTTON}
               disabled={item.disabled}
               isActive={active}
               tooltip={item.title}
@@ -191,6 +197,7 @@ function NavSubLink({
       <SidebarMenuSubButton
         aria-current={active ? "page" : undefined}
         aria-disabled={sub.disabled}
+        className={TOUCH_SUB_BUTTON}
         isActive={active}
         render={
           sub.disabled ? (
@@ -232,6 +239,7 @@ function NavCollapsibleItem({
       <CollapsibleTrigger
         render={
           <SidebarMenuButton
+            className={TOUCH_BUTTON}
             disabled={item.disabled}
             isActive={active}
             tooltip={item.title}

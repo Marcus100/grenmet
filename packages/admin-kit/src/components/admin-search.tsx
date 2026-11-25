@@ -93,7 +93,7 @@ export function AdminSearch({
     <>
       <Button
         aria-keyshortcuts="Control+K Meta+K"
-        className="text-muted-foreground min-h-11 px-0! font-normal hover:no-underline md:min-h-0"
+        className="text-muted-foreground px-0! font-normal hover:no-underline pointer-coarse:min-h-11"
         onClick={() => handleOpenChange(true)}
         variant="link"
       >

@@ -195,3 +195,37 @@ describe("AdminTabBar links", () => {
     expect(screen.queryByRole("link", { name: "Off" })).toBeNull();
   });
 });
+
+describe("AdminTabBar detail pages", () => {
+  it("marks the owning tab current on a detail page", () => {
+    navigationState.pathname = "/agenda/bookings/9";
+    render(
+      <SidebarProvider>
+        <AdminTabBar
+          navigation={[
+            {
+              id: "g",
+              items: [
+                {
+                  activePrefixes: ["/agenda/bookings"],
+                  id: "agenda",
+                  tab: true,
+                  title: "Agenda",
+                  url: "/agenda",
+                },
+                { id: "people", tab: true, title: "People", url: "/people" },
+              ],
+            },
+          ]}
+        />
+      </SidebarProvider>
+    );
+    expect(screen.getByRole("link", { name: "Agenda" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    expect(screen.getByRole("link", { name: "People" })).not.toHaveAttribute(
+      "aria-current"
+    );
+  });
+});
