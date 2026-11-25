@@ -79,7 +79,7 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **Tests:** `tests/bookings/test_manage_link.py` (pure) and `test_manage_links.py` (mail links, 404s, revocation, read-only, invitation, logs).
 
 ## Add-ons (off by default)
-- `add_ons.py` rules; `service.resolve_add_ons` validates. Totals use the combined length and price. Tests: `test_add_ons*.py`.
+- `add_ons.py` rules; `service.resolve_add_ons` validates. Totals use the combined length and price. `also_add_on` (#1862): bookable alone, also an add-on. Tests: `test_add_on*.py`.
 
 ## Monitoring (booking jobs)
 - `enqueue_booking_reminders` (`7 * * * *`) and `expire_unpaid_bookings` (`2,7,12,...,57 * * * *`, every 5 minutes) are `@monitored` (Sentry Cron check-ins, slug `<env>-worker-<job name>`) and listed in `operational_metrics.JOBS`. The schedules must match the ARQ `cron(...)` minutes in `src/worker/main.py`; `tests/worker/test_cron_monitor.py` checks the check-in schedule.

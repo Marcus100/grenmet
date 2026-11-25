@@ -65,7 +65,13 @@ export type BookingServiceCreate = {
    */
   is_add_on?: boolean;
   /**
-   * @description For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service.
+   * @description A main service that is also offered as an add-on: bookable alone, and attachable to other services (see `add_on_categories`). Ignored when `is_add_on` is true.
+   * @default false
+   * @type boolean | undefined
+   */
+  also_add_on?: boolean;
+  /**
+   * @description For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service.
    */
   add_on_categories?: string[] | null;
 };

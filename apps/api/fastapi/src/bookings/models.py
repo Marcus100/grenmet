@@ -289,8 +289,11 @@ class Service(Base):
     sort_order: Mapped[int] = mapped_column(default=0)
     #: An add-on is booked with a main service, never alone (``add_ons.py``).
     is_add_on: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
-    #: For an add-on: the main-service categories it is offered with. Null or
-    #: empty means any main service.
+    #: A main service that is also offered as an add-on (booked alone it is a main
+    #: service; attached it is an add-on). Always false when ``is_add_on`` is true.
+    also_add_on: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: For an add-on (``is_add_on`` or ``also_add_on``): the main-service categories
+    #: it is offered with. Null or empty means any main service.
     add_on_categories: Mapped[list[str] | None] = mapped_column(
         ARRAY(String(80)), default=None
     )

@@ -25,5 +25,10 @@ export type BookingServicePublic = {
    * @type boolean | undefined
    */
   is_add_on?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  also_add_on?: boolean;
   add_on_categories?: string[] | null;
 };

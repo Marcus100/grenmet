@@ -499,11 +499,20 @@ class BookingServiceCreate(BaseModel):
         default=False,
         description="An add-on is booked with a main service, never alone.",
     )
+    also_add_on: bool = Field(
+        default=False,
+        description=(
+            "A main service that is also offered as an add-on: bookable alone, and "
+            "attachable to other services (see `add_on_categories`). Ignored when "
+            "`is_add_on` is true."
+        ),
+    )
     add_on_categories: AddOnCategories = Field(
         default=None,
         description=(
-            "For an add-on: offer it only with main services in these categories. "
-            "Null or empty means any main service. Ignored for a main service."
+            "For an add-on or an `also_add_on` service: offer it only with main "
+            "services in these categories. Null or empty means any main service. "
+            "Ignored for any other main service."
         ),
     )
 
@@ -526,6 +535,7 @@ class BookingServiceUpdate(BaseModel):
     active: bool | None = None
     sort_order: Annotated[int, Field(ge=0, le=10_000)] | None = None
     is_add_on: bool | None = None
+    also_add_on: bool | None = None
     add_on_categories: AddOnCategories = None
 
 
@@ -542,6 +552,7 @@ class BookingServicePublic(BaseModel):
     active: bool
     sort_order: int
     is_add_on: bool = False
+    also_add_on: bool = False
     add_on_categories: list[str] | None = None
 
 

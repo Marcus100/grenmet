@@ -17,6 +17,7 @@ export const bookingServiceUpdateSchema = z.object({
   active: z.union([z.boolean(), z.null()]).optional(),
   sort_order: z.union([z.int().min(0).max(10000), z.null()]).optional(),
   is_add_on: z.union([z.boolean(), z.null()]).optional(),
+  also_add_on: z.union([z.boolean(), z.null()]).optional(),
   add_on_categories: z
     .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
     .optional(),
