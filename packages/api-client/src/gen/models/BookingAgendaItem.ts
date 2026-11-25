@@ -58,6 +58,12 @@ export type BookingAgendaItem = {
   currency: string;
   add_on_names?: string[];
   /**
+   * @description Staff only: a returning client requested a new-clients-only service.
+   * @default false
+   * @type boolean | undefined
+   */
+  returning_client?: boolean;
+  /**
    * @description For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status.
    */
   expires_at?: string | null;

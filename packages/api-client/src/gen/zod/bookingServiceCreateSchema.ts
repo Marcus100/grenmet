@@ -39,7 +39,7 @@ export const bookingServiceCreateSchema = z.object({
     .optional()
     .default(false)
     .describe(
-      "Public bookings are refused (409, code `NEW_CLIENTS_ONLY`) for a returning client: one with a confirmed or completed booking with the business. Staff bookings are never refused."
+      "Every public booking of this service is a request the business confirms (`pending`); one from a returning client (a confirmed or completed booking with the business) is flagged for staff only. Cannot be combined with `is_add_on` or `also_add_on`. Staff bookings are never held or flagged."
     ),
   first_visit_lead_days: z
     .union([z.int().min(0).max(60), z.null()])

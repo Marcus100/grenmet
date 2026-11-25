@@ -66,6 +66,12 @@ export type BookingStudioDetail = {
    */
   deposit_non_refundable?: boolean;
   /**
+   * @description A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer.
+   * @default false
+   * @type boolean | undefined
+   */
+  returning_client?: boolean;
+  /**
    * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
    * @type string
    */

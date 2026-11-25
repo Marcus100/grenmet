@@ -338,8 +338,9 @@ class Service(Base):
     add_on_categories: Mapped[list[str] | None] = mapped_column(
         ARRAY(String(80)), default=None
     )
-    #: Public bookings are refused for a returning client of the business (one with
-    #: a confirmed or completed booking). Staff bookings are never refused.
+    #: Public bookings of this service are always requests staff confirm, and one
+    #: from a returning client (a confirmed or completed booking) is flagged for
+    #: staff. Never refused, so nothing reveals a client's history.
     new_clients_only: Mapped[bool] = mapped_column(
         default=False, server_default=sa.false()
     )
@@ -587,6 +588,9 @@ class Booking(Base):
     idempotency_key: Mapped[str | None] = mapped_column(String(100))
     cancel_reason: Mapped[str | None] = mapped_column(String(300))
     cancelled_at: Mapped[datetime | None]
+    #: Staff only, never public: set when a returning client requested a
+    #: new-clients-only service (so the request is held for staff to decide).
+    returning_client_flagged_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

@@ -1,7 +1,8 @@
 """Services for new clients only, with a lead time before a first visit (#1863).
 
 Additive: ``bookings.service.new_clients_only`` (not null, default false),
-``first_visit_lead_days`` (null, 0 to 60) and ``first_visit_categories`` (null).
+``first_visit_lead_days`` (null, 0 to 60) and ``first_visit_categories`` (null), and ``bookings.booking.returning_client_flagged_at``
+(null; set for staff when a returning client requests a new-clients-only service).
 Existing rows keep today's behaviour. The downgrade drops only these columns.
 
 Revision ID: bookingnewclient20261125
@@ -45,6 +46,11 @@ def upgrade() -> None:
         ),
         schema="bookings",
     )
+    op.add_column(
+        "booking",
+        sa.Column("returning_client_flagged_at", sa.DateTime(), nullable=True),
+        schema="bookings",
+    )
     op.create_check_constraint(
         op.f("service_first_visit_lead_days_check"),
         "service",
@@ -54,6 +60,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.drop_column("booking", "returning_client_flagged_at", schema="bookings")
     op.drop_constraint(
         op.f("service_first_visit_lead_days_check"),
         "service",

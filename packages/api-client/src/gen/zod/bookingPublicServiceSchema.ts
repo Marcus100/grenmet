@@ -32,7 +32,7 @@ export const bookingPublicServiceSchema = z.object({
     .optional()
     .default(false)
     .describe(
-      "First-time clients only: a returning client's booking is refused."
+      "First-time clients only: every booking of it is a request the business confirms."
     ),
   first_visit_lead_days: z
     .union([z.int(), z.null()])

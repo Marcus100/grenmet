@@ -812,31 +812,19 @@ async def _require_under_open_cap(
         raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
-#: One wording whatever the reason, so a refusal tells a stranger nothing beyond the
-#: rule printed on the service itself.
-NEW_CLIENTS_ONLY_MESSAGE = (
-    "This service is for new clients only. "
-    "Please choose another service or contact the business."
-)
-
-
-class NewClientsOnlyError(BookingConflictError):
-    def __init__(self) -> None:
-        super().__init__(NEW_CLIENTS_ONLY_MESSAGE)
-        self.extra["code"] = "NEW_CLIENTS_ONLY"
-
-
 #: A booking that makes its customer a returning client of the business.
 RETURNING_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.COMPLETED.value)
 
 
-async def _require_new_client(
+async def _is_returning_client(
     session: AsyncSession, profile: BookingProfile, contact: Contact
-) -> None:
-    """Refuse a new-clients-only service to a returning client: the business's
+) -> bool:
+    """True for a returning client of the business: the business's
     contact (matched by email in ``upsert_contact``, ADR-0058) or another contact of
     the same organisation linked to the same account has a confirmed or completed
-    booking. Cancelled, expired, declined and unpaid or pending bookings do not count."""
+    booking. Cancelled, expired, declined and unpaid or pending bookings do not count.
+    Only staff ever see the answer (never the customer), so a caller cannot learn
+    whether an email has booked."""
     same_person = Contact.id == contact.id
     if contact.user_id is not None:
         same_person = or_(same_person, Contact.user_id == contact.user_id)
@@ -852,8 +840,7 @@ async def _require_new_client(
         )
         .limit(1)
     )
-    if returning is not None:
-        raise NewClientsOnlyError
+    return returning is not None
 
 
 async def _create_booking(
@@ -883,8 +870,6 @@ async def _create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     customer, contact = await _upsert_customer(session, profile, payload, moment)
-    if svc.new_clients_only:
-        await _require_new_client(session, profile, contact)
     await _require_under_open_cap(session, profile, customer, moment)
     if payer is not None:
         # Ties the organisation's contact to the account that booked with it,
@@ -900,6 +885,9 @@ async def _create_booking(
         contacts_service.take_name_from_linked_account(
             contact, name=_single_line(payload.customer_name), user_id=payer.id
         )
+    flag_returning = svc.new_clients_only and await _is_returning_client(
+        session, profile, contact
+    )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(
         minutes=svc.duration_min + sum(a.duration_min for a in chosen)
@@ -909,7 +897,9 @@ async def _create_booking(
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT
-    elif profile.requires_confirmation:
+    elif profile.requires_confirmation or svc.new_clients_only:
+        # A new-clients-only service is always a request staff confirm, so every
+        # client gets the same answer whatever their history.
         initial = BookingStatus.PENDING
     else:
         initial = BookingStatus.CONFIRMED
@@ -934,6 +924,9 @@ async def _create_booking(
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
+            returning_client_flagged_at=(
+                service.as_naive_utc(moment) if flag_returning else None
+            ),
         )
         try:
             # A savepoint: losing a race to the exclusion constraint rolls back
@@ -966,6 +959,14 @@ async def _create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     record_event(session, booking, None, initial, note="Booked online")
+    if flag_returning:
+        record_event(
+            session,
+            booking,
+            initial,
+            initial,
+            note="Returning client booked a new-clients-only service",
+        )
     await emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
     )

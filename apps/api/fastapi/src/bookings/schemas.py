@@ -555,9 +555,11 @@ class BookingServiceCreate(BaseModel):
     new_clients_only: bool = Field(
         default=False,
         description=(
-            "Public bookings are refused (409, code `NEW_CLIENTS_ONLY`) for a "
-            "returning client: one with a confirmed or completed booking with the "
-            "business. Staff bookings are never refused."
+            "Every public booking of this service is a request the business "
+            "confirms (`pending`); one from a returning client (a confirmed or "
+            "completed booking with the business) is flagged for staff only. Cannot "
+            "be combined with `is_add_on` or `also_add_on`. Staff bookings are "
+            "never held or flagged."
         ),
     )
     first_visit_lead_days: FirstVisitLeadDays = Field(
@@ -597,6 +599,15 @@ class BookingServiceUpdate(BaseModel):
     new_clients_only: bool | None = None
     first_visit_lead_days: FirstVisitLeadDays = None
     first_visit_categories: AddOnCategories = None
+
+    @field_validator("active", "is_add_on", "also_add_on", "new_clients_only")
+    @classmethod
+    def _not_null(cls, value: bool | None) -> bool | None:
+        # Leaving a flag out keeps it; an explicit null would write NULL to a
+        # NOT NULL column.
+        if value is None:
+            raise ValueError("Leave the field out to keep it; null is not allowed")
+        return value
 
 
 class BookingServicePublic(BaseModel):
@@ -801,6 +812,12 @@ class BookingAgendaItem(BaseModel):
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "Staff only: a returning client requested a new-clients-only service."
+        ),
+    )
     expires_at: UtcDateTime | None = Field(
         default=None,
         description=(
@@ -920,6 +937,14 @@ class BookingStudioDetail(BaseModel):
             "changes do not change it."
         ),
     )
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "A returning client (a confirmed or completed booking with the business) "
+            "requested a new-clients-only service. Staff only; never shown to the "
+            "customer."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -966,7 +991,7 @@ class BookingPublicService(BaseModel):
     )
     new_clients_only: bool = Field(
         default=False,
-        description="First-time clients only: a returning client's booking is refused.",
+        description="First-time clients only: every booking of it is a request the business confirms.",
     )
     first_visit_lead_days: int | None = Field(
         default=None,

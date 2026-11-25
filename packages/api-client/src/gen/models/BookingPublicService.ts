@@ -29,7 +29,7 @@ export type BookingPublicService = {
    */
   due_at_booking_minor?: number;
   /**
-   * @description First-time clients only: a returning client's booking is refused.
+   * @description First-time clients only: every booking of it is a request the business confirms.
    * @default false
    * @type boolean | undefined
    */

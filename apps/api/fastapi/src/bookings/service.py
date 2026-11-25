@@ -287,6 +287,7 @@ async def create_service(
         values["is_add_on"] or values["also_add_on"], values["add_on_categories"]
     )
     service = Service(organisation_id=organisation_id, **values)
+    _require_main_service_for_new_clients(service)
     _first_visit_rule(service)
     session.add(service)
     await session.flush()
@@ -299,6 +300,15 @@ def _add_on_restriction(
     """Categories restrict add-ons (add-on only, or also offered) only: any other
     main service keeps none."""
     return add_ons.normalised_categories(categories) if is_add_on else None
+
+
+def _require_main_service_for_new_clients(service: Service) -> None:
+    """A new-clients-only service is held for staff when booked alone; as an add-on
+    it would ride along on another booking unchecked, so the two do not combine."""
+    if service.new_clients_only and (service.is_add_on or service.also_add_on):
+        raise BookingValidationError(
+            "A new-clients-only service cannot also be an add-on"
+        )
 
 
 def _first_visit_rule(service: Service) -> None:
@@ -336,6 +346,7 @@ async def update_service(
         setattr(service, key, value)
     if service.deposit_minor > service.price_minor:
         raise BookingValidationError("The deposit cannot exceed the price")
+    _require_main_service_for_new_clients(service)
     if service.is_add_on:
         service.also_add_on = False
     service.add_on_categories = _add_on_restriction(
