@@ -157,6 +157,8 @@ async def test_a_remaining_owner_means_nothing_changes(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio, pending, _ = await _self_created(db_async, async_client)
+    # Look up the creator before a second owner exists: `_owner` picks any owner.
+    owner = await _owner(db_async, studio.org_id)
     second = await make_user(db_async)
     await organisation_service.add_member(
         db_async,
@@ -165,7 +167,6 @@ async def test_a_remaining_owner_means_nothing_changes(
         role=MembershipRole.OWNER,
     )
     await db_async.commit()
-    owner = await _owner(db_async, studio.org_id)
     assert owner.id != second.id
 
     await auth_service.delete_user(session=db_async, user=owner)
