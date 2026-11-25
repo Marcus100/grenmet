@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { BookingAgendaItem } from "@barrelsgd/api-client";
 import {
   formatDay,
@@ -12,13 +13,7 @@ import { BookingAddress } from "@/components/studio/booking-address";
 import { NeedsConfirming } from "@/components/studio/needs-confirming";
 import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import {
-  CARD,
-  CARD_LINK,
-  FOCUS,
-  PRIMARY_ACTION,
-  StudioPageHeader,
-} from "@/components/studio/studio-ui";
+import { CARD, CARD_LINK, FOCUS } from "@/components/studio/studio-ui";
 import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -191,19 +186,8 @@ export default async function AgendaPage({
 
   return (
     <div className="space-y-6">
-      <StudioPageHeader
-        action={
-          canManageBookings(org.value.role) ? (
-            <Link
-              className={PRIMARY_ACTION}
-              href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
-            >
-              New booking
-            </Link>
-          ) : null
-        }
-        title="Agenda"
-      />
+      {/* New booking lives in the shell's top bar (owners and admins). */}
+      <PageHeader title="Agenda" />
 
       <NeedsConfirming
         expiryHours={expiryHours}

@@ -1,12 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { adminShellMock, preferencesMock } from "@/test/admin-shell";
 import { apiError, ORG_ID, session } from "@/test/studio";
 
 const reportError = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/report-error", () => ({ reportError }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/studio/sea-salt/agenda",
+  useRouter: () => ({ push: vi.fn() }),
 }));
+vi.mock("@barrelsgd/admin-kit/components/admin-shell", () => adminShellMock());
+vi.mock("@barrelsgd/theme/components/preferences-provider", () =>
+  preferencesMock()
+);
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
@@ -52,7 +58,7 @@ describe("organisation layout", () => {
       screen.getAllByRole("link", { name: "View my page" })[0]
     ).toHaveAttribute("href", "/sea-salt-spa");
     expect(
-      screen.getAllByRole("link", { name: AGENDA_LINK })[0]
+      screen.getAllByRole("link", { name: AGENDA_LINK })[0]?.closest("li")
     ).toHaveTextContent("3");
     expect(screen.getByRole("main")).toBeInTheDocument();
   });

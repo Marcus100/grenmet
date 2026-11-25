@@ -41,6 +41,7 @@ import {
   noShowBookingAction,
   rescheduleBookingAction,
 } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
+import { CARD } from "@/components/studio/studio-ui";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
 import {
@@ -97,10 +98,7 @@ export function BookingActions({
   }, [notice]);
 
   return (
-    <section
-      aria-labelledby="actions-title"
-      className="bg-background space-y-3 rounded-[20px] p-4 sm:p-6"
-    >
+    <section aria-labelledby="actions-title" className={`${CARD} space-y-3`}>
       <h2 className="text-lg font-semibold" id="actions-title">
         Actions
       </h2>

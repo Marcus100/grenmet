@@ -236,23 +236,27 @@ with the title and the page's primary action, content in cards. The colours do
 not: the Studio uses the Bookings tokens only, never `--gm-*`.
 
 - **Shell** (`components/studio/studio-shell.tsx`, drawn by
-  `studio/[orgSlug]/layout.tsx`). Laptops (md and up): a fixed 240 px left
-  navigation on white with the business name and its public page link at the
-  top, items with icons (Agenda, New booking, Services, People, Plan & billing,
-  Settings), then the signed-in name, "View my page" and "Sign out" at the
-  bottom. Phones: a sticky top bar (business name, "New booking") and a bottom
-  tab bar of four items: Agenda, Services, People and More. More lists New
-  booking, Plan & billing and Settings, then "View my page" and "Sign out".
-  Targets are 44 px or more, the current item carries `aria-current="page"`,
-  the bar pads for the safe area and the page keeps bottom padding so nothing
-  hides under it. New booking and Plan & billing are for owners and admins
-  only. The organisation picker (`/studio`) uses a plain frame (name, Sign
-  out).
-- **Page pattern** (`studio-ui.tsx`). Each page: one h1, a one-line
-  description where there is one, the primary action on the right (a full-width
-  button on phones), then white cards (radius 20 px) on the ground. Lists are
-  rows with a 56 px tap area inside a card. Muted text never sits on the
-  ground: use ink or put it on white. Press feedback is a 120 ms colour change
+  `studio/[orgSlug]/layout.tsx`). The studio is on the shared admin kit
+  (`@barrelsgd/admin-kit`, ADR-0068, `docs/web/admin-kit.md`): the Met Service
+  portal layout in the Bookings colours. Laptops: an inset collapsible sidebar
+  with the business name and a navy "B" mark on top, grouped navigation
+  (Bookings: Agenda, New booking; Business: Services, People, Settings, Plan &
+  billing; Your page: View my page), and the signed-in person with Sign out at
+  the bottom; a slim top bar with the sidebar toggle, search (command palette
+  fed by the same navigation) and, for owners and admins, New booking. Phones:
+  the same top bar (sticky) and a bottom tab bar of Agenda, Services, People
+  and More, which opens the sidebar as a sheet. The waiting count is Agenda's
+  badge. Targets are 44 px or more, the current item carries
+  `aria-current="page"`, and the page keeps bottom padding so the bar covers
+  nothing. New booking and Plan & billing are for owners and admins only.
+  Light only: there is no theme switcher and no layout controls, because the
+  studio's surfaces have no dark values. The organisation picker (`/studio`)
+  uses a plain frame (name, Sign out).
+- **Page pattern** (the kit's `PageHeader`, `studio-ui.tsx`). Each page: one
+  h1, a one-line description where there is one, the primary action on the
+  right (a full-width button on phones), then cards (radius 12 px, a hairline
+  ring) on the white content surface. Lists are rows with a 56 px tap area
+  inside a card. Press feedback is a 120 ms colour change
   and nothing else; no animation.
 - **Booking requests** (Settings > Profile area, its own Save): "Unconfirmed
   requests expire after" (1 to 168 hours, or "Only at the start time", saved as

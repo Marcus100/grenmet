@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { BookingCalendarFeedStatus } from "@barrelsgd/api-client";
 import type { Metadata } from "next";
 import { CalendarFeedSection } from "@/components/studio/settings/calendar-feed-section";
@@ -11,7 +12,7 @@ import {
   SettingsJumpMenu,
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import { CARD, StudioPageHeader } from "@/components/studio/studio-ui";
+import { CARD } from "@/components/studio/studio-ui";
 import { exampleServiceFor } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -76,7 +77,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
   return (
     <div className="space-y-6">
-      <StudioPageHeader
+      <PageHeader
         description={
           editable
             ? "How customers book: your page, services, people and hours. Each section has its own Save button."

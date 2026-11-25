@@ -66,6 +66,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Explicit application sources and workspace dependency closure.
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
+COPY packages/theme/ packages/theme/
+COPY packages/admin-kit/ packages/admin-kit/
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/bookings-web/ packages/bookings-web/

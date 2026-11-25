@@ -20,12 +20,15 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@barrelsgd/admin-kit": "workspace:*",
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/bookings-web": "workspace:*",
+    "@barrelsgd/theme": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
+    "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

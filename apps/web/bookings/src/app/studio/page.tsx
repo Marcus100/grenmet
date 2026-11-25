@@ -1,13 +1,10 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { StudioPlainFrame } from "@/components/studio/studio-shell";
-import {
-  CARD,
-  CARD_LINK,
-  StudioPageHeader,
-} from "@/components/studio/studio-ui";
+import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import { listMyOrganisations } from "@/lib/studio-api";
 import { guarded } from "@/lib/studio-page";
@@ -69,7 +66,7 @@ export default async function StudioPage() {
   return (
     <StudioPlainFrame userName={session.name}>
       <div className="space-y-6">
-        <StudioPageHeader title="Choose a business" />
+        <PageHeader title="Choose a business" />
         <ul className="grid gap-3 sm:grid-cols-2">
           {organisations.map((organisation) => (
             <li key={organisation.id}>

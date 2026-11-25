@@ -67,13 +67,12 @@ export default async function OrganisationLayout({
   const data = await loadShellData(session.accessToken, orgSlug);
   return (
     <StudioShell
-      canCreate={data.canManage}
-      canPlan={data.canManage}
+      canManage={data.canManage}
       name={data.name ?? "Barrels Bookings Studio"}
       orgSlug={orgSlug}
       pendingCount={data.pendingCount}
       publicHref={data.publicSlug ? `/${data.publicSlug}` : null}
-      userName={session.name}
+      user={{ email: session.email, name: session.name }}
     >
       {children}
     </StudioShell>
