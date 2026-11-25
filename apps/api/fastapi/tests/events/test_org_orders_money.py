@@ -295,7 +295,9 @@ async def test_event_cancel_queues_card_refunds_and_the_outbox_sends_them_once(
     shop = await _shop_with_events(db_async, events_db, allocation=5)
     order_id, _ = await _pending(db_async, shop)
     await _pay_stripe(db_async, async_client, order_id)
-    refunds_before = sum(r.url.path == "/v1/refunds" for r in stripe_env.requests)
+    refunds_before = sum(
+        r.method == "POST" and r.url.path == "/v1/refunds" for r in stripe_env.requests
+    )
 
     async with await _desk() as client:
         response = await client.post(
@@ -308,7 +310,10 @@ async def test_event_cancel_queues_card_refunds_and_the_outbox_sends_them_once(
         assert (body["orders_queued"], body["orders_refunded"]) == (1, 0)
         # Nothing was sent to the provider inside the request.
         assert (
-            sum(r.url.path == "/v1/refunds" for r in stripe_env.requests)
+            sum(
+                r.method == "POST" and r.url.path == "/v1/refunds"
+                for r in stripe_env.requests
+            )
             == refunds_before
         )
         detail = await client.get(f"{ORG}/orders/{order_id}", headers=_h(shop))
@@ -389,7 +394,13 @@ async def test_the_same_refund_id_never_reaches_the_provider_twice(
             refund_id=refund_id,
         )
         await db_async.commit()
-    assert sum(r.url.path == "/v1/refunds" for r in stripe_env.requests) == 1
+    assert (
+        sum(
+            r.method == "POST" and r.url.path == "/v1/refunds"
+            for r in stripe_env.requests
+        )
+        == 1
+    )
     assert await _refund_rows(db_async, order_id) == 1
 
 
@@ -811,7 +822,10 @@ async def test_a_second_card_refund_waits_for_the_first_and_status_trusts_the_le
         )
         assert second.status_code == 409  # 3000 + 3000 > 5000 would race
         # Nothing reached the provider inside either request.
-        assert not any(r.url.path == "/v1/refunds" for r in stripe_env.requests)
+        assert not any(
+            r.method == "POST" and r.url.path == "/v1/refunds"
+            for r in stripe_env.requests
+        )
 
         # The outbox gives up on the request; the order is then refunded another way
         # (the ledger now says everything is back): the status must say refunded.
@@ -934,7 +948,13 @@ async def test_a_retried_refund_in_full_reuses_the_refund_id(
         uuid.UUID(order_id), order_payments.FULL_REFUND_KEY
     )
     assert sent == [expected, expected]
-    assert sum(r.url.path == "/v1/refunds" for r in stripe_env.requests) == 1
+    assert (
+        sum(
+            r.method == "POST" and r.url.path == "/v1/refunds"
+            for r in stripe_env.requests
+        )
+        == 1
+    )
     assert await _refund_rows(db_async, order_id) == 1
 
 
@@ -1047,7 +1067,11 @@ async def test_a_card_refund_lost_before_commit_is_counted_once_through_the_outb
         only_topics={REQUEST_TOPIC, order_payments.REFUNDED_TOPIC},
     )
 
-    sent = [i for i, r in enumerate(stripe_env.requests) if r.url.path == "/v1/refunds"]
+    sent = [
+        i
+        for i, r in enumerate(stripe_env.requests)
+        if r.method == "POST" and r.url.path == "/v1/refunds"
+    ]
     assert len(sent) == 1
     assert stripe_env.form(sent[0])["metadata[refund_id]"] == str(refund_id)
     assert await _refund_rows(db_async, order_id) == 1
