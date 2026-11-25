@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, time
 from enum import Enum
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
@@ -47,6 +47,62 @@ class BookingMyOrganisation(BaseModel):
     name: str
     slug: str
     role: MembershipRole
+
+
+#: The starter template keys (``templates.STARTER_TEMPLATES``; a test keeps them equal).
+BookingSignupTemplate = Literal[
+    "hair-salon",
+    "barber",
+    "nails",
+    "lashes-brows",
+    "massage-spa",
+    "fitness-coach",
+    "tutor",
+    "tour-operator",
+    "photographer",
+    "blank",
+]
+
+
+class BookingSignupCreate(BaseModel):
+    """A business signs itself up (ADR-0066): it starts closed and unlisted, on a trial."""
+
+    name: Name = Field(description="The business name, as its customers know it.")
+    business_type: BookingBusinessType
+    town: Annotated[str, Field(min_length=1, max_length=80)] | None = Field(
+        default=None, description="Town or city for the home page card."
+    )
+    template: BookingSignupTemplate | None = Field(
+        default=None,
+        description="Starter services for the business type; null starts with none.",
+    )
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
+class BookingSignupReceipt(BaseModel):
+    """What a sign-up created. ``name_flagged`` means staff will review the name."""
+
+    organisation_id: str
+    slug: str
+    public_slug: str
+    display_name: str
+    business_type: BookingBusinessType
+    template: BookingSignupTemplate | None
+    trial_ends_at: UtcDateTime
+    name_flagged: bool
+
+
+class BookingStarterTemplateService(BaseModel):
+    name: str
+    duration_min: int
+    price_minor: int = Field(description="Suggested price in XCD minor units (cents).")
+
+
+class BookingStarterTemplate(BaseModel):
+    key: BookingSignupTemplate
+    label: str
+    business_type: BookingBusinessType
+    services: list[BookingStarterTemplateService]
 
 
 # --- the signed-in person's bookings ----------------------------------------------

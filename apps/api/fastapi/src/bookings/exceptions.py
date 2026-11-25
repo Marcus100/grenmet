@@ -16,3 +16,11 @@ class BookingConflictError(AppException):
 class BookingValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)
+
+
+class SelfSignupDisabledError(AppException):
+    """404 while business self sign-up is off (ADR-0066): the same answer as a route that
+    does not exist, so nothing about the switch shows."""
+
+    def __init__(self) -> None:
+        super().__init__("Not Found", status.HTTP_404_NOT_FOUND)

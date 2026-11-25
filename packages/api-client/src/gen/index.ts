@@ -1291,8 +1291,13 @@ export type { BookingServiceCreate } from "./models/BookingServiceCreate.js";
 export type { BookingServicePublic } from "./models/BookingServicePublic.js";
 export type { BookingServiceUpdate } from "./models/BookingServiceUpdate.js";
 export type { BookingSettings } from "./models/BookingSettings.js";
+export type { BookingSignupCreate } from "./models/BookingSignupCreate.js";
+export type { BookingSignupCreatePropertiesTemplateAnyOfEnum } from "./models/BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
+export type { BookingSignupReceipt } from "./models/BookingSignupReceipt.js";
 export type { BookingSlot } from "./models/BookingSlot.js";
 export type { BookingSource } from "./models/BookingSource.js";
+export type { BookingStarterTemplate } from "./models/BookingStarterTemplate.js";
+export type { BookingStarterTemplateService } from "./models/BookingStarterTemplateService.js";
 export type { BookingStatus } from "./models/BookingStatus.js";
 export type { BookingStorefront } from "./models/BookingStorefront.js";
 export type { BookingStudioCancel } from "./models/BookingStudioCancel.js";
@@ -1426,6 +1431,21 @@ export type {
   BookingsCreateExceptionStatus409,
   BookingsCreateExceptionStatus422,
 } from "./models/BookingsCreateException.js";
+export type {
+  BookingsCreateMyOrganisationBody,
+  BookingsCreateMyOrganisationHeaders,
+  BookingsCreateMyOrganisationOptions,
+  BookingsCreateMyOrganisationResponse,
+  BookingsCreateMyOrganisationResponses,
+  BookingsCreateMyOrganisationStatus201,
+  BookingsCreateMyOrganisationStatus400,
+  BookingsCreateMyOrganisationStatus401,
+  BookingsCreateMyOrganisationStatus403,
+  BookingsCreateMyOrganisationStatus404,
+  BookingsCreateMyOrganisationStatus409,
+  BookingsCreateMyOrganisationStatus422,
+  BookingsCreateMyOrganisationStatus429,
+} from "./models/BookingsCreateMyOrganisation.js";
 export type {
   BookingsCreateProviderBody,
   BookingsCreateProviderHeaders,
@@ -1672,6 +1692,15 @@ export type {
   BookingsGetWorkingHoursStatus404,
   BookingsGetWorkingHoursStatus422,
 } from "./models/BookingsGetWorkingHours.js";
+export type {
+  BookingsListBusinessTemplatesOptions,
+  BookingsListBusinessTemplatesResponse,
+  BookingsListBusinessTemplatesResponses,
+  BookingsListBusinessTemplatesStatus200,
+  BookingsListBusinessTemplatesStatus401,
+  BookingsListBusinessTemplatesStatus403,
+  BookingsListBusinessTemplatesStatus422,
+} from "./models/BookingsListBusinessTemplates.js";
 export type {
   BookingsListClosuresHeaders,
   BookingsListClosuresOptions,
@@ -10831,6 +10860,7 @@ export { bookingsConfirmStudioBooking } from "./clients/bookingsConfirmStudioBoo
 export { bookingsCreateCalendarFeed } from "./clients/bookingsCreateCalendarFeed.js";
 export { bookingsCreateClosure } from "./clients/bookingsCreateClosure.js";
 export { bookingsCreateException } from "./clients/bookingsCreateException.js";
+export { bookingsCreateMyOrganisation } from "./clients/bookingsCreateMyOrganisation.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
 export { bookingsCreatePublicBooking } from "./clients/bookingsCreatePublicBooking.js";
 export { bookingsCreateService } from "./clients/bookingsCreateService.js";
@@ -10851,6 +10881,7 @@ export { bookingsGetSettings } from "./clients/bookingsGetSettings.js";
 export { bookingsGetStorefront } from "./clients/bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./clients/bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./clients/bookingsGetWorkingHours.js";
+export { bookingsListBusinessTemplates } from "./clients/bookingsListBusinessTemplates.js";
 export { bookingsListClosures } from "./clients/bookingsListClosures.js";
 export { bookingsListExceptions } from "./clients/bookingsListExceptions.js";
 export { bookingsListMyBookings } from "./clients/bookingsListMyBookings.js";
@@ -12114,6 +12145,11 @@ export {
   useBookingsCreateException,
 } from "./hooks/useBookingsCreateException.js";
 export {
+  bookingsCreateMyOrganisationMutationKey,
+  bookingsCreateMyOrganisationMutationOptions,
+  useBookingsCreateMyOrganisation,
+} from "./hooks/useBookingsCreateMyOrganisation.js";
+export {
   bookingsCreateProviderMutationKey,
   bookingsCreateProviderMutationOptions,
   useBookingsCreateProvider,
@@ -12213,6 +12249,11 @@ export {
   bookingsGetWorkingHoursQueryOptions,
   useBookingsGetWorkingHours,
 } from "./hooks/useBookingsGetWorkingHours.js";
+export {
+  bookingsListBusinessTemplatesQueryKey,
+  bookingsListBusinessTemplatesQueryOptions,
+  useBookingsListBusinessTemplates,
+} from "./hooks/useBookingsListBusinessTemplates.js";
 export {
   bookingsListClosuresQueryKey,
   bookingsListClosuresQueryOptions,
@@ -15694,6 +15735,7 @@ export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingPaymentKind } from "./models/BookingPaymentKind.js";
 export { bookingPaymentMode } from "./models/BookingPaymentMode.js";
 export { bookingPaymentStatus } from "./models/BookingPaymentStatus.js";
+export { bookingSignupCreatePropertiesTemplateAnyOfEnum } from "./models/BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
 export { bookingSource } from "./models/BookingSource.js";
 export { bookingStatus } from "./models/BookingStatus.js";
 export { buildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
@@ -17178,8 +17220,13 @@ export { bookingServiceCreateSchema } from "./zod/bookingServiceCreateSchema.js"
 export { bookingServicePublicSchema } from "./zod/bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./zod/bookingServiceUpdateSchema.js";
 export { bookingSettingsSchema } from "./zod/bookingSettingsSchema.js";
+export { bookingSignupCreatePropertiesTemplateAnyOfEnumSchema } from "./zod/bookingSignupCreatePropertiesTemplateAnyOfEnumSchema.js";
+export { bookingSignupCreateSchema } from "./zod/bookingSignupCreateSchema.js";
+export { bookingSignupReceiptSchema } from "./zod/bookingSignupReceiptSchema.js";
 export { bookingSlotSchema } from "./zod/bookingSlotSchema.js";
 export { bookingSourceSchema } from "./zod/bookingSourceSchema.js";
+export { bookingStarterTemplateSchema } from "./zod/bookingStarterTemplateSchema.js";
+export { bookingStarterTemplateServiceSchema } from "./zod/bookingStarterTemplateServiceSchema.js";
 export { bookingStatusSchema } from "./zod/bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./zod/bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./zod/bookingStudioCancelSchema.js";
@@ -17317,6 +17364,21 @@ export {
   bookingsCreateExceptionStatus409Schema,
   bookingsCreateExceptionStatus422Schema,
 } from "./zod/bookingsCreateExceptionSchema.js";
+export {
+  bookingsCreateMyOrganisationBodySchema,
+  bookingsCreateMyOrganisationErrorSchema,
+  bookingsCreateMyOrganisationHeaderIdempotencyKeySchema,
+  bookingsCreateMyOrganisationHeadersSchema,
+  bookingsCreateMyOrganisationResponseSchema,
+  bookingsCreateMyOrganisationStatus201Schema,
+  bookingsCreateMyOrganisationStatus400Schema,
+  bookingsCreateMyOrganisationStatus401Schema,
+  bookingsCreateMyOrganisationStatus403Schema,
+  bookingsCreateMyOrganisationStatus404Schema,
+  bookingsCreateMyOrganisationStatus409Schema,
+  bookingsCreateMyOrganisationStatus422Schema,
+  bookingsCreateMyOrganisationStatus429Schema,
+} from "./zod/bookingsCreateMyOrganisationSchema.js";
 export {
   bookingsCreateProviderBodySchema,
   bookingsCreateProviderErrorSchema,
@@ -17581,6 +17643,14 @@ export {
   bookingsGetWorkingHoursStatus404Schema,
   bookingsGetWorkingHoursStatus422Schema,
 } from "./zod/bookingsGetWorkingHoursSchema.js";
+export {
+  bookingsListBusinessTemplatesErrorSchema,
+  bookingsListBusinessTemplatesResponseSchema,
+  bookingsListBusinessTemplatesStatus200Schema,
+  bookingsListBusinessTemplatesStatus401Schema,
+  bookingsListBusinessTemplatesStatus403Schema,
+  bookingsListBusinessTemplatesStatus422Schema,
+} from "./zod/bookingsListBusinessTemplatesSchema.js";
 export {
   bookingsListClosuresErrorSchema,
   bookingsListClosuresHeaderXBarrelsOrganisationSchema,

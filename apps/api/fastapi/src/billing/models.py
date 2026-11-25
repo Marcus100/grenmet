@@ -198,6 +198,9 @@ class AppSubscriptionTrial(Base):
         String(64), ForeignKey("billing.plan.key"), primary_key=True
     )
     trial_days: Mapped[int]
+    #: When the trial ends (ADR-0066): set for a self-created business, 30 days after its
+    #: sign-up. Null keeps the fixed ``trial_days`` (Babydoll's seeded grant).
+    trial_ends_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 

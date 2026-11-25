@@ -1265,8 +1265,13 @@ export { bookingServiceCreateSchema } from "./bookingServiceCreateSchema.js";
 export { bookingServicePublicSchema } from "./bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./bookingServiceUpdateSchema.js";
 export { bookingSettingsSchema } from "./bookingSettingsSchema.js";
+export { bookingSignupCreatePropertiesTemplateAnyOfEnumSchema } from "./bookingSignupCreatePropertiesTemplateAnyOfEnumSchema.js";
+export { bookingSignupCreateSchema } from "./bookingSignupCreateSchema.js";
+export { bookingSignupReceiptSchema } from "./bookingSignupReceiptSchema.js";
 export { bookingSlotSchema } from "./bookingSlotSchema.js";
 export { bookingSourceSchema } from "./bookingSourceSchema.js";
+export { bookingStarterTemplateSchema } from "./bookingStarterTemplateSchema.js";
+export { bookingStarterTemplateServiceSchema } from "./bookingStarterTemplateServiceSchema.js";
 export { bookingStatusSchema } from "./bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./bookingStudioCancelSchema.js";
@@ -1401,6 +1406,21 @@ export {
   bookingsCreateExceptionStatus409Schema,
   bookingsCreateExceptionStatus422Schema,
 } from "./bookingsCreateExceptionSchema.js";
+export {
+  bookingsCreateMyOrganisationBodySchema,
+  bookingsCreateMyOrganisationErrorSchema,
+  bookingsCreateMyOrganisationHeaderIdempotencyKeySchema,
+  bookingsCreateMyOrganisationHeadersSchema,
+  bookingsCreateMyOrganisationResponseSchema,
+  bookingsCreateMyOrganisationStatus201Schema,
+  bookingsCreateMyOrganisationStatus400Schema,
+  bookingsCreateMyOrganisationStatus401Schema,
+  bookingsCreateMyOrganisationStatus403Schema,
+  bookingsCreateMyOrganisationStatus404Schema,
+  bookingsCreateMyOrganisationStatus409Schema,
+  bookingsCreateMyOrganisationStatus422Schema,
+  bookingsCreateMyOrganisationStatus429Schema,
+} from "./bookingsCreateMyOrganisationSchema.js";
 export {
   bookingsCreateProviderBodySchema,
   bookingsCreateProviderErrorSchema,
@@ -1665,6 +1685,14 @@ export {
   bookingsGetWorkingHoursStatus404Schema,
   bookingsGetWorkingHoursStatus422Schema,
 } from "./bookingsGetWorkingHoursSchema.js";
+export {
+  bookingsListBusinessTemplatesErrorSchema,
+  bookingsListBusinessTemplatesResponseSchema,
+  bookingsListBusinessTemplatesStatus200Schema,
+  bookingsListBusinessTemplatesStatus401Schema,
+  bookingsListBusinessTemplatesStatus403Schema,
+  bookingsListBusinessTemplatesStatus422Schema,
+} from "./bookingsListBusinessTemplatesSchema.js";
 export {
   bookingsListClosuresErrorSchema,
   bookingsListClosuresHeadersSchema,

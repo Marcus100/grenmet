@@ -10227,6 +10227,201 @@
         "summary": "The caller's organisations that use Barrels Bookings",
         "description": "Active memberships in active organisations entitled to bookings, with the caller's role; feeds the studio's organisation picker. Accepts an account or the bookings app session.",
         "operationId": "bookingsListMyOrganisations",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingMyOrganisation"
+                  },
+                  "title": "Response Bookingslistmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Sign a business up to Barrels Bookings",
+        "description": "A signed-in account with a verified email creates its own business: closed for online booking and unlisted until it is set up, on a 30-day trial, with the owner, a provider named after the owner with weekday hours and the chosen starter services. One self-created business per account. Requires an `Idempotency-Key` (the same key and body replays the first answer with `Idempotency-Replayed: true`). Turnstile is required outside local development whatever the global switch says. Answers 404 while self sign-up is switched off.",
+        "operationId": "bookingsCreateMyOrganisation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingSignupCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSignupReceipt"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Three sign-ups an hour per address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingscreatemyorganisation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/me/business-templates": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Starter templates for a new business",
+        "description": "The fixed starter templates a sign-up can name: a short list of services with a suggested price in XCD minor units for each business type. Never a deposit or a policy. Needs a signed-in account.",
+        "operationId": "bookingsListBusinessTemplates",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -10234,10 +10429,10 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/BookingMyOrganisation"
+                    "$ref": "#/components/schemas/BookingStarterTemplate"
                   },
                   "type": "array",
-                  "title": "Response Bookingslistmyorganisations"
+                  "title": "Response Bookingslistbusinesstemplates"
                 }
               }
             }
@@ -81901,6 +82096,121 @@
         "title": "BookingSettings",
         "description": "Everything the settings screen renders, in one call."
       },
+      "BookingSignupCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "description": "The business name, as its customers know it."
+          },
+          "business_type": {
+            "$ref": "#/components/schemas/BookingBusinessType"
+          },
+          "town": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Town",
+            "description": "Town or city for the home page card."
+          },
+          "template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingSignupCreatePropertiesTemplateAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "Starter services for the business type; null starts with none."
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "business_type"
+        ],
+        "title": "BookingSignupCreate",
+        "description": "A business signs itself up (ADR-0066): it starts closed and unlisted, on a trial."
+      },
+      "BookingSignupReceipt": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "public_slug": {
+            "type": "string",
+            "title": "Public Slug"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "business_type": {
+            "$ref": "#/components/schemas/BookingBusinessType"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingSignupCreatePropertiesTemplateAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template"
+          },
+          "trial_ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Trial Ends At"
+          },
+          "name_flagged": {
+            "type": "boolean",
+            "title": "Name Flagged"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "slug",
+          "public_slug",
+          "display_name",
+          "business_type",
+          "template",
+          "trial_ends_at",
+          "name_flagged"
+        ],
+        "title": "BookingSignupReceipt",
+        "description": "What a sign-up created. ``name_flagged`` means staff will review the name."
+      },
       "BookingSlot": {
         "properties": {
           "starts_at": {
@@ -81937,6 +82247,59 @@
           "studio"
         ],
         "title": "BookingSource"
+      },
+      "BookingStarterTemplate": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/BookingSignupCreatePropertiesTemplateAnyOfEnum"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "business_type": {
+            "$ref": "#/components/schemas/BookingBusinessType"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingStarterTemplateService"
+            },
+            "type": "array",
+            "title": "Services"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "business_type",
+          "services"
+        ],
+        "title": "BookingStarterTemplate"
+      },
+      "BookingStarterTemplateService": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "Suggested price in XCD minor units (cents)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "duration_min",
+          "price_minor"
+        ],
+        "title": "BookingStarterTemplateService"
       },
       "BookingStatus": {
         "type": "string",
@@ -130226,6 +130589,21 @@
         "enum": [
           "OK",
           "ERROR"
+        ]
+      },
+      "BookingSignupCreatePropertiesTemplateAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "hair-salon",
+          "barber",
+          "nails",
+          "lashes-brows",
+          "massage-spa",
+          "fitness-coach",
+          "tutor",
+          "tour-operator",
+          "photographer",
+          "blank"
         ]
       },
       "BuildingCreatePropertiesKindEnum": {

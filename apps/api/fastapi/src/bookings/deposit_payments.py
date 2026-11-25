@@ -31,6 +31,7 @@ from urllib.parse import urlencode
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.exceptions import AppException
 from src.organisations import service as organisation_service
 from src.payments import return_urls
@@ -55,6 +56,9 @@ logger = logging.getLogger(__name__)
 
 SOURCE_TYPE = "bookings.deposit"
 PAID_TOPIC = "bookings.deposit_paid"
+#: A refund that must not call the payment provider inside the caller's transaction (the
+#: last owner leaving an account). The worker runs ``refund_deposit`` afterwards.
+REFUND_TOPIC = "bookings.deposit_refund"
 _TEST_KEY_PREFIX = "sk_test_"
 
 
@@ -609,13 +613,16 @@ async def settle_cancellation(
     previous: BookingStatus,
     refund: bool | None,
     now: datetime,
+    defer_refund: bool = False,
 ) -> str | None:
     """Money side of a cancelled booking. Returns a note for the booking's history,
     or None when no deposit was involved.
 
     - Was ``pending_payment``: the open intent is cancelled; if the payment had
       just succeeded it is refunded in full.
-    - Otherwise ``refund`` decides (``None`` = the cutoff policy)."""
+    - Otherwise ``refund`` decides (``None`` = the cutoff policy).
+    - ``defer_refund``: a refund is queued on the outbox instead of called here, so no
+      payment-provider call runs inside the caller's transaction."""
     if booking.deposit_minor <= 0:
         return None
     noun = payment_noun(booking)
@@ -628,5 +635,14 @@ async def settle_cancellation(
         refund = refund_by_policy(booking, profile, now, previous=previous)
     if not refund:
         return f"{noun} kept"
+    if defer_refund:
+        await outbox.enqueue(
+            session,
+            topic=REFUND_TOPIC,
+            payload={"booking_id": str(booking.id)},
+            dedupe_key=f"bookings.deposit-refund:{booking.id}",
+            organisation_id=booking.organisation_id,
+        )
+        return f"{noun} refund queued"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
     return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"
