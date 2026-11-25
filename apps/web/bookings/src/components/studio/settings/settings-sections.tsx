@@ -175,6 +175,7 @@ export function ServicesSection({
   services: BookingServicePublic[];
 }) {
   const addOnsEnabled = profile?.add_ons_enabled ?? false;
+  const depositCollection = profile?.deposit_collection ?? "online";
   const addOnCategories = mainCategories(services);
   return (
     <Section
@@ -211,6 +212,7 @@ export function ServicesSection({
                       addOnCategories={addOnCategories}
                       addOnsEnabled={addOnsEnabled}
                       currency={currency}
+                      depositCollection={depositCollection}
                       depositsAvailable={depositsAvailable}
                       orgSlug={orgSlug}
                       service={item}
@@ -233,6 +235,7 @@ export function ServicesSection({
             addOnCategories={addOnCategories}
             addOnsEnabled={addOnsEnabled}
             currency={currency}
+            depositCollection={depositCollection}
             depositsAvailable={depositsAvailable}
             orgSlug={orgSlug}
           />
@@ -387,7 +390,7 @@ export function PaymentsSection({
 }) {
   return (
     <Section
-      description="How an online booking is paid. A service's own deposit always wins over the business-wide deposit rule, which covers services without one."
+      description="Who collects a deposit and how, the deposit rule, your booking policy and late fee. A service's own deposit always wins over the business-wide deposit rule, which covers services without one."
       id="payments"
       title="Payments"
     >
@@ -410,6 +413,7 @@ export function PaymentsSection({
       ) : null}
       {profile !== null && editable ? (
         <DepositRuleForm
+          collection={profile.deposit_collection ?? "online"}
           currency={currency}
           depositsAvailable={depositsAvailable}
           example={example}
@@ -418,7 +422,11 @@ export function PaymentsSection({
         />
       ) : null}
       {profile !== null && editable ? (
-        <BookingPolicyForm orgSlug={orgSlug} profile={profile} />
+        <BookingPolicyForm
+          currency={currency}
+          orgSlug={orgSlug}
+          profile={profile}
+        />
       ) : null}
       {profile !== null && editable ? (
         <BookingRequestsForm orgSlug={orgSlug} profile={profile} />

@@ -1,6 +1,9 @@
 "use client";
 
-import type { BookingServicePublic } from "@barrelsgd/api-client";
+import type {
+  BookingDepositCollection,
+  BookingServicePublic,
+} from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -18,11 +21,24 @@ import {
   SettingsResult,
 } from "./settings-ui";
 
+function depositHint(
+  collection: BookingDepositCollection,
+  depositsAvailable: boolean
+): string {
+  if (collection === "business") {
+    return "Paid to you directly by the customer, outside Barrels: you confirm the booking once it arrives. Cannot exceed the price. 0 means no deposit.";
+  }
+  return depositsAvailable
+    ? "Taken when the customer books. Cannot exceed the price. 0 means no deposit."
+    : "This business does not have online payments, so a deposit is saved but not collected online; staff record it by hand.";
+}
+
 /** Adds a service, or edits `service` when given. Prices are typed in whole currency units. */
 export function ServiceForm({
   addOnCategories = [],
   addOnsEnabled = false,
   currency,
+  depositCollection = "online",
   depositsAvailable,
   orgSlug,
   service,
@@ -32,6 +48,8 @@ export function ServiceForm({
   /** The business has add-ons switched on (the form still saves the flag when off). */
   addOnsEnabled?: boolean;
   currency: string;
+  /** Who collects deposits; `business` needs no payments entitlement. */
+  depositCollection?: BookingDepositCollection;
   depositsAvailable: boolean;
   orgSlug: string;
   service?: BookingServicePublic;
@@ -44,11 +62,17 @@ export function ServiceForm({
   const submitLabel = service ? "Save service" : "Add service";
   const prefix = `service-${service?.id ?? "new"}`;
   const [isAddOn, setIsAddOn] = useState(service?.is_add_on ?? false);
+  // The API lets add-on only win; the form never lets both be on.
+  const [alsoAddOn, setAlsoAddOn] = useState(
+    !(service?.is_add_on ?? false) && (service?.also_add_on ?? false)
+  );
 
   useEffect(() => {
     // An add form starts blank again once the service is saved.
     if (state.status === "success" && !service) {
       formRef.current?.reset();
+      setIsAddOn(false);
+      setAlsoAddOn(false);
     }
   }, [state, service]);
 
@@ -139,11 +163,7 @@ export function ServiceForm({
           )}
         </SettingsField>
         <SettingsField
-          hint={
-            depositsAvailable
-              ? "Taken when the customer books. Cannot exceed the price. 0 means no deposit."
-              : "This business does not have online payments, so a deposit is saved but not collected online; staff record it by hand."
-          }
+          hint={depositHint(depositCollection, depositsAvailable)}
           id={`${prefix}-deposit`}
           label={`Deposit (${currency})`}
         >
@@ -176,9 +196,22 @@ export function ServiceForm({
       </div>
       <AddOnFields
         addOnsEnabled={addOnsEnabled}
+        alsoAddOn={alsoAddOn}
         categories={addOnCategories}
         isAddOn={isAddOn}
-        onChange={setIsAddOn}
+        onAlsoChange={(value) => {
+          setAlsoAddOn(value);
+          if (value) {
+            setIsAddOn(false);
+          }
+        }}
+        onChange={(value) => {
+          setIsAddOn(value);
+          if (value) {
+            setAlsoAddOn(false);
+          }
+        }}
+        prefixId={prefix}
         selected={service?.add_on_categories ?? []}
       />
       <SettingsCheck
@@ -205,17 +238,24 @@ export function ServiceForm({
  */
 function AddOnFields({
   addOnsEnabled,
+  alsoAddOn,
   categories,
   isAddOn,
+  onAlsoChange,
   onChange,
+  prefixId,
   selected,
 }: {
   addOnsEnabled: boolean;
+  alsoAddOn: boolean;
   categories: string[];
   isAddOn: boolean;
+  onAlsoChange: (value: boolean) => void;
   onChange: (value: boolean) => void;
+  prefixId: string;
   selected: string[];
 }) {
+  const offered = isAddOn || alsoAddOn;
   // A category the add-on already follows stays listed even if no main service uses it now.
   const choices = [...new Set([...categories, ...selected])];
   return (
@@ -223,6 +263,7 @@ function AddOnFields({
       <legend className="pt-4 font-medium">Add-on</legend>
       <Label className="min-h-11 items-center gap-3">
         <input
+          aria-describedby={`${prefixId}-add-on-hint`}
           checked={isAddOn}
           className="accent-primary size-5"
           name="isAddOn"
@@ -231,12 +272,33 @@ function AddOnFields({
         />
         This is an add-on
       </Label>
-      <p className="text-muted-foreground text-sm">
+      <p
+        className="text-muted-foreground text-sm"
+        id={`${prefixId}-add-on-hint`}
+      >
         {addOnsEnabled
           ? "An add-on is never booked alone. Customers tick it after choosing a main service, and its time and price are added to the booking. Its own deposit is not used."
           : "An add-on is never booked alone. Customers will not see it until you switch add-ons on under Services. Its own deposit is not used."}
       </p>
-      {isAddOn ? (
+      <Label className="min-h-11 items-center gap-3">
+        <input
+          aria-checked={alsoAddOn}
+          aria-describedby={`${prefixId}-also-hint`}
+          checked={alsoAddOn}
+          className="accent-primary size-5"
+          name="alsoAddOn"
+          onChange={(event) => onAlsoChange(event.target.checked)}
+          role="switch"
+          type="checkbox"
+        />
+        Also offer as an add-on
+      </Label>
+      <p className="text-muted-foreground text-sm" id={`${prefixId}-also-hint`}>
+        Customers can still book this service on its own, and can also tick it
+        as an extra on another service. Turning this on turns off &quot;This is
+        an add-on&quot;, because an add-on is never booked alone.
+      </p>
+      {offered ? (
         <fieldset className="space-y-1">
           <legend className="font-medium">
             Offer it with these categories
