@@ -196,13 +196,10 @@
 .service-category-body {
   padding-top: 0.5rem;
 }
+/* One card per service: the radio row, then (for the chosen one) its details. */
 .service-option {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.75rem;
-  align-items: start;
   min-height: 44px;
-  padding: 0.75rem;
   cursor: pointer;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 4px);
@@ -233,6 +230,87 @@
   height: 22px;
   margin: 0;
   accent-color: var(--primary);
+}
+.service-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  min-height: 44px;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+/* The chosen service's details sit under its name, lined up with it. */
+.service-details {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem 3.25rem;
+  font-size: 0.875rem;
+}
+.service-description-block {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+}
+/* Line breaks the business typed are kept; plain text only. */
+.service-description {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.service-description[data-clamped="true"] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+}
+.service-read-more {
+  min-height: 44px;
+  padding: 0 0.25rem;
+  font-weight: 600;
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+}
+.service-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+}
+.service-facts > div {
+  display: flex;
+  gap: 0.375rem;
+}
+.service-facts dt {
+  color: var(--muted-foreground);
+}
+.service-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.service-payment,
+.service-new-clients,
+.service-add-ons p,
+.service-add-ons ul {
+  margin: 0;
+}
+.service-add-ons ul {
+  padding-left: 1.25rem;
+}
+/* Says which service is chosen in words too, not colour alone. */
+.service-chosen-mark {
+  display: inline-block;
+  padding: 0 0.5rem;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 0.1em;
+  color: var(--primary);
+  white-space: nowrap;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
 }
 .service-text {
   display: grid;
@@ -747,9 +825,41 @@ fieldset.notice {
   .book-continue[aria-disabled="true"]:active {
     transform: none;
   }
-  /* One line tall always, so a changed summary cannot make anything jump. */
-  .book-recap-bar {
-    min-height: 1.5em;
+  /* Chosen so far, one line each: the name, then length and price. */
+  .book-bar-text {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .book-recap-title,
+  .book-recap-detail,
+  .book-recap-trail {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .book-recap-detail {
+    font-size: 0.875rem;
+  }
+  /* The line above steps 2 and 3 with its Edit link; the link is a 44 px target. */
+  .book-trail {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-width: 0;
+    margin-bottom: 0.75rem;
+  }
+  .book-edit {
+    flex: none;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.5rem;
+    font-weight: 600;
+    text-decoration: underline;
+    background: transparent;
+    border: 0;
   }
   /*
     Turnstile must never sit in a display: none box (it may not solve there).
@@ -786,18 +896,11 @@ fieldset.notice {
     background: var(--background);
     border-top: 1px solid var(--border);
   }
-  /* One line with an ellipsis; the Continue button sits beside it. */
-  .book-bar .book-recap {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .book-bar .book-hint {
-    grid-column: 1;
-  }
+  /* The summary (and the hint, when Continue is off) on the left; Continue
+     on the right, centred against it, so a long name never pushes it away. */
   .book-bar .book-continue {
-    grid-row: 1 / span 2;
     grid-column: 2;
+    align-self: center;
   }
   /* A control scrolled into view (a tap target, or a test) is never left under the bar. */
   .book-form[data-steps="on"] .chip,

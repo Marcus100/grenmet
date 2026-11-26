@@ -915,7 +915,7 @@ describe("BookingFlow confirm step wording", () => {
     expect(screen.queryByText(NO_PAYMENT)).not.toBeInTheDocument();
     await chooseSlot(user);
     expect(screen.getByText(NO_PAYMENT)).toBeVisible();
-    expect(screen.getByText(CANCEL_RULE)).toBeVisible();
+    expect(screen.getAllByText(CANCEL_RULE).at(-1)).toBeVisible();
   });
 
   it("does not say there is no payment online when a deposit is due", async () => {
@@ -954,7 +954,9 @@ describe("BookingFlow confirm step wording", () => {
 });
 
 describe("BookingFlow rules line and full policy", () => {
-  const RULES_LINE = (text: string) => screen.getByText(text);
+  // The details panel repeats the rules sentence for the chosen service, so the
+  // step-3 copy (the last one in the page) is the one checked.
+  const RULES_LINE = (text: string) => screen.getAllByText(text).at(-1);
 
   it("says only the change rule until a service is chosen", () => {
     renderFlow();
