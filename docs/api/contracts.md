@@ -3586,3 +3586,30 @@ Another organisation's records are 404.
   (`opslog.daily_summary`), how many entries were written in the last 24 hours, the
   busiest categories and the latest lines. Private entries are never included; a log
   with no new entries sends nothing.
+
+## Case engine, safety programme (ADR-0069, issue #1877)
+
+Organisation zone only, under `/api/v1/cases/org/{programme}/`, acting for
+`X-Barrels-Organisation`. Only `safety` exists; other programme values are 404. The
+organisation needs the `safety` entitlement and the caller a key: `safety.cases.read`,
+`safety.cases.write`, `safety.cases.approve` or `safety.settings.manage` (bundles
+`safety-officer` and `safety-manager`; owners and admins hold all).
+
+- Risk grid: `GET|PUT /risk-grid`. The default is the ICAO Doc 9859 example grid
+  (`custom: false`). A custom grid has 2 to 7 levels each way and one band
+  (`acceptable`, `tolerable`, `intolerable`) per cell.
+- Cases: `GET|POST /cases`, `GET|PATCH /cases/{case_id}`. References are
+  `SAF-<year>-<nnnn>`. `source` names the record a case came from; it must be visible to
+  the reporter (422 otherwise) and is returned with `title` and `available`.
+- Stages: `POST /cases/{case_id}/status` (`status`, `no_risk`, `reason`): reported,
+  assessing, investigating, actions, monitoring, closed. Closing and reopening need the
+  approve key. Closing is 409 unless every action is verified and the latest residual
+  risk is acceptable, or tolerable and accepted; `no_risk` with a `reason` closes a
+  report with no hazard. Closed cases refuse every write (409).
+- Risk: `POST /cases/{case_id}/risk-assessments` (`kind` initial or residual,
+  `likelihood`, `severity`); `POST .../risk-assessments/{assessment_id}/acceptance`
+  (approve key, `note`; only the latest residual, only `tolerable`).
+- Corrective actions: `POST /cases/{case_id}/actions`, `PATCH .../actions/{action_id}`,
+  `POST .../actions/{action_id}/status` (open, done, verified; verifying needs the
+  approve key and someone other than the owner). The owner is notified
+  (`cases.action_assigned`). `overdue` is true for an open action past its due date.

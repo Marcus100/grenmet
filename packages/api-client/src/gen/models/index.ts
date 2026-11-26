@@ -2656,6 +2656,208 @@ export type {
   CapValidateAlertStatus422,
 } from "./CapValidateAlert.js";
 export type { CapValidationResult } from "./CapValidationResult.js";
+export type { CaseActionCreate } from "./CaseActionCreate.js";
+export type { CaseActionPublic } from "./CaseActionPublic.js";
+export type { CaseActionStatus } from "./CaseActionStatus.js";
+export { caseActionStatus } from "./CaseActionStatus.js";
+export type { CaseActionStatusChange } from "./CaseActionStatusChange.js";
+export type { CaseActionUpdate } from "./CaseActionUpdate.js";
+export type { CaseCreate } from "./CaseCreate.js";
+export type { CaseDetail } from "./CaseDetail.js";
+export type { CasePage } from "./CasePage.js";
+export type { CasePublic } from "./CasePublic.js";
+export type { CaseRecordRef } from "./CaseRecordRef.js";
+export type { CaseRiskAcceptance } from "./CaseRiskAcceptance.js";
+export type { CaseRiskAssessmentCreate } from "./CaseRiskAssessmentCreate.js";
+export type { CaseRiskAssessmentPublic } from "./CaseRiskAssessmentPublic.js";
+export type { CaseRiskBand } from "./CaseRiskBand.js";
+export { caseRiskBand } from "./CaseRiskBand.js";
+export type { CaseRiskGridPublic } from "./CaseRiskGridPublic.js";
+export type { CaseRiskGridUpdate } from "./CaseRiskGridUpdate.js";
+export type { CaseRiskKind } from "./CaseRiskKind.js";
+export { caseRiskKind } from "./CaseRiskKind.js";
+export type { CaseRiskLikelihood } from "./CaseRiskLikelihood.js";
+export type { CaseRiskSeverity } from "./CaseRiskSeverity.js";
+export type { CaseSourcePublic } from "./CaseSourcePublic.js";
+export type { CaseStatus } from "./CaseStatus.js";
+export { caseStatus } from "./CaseStatus.js";
+export type { CaseStatusChange } from "./CaseStatusChange.js";
+export type {
+  CasesAcceptRiskBody,
+  CasesAcceptRiskHeaders,
+  CasesAcceptRiskOptions,
+  CasesAcceptRiskPath,
+  CasesAcceptRiskResponse,
+  CasesAcceptRiskResponses,
+  CasesAcceptRiskStatus200,
+  CasesAcceptRiskStatus400,
+  CasesAcceptRiskStatus401,
+  CasesAcceptRiskStatus403,
+  CasesAcceptRiskStatus404,
+  CasesAcceptRiskStatus409,
+  CasesAcceptRiskStatus422,
+} from "./CasesAcceptRisk.js";
+export type {
+  CasesChangeActionStatusBody,
+  CasesChangeActionStatusHeaders,
+  CasesChangeActionStatusOptions,
+  CasesChangeActionStatusPath,
+  CasesChangeActionStatusResponse,
+  CasesChangeActionStatusResponses,
+  CasesChangeActionStatusStatus200,
+  CasesChangeActionStatusStatus400,
+  CasesChangeActionStatusStatus401,
+  CasesChangeActionStatusStatus403,
+  CasesChangeActionStatusStatus404,
+  CasesChangeActionStatusStatus409,
+  CasesChangeActionStatusStatus422,
+} from "./CasesChangeActionStatus.js";
+export type {
+  CasesChangeCaseStatusBody,
+  CasesChangeCaseStatusHeaders,
+  CasesChangeCaseStatusOptions,
+  CasesChangeCaseStatusPath,
+  CasesChangeCaseStatusResponse,
+  CasesChangeCaseStatusResponses,
+  CasesChangeCaseStatusStatus200,
+  CasesChangeCaseStatusStatus400,
+  CasesChangeCaseStatusStatus401,
+  CasesChangeCaseStatusStatus403,
+  CasesChangeCaseStatusStatus404,
+  CasesChangeCaseStatusStatus409,
+  CasesChangeCaseStatusStatus422,
+} from "./CasesChangeCaseStatus.js";
+export type {
+  CasesCreateActionBody,
+  CasesCreateActionHeaders,
+  CasesCreateActionOptions,
+  CasesCreateActionPath,
+  CasesCreateActionResponse,
+  CasesCreateActionResponses,
+  CasesCreateActionStatus201,
+  CasesCreateActionStatus400,
+  CasesCreateActionStatus401,
+  CasesCreateActionStatus403,
+  CasesCreateActionStatus404,
+  CasesCreateActionStatus409,
+  CasesCreateActionStatus422,
+} from "./CasesCreateAction.js";
+export type {
+  CasesCreateCaseBody,
+  CasesCreateCaseHeaders,
+  CasesCreateCaseOptions,
+  CasesCreateCasePath,
+  CasesCreateCaseResponse,
+  CasesCreateCaseResponses,
+  CasesCreateCaseStatus201,
+  CasesCreateCaseStatus400,
+  CasesCreateCaseStatus401,
+  CasesCreateCaseStatus403,
+  CasesCreateCaseStatus404,
+  CasesCreateCaseStatus409,
+  CasesCreateCaseStatus422,
+} from "./CasesCreateCase.js";
+export type {
+  CasesCreateRiskAssessmentBody,
+  CasesCreateRiskAssessmentHeaders,
+  CasesCreateRiskAssessmentOptions,
+  CasesCreateRiskAssessmentPath,
+  CasesCreateRiskAssessmentResponse,
+  CasesCreateRiskAssessmentResponses,
+  CasesCreateRiskAssessmentStatus201,
+  CasesCreateRiskAssessmentStatus400,
+  CasesCreateRiskAssessmentStatus401,
+  CasesCreateRiskAssessmentStatus403,
+  CasesCreateRiskAssessmentStatus404,
+  CasesCreateRiskAssessmentStatus409,
+  CasesCreateRiskAssessmentStatus422,
+} from "./CasesCreateRiskAssessment.js";
+export type {
+  CasesGetCaseHeaders,
+  CasesGetCaseOptions,
+  CasesGetCasePath,
+  CasesGetCaseResponse,
+  CasesGetCaseResponses,
+  CasesGetCaseStatus200,
+  CasesGetCaseStatus400,
+  CasesGetCaseStatus401,
+  CasesGetCaseStatus403,
+  CasesGetCaseStatus404,
+  CasesGetCaseStatus422,
+} from "./CasesGetCase.js";
+export type {
+  CasesGetRiskGridHeaders,
+  CasesGetRiskGridOptions,
+  CasesGetRiskGridPath,
+  CasesGetRiskGridResponse,
+  CasesGetRiskGridResponses,
+  CasesGetRiskGridStatus200,
+  CasesGetRiskGridStatus400,
+  CasesGetRiskGridStatus401,
+  CasesGetRiskGridStatus403,
+  CasesGetRiskGridStatus404,
+  CasesGetRiskGridStatus422,
+} from "./CasesGetRiskGrid.js";
+export type {
+  CasesListCasesHeaders,
+  CasesListCasesOptions,
+  CasesListCasesPath,
+  CasesListCasesQuery,
+  CasesListCasesResponse,
+  CasesListCasesResponses,
+  CasesListCasesStatus200,
+  CasesListCasesStatus400,
+  CasesListCasesStatus401,
+  CasesListCasesStatus403,
+  CasesListCasesStatus404,
+  CasesListCasesStatus422,
+} from "./CasesListCases.js";
+export type {
+  CasesSetRiskGridBody,
+  CasesSetRiskGridHeaders,
+  CasesSetRiskGridOptions,
+  CasesSetRiskGridPath,
+  CasesSetRiskGridResponse,
+  CasesSetRiskGridResponses,
+  CasesSetRiskGridStatus200,
+  CasesSetRiskGridStatus400,
+  CasesSetRiskGridStatus401,
+  CasesSetRiskGridStatus403,
+  CasesSetRiskGridStatus404,
+  CasesSetRiskGridStatus409,
+  CasesSetRiskGridStatus422,
+} from "./CasesSetRiskGrid.js";
+export type {
+  CasesUpdateActionBody,
+  CasesUpdateActionHeaders,
+  CasesUpdateActionOptions,
+  CasesUpdateActionPath,
+  CasesUpdateActionResponse,
+  CasesUpdateActionResponses,
+  CasesUpdateActionStatus200,
+  CasesUpdateActionStatus400,
+  CasesUpdateActionStatus401,
+  CasesUpdateActionStatus403,
+  CasesUpdateActionStatus404,
+  CasesUpdateActionStatus409,
+  CasesUpdateActionStatus422,
+} from "./CasesUpdateAction.js";
+export type {
+  CasesUpdateCaseBody,
+  CasesUpdateCaseHeaders,
+  CasesUpdateCaseOptions,
+  CasesUpdateCasePath,
+  CasesUpdateCaseResponse,
+  CasesUpdateCaseResponses,
+  CasesUpdateCaseStatus200,
+  CasesUpdateCaseStatus400,
+  CasesUpdateCaseStatus401,
+  CasesUpdateCaseStatus403,
+  CasesUpdateCaseStatus404,
+  CasesUpdateCaseStatus409,
+  CasesUpdateCaseStatus422,
+} from "./CasesUpdateCase.js";
+export type { CaseUpdate } from "./CaseUpdate.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
 export type { ChallengeMetric } from "./ChallengeMetric.js";
