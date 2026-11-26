@@ -1,9 +1,11 @@
 import uuid
 from typing import Annotated, Literal
 
-from pydantic import EmailStr, Field
+from pydantic import ConfigDict, EmailStr, Field, field_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.utils.phone import normalise_phone
+from src.utils.text import clean_reason
 
 from .models import RoleAssignmentScope, Title, UserBase
 from .password_policy import PASSWORD_DESCRIPTION, BcryptSafe
@@ -54,6 +56,67 @@ class UserUpdateMe(BaseModel):
     # no password the code from POST /auth/users/me/email-change/code. Never stored.
     current_password: str | None = Field(default=None, max_length=256)
     email_code: str | None = Field(default=None, min_length=6, max_length=6)
+
+
+def _clean_name(value: str) -> str:
+    """A name with the shared free-text cleaning (no control, bidi or zero-width
+    characters) and single spaces; NUL is refused."""
+    if "\x00" in value:
+        raise ValueError("Enter a name")
+    return " ".join((clean_reason(value) or "").split())
+
+
+class AccountProfileUpdate(BaseModel):
+    """The fields a person fills in after a quick sign-up. A field left out is not
+    changed; a blank or null ``phone`` removes the number. A one-word name is
+    allowed: the first name is required, the last name may be blank."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    first_name: str | None = Field(default=None, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(
+        default=None,
+        max_length=40,
+        description="With the country code, e.g. +1 473 440 1234. Stored as E.164.",
+    )
+
+    @field_validator("first_name", mode="before")
+    @classmethod
+    def _first_name(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("Enter a name")
+        if not isinstance(value, str):
+            return value
+        cleaned = _clean_name(value)
+        if not cleaned:
+            raise ValueError("Enter a name")
+        return cleaned
+
+    @field_validator("last_name", mode="before")
+    @classmethod
+    def _last_name(cls, value: object) -> object:
+        if value is None:
+            return ""
+        return _clean_name(value) if isinstance(value, str) else value
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def _phone(cls, value: object) -> str | None:
+        return normalise_phone(value)
+
+
+class AccountProfilePublic(BaseModel):
+    """The signed-in person's own profile fields, for the account app's checklist."""
+
+    email: str
+    first_name: str
+    last_name: str
+    #: True while the first name is blank or is the stand-in a nameless sign-up
+    #: stores (the part of the email before the @) with no last name.
+    name_is_placeholder: bool
+    #: The contact number (E.164), or null. Not the sign-in number.
+    phone: str | None = None
 
 
 class UpdatePassword(BaseModel):

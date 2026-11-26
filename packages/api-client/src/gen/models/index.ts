@@ -13,6 +13,8 @@ export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccessStatusPublic } from "./AccessStatusPublic.js";
 export type { AccountAppPublic } from "./AccountAppPublic.js";
 export type { AccountEmailCodeStart } from "./AccountEmailCodeStart.js";
+export type { AccountProfilePublic } from "./AccountProfilePublic.js";
+export type { AccountProfileUpdate } from "./AccountProfileUpdate.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./AccountSessionRequest.js";
 export type { AchievementRule } from "./AchievementRule.js";
@@ -555,6 +557,15 @@ export type {
   AuthGetEffectiveAccessStatus422,
 } from "./AuthGetEffectiveAccess.js";
 export type {
+  AuthGetMyProfileOptions,
+  AuthGetMyProfileResponse,
+  AuthGetMyProfileResponses,
+  AuthGetMyProfileStatus200,
+  AuthGetMyProfileStatus401,
+  AuthGetMyProfileStatus403,
+  AuthGetMyProfileStatus422,
+} from "./AuthGetMyProfile.js";
+export type {
   AuthGetOnboardingStatusOptions,
   AuthGetOnboardingStatusPath,
   AuthGetOnboardingStatusResponse,
@@ -969,6 +980,17 @@ export type {
   AuthTwofaStatusStatus403,
   AuthTwofaStatusStatus422,
 } from "./AuthTwofaStatus.js";
+export type {
+  AuthUpdateMyProfileBody,
+  AuthUpdateMyProfileOptions,
+  AuthUpdateMyProfileResponse,
+  AuthUpdateMyProfileResponses,
+  AuthUpdateMyProfileStatus200,
+  AuthUpdateMyProfileStatus401,
+  AuthUpdateMyProfileStatus403,
+  AuthUpdateMyProfileStatus422,
+  AuthUpdateMyProfileStatus429,
+} from "./AuthUpdateMyProfile.js";
 export type {
   AuthUpdatePasswordMeBody,
   AuthUpdatePasswordMeOptions,

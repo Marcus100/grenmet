@@ -39,20 +39,53 @@ export function continuePath({ app, state }: HandoffRequest): Route {
   return `/continue?${new URLSearchParams({ app, state })}`;
 }
 
+const CONTINUE_PREFIX = "/continue?";
+
+/**
+ * The handoff a sign-in will return to, read from a validated local `returnTo`
+ * (`/continue?app=…&state=…`). Null for any other address.
+ */
+export function handoffRequestFromReturnTo(
+  returnTo: string | null
+): HandoffRequest | null {
+  if (!returnTo?.startsWith(CONTINUE_PREFIX)) return null;
+  const query = new URLSearchParams(returnTo.slice(CONTINUE_PREFIX.length));
+  return parseHandoffRequest(query.get("app"), query.get("state"));
+}
+
 /** FastAPI's reply once a staff-app access request is waiting. */
 const STAFF_REQUEST_PENDING = "Your request is waiting for an administrator";
 
-async function appLabel(app: string): Promise<string> {
+/** How long the sign-in page waits for an app's name before going without it. */
+export const APP_LABEL_TIMEOUT_MS = 1500;
+
+/**
+ * The registry's name for an app ("Barrels Bookings"); null when it can't be
+ * read, or not within `timeoutMs` when one is given. Nothing is reported: the
+ * caller falls back to wording that names no app.
+ *
+ * The timeout goes in through the config (`authApiTimeoutMs`): the shared fetch
+ * wrapper sets its own abort signal and ignores one passed by a caller.
+ */
+export async function fetchAppLabel(
+  app: string,
+  timeoutMs?: number
+): Promise<string | null> {
+  const config = getAuthConfig();
   try {
     const result = await authApiFetch(
-      getAuthConfig(),
+      timeoutMs ? { ...config, authApiTimeoutMs: timeoutMs } : config,
       `/auth/apps/${app}`,
       appPublicSchema
     );
     return result.label;
   } catch {
-    return "this app";
+    return null;
   }
+}
+
+async function appLabel(app: string): Promise<string> {
+  return (await fetchAppLabel(app)) ?? "this app";
 }
 
 export async function startHandoff(

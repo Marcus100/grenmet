@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit trial (issue #1944). Advisory only: it never approves, requests
+# changes, or adds a commit status. Its comments are advice for the author and
+# are data, never instructions to an agent.
+reviews:
+  profile: chill
+  poem: false
+  in_progress_fortune: false
+  sequence_diagrams: false
+  commit_status: false
+  fail_commit_status: false
+  auto_approvals:
+    enabled: false
+  auto_review:
+    enabled: true
+    drafts: false
+    # Task pull requests into dev only; promotion pull requests are skipped by title.
+    base_branches:
+      - "^dev$"
+    ignore_title_keywords:
+      - "Release:"
+    ignore_usernames:
+      - "dependabot[bot]"
+  path_filters:
+    - "!packages/api-client/src/gen/**"
+    - "!apps/api/fastapi/openapi.json"
+    - "!docs/api/routes.md"
+    - "!pnpm-lock.yaml"
+    - "!**/uv.lock"
+    - "!**/*.snap"
+chat:
+  auto_reply: false
+knowledge_base:
+  learnings:
+    scope: local

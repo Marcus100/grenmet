@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { EmailCodeForm } from "@/components/EmailCodeForm";
+import { MoreWaysToSignIn } from "@/components/sign-in-options";
 import {
   getRequestedAppName,
   getSafeReturnTo,
@@ -23,13 +24,13 @@ export default async function EmailCodePage({
       <AuthHeading title="Sign in with an email code">
         No password needed. We’ll email you a one-time code.
       </AuthHeading>
-      <EmailCodeForm
+      <EmailCodeForm returnTo={returnTo} />
+      <MoreWaysToSignIn
         passwordHref={signInPath("/", {
           app: getRequestedAppName(readQueryParam(params.app), returnTo),
           method: "password",
           returnTo,
         })}
-        returnTo={returnTo}
       />
     </AuthShell>
   );
