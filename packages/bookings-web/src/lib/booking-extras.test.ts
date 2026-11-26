@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   businessDepositLabel,
+  depositReceivedLine,
   depositToPayLine,
   lateFeeLine,
   newClientsNote,
   showsBusinessDeposit,
+  showsDepositReceived,
   splitLinks,
 } from "./booking-extras";
 
@@ -26,6 +28,28 @@ describe("business deposit wording", () => {
       showsBusinessDeposit({ deposit_to_business_minor: 0, status: "pending" })
     ).toBe(false);
     expect(showsBusinessDeposit({ status: "pending" })).toBe(false);
+  });
+});
+
+describe("deposit received by the business (#1869)", () => {
+  it("says received in words, with the amount and no method", () => {
+    expect(depositReceivedLine(5300, "XCD")).toBe("Deposit received: EC$53");
+  });
+
+  it("shows received only while the booking is open and the deposit is marked", () => {
+    const base = { deposit_to_business_minor: 5300, deposit_received: true };
+    expect(showsDepositReceived({ ...base, status: "pending" })).toBe(true);
+    expect(showsDepositReceived({ ...base, status: "confirmed" })).toBe(true);
+    expect(showsDepositReceived({ ...base, status: "cancelled" })).toBe(false);
+    expect(showsDepositReceived({ ...base, status: "completed" })).toBe(false);
+    expect(
+      showsDepositReceived({
+        deposit_to_business_minor: 5300,
+        deposit_received: false,
+        status: "pending",
+      })
+    ).toBe(false);
+    expect(showsDepositReceived({ status: "pending" })).toBe(false);
   });
 });
 

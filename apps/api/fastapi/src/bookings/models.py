@@ -170,6 +170,10 @@ class BookingProfile(Base):
             name="late_grace",
         ),
         sa.CheckConstraint(
+            "deposit_hold_minutes IS NULL OR deposit_hold_minutes BETWEEN 1 AND 10080",
+            name="deposit_hold_minutes",
+        ),
+        sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
             name="brand_color",
         ),
@@ -297,6 +301,11 @@ class BookingProfile(Base):
     #: The late-arrival fee (minor units) and the minutes of grace before it applies.
     late_fee_minor: Mapped[int | None] = mapped_column(default=None)
     late_grace_min: Mapped[int | None] = mapped_column(default=None)
+    #: Minutes an unpaid deposit holds the slot before the sweeper cancels it (1 to
+    #: 10080 = 7 days). Null means ``DEPOSIT_HOLD_MINUTES`` (30). An online checkout
+    #: is capped at 120 whatever is stored (``deposit_payments.hold_minutes_for``). Business
+    #: collected deposits are never held, so it has no effect there.
+    deposit_hold_minutes: Mapped[int | None] = mapped_column(default=None)
     #: Hours a booking request waits for the business to confirm it before it
     #: expires (1 to 168). Null: it expires only at its start time. A request whose
     #: start has passed always expires (``lifecycle.expire_stale_requests``).
@@ -567,6 +576,10 @@ class Booking(Base):
             name="deposit_received_reference",
         ),
         sa.CheckConstraint(
+            "hold_minutes IS NULL OR hold_minutes BETWEEN 1 AND 10080",
+            name="hold_minutes",
+        ),
+        sa.CheckConstraint(
             "blocked_from <= starts_at AND blocked_until >= ends_at", name="blocked"
         ),
         sa.UniqueConstraint(
@@ -619,6 +632,10 @@ class Booking(Base):
     deposit_received_reference: Mapped[str | None] = mapped_column(
         String(100), default=None
     )
+    #: The unpaid-deposit hold (minutes) fixed when the booking entered
+    #: ``pending_payment``: the business's value, capped for an online checkout. Null
+    #: for a booking made before the snapshot existed (the sweeper then computes it).
+    hold_minutes: Mapped[int | None] = mapped_column(default=None)
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)

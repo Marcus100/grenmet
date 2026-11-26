@@ -10,6 +10,7 @@ import {
   manualMethod,
   ResponseError,
 } from "@barrelsgd/api-client";
+import { codeOf } from "@barrelsgd/bookings-web/lib/booking-errors";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -23,9 +24,11 @@ import {
   findOrganisation,
   getBusinessTimezone,
   markCompleted,
+  markDepositReceived,
   markNoShow,
   recordManualDeposit,
   rescheduleBooking,
+  undoDepositReceived,
 } from "@/lib/studio-api";
 import {
   ADMIN_REQUIRED,
@@ -34,9 +37,11 @@ import {
 } from "@/lib/studio-errors";
 import {
   canManageBookings,
+  DEPOSIT_METHODS,
   isDay,
   isTime,
   isUuid,
+  parseLocalWhen,
   zonedToUtcIso,
 } from "@/lib/studio-view";
 
@@ -346,7 +351,7 @@ const DEPOSIT_409: { match: RegExp; message: string; nextStep: string }[] = [
     match: /paid online|expire or fail/iu,
     message: "The customer's card payment is still open.",
     nextStep:
-      "Wait for it to expire or fail (up to 30 minutes), then record the deposit by hand.",
+      "Wait for it to expire or fail (up to 2 hours), then record the deposit by hand.",
   },
 ];
 
@@ -463,4 +468,116 @@ export async function recordDepositAction(
   }
   refresh(orgSlug, bookingId);
   return { status: "success", message: "Deposit recorded." };
+}
+
+// --- a deposit paid to the business, marked received (#1869) ---------------------
+// No money moves through Barrels: the form says how and when it arrived. The
+// amount is the booking's own and is never read from the browser.
+
+const depositReceivedSchema = z.object({
+  method: z.enum(DEPOSIT_METHODS, {
+    error: "Choose how the deposit was paid.",
+  }),
+  reference: z
+    .string()
+    .trim()
+    .max(100, "Keep the reference to 100 characters or fewer."),
+  // A datetime-local value on the business's clock, or empty for now.
+  receivedAt: z.string(),
+});
+
+const DEPOSIT_RECEIVED_FAILURE: Record<string, StudioFailure> = {
+  NO_BUSINESS_DEPOSIT: {
+    kind: "conflict",
+    message: "This booking has no deposit paid to the business.",
+    nextStep: "Check the booking's price and deposit settings.",
+  },
+  BOOKING_NOT_OPEN: {
+    kind: "conflict",
+    message:
+      "This booking is cancelled, declined or marked no-show, so its deposit cannot be marked received.",
+    nextStep: "The page has refreshed; check the booking's status.",
+  },
+  DEPOSIT_ALREADY_RECEIVED: {
+    kind: "conflict",
+    message: "This deposit is already marked received.",
+    nextStep: "The page has refreshed and shows when it arrived.",
+  },
+  DEPOSIT_NOT_RECEIVED: {
+    kind: "conflict",
+    message:
+      "This deposit is not marked received, so there is nothing to undo.",
+    nextStep: "The page has refreshed and shows the deposit as due.",
+  },
+  DEPOSIT_RECEIVED_IN_FUTURE: {
+    kind: "invalid",
+    message: "The time the deposit arrived cannot be in the future.",
+    nextStep: "Choose an earlier time, or leave it empty to use now.",
+  },
+};
+
+/** The API's stable `code` for a deposit refusal; anything else falls back to the shared wording. */
+function depositReceivedFailure(error: unknown): StudioFailure | null {
+  const code = ResponseError.is(error) ? codeOf(error.data) : undefined;
+  return code ? (DEPOSIT_RECEIVED_FAILURE[code] ?? null) : null;
+}
+
+export async function markDepositReceivedAction(
+  orgSlug: string,
+  bookingId: string,
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const text = (name: string) => {
+    const value = formData.get(name);
+    return typeof value === "string" ? value : "";
+  };
+  const parsed = depositReceivedSchema.safeParse({
+    method: text("method"),
+    reference: text("reference"),
+    receivedAt: text("receivedAt"),
+  });
+  if (!parsed.success) {
+    return invalid(parsed.error.issues[0]?.message ?? "Check the form.");
+  }
+  const { method, reference, receivedAt } = parsed.data;
+  const when = receivedAt === "" ? null : parseLocalWhen(receivedAt);
+  if (receivedAt !== "" && !when) {
+    return invalid("Choose a valid time, or leave it empty to use now.");
+  }
+  return await run(
+    orgSlug,
+    bookingId,
+    "Deposit received.",
+    async (token, org, id) =>
+      markDepositReceived(token, org, id, {
+        method,
+        ...(reference ? { reference } : {}),
+        // The wall-clock time is read on the business's own clock.
+        ...(when
+          ? {
+              receivedAt: zonedToUtcIso(
+                when.day,
+                when.time,
+                await getBusinessTimezone(token, org)
+              ),
+            }
+          : {}),
+      }),
+    { failure: depositReceivedFailure }
+  );
+}
+
+export async function undoDepositReceivedAction(
+  orgSlug: string,
+  bookingId: string,
+  _previous: ActionState
+): Promise<ActionState> {
+  return await run(
+    orgSlug,
+    bookingId,
+    "Deposit receipt undone. The deposit is due again.",
+    undoDepositReceived,
+    { failure: depositReceivedFailure }
+  );
 }

@@ -6,8 +6,9 @@ import type { ManageBookingActions } from "../lib/booking-types";
 import { ManageBooking } from "./manage-booking";
 
 const WILL_EMAIL = /We will email you a confirmation\./u;
+const HOLD_LENGTH = /\(24 hours\) while we wait for your deposit\./u;
 const HOLD_LINE =
-  /Your time is held until .* It is released if the payment has not arrived by then\./u;
+  /Your time is held until .* while we wait for your deposit\./u;
 const POLICY_LINE = /You can cancel or change this booking online/u;
 
 const cancel = vi.fn<ManageBookingActions["cancel"]>();
@@ -333,6 +334,26 @@ describe("ManageBooking", () => {
     expect(screen.getByText(HOLD_LINE)).toBeVisible();
   });
 
+  it("names the hold length beside the release time", () => {
+    renderManage({
+      ...booking,
+      status: "pending_payment",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+      hold_minutes: 1440,
+    });
+    expect(screen.getByText(HOLD_LENGTH)).toBeVisible();
+  });
+
+  it("hides the hold line once the booking is no longer awaiting payment", () => {
+    renderManage({
+      ...booking,
+      status: "confirmed",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+      hold_minutes: 1440,
+    });
+    expect(screen.queryByText(HOLD_LINE)).not.toBeInTheDocument();
+  });
+
   it("keeps a cancelled booking read-only", () => {
     renderManage({ ...booking, status: "cancelled" });
     expect(screen.getByText("Cancelled")).toBeVisible();
@@ -526,6 +547,16 @@ describe("business deposit, late fee and new clients on the manage page", () => 
   it("keeps showing them once confirmed", () => {
     renderManage({ ...WITH_DEPOSIT, status: "confirmed" });
     expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
+    expect(screen.getByText(LATE)).toBeVisible();
+  });
+
+  it("shows received in place of the amount due and the instructions", () => {
+    renderManage({ ...WITH_DEPOSIT, deposit_received: true });
+    expect(screen.getByText("Deposit received: EC$53")).toBeVisible();
+    expect(screen.queryByText(DEPOSIT_AMOUNT)).toBeNull();
+    expect(screen.queryByText(RX_3)).toBeNull();
+    expect(screen.queryByText(RX_2)).toBeNull();
+    // The late-fee rule still applies while the booking is open.
     expect(screen.getByText(LATE)).toBeVisible();
   });
 

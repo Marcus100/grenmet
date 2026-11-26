@@ -26,6 +26,10 @@ import Link from "next/link";
 import { AddOnsForm } from "@/components/studio/settings/add-ons-form";
 import { BookingPolicyForm } from "@/components/studio/settings/booking-policy-form";
 import { BookingRequestsForm } from "@/components/studio/settings/booking-requests-form";
+import {
+  ClosedDays,
+  type ClosedDaysProps,
+} from "@/components/studio/settings/closed-days";
 import { ContactForm } from "@/components/studio/settings/contact-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
 import { PaymentsPanel } from "@/components/studio/settings/payments-panel";
@@ -42,6 +46,7 @@ import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 export const SETTINGS_SECTIONS = [
   { id: "profile", label: "Profile" },
   { id: "hours", label: "Hours" },
+  { id: "closed-days", label: "Closed days" },
   { id: "services", label: "Services" },
   { id: "people", label: "People" },
   { id: "payments", label: "Payments" },
@@ -302,6 +307,19 @@ export function PeopleSection({
           <ProviderForm orgSlug={orgSlug} services={services} />
         </div>
       ) : null}
+    </Section>
+  );
+}
+
+/** Whole-business closures: shut for every provider on the same days. Sits after Hours. */
+export function ClosedDaysSection(props: ClosedDaysProps) {
+  return (
+    <Section
+      description={`Whole days when the business is shut for every provider, on the business clock (${props.zone}). Customers can't book on closed days. Bookings already on those days stay until you change them.`}
+      id="closed-days"
+      title="Closed days"
+    >
+      <ClosedDays {...props} />
     </Section>
   );
 }

@@ -12,9 +12,11 @@ vi.mock("@/lib/studio-api", () => ({
   completeLogoUpload: vi.fn(),
   createCoverUpload: vi.fn(),
   createLogoUpload: vi.fn(),
+  createClosure: vi.fn(),
   createException: vi.fn(),
   createProvider: vi.fn(),
   createService: vi.fn(),
+  deleteClosure: vi.fn(),
   deleteException: vi.fn(),
   findOrganisation: vi.fn(),
   getBusinessTimezone: vi.fn(),
@@ -30,11 +32,13 @@ import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
   completeLogoUpload,
+  createClosure,
   createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
   createService,
+  deleteClosure,
   deleteException,
   findOrganisation,
   getBusinessTimezone,
@@ -48,6 +52,8 @@ import {
   finishCoverUploadAction,
   finishLogoUploadAction,
   removeTimeOffAction,
+  reopenClosureAction,
+  saveClosureAction,
   saveHoursAction,
   saveProfileAction,
   saveProviderAction,
@@ -62,6 +68,12 @@ const ADMIN_ACCESS = /admin access/u;
 const IDLE = { status: "idle" } as const;
 const SERVICE_ID = "44444444-4444-4444-8444-444444444444";
 const EXCEPTION_ID = "55555555-5555-4555-8555-555555555555";
+const CLOSURE_ID = "66666666-6666-4666-8666-666666666666";
+const CHRISTMAS = {
+  startsOn: "2026-12-25",
+  endsOn: "2026-12-25",
+  reason: "Christmas",
+};
 const LEAVE = {
   providerId: PROVIDER_ID,
   startsAt: "2026-11-20T09:00",
@@ -1096,6 +1108,93 @@ describe("deposit rule", () => {
       deposit_min_price_minor: null,
       deposit_non_refundable: false,
     });
+  });
+
+  it("saves a changed deposit hold in minutes", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 1440 })
+    );
+  });
+
+  it("clears the deposit hold to null when the default is chosen", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 120,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "default" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: null })
+    );
+  });
+
+  it("keeps the stored hold when the field is not sent (unchanged)", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 2880,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositMode: "percent", depositPercent: "10" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 2880 })
+    );
+  });
+
+  it("refuses a hold outside 1 to 10080 minutes without saving", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    for (const depositHoldMinutes of ["0", "10081", "1.5", "soon"]) {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ section: "deposit", depositHoldMinutes })
+      );
+      expect(result).not.toMatchObject({ status: "success" });
+    }
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's own refusal of the hold as an error, not a success", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            loc: ["body", "deposit_hold_minutes"],
+            msg: "Input should be less than or equal to 10080",
+          },
+        ],
+      })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).not.toMatchObject({ status: "success" });
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("saves a fixed amount in minor units and keeps the payment choice", async () => {
@@ -2141,5 +2240,181 @@ describe("new clients only (services)", () => {
         "A service for new clients only cannot also be an add-on. Turn one of them off.",
     });
     expect(createService).not.toHaveBeenCalled();
+  });
+});
+
+describe("closed days", () => {
+  it("refuses a member before any add or reopen", async () => {
+    org("member");
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "forbidden",
+    });
+    expect(
+      await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(createClosure).not.toHaveBeenCalled();
+    expect(deleteClosure).not.toHaveBeenCalled();
+  });
+
+  it("closes the typed days as whole local days, with the reason", async () => {
+    org("admin");
+    vi.mocked(createClosure).mockResolvedValue({
+      id: CLOSURE_ID,
+      starts_on: CHRISTMAS.startsOn,
+      ends_on: CHRISTMAS.endsOn,
+      reason: "Christmas",
+      created_at: "2026-11-01T12:00:00Z",
+      affected_bookings: [],
+    });
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toEqual({
+      status: "success",
+      message: "Closed days added.",
+      affected: [],
+    });
+    expect(createClosure).toHaveBeenCalledWith("tok", ORG_ID, {
+      starts_on: "2026-12-25",
+      ends_on: "2026-12-25",
+      reason: "Christmas",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("sends a null reason when none is typed, and returns the bookings the API reports", async () => {
+    org("owner");
+    vi.mocked(createClosure).mockResolvedValue({
+      id: CLOSURE_ID,
+      starts_on: "2026-12-30",
+      ends_on: "2027-01-02",
+      reason: null,
+      created_at: "2026-11-01T12:00:00Z",
+      affected_bookings: [
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          starts_at: "2026-12-31T13:00:00Z",
+          customer_first_name: "Ana",
+        },
+      ],
+    });
+    const result = await saveClosureAction(
+      SLUG,
+      IDLE,
+      form({ startsOn: "2026-12-30", endsOn: "2027-01-02", reason: "  " })
+    );
+    expect(createClosure).toHaveBeenCalledWith("tok", ORG_ID, {
+      starts_on: "2026-12-30",
+      ends_on: "2027-01-02",
+      reason: null,
+    });
+    expect(result).toMatchObject({
+      status: "success",
+      affected: [
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          startsAt: "2026-12-31T13:00:00Z",
+          customerFirstName: "Ana",
+        },
+      ],
+    });
+  });
+
+  it("refuses an end before the start, or a missing day, without calling the API", async () => {
+    org("admin");
+    expect(
+      await saveClosureAction(
+        SLUG,
+        IDLE,
+        form({ ...CHRISTMAS, endsOn: "2026-12-24" })
+      )
+    ).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { endsOn: "The end date can't be before the start date." },
+    });
+    expect(
+      await saveClosureAction(SLUG, IDLE, form({ ...CHRISTMAS, startsOn: "" }))
+    ).toMatchObject({
+      fields: { startsOn: "Choose the first closed day." },
+    });
+    expect(createClosure).not.toHaveBeenCalled();
+  });
+
+  it("refuses a reason over the API's limit without calling the API", async () => {
+    org("admin");
+    expect(
+      await saveClosureAction(
+        SLUG,
+        IDLE,
+        form({ ...CHRISTMAS, reason: "x".repeat(201) })
+      )
+    ).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { reason: "Keep the reason to 200 characters or fewer." },
+    });
+    expect(createClosure).not.toHaveBeenCalled();
+  });
+
+  it("maps the API's own 422 to the field it names, without reporting it", async () => {
+    org("admin");
+    vi.mocked(createClosure).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            type: "value_error",
+            loc: ["body"],
+            msg: "Value error, ends_on must not be before starts_on",
+          },
+        ],
+      })
+    );
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      message: "Check the highlighted fields.",
+      fields: { endsOn: "The end date can't be before the start date." },
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("reports a server fault from the save", async () => {
+    org("admin");
+    const fault = apiError(500);
+    vi.mocked(createClosure).mockRejectedValue(fault);
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "unavailable",
+    });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+
+  it("reopens one closure for the resolved organisation", async () => {
+    org("owner");
+    vi.mocked(deleteClosure).mockResolvedValue(undefined);
+    expect(await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))).toEqual(
+      { status: "success", message: "Closed days reopened." }
+    );
+    expect(deleteClosure).toHaveBeenCalledWith("tok", ORG_ID, CLOSURE_ID);
+  });
+
+  it("treats a closure already gone (404) as reopened, revalidates and reports nothing", async () => {
+    org("admin");
+    vi.mocked(deleteClosure).mockRejectedValue(apiError(404, { detail: "x" }));
+    expect(await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))).toEqual(
+      { status: "success", message: "Closed days reopened." }
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("still reports a server fault from the reopen", async () => {
+    org("admin");
+    const fault = apiError(500);
+    vi.mocked(deleteClosure).mockRejectedValue(fault);
+    expect(
+      await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "unavailable" });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
   });
 });

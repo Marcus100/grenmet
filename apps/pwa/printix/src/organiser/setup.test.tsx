@@ -976,6 +976,14 @@ describe("review fixes: the gate QR panel", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Make gate code" }));
     await screen.findByRole("img", { name: QR_NAME });
+    // The panel moves focus and starts listening for the page being hidden in
+    // effects that can run after the code is first painted. Waiting for the
+    // focus proves those effects ran, so tests never race them under CI load.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Gate code for North gate" })
+      ).toHaveFocus()
+    );
   };
 
   it("moves focus to the heading when the code appears, and counts down to its hiding", async () => {

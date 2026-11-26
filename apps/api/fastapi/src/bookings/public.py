@@ -142,16 +142,14 @@ def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
     return f"{base}/{quote(slug, safe='')}/booking/{token}"
 
 
-def hold_ends_at(booking: Booking) -> datetime | None:
+def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     """When an unpaid hold is released: the same clock the expiry sweeper uses
-    (``created_at`` plus the deposit hold). None for a booking not waiting for payment."""
+    (``created_at`` plus this booking's hold). None for a booking not waiting for payment."""
     if booking.status != BookingStatus.PENDING_PAYMENT.value:
         return None
-    if booking.created_at is None:
+    if booking.created_at is None or hold_minutes is None:
         return None
-    return booking.created_at + timedelta(
-        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
-    )
+    return booking.created_at + timedelta(minutes=hold_minutes)
 
 
 def _single_line(value: str) -> str:
@@ -319,12 +317,20 @@ async def full_detail(
     session: AsyncSession, managed: Managed, now: datetime
 ) -> BookingPublicDetail:
     """``detail`` plus what the customer paid at booking (needs the payments rows)."""
-    result = detail(managed, now)
+    held = await deposit_payments.hold_minutes_for_bookings(
+        session, managed.profile, [managed.booking]
+    )
+    result = detail(managed, now, hold_minutes=held.get(managed.booking.id))
     result.payment = await deposit_payments.payment_summary(session, managed.booking)
     return result
 
 
-def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
+def detail(
+    managed: Managed, now: datetime, *, hold_minutes: int | None = None
+) -> BookingPublicDetail:
+    """The customer's view of a booking. ``hold_minutes`` is the unpaid hold for
+    this booking (``deposit_payments.hold_minutes_for_bookings``), None when it is
+    not waiting for a deposit."""
     booking, profile = managed.booking, managed.profile
     return BookingPublicDetail(
         id=booking.id,
@@ -361,7 +367,8 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
-        hold_ends_at=hold_ends_at(booking),
+        hold_ends_at=hold_ends_at(booking, hold_minutes),
+        hold_minutes=hold_minutes,
         add_ons=[
             BookingAddOnLine(
                 name=line.name,
@@ -984,6 +991,9 @@ async def _create_booking(
             contact.email,
             title=deposit_payments.checkout_title(booking, svc, profile, deposit),
         )
+        # Fix the hold now, from the route the deposit took: a later profile change
+        # must not move a hold the customer was already told about.
+        await deposit_payments.snapshot_hold(session, profile, booking)
     else:
         mail = build_mail(managed, token)
         confirmed = initial is BookingStatus.CONFIRMED

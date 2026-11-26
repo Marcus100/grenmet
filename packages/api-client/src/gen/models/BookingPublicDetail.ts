@@ -123,6 +123,10 @@ export type BookingPublicDetail = {
    */
   hold_ends_at?: string | null;
   /**
+   * @description While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise.
+   */
+  hold_minutes?: number | null;
+  /**
    * @description The add-ons booked with the service. `starts_at`..`ends_at` include them.
    * @type array | undefined
    */

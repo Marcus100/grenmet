@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  BookingClosurePublic,
   BookingExceptionPublic,
   BookingMyOrganisation,
   BookingProviderSettings,
@@ -10,7 +11,7 @@ import { ResponseError } from "@barrelsgd/api-client";
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/report-error";
 import type { StudioSession } from "@/lib/session";
-import { getSettings, listExceptions } from "@/lib/studio-api";
+import { getSettings, listClosures, listExceptions } from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 
@@ -107,14 +108,44 @@ async function loadTimeOff(
       startsFrom
     );
   } catch (error) {
-    if (ResponseError.is(error) && error.status === 401) {
-      redirect(`/signin?${new URLSearchParams({ returnTo })}`);
-    }
-    const clientRefusal =
-      ResponseError.is(error) && error.status >= 400 && error.status < 500;
-    if (!clientRefusal) {
-      reportError(error, "studio");
-    }
+    readFailed(error, returnTo);
     return null;
+  }
+}
+
+/**
+ * The business's closed days (every provider), earliest first, or null when they
+ * cannot be read. The API lists every closure the business has had, so the page
+ * asks for the largest page it allows; the section drops the past ones.
+ */
+export async function loadClosures(
+  session: StudioSession,
+  organisationId: string,
+  returnTo: string
+): Promise<BookingClosurePublic[] | null> {
+  try {
+    return await listClosures(
+      session.accessToken,
+      organisationId,
+      CLOSURES_PAGE_SIZE
+    );
+  } catch (error) {
+    readFailed(error, returnTo);
+    return null;
+  }
+}
+
+/** The API's largest page (`size` is 1 to 1000). */
+const CLOSURES_PAGE_SIZE = 1000;
+
+/** A 401 goes to sign-in; a server fault or a non-API error is reported. Other refusals are not. */
+function readFailed(error: unknown, returnTo: string): void {
+  if (ResponseError.is(error) && error.status === 401) {
+    redirect(`/signin?${new URLSearchParams({ returnTo })}`);
+  }
+  const clientRefusal =
+    ResponseError.is(error) && error.status >= 400 && error.status < 500;
+  if (!clientRefusal) {
+    reportError(error, "studio");
   }
 }

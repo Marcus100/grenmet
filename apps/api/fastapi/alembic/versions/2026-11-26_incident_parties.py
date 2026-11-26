@@ -3,7 +3,7 @@
 Additive: three new tables in the ``incidents`` schema.
 
 Revision ID: incidentparties20261126
-Revises: opsattach20261125
+Revises: bookingdeposithold20261126
 """
 
 import sqlalchemy as sa
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "incidentparties20261126"
-down_revision = "opsattach20261125"
+down_revision = "bookingdeposithold20261126"
 branch_labels = None
 depends_on = None
 

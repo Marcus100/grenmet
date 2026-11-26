@@ -130,6 +130,12 @@ export const bookingProfileUpdateSchema = z
       .describe(
         "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept."
       ),
+    deposit_hold_minutes: z
+      .union([z.int().min(1).max(10080), z.null()])
+      .optional()
+      .describe(
+        "How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven days), for payment-link and manual deposits such as a bank transfer. An online card checkout is held at most 120 minutes whatever is set. Null means 30 minutes. Business-collected deposits are never held, so it has no effect there. Left out, the stored value is kept."
+      ),
     deposit_instructions: z
       .union([z.string().max(500), z.null()])
       .optional()
