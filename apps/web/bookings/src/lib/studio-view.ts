@@ -248,11 +248,11 @@ export function eventLabel(
 }
 
 /**
- * Statuses that are closed without the service being delivered and so may hold
- * money that is owed back or never came. The generated `BookingStatus` has no
- * expired or declined status; `completed` is excluded because the work was done.
+ * Cancelled bookings, whose unpaid business-collected deposit is hidden on the
+ * agenda. A no-show is not here: the business may still want the unpaid deposit
+ * or a late fee, so it keeps the chip it has on `dev`.
  */
-const TERMINAL_UNPAID: readonly BookingStatus[] = ["cancelled", "no_show"];
+const CANCELLED_UNPAID = "cancelled";
 
 /**
  * The agenda lists carry no payment amounts, so they can only say a deposit is
@@ -274,9 +274,9 @@ export function agendaDepositView(booking: {
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
-  // TODO(agenda-captured): this neutral amount on a terminal booking is kept only
-  // because the agenda item has no captured or refunded amount, so it cannot tell
-  // whether an online payment was taken. Remove this branch for terminal bookings
+  // TODO(agenda-captured): this neutral amount on a cancelled or no-show booking is
+  // kept only because the agenda item has no captured or refunded amount, so it
+  // cannot tell whether an online payment was taken. Remove the cancelled part
   // once the agenda item carries captured and refunded amounts.
   return {
     label: `${paymentWord(kind)} ${formatMoney(booking.deposit_minor, booking.currency)}`,
@@ -350,13 +350,13 @@ export function takesDeposit(booking: {
 }
 
 /**
- * Whether the agenda row shows a deposit badge. Received always shows. On a
- * terminal unpaid booking (cancelled, no-show):
- * - a business-collected deposit (`deposit_to_business_minor` above 0) shows
- *   nothing, because Barrels never held it;
- * - an online deposit (`deposit_minor`) keeps the neutral amount, because the
- *   agenda item cannot yet tell whether a card payment was captured.
- * Any other booking shows its amount or the received mark.
+ * Whether the agenda row shows a deposit badge. Received always shows. A
+ * cancelled booking whose deposit is business-collected (`deposit_to_business_minor`
+ * above 0, `deposit_minor` 0) shows nothing, because Barrels never held it.
+ * Anything else shows its amount when `deposit_minor` is above 0, as on `dev`.
+ * The API never writes both amounts on one booking (`price_booking` and
+ * `deposit_payments` set one by the profile's collection mode), so a row with
+ * both keeps the online amount: a card payment may have been captured.
  */
 export function showsAgendaDeposit(booking: {
   deposit_minor: number;
@@ -367,10 +367,9 @@ export function showsAgendaDeposit(booking: {
   if (booking.deposit_received_at) {
     return true;
   }
-  if (
-    TERMINAL_UNPAID.includes(booking.status) &&
-    (booking.deposit_to_business_minor ?? 0) > 0
-  ) {
+  const businessOnly =
+    (booking.deposit_to_business_minor ?? 0) > 0 && booking.deposit_minor <= 0;
+  if (booking.status === CANCELLED_UNPAID && businessOnly) {
     return false;
   }
   return booking.deposit_minor > 0;

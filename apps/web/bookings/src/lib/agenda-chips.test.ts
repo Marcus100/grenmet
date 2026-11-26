@@ -81,9 +81,43 @@ describe("agendaChips", () => {
       status: "cancelled" as const,
     };
     expect(agendaChips(business)).toEqual([]);
-    expect(agendaChips({ ...business, status: "no_show" as const })).toEqual(
-      []
-    );
+  });
+
+  it("shows on a no-show exactly what dev shows: nothing for a business-only deposit", () => {
+    // dev: businessDepositDue excludes no_show and deposit_minor is 0, so no chip.
+    const business = {
+      ...ROW,
+      deposit_minor: 0,
+      deposit_to_business_minor: 5000,
+      status: "no_show" as const,
+    };
+    expect(agendaChips(business)).toEqual([]);
+  });
+
+  it("keeps the no-show online amount chip exactly as on dev", () => {
+    const online = {
+      ...ROW,
+      deposit_minor: 4500,
+      status: "no_show" as const,
+    };
+    expect(agendaChips(online)).toEqual([
+      { kind: "deposit", view: { label: "Deposit EC$45", tone: "neutral" } },
+    ]);
+  });
+
+  it("keeps the online amount on a cancelled row that somehow has both amounts", () => {
+    // The API never writes both (one is set by the collection mode), so this is
+    // not a valid state; if it arrives, the online amount (card money may be
+    // captured) is shown rather than hidden.
+    const both = {
+      ...ROW,
+      deposit_minor: 5000,
+      deposit_to_business_minor: 5000,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(both)).toEqual([
+      { kind: "deposit", view: { label: "Deposit EC$50", tone: "neutral" } },
+    ]);
   });
 
   it("keeps the neutral amount on a cancelled online deposit (captured state unknown)", () => {
