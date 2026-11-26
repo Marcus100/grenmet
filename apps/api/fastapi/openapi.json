@@ -101859,10 +101859,9 @@
         "properties": {
           "station": {
             "type": "string",
-            "maxLength": 4,
-            "minLength": 4,
+            "pattern": "^[A-Za-z]{4}$",
             "title": "Station",
-            "description": "ICAO, e.g. TGPY."
+            "description": "ICAO location indicator, e.g. TGPY."
           },
           "report": {
             "anyOf": [

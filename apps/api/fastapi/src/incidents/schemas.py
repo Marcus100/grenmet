@@ -106,7 +106,9 @@ class IncidentWeatherSet(BaseModel):
     """Leave ``report`` out to look the report up from Met Service observations
     (the METAR or SPECI nearest the incident's time). Send it to type one in."""
 
-    station: str = Field(min_length=4, max_length=4, description="ICAO, e.g. TGPY.")
+    station: str = Field(
+        pattern=r"^[A-Za-z]{4}$", description="ICAO location indicator, e.g. TGPY."
+    )
     report: str | None = Field(default=None, max_length=1000)
     observed_at: UtcDateTime | None = None
 

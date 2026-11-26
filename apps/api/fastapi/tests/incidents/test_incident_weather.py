@@ -1,7 +1,7 @@
 """The weather report at the time of an incident (#1876)."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -10,6 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.incidents import weather
 from src.organisations.models import MembershipRole
 from src.wxproducts import database as wx_database
+from src.wxproducts.observations import (
+    ObservationKind,
+    ObservationProvenance,
+    ObservationRecord,
+)
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
@@ -114,4 +119,68 @@ async def test_nearest_report_without_an_observation_store(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(wx_database, "create_session", lambda: None)
+    assert await weather.nearest_report("TGPY", datetime(2026, 11, 26, 14, 10)) is None
+
+
+class _FakeSession:
+    async def __aenter__(self) -> _FakeSession:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        return None
+
+
+def _row(
+    kind: ObservationKind, observed: datetime | None, text: str | None
+) -> ObservationRecord:
+    return ObservationRecord(
+        id=f"x:{kind}:{text}",
+        kind=kind,
+        station="TGPY",
+        observed_at=observed,
+        payload={},
+        provenance=ObservationProvenance(
+            source_system="test", time_basis="source_observation", raw_tac=text
+        ),
+    )
+
+
+async def test_nearest_report_picks_the_closest_across_metar_and_speci(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    at = datetime(2026, 11, 26, 14, 10)
+    windows: list[tuple[object, object]] = []
+
+    async def fake_list(_session: object, **kwargs: object) -> list[ObservationRecord]:
+        windows.append((kwargs["start"], kwargs["end"]))
+        if kwargs["kind"] == "METAR":
+            return [
+                _row("METAR", datetime(2026, 11, 26, 14, 0, tzinfo=UTC), "METAR 1400"),
+                _row("METAR", datetime(2026, 11, 26, 13, 0, tzinfo=UTC), "METAR 1300"),
+                _row("METAR", datetime(2026, 11, 26, 14, 9, tzinfo=UTC), None),
+            ]
+        return [
+            _row("SPECI", datetime(2026, 11, 26, 14, 12, tzinfo=UTC), " SPECI 1412 ")
+        ]
+
+    monkeypatch.setattr(wx_database, "create_session", _FakeSession)
+    monkeypatch.setattr(weather, "list_observations", fake_list)
+    report = await weather.nearest_report("TGPY", at)
+    assert report == weather.Report(
+        station="TGPY", observed_at=datetime(2026, 11, 26, 14, 12), text="SPECI 1412"
+    )
+    assert windows[0] == (
+        datetime(2026, 11, 26, 12, 40, tzinfo=UTC),
+        datetime(2026, 11, 26, 14, 40, tzinfo=UTC),
+    )
+
+
+async def test_nearest_report_survives_a_weather_database_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def broken(_session: object, **_kwargs: object) -> list[ObservationRecord]:
+        raise OSError("connection refused")
+
+    monkeypatch.setattr(wx_database, "create_session", _FakeSession)
+    monkeypatch.setattr(weather, "list_observations", broken)
     assert await weather.nearest_report("TGPY", datetime(2026, 11, 26, 14, 10)) is None

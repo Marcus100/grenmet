@@ -11,10 +11,12 @@ was observed in that window, the report can be typed in by hand and is marked
 reading them.
 """
 
+import logging
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AppException, AppValidationError
@@ -25,6 +27,8 @@ from src.wxproducts.observations import ObservationKind
 from . import service
 from .exceptions import IncidentConflictError
 from .models import Incident, IncidentStatus
+
+logger = logging.getLogger(__name__)
 
 BEFORE = timedelta(minutes=90)
 AFTER = timedelta(minutes=30)
@@ -49,36 +53,44 @@ class Report:
 async def nearest_report(station: str, at: datetime) -> Report | None:
     """The METAR or SPECI of ``station`` nearest ``at`` (naive UTC) in the window.
 
-    ``None`` when the observation store is not configured or holds nothing there."""
+    ``None`` when the observation store is not configured, cannot be reached or
+    holds nothing there: the caller then asks for a typed report."""
     session = wx_database.create_session()
     if session is None:
         return None
     moment = at.replace(tzinfo=UTC)
     found: list[Report] = []
-    async with session:
-        kinds: tuple[ObservationKind, ...] = ("METAR", "SPECI")
-        for kind in kinds:
-            rows = await list_observations(
-                session,
-                kind=kind,
-                station=station,
-                start=moment - BEFORE,
-                end=moment + AFTER,
-                limit=20,
-            )
-            for row in rows:
-                text = row.provenance.raw_tac
-                if row.observed_at is None or not text:
-                    continue
-                found.append(
-                    Report(
-                        station=station,
-                        observed_at=row.observed_at.astimezone(UTC).replace(
-                            tzinfo=None
-                        ),
-                        text=text.strip()[:1000],
-                    )
+    kinds: tuple[ObservationKind, ...] = ("METAR", "SPECI")
+    try:
+        async with session:
+            for kind in kinds:
+                rows = await list_observations(
+                    session,
+                    kind=kind,
+                    station=station,
+                    start=moment - BEFORE,
+                    end=moment + AFTER,
+                    limit=20,
                 )
+                for row in rows:
+                    text = row.provenance.raw_tac
+                    if row.observed_at is None or not text:
+                        continue
+                    found.append(
+                        Report(
+                            station=station,
+                            observed_at=row.observed_at.astimezone(UTC).replace(
+                                tzinfo=None
+                            ),
+                            text=text.strip()[:1000],
+                        )
+                    )
+    except (SQLAlchemyError, OSError, TimeoutError, ValueError) as exc:
+        logger.warning(
+            "Weather observations could not be read for an incident",
+            extra={"station": station, "error": type(exc).__name__},
+        )
+        return None
     if not found:
         return None
     return min(found, key=lambda report: abs(report.observed_at - at))
@@ -111,11 +123,17 @@ async def set_weather(
                 "No weather report was found for that station near the incident's "
                 "time; type the report in instead"
             )
+    looked_up_for = incident.occurred_at if found is not None else None
     incident = await service.get_incident(
         session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status == IncidentStatus.CLOSED.value:
         raise IncidentConflictError("This incident is closed; reopen it to change it")
+    if looked_up_for is not None and incident.occurred_at != looked_up_for:
+        # The incident's time was changed while the report was being looked up.
+        raise IncidentConflictError(
+            "The incident's time changed while the weather was looked up; try again"
+        )
     if found is not None:
         incident.weather_station = found.station
         incident.weather_observed_at = found.observed_at

@@ -7,7 +7,10 @@ import * as z from "zod";
 
 export const incidentWeatherSetSchema = z
   .object({
-    station: z.string().min(4).max(4).describe("ICAO, e.g. TGPY."),
+    station: z
+      .string()
+      .regex(/^[A-Za-z]{4}$/)
+      .describe("ICAO location indicator, e.g. TGPY."),
     report: z.union([z.string().max(1000), z.null()]).optional(),
     observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   })

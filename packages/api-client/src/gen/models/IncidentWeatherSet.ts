@@ -10,9 +10,8 @@
  */
 export type IncidentWeatherSet = {
   /**
-   * @description ICAO, e.g. TGPY.
-   * @minLength 4
-   * @maxLength 4
+   * @description ICAO location indicator, e.g. TGPY.
+   * @pattern ^[A-Za-z]{4}$
    * @type string
    */
   station: string;
