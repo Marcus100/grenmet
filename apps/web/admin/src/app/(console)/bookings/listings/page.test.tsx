@@ -123,6 +123,83 @@ describe("bookings listing review page", () => {
     ).toBe("Flagged");
   });
 
+  it("says an approved business with its own switch off is not on the home page", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [
+        {
+          ...approved,
+          listed: false,
+          on_home_page: false,
+          not_shown_reasons: ["not_listed"],
+        },
+      ],
+      count: 1,
+      page: 1,
+      size: 25,
+    });
+    render(await page("approved"));
+    expect(screen.getByText(APPROVED_STAMP)).toBeTruthy();
+    expect(screen.getByText("Not on the home page")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Approved, but not on the home page: the business has not switched on its home page listing."
+      )
+    ).toBeTruthy();
+  });
+
+  it("says a business that meets every condition is on the home page", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [{ ...approved, on_home_page: true, not_shown_reasons: [] }],
+      count: 1,
+      page: 1,
+      size: 25,
+    });
+    render(await page("approved"));
+    expect(screen.getByText("On the home page")).toBeTruthy();
+    expect(screen.getByText("Shown on the home page now.")).toBeTruthy();
+    expect(screen.queryByText("Not on the home page")).toBeNull();
+  });
+
+  it("lists every reason a business is not shown, in plain words", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [
+        {
+          ...waiting,
+          on_home_page: false,
+          not_shown_reasons: [
+            "not_approved",
+            "booking_closed",
+            "paused",
+            "no_active_service",
+            "not_entitled",
+            "organisation_inactive",
+          ],
+        },
+      ],
+      count: 1,
+      page: 1,
+      size: 25,
+    });
+    render(await page("all"));
+    expect(
+      screen.getByText(
+        "Not on the home page: Barrels has not approved the listing; its online booking is closed; the business is paused; it has no active service; its organisation does not have the Bookings app; its organisation is suspended."
+      )
+    ).toBeTruthy();
+  });
+
+  it("says nothing about the home page when the API does not report it", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [approved],
+      count: 1,
+      page: 1,
+      size: 25,
+    });
+    render(await page("approved"));
+    expect(screen.queryByText("On the home page")).toBeNull();
+    expect(screen.queryByText("Not on the home page")).toBeNull();
+  });
+
   it("renders the name, slug, public link, written state and flags", async () => {
     api.listListingReviews.mockResolvedValue({
       data: [waiting, approved],

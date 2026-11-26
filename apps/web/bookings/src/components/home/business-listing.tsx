@@ -313,9 +313,6 @@ function TypeTiles({
   chosen: BookingBusinessType | undefined;
   q: string | undefined;
 }>) {
-  if (available.length === 0) {
-    return <p className="text-foreground text-sm">No business types yet.</p>;
-  }
   const items: {
     fill: string;
     label: string;
@@ -459,7 +456,9 @@ export function BusinessListing({
         )}
       </section>
 
-      {listing && (
+      {/* A public page: with no type to show, the whole block is left out, since
+          a heading over "No business types yet." reads as broken to a visitor. */}
+      {listing && available.length > 0 && (
         <section
           aria-labelledby="types-heading"
           className="flex scroll-mt-24 flex-col gap-3"

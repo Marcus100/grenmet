@@ -1,3 +1,5 @@
+import type { BookingStatus } from "@barrelsgd/api-client";
+import { formatDateTime } from "@barrelsgd/bookings-web/lib/booking-format";
 import { describe, expect, it } from "vitest";
 import {
   agendaDepositView,
@@ -17,6 +19,9 @@ import {
   rotatesKey,
   showsAgendaDeposit,
   statusView,
+  type TimelineEvent,
+  timelineEntries,
+  timelineEntry,
   todayIn,
   weekStart,
   zonedToUtcIso,
@@ -307,5 +312,172 @@ describe("deposit paid to the business, received (#1869)", () => {
     expect(
       localWhenNow("America/Grenada", new Date("2027-01-05T13:45:20Z"))
     ).toBe("2027-01-05T09:45");
+  });
+});
+
+const ZONE = "America/Grenada";
+const AT = "2026-11-18T12:00:00Z";
+
+function event(
+  status: [BookingStatus | null, BookingStatus],
+  note: string | null
+): TimelineEvent {
+  return { from_status: status[0], to_status: status[1], note, created_at: AT };
+}
+
+describe("timelineEntry", () => {
+  const same = (note: string | null, status: BookingStatus = "confirmed") =>
+    timelineEntry(event([status, status], note), { zone: ZONE });
+
+  it("titles a real status change as from and to, with its note", () => {
+    expect(
+      timelineEntry(
+        event(["pending", "confirmed"], "Confirmed by the business"),
+        { zone: ZONE }
+      )
+    ).toEqual({
+      title: "Pending to Confirmed",
+      detail: "Confirmed by the business",
+    });
+    expect(
+      timelineEntry(event([null, "pending"], null), { zone: ZONE })
+    ).toEqual({ title: "Created as Pending", detail: null });
+  });
+
+  it("titles a deposit marked received by what happened, keeping the method", () => {
+    expect(same("Deposit received by cash")).toEqual({
+      title: "Deposit received",
+      detail: "By cash",
+    });
+    expect(same("Deposit received by bank transfer", "pending")).toEqual({
+      title: "Deposit received",
+      detail: "By bank transfer",
+    });
+  });
+
+  it("titles an undone deposit receipt as marked not received", () => {
+    expect(same("Deposit receipt undone")).toEqual({
+      title: "Deposit marked not received",
+      detail: null,
+    });
+  });
+
+  it("titles a reschedule Time changed, with both times in the business's zone and who", () => {
+    // 14:00Z and 18:30Z are 10:00 and 14:30 in Grenada (UTC-4).
+    expect(
+      timelineEntry(
+        event(
+          ["confirmed", "confirmed"],
+          "Rescheduled from 2026-11-20T14:00Z by the business"
+        ),
+        { zone: ZONE, newStart: "2026-11-21T18:30:00Z" }
+      )
+    ).toEqual({
+      title: "Time changed",
+      detail: `From ${formatDateTime("2026-11-20T14:00:00Z", ZONE)} to ${formatDateTime("2026-11-21T18:30:00Z", ZONE)}, by the business`,
+    });
+    const byCustomer = same("Rescheduled from 2026-11-20T14:00Z by customer");
+    expect(byCustomer.title).toBe("Time changed");
+    expect(byCustomer.detail).toBe(
+      `From ${formatDateTime("2026-11-20T14:00:00Z", ZONE)}, by the customer`
+    );
+    expect(byCustomer.detail).not.toContain("2026-11-20T");
+    expect(byCustomer.detail).toContain("10:00");
+  });
+
+  it("shows a reschedule note it cannot read as the detail, not the title", () => {
+    for (const note of [
+      "Rescheduled from yesterday by the business",
+      "Rescheduled from 2026-13-45T99:99Z by the business",
+      "Rescheduled from 2026-11-20T14:00Z by someone else",
+    ]) {
+      expect(same(note)).toEqual({ title: "Booking updated", detail: note });
+    }
+  });
+
+  it("titles a refund note Refund", () => {
+    for (const note of [
+      "Deposit refunded",
+      "Payment refund queued",
+      "Deposit refund failed; refund it by hand",
+    ]) {
+      expect(same(note, "cancelled")).toEqual({
+        title: "Refund",
+        detail: note,
+      });
+    }
+  });
+
+  it("titles other money notes on a cancelled booking Cancellation note", () => {
+    for (const note of ["Deposit kept", "Unpaid payment cancelled"]) {
+      expect(same(note, "cancelled")).toEqual({
+        title: "Cancellation note",
+        detail: note,
+      });
+    }
+  });
+
+  it("titles a payment recorded by hand by its noun", () => {
+    expect(same("Deposit recorded by hand (cash)")).toEqual({
+      title: "Deposit recorded",
+      detail: "Deposit recorded by hand (cash)",
+    });
+    expect(same("Payment recorded by hand (bank_transfer)")).toEqual({
+      title: "Payment recorded",
+      detail: "Payment recorded by hand (bank_transfer)",
+    });
+  });
+
+  it("shows anything else under Booking updated, never as a status change", () => {
+    expect(same("Something new the API wrote")).toEqual({
+      title: "Booking updated",
+      detail: "Something new the API wrote",
+    });
+    expect(same(null)).toEqual({ title: "Booking updated", detail: null });
+  });
+});
+
+describe("timelineEntries", () => {
+  it("gives each reschedule the time it moved to", () => {
+    const entries = timelineEntries(
+      [
+        event([null, "confirmed"], "Booked online"),
+        event(
+          ["confirmed", "confirmed"],
+          "Rescheduled from 2026-11-20T14:00Z by customer"
+        ),
+        event(["confirmed", "confirmed"], "Deposit received by cash"),
+        event(
+          ["confirmed", "confirmed"],
+          "Rescheduled from 2026-11-21T15:00Z by the business"
+        ),
+      ],
+      { zone: ZONE, startsAt: "2026-11-22T16:00:00Z" }
+    );
+    expect(entries.map((entry) => entry.title)).toEqual([
+      "Created as Confirmed",
+      "Time changed",
+      "Deposit received",
+      "Time changed",
+    ]);
+    expect(entries[1]?.detail).toBe(
+      `From ${formatDateTime("2026-11-20T14:00:00Z", ZONE)} to ${formatDateTime("2026-11-21T15:00:00Z", ZONE)}, by the customer`
+    );
+    expect(entries[3]?.detail).toBe(
+      `From ${formatDateTime("2026-11-21T15:00:00Z", ZONE)} to ${formatDateTime("2026-11-22T16:00:00Z", ZONE)}, by the business`
+    );
+  });
+
+  it("gives entries with the same time and status different keys", () => {
+    const twice = event(["confirmed", "confirmed"], "Deposit received by cash");
+    const rows = timelineEntries(
+      [twice, twice, event([null, "pending"], null)],
+      {
+        zone: ZONE,
+        startsAt: AT,
+      }
+    );
+    expect(new Set(rows.map((row) => row.key)).size).toBe(3);
+    expect(rows.map((row) => row.at)).toEqual([AT, AT, AT]);
   });
 });

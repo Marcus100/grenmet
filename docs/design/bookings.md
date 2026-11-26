@@ -201,7 +201,7 @@ documented map (below).
   phones (118 px, radius 26) and 6 columns md up (140 px, radius 28). Only
   types from the API's `types_available`, "All" first (ink). The chosen tile has
   a white inner ring and `aria-current="page"`. A tile keeps `q` and clears
-  category and page. No types says "No business types yet." The free-text
+  category and page. With no types the whole block (heading included) and the nav link to it are left out. The free-text
   category chips are gone from the page; `category` still works in the address,
   the search form and the page links.
 - Type fills (white text; contrast against white): beauty `#c2185b` 5.87, hair

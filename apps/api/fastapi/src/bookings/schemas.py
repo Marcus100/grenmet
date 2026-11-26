@@ -1672,6 +1672,24 @@ class BookingPublicCancelBody(RootModel[BookingPublicCancel | None]):
 # --- Barrels staff: listing review (ADR-0066) ---------------------------------------
 
 
+class BookingListingNotShownReason(str, Enum):
+    """Why a business is not on the home page. The values are the keys of
+    ``service.listing_conditions``."""
+
+    #: The business's own "show my business on the home page" switch is off.
+    NOT_LISTED = "not_listed"
+    #: Barrels staff have not approved the listing.
+    NOT_APPROVED = "not_approved"
+    #: Online booking is closed (the profile is not enabled).
+    BOOKING_CLOSED = "booking_closed"
+    #: The business is paused.
+    PAUSED = "paused"
+    NO_ACTIVE_SERVICE = "no_active_service"
+    #: The organisation does not hold the bookings app.
+    NOT_ENTITLED = "not_entitled"
+    ORGANISATION_INACTIVE = "organisation_inactive"
+
+
 class BookingListingReview(BaseModel):
     """Staff view of one business's home page listing and the flags staff review."""
 
@@ -1689,6 +1707,17 @@ class BookingListingReview(BaseModel):
     owner_left_at: UtcDateTime | None
     #: Set when the sign-up name was refused by the sender-name guard (ADR-0066).
     sender_name_flagged_at: UtcDateTime | None = None
+    on_home_page: bool = Field(
+        default=False,
+        description=(
+            "True when the business is shown on the public home page now: every "
+            "condition of the public listing holds, not only staff approval."
+        ),
+    )
+    not_shown_reasons: list[BookingListingNotShownReason] = Field(
+        default_factory=list,
+        description="Why the business is not on the home page; empty when it is.",
+    )
 
 
 class BookingListingQueue(str, Enum):

@@ -88043,6 +88043,20 @@
         "title": "BookingLateFee",
         "description": "The business's late-arrival rule: the fee, paid at the appointment, applies\nonce the customer is more than `grace_min` minutes late."
       },
+      "BookingListingNotShownReason": {
+        "type": "string",
+        "enum": [
+          "not_listed",
+          "not_approved",
+          "booking_closed",
+          "paused",
+          "no_active_service",
+          "not_entitled",
+          "organisation_inactive"
+        ],
+        "title": "BookingListingNotShownReason",
+        "description": "Why a business is not on the home page. The values are the keys of\n``service.listing_conditions``."
+      },
       "BookingListingQueue": {
         "type": "string",
         "enum": [
@@ -88123,6 +88137,20 @@
               }
             ],
             "title": "Sender Name Flagged At"
+          },
+          "on_home_page": {
+            "type": "boolean",
+            "title": "On Home Page",
+            "description": "True when the business is shown on the public home page now: every condition of the public listing holds, not only staff approval.",
+            "default": false
+          },
+          "not_shown_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingListingNotShownReason"
+            },
+            "type": "array",
+            "title": "Not Shown Reasons",
+            "description": "Why the business is not on the home page; empty when it is."
           }
         },
         "type": "object",
