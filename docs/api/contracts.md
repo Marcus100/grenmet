@@ -3614,3 +3614,24 @@ organisation needs the `safety` entitlement and the caller a key: `safety.cases.
   `POST .../actions/{action_id}/status` (open, done, verified; verifying needs the
   approve key and someone other than the owner). The owner is notified
   (`cases.action_assigned`). `overdue` is true for an open action past its due date.
+- Contributing factors: `GET|POST /contributing-factors`,
+  `PATCH /contributing-factors/{factor_id}` (`category`, `name`, `is_active`). The first
+  read writes the organisation's starting list (ICAO Doc 9859 categories). Names are
+  unique per programme, ignoring case. Managing the list needs `settings.manage`;
+  reading needs `cases.read`.
+- Investigation (one per case): `GET|PATCH /cases/{case_id}/investigation`. PATCH creates
+  it on first use and needs the case in `investigating` and a draft. Fields:
+  `what_happened`, `unsafe_acts`, `unsafe_conditions`, `root_cause`, `why_steps` (up
+  to 5 `{question, answer}`, replaced whole) and `contributing_factor_ids` (active factors
+  of this programme, replaced whole; another organisation's or programme's factor is 422).
+  `POST .../investigation/submit` (`cases.write`) needs what happened, a root cause and
+  at least one why with every answer. `POST .../investigation/approve` and
+  `.../return` (`reason`) need `cases.approve` and someone other than the submitter
+  (403). `POST .../investigation/no-investigation` (`reason`, `cases.approve`) is allowed
+  while the case is assessing or investigating. Approved and not-needed investigations
+  are read-only (409); reopening the case returns them to draft.
+- Moving a case to `actions` needs an approved or not-needed investigation (409
+  otherwise); other moves are unchanged. Case detail carries `investigation` (null until
+  written).
+- API keys: the `safety.read` and `safety.write` scopes exist, but the case routes take
+  a signed-in session only, so a key is refused (401/403).
