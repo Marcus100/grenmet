@@ -13471,6 +13471,164 @@
         }
       }
     },
+    "/api/v1/bookings/org/customers": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "List the business's customers",
+        "description": "One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`. For a signed-in member of the organisation only: an API key is refused. At most 30 requests a minute.",
+        "operationId": "bookingsListCustomers",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Part of a name, email or phone.",
+              "title": "Q"
+            },
+            "description": "Part of a name, email or phone."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCustomerList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingslistcustomers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/org/bookings/{booking_id}": {
       "get": {
         "tags": [
@@ -86026,6 +86184,120 @@
           "created_at"
         ],
         "title": "BookingClosurePublic"
+      },
+      "BookingCustomerList": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "customers": {
+            "items": {
+              "$ref": "#/components/schemas/BookingCustomerListItem"
+            },
+            "type": "array",
+            "title": "Customers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "limit",
+          "offset",
+          "customers"
+        ],
+        "title": "BookingCustomerList",
+        "description": "One page of the business's customers. `total` counts every match so a\nclient can page with `limit` and `offset`."
+      },
+      "BookingCustomerListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "As the contact book holds it; empty when unknown."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "As it was typed when booking; not normalised."
+          },
+          "bookings_count": {
+            "type": "integer",
+            "title": "Bookings Count",
+            "description": "Every booking of this customer except cancelled ones."
+          },
+          "last_visit_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Visit At",
+            "description": "Start of the latest past booking that was kept (`confirmed` or `completed`). Null before the first visit."
+          },
+          "next_booking_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Booking At",
+            "description": "Start of the next booking still to come (`pending_payment`, `pending` or `confirmed`). Null when nothing is booked."
+          },
+          "returning": {
+            "type": "boolean",
+            "title": "Returning",
+            "description": "True when the customer has more than one counted booking."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "bookings_count",
+          "returning"
+        ],
+        "title": "BookingCustomerListItem",
+        "description": "One customer of the business, with the facts its bookings give."
       },
       "BookingDepositCollection": {
         "type": "string",

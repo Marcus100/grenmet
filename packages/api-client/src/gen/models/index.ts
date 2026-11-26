@@ -1261,6 +1261,8 @@ export type { BookingClosureAffected } from "./BookingClosureAffected.js";
 export type { BookingClosureCreate } from "./BookingClosureCreate.js";
 export type { BookingClosureCreated } from "./BookingClosureCreated.js";
 export type { BookingClosurePublic } from "./BookingClosurePublic.js";
+export type { BookingCustomerList } from "./BookingCustomerList.js";
+export type { BookingCustomerListItem } from "./BookingCustomerListItem.js";
 export type { BookingDepositCollection } from "./BookingDepositCollection.js";
 export { bookingDepositCollection } from "./BookingDepositCollection.js";
 export type { BookingDepositMode } from "./BookingDepositMode.js";
@@ -1757,6 +1759,20 @@ export type {
   BookingsListClosuresStatus404,
   BookingsListClosuresStatus422,
 } from "./BookingsListClosures.js";
+export type {
+  BookingsListCustomersHeaders,
+  BookingsListCustomersOptions,
+  BookingsListCustomersQuery,
+  BookingsListCustomersResponse,
+  BookingsListCustomersResponses,
+  BookingsListCustomersStatus200,
+  BookingsListCustomersStatus400,
+  BookingsListCustomersStatus401,
+  BookingsListCustomersStatus403,
+  BookingsListCustomersStatus404,
+  BookingsListCustomersStatus422,
+  BookingsListCustomersStatus429,
+} from "./BookingsListCustomers.js";
 export type {
   BookingsListExceptionsHeaders,
   BookingsListExceptionsOptions,

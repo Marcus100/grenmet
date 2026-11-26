@@ -23,6 +23,7 @@ import {
   getBusinessProfile,
   getBusinessTimezone,
   listClosures,
+  listCustomers,
   listMyOrganisations,
   markCompleted,
   markNoShow,
@@ -122,6 +123,77 @@ describe("studio API reads", () => {
     expect(url.searchParams.get("from_date")).toBe("2026-10-21");
     expect(url.searchParams.get("to_date")).toBe("2026-10-27");
     expect(url.searchParams.get("provider_id")).toBe(BOOKING);
+  });
+
+  it("asks for one page of customers with the search, as the organisation", async () => {
+    const page = { total: 0, limit: 50, offset: 50, customers: [] };
+    const seen = stubFetch(200, page);
+    expect(
+      await listCustomers("tok", ORG, { offset: 50, search: "ada" })
+    ).toEqual(page);
+    expect(seen[0]?.auth).toBe("Bearer tok");
+    expect(seen[0]?.org).toBe(ORG);
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.pathname).toBe("/api/v1/bookings/org/customers");
+    expect(url.searchParams.get("q")).toBe("ada");
+    expect(url.searchParams.get("limit")).toBe("50");
+    expect(url.searchParams.get("offset")).toBe("50");
+  });
+
+  it("sends the visitor's address with a customers read, for the rate limit", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: Request | string | URL) => {
+        const request = input instanceof Request ? input : new Request(input);
+        expect(request.headers.get("x-visitor-ip")).toBe("203.0.113.9");
+        expect(request.headers.get("x-visitor-secret")).toBe("hush");
+        expect(request.headers.get("authorization")).toBe("Bearer tok");
+        return Promise.resolve(
+          Response.json({ total: 0, limit: 50, offset: 0, customers: [] })
+        );
+      })
+    );
+    await listCustomers("tok", ORG, {
+      visitor: { "X-Visitor-IP": "203.0.113.9", "X-Visitor-Secret": "hush" },
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("lists every customer from the start when nothing is searched", async () => {
+    const seen = stubFetch(200, {
+      total: 0,
+      limit: 50,
+      offset: 0,
+      customers: [],
+    });
+    await listCustomers("tok", ORG);
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.searchParams.has("q")).toBe(false);
+    expect(url.searchParams.get("offset")).toBe("0");
+  });
+
+  it("drops the search and the token from a failed customers read", async () => {
+    stubFetch(500, { detail: "Server fault" });
+    const error = await listCustomers("tok-secret", ORG, {
+      search: "Ada Lovelace",
+      visitor: { "X-Visitor-IP": "203.0.113.9", "X-Visitor-Secret": "hush" },
+    }).catch((caught: unknown) => caught);
+    expect(ResponseError.is(error)).toBe(true);
+    if (!ResponseError.is(error)) {
+      return;
+    }
+    expect(error.status).toBe(500);
+    const request = error.request;
+    expect(request).toBeInstanceOf(Request);
+    if (!(request instanceof Request)) {
+      return;
+    }
+    expect(new URL(request.url).search).toBe("");
+    expect(request.headers.get("authorization")).toBeNull();
+    const printed = inspect(error, { depth: 6 });
+    expect(printed).not.toContain("Lovelace");
+    expect(printed).not.toContain("tok-secret");
+    expect(printed).not.toContain("hush");
   });
 
   it("returns null for an unknown booking", async () => {

@@ -896,6 +896,50 @@ class BookingAgenda(BaseModel):
     days: list[BookingAgendaDay]
 
 
+# --- studio customers ----------------------------------------------------------------
+
+
+class BookingCustomerListItem(BaseModel):
+    """One customer of the business, with the facts its bookings give."""
+
+    id: uuid.UUID
+    name: str = Field(description="As the contact book holds it; empty when unknown.")
+    email: str | None = None
+    phone: str | None = Field(
+        default=None, description="As it was typed when booking; not normalised."
+    )
+    bookings_count: int = Field(
+        description="Every booking of this customer except cancelled ones."
+    )
+    last_visit_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Start of the latest past booking that was kept (`confirmed` or "
+            "`completed`). Null before the first visit."
+        ),
+    )
+    next_booking_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Start of the next booking still to come (`pending_payment`, `pending` "
+            "or `confirmed`). Null when nothing is booked."
+        ),
+    )
+    returning: bool = Field(
+        description="True when the customer has more than one counted booking."
+    )
+
+
+class BookingCustomerList(BaseModel):
+    """One page of the business's customers. `total` counts every match so a
+    client can page with `limit` and `offset`."""
+
+    total: int
+    limit: int
+    offset: int
+    customers: list[BookingCustomerListItem]
+
+
 # --- studio actions (B5) -------------------------------------------------------------
 
 
