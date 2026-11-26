@@ -5,17 +5,20 @@ from datetime import timedelta
 
 import httpx
 import pytest
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.notifications.models import Notification
 from src.opslog import summary
+from src.opslog.models import OpsLog, OpsLogEntry
 from src.organisations.models import (
     Membership,
     MembershipGrant,
     MembershipRole,
     MembershipStatus,
+    OrganisationStatus,
+    PlatformOrganisation,
     new_grant_id,
 )
 from src.utils.datetime import utc_now
@@ -154,3 +157,51 @@ async def test_summary_stops_for_people_who_left_or_unsubscribed(
         path, headers=headers_for(other, other_org.id), json={"subscribed": True}
     )
     assert foreign.status_code == 404
+
+
+async def test_no_summary_without_the_read_key_or_for_a_suspended_organisation(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    org_id, owner, keeper, log_id = await _setup(async_client, db_async)
+    path = f"{API}/logs/{log_id}/summary-subscription"
+    for user in (owner, keeper):
+        await async_client.put(
+            path, headers=headers_for(user, org_id), json={"subscribed": True}
+        )
+    await async_client.post(
+        f"{API}/logs/{log_id}/entries",
+        headers=headers_for(owner, org_id),
+        json={"text": "x" * 4000},
+    )
+    # The keeper loses the role: only the owner is told.
+    await db_async.execute(
+        delete(MembershipGrant).where(MembershipGrant.organisation_id == org_id)
+    )
+    await db_async.commit()
+    now = utc_now()
+    assert await summary.send_daily_summaries(db_async, now=now) == 1
+    assert await _mine(db_async, keeper, log_id) == []
+    [note] = await _mine(db_async, owner, log_id)
+    assert len(note.body) <= 1000
+
+    # A suspended organisation gets nothing, even on a new day.
+    organisation = await db_async.get(PlatformOrganisation, org_id)
+    assert organisation is not None
+    organisation.status = OrganisationStatus.SUSPENDED.value
+    await db_async.commit()
+    await db_async.execute(
+        update(OpsLogEntry)
+        .values(created_at=now + timedelta(hours=20))
+        .where(OpsLogEntry.organisation_id == org_id)
+    )
+    await db_async.commit()
+    later = now + timedelta(days=1)
+    assert await summary.send_daily_summaries(db_async, now=later) == 0
+    organisation.status = OrganisationStatus.ACTIVE.value
+    await db_async.commit()
+    # An archived log is skipped too.
+    log = await db_async.get(OpsLog, log_id)
+    assert log is not None
+    log.archived_at = now
+    await db_async.commit()
+    assert await summary.send_daily_summaries(db_async, now=later) == 0

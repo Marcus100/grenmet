@@ -9,20 +9,30 @@ counted or quoted. A log with nothing written gets no summary. Each person is
 told once per log and day (``dedupe_key``).
 """
 
+import logging
 import uuid
 from datetime import datetime, timedelta
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.notifications import events
 from src.notifications import service as notification_service
 from src.notifications.events import EventDef
 from src.organisations import grants
-from src.organisations.models import Membership, MembershipStatus
+from src.organisations.models import (
+    Membership,
+    MembershipStatus,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
+from src.utils.datetime import utc_now
 
 from . import service
 from .models import OpsLog, OpsLogCategory, OpsLogEntry, OpsLogSummarySubscriber
+
+logger = logging.getLogger(__name__)
 
 DAILY_SUMMARY = "opslog.daily_summary"
 READ_KEY = "opslog.entries.read"
@@ -41,6 +51,7 @@ def register() -> None:
             title="{{ log }}: {{ count }} in the last 24 hours",
             body="{{ summary }}",
             variables=("log", "count", "summary"),
+            # No default roles: only subscribers who hold the read key are told.
         )
     )
 
@@ -68,10 +79,16 @@ async def set_subscribed(
     log = await service.get_log(session, organisation_id=organisation_id, log_id=log_id)
     already = await is_subscribed(session, log_id=log.id, user_id=user_id)
     if subscribed and not already:
-        session.add(
-            OpsLogSummarySubscriber(
-                log_id=log.id, user_id=user_id, organisation_id=organisation_id
+        # Two requests at once must not fail on the primary key.
+        await session.execute(
+            pg_insert(OpsLogSummarySubscriber)
+            .values(
+                log_id=log.id,
+                user_id=user_id,
+                organisation_id=organisation_id,
+                created_at=utc_now(),
             )
+            .on_conflict_do_nothing()
         )
     elif not subscribed and already:
         await session.execute(
@@ -153,43 +170,67 @@ async def send_daily_summaries(session: AsyncSession, *, now: datetime) -> int:
     Returns how many people were told."""
     since = now - WINDOW
     told = 0
+    # Only active organisations: a suspended one gets nothing (the request path
+    # refuses it in OrgContext; this job has no request). The opslog entitlement
+    # is checked per recipient by ``has_org_permission``.
     log_ids = (
         await session.scalars(
             select(OpsLogSummarySubscriber.log_id)
             .join(OpsLog, OpsLog.id == OpsLogSummarySubscriber.log_id)
-            .where(OpsLog.archived_at.is_(None))
+            .join(
+                PlatformOrganisation,
+                PlatformOrganisation.id == OpsLog.organisation_id,
+            )
+            .where(
+                OpsLog.archived_at.is_(None),
+                PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+            )
             .distinct()
         )
     ).all()
     for log_id in log_ids:
-        log = await session.get(OpsLog, log_id)
-        if log is None:
-            continue
-        summary = await _summary(session, log, since=since)
-        if summary is None:
-            continue
-        subscribers = (
-            await session.scalars(
-                select(OpsLogSummarySubscriber.user_id).where(
-                    OpsLogSummarySubscriber.log_id == log.id
-                )
+        try:
+            told += await _send_for_log(session, log_id, now=now, since=since)
+            await session.commit()
+        except Exception:
+            # One log's failure must not stop the others; the dedupe key makes a
+            # later run safe.
+            await session.rollback()
+            logger.exception(
+                "Operations log daily summary failed", extra={"log_id": log_id}
             )
-        ).all()
-        recipients = await _readers(
-            session, organisation_id=log.organisation_id, user_ids=list(subscribers)
-        )
-        if not recipients:
-            continue
-        count, text = summary
-        told += await notification_service.notify(
-            session,
-            event_key=DAILY_SUMMARY,
-            organisation_id=log.organisation_id,
-            recipients=recipients,
-            context={"log": log.name, "count": str(count), "summary": text},
-            entity_type="opslog_log",
-            entity_id=log.id,
-            dedupe_key=f"opslog.summary:{log.id}:{now:%Y-%m-%d}",
-        )
-        await session.commit()
     return told
+
+
+async def _send_for_log(
+    session: AsyncSession, log_id: str, *, now: datetime, since: datetime
+) -> int:
+    log = await session.get(OpsLog, log_id)
+    if log is None:
+        return 0
+    summary = await _summary(session, log, since=since)
+    if summary is None:
+        return 0
+    subscribers = (
+        await session.scalars(
+            select(OpsLogSummarySubscriber.user_id).where(
+                OpsLogSummarySubscriber.log_id == log.id
+            )
+        )
+    ).all()
+    recipients = await _readers(
+        session, organisation_id=log.organisation_id, user_ids=list(subscribers)
+    )
+    if not recipients:
+        return 0
+    count, text = summary
+    return await notification_service.notify(
+        session,
+        event_key=DAILY_SUMMARY,
+        organisation_id=log.organisation_id,
+        recipients=recipients,
+        context={"log": log.name, "count": str(count), "summary": text},
+        entity_type="opslog_log",
+        entity_id=log.id,
+        dedupe_key=f"opslog.summary:{log.id}:{now:%Y-%m-%d}",
+    )

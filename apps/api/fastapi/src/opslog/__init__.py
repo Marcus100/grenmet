@@ -33,10 +33,8 @@ scoped: the airport authority is one organisation like any other.
   entry's `record` gets its title from `src/record_links.py` when the viewer may see it.
 - **Daily summary** (`summary.py`, job `jobs.send_opslog_daily_summaries` at 10:05
   UTC): members subscribe per log; the notifications module delivers it (event
-  `opslog.daily_summary`); private entries are never counted or quoted.
-- **Daily summary** (`summary.py`, job `jobs.send_opslog_daily_summaries` at 10:05
-  UTC): members subscribe per log; the notifications module delivers it (event
-  `opslog.daily_summary`); private entries are never counted or quoted.
+  `opslog.daily_summary`); private entries are never counted or quoted;
+  suspended organisations and people without the read key get nothing.
 - **Not built yet** (issue #1875): category notifications, structured logs and
   the shift handover report.
 
