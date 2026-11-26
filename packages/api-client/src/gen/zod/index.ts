@@ -11,6 +11,8 @@ export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
 export { accessStatusPublicSchema } from "./accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./accountAppPublicSchema.js";
 export { accountEmailCodeStartSchema } from "./accountEmailCodeStartSchema.js";
+export { accountProfilePublicSchema } from "./accountProfilePublicSchema.js";
+export { accountProfileUpdateSchema } from "./accountProfileUpdateSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
 export { achievementRuleSchema } from "./achievementRuleSchema.js";
@@ -540,6 +542,14 @@ export {
   authGetEffectiveAccessStatus422Schema,
 } from "./authGetEffectiveAccessSchema.js";
 export {
+  authGetMyProfileErrorSchema,
+  authGetMyProfileResponseSchema,
+  authGetMyProfileStatus200Schema,
+  authGetMyProfileStatus401Schema,
+  authGetMyProfileStatus403Schema,
+  authGetMyProfileStatus422Schema,
+} from "./authGetMyProfileSchema.js";
+export {
   authGetOnboardingStatusErrorSchema,
   authGetOnboardingStatusPathSchema,
   authGetOnboardingStatusPathUserIdSchema,
@@ -933,6 +943,17 @@ export {
   authTwofaStatusStatus403Schema,
   authTwofaStatusStatus422Schema,
 } from "./authTwofaStatusSchema.js";
+export {
+  authUpdateMyProfileBodySchema,
+  authUpdateMyProfileErrorSchema,
+  authUpdateMyProfileResponseSchema,
+  authUpdateMyProfileStatus200Schema,
+  authUpdateMyProfileStatus401Schema,
+  authUpdateMyProfileStatus403Schema,
+  authUpdateMyProfileStatus409Schema,
+  authUpdateMyProfileStatus422Schema,
+  authUpdateMyProfileStatus429Schema,
+} from "./authUpdateMyProfileSchema.js";
 export {
   authUpdatePasswordMeBodySchema,
   authUpdatePasswordMeErrorSchema,

@@ -204,6 +204,11 @@ export {
   useAuthGetEffectiveAccess,
 } from "./useAuthGetEffectiveAccess.js";
 export {
+  authGetMyProfileQueryKey,
+  authGetMyProfileQueryOptions,
+  useAuthGetMyProfile,
+} from "./useAuthGetMyProfile.js";
+export {
   authGetOnboardingStatusQueryKey,
   authGetOnboardingStatusQueryOptions,
   useAuthGetOnboardingStatus,
@@ -413,6 +418,11 @@ export {
   authTwofaStatusQueryOptions,
   useAuthTwofaStatus,
 } from "./useAuthTwofaStatus.js";
+export {
+  authUpdateMyProfileMutationKey,
+  authUpdateMyProfileMutationOptions,
+  useAuthUpdateMyProfile,
+} from "./useAuthUpdateMyProfile.js";
 export {
   authUpdatePasswordMeMutationKey,
   authUpdatePasswordMeMutationOptions,

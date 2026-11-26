@@ -93,3 +93,13 @@ class EmailChangeRateLimitedError(AppException):
         message: str = "Too many email change attempts. Try again later.",
     ) -> None:
         super().__init__(message, status.HTTP_429_TOO_MANY_REQUESTS)
+
+
+class PhoneNumberTakenError(AppException):
+    """409: another account already holds this phone number (it is unique)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "That phone number is already on another account. Use another number.",
+            status.HTTP_409_CONFLICT,
+        )

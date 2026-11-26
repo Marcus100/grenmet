@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import delete, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
@@ -28,7 +29,7 @@ from src.auth.eligibility import (
     request_staff_access,
     require_approved_account,
 )
-from src.auth.exceptions import AccountLockedError
+from src.auth.exceptions import AccountLockedError, PhoneNumberTakenError
 from src.auth.lockout import factor_lockout, login_lockout
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
@@ -47,6 +48,7 @@ from src.auth.roles import (
     update_role,
 )
 from src.auth.schemas import (
+    AccountProfileUpdate,
     UserCreate,
     UserUpdate,
     UserUpdateMe,
@@ -264,6 +266,58 @@ async def update_user_me(
     await session.commit()
     await session.refresh(current_user)
     return current_user
+
+
+def name_is_placeholder(user: User) -> bool:
+    """True while the account has no name the person gave.
+
+    A sign-up with no name (``app_service._create_member``) stores the part of the
+    email before the @ as the first name and an empty last name. A blank first name
+    counts too. A first name with no last name that differs from the email (a Google
+    given name, say) is a real name.
+    """
+    first = (user.first_name or "").strip()
+    if not first:
+        return True
+    if (user.last_name or "").strip():
+        return False
+    return first.lower() == user.email.split("@", 1)[0][:100].lower()
+
+
+async def update_account_profile(
+    *, session: AsyncSession, user: User, profile_in: AccountProfileUpdate
+) -> User:
+    """Save the person's own name and phone number (the account app's checklist).
+
+    The number is stored unverified: nothing is sent, and a number that differs from
+    the stored one clears ``phone_verified_at``, so it cannot be used to sign in
+    until it is linked with a code (``app_service.phone_link_verify``).
+    """
+    fields = profile_in.model_fields_set
+    if "first_name" in fields and profile_in.first_name is not None:
+        user.first_name = profile_in.first_name
+    if "last_name" in fields and profile_in.last_name is not None:
+        user.last_name = profile_in.last_name
+    if "phone" in fields and profile_in.phone != user.phone_e164:
+        if profile_in.phone is not None:
+            holder = await session.scalar(
+                select(User.id).where(
+                    User.phone_e164 == profile_in.phone, User.id != user.id
+                )
+            )
+            if holder is not None:
+                raise PhoneNumberTakenError()
+        user.phone_e164 = profile_in.phone
+        user.phone_verified_at = None
+    session.add(user)
+    try:
+        await session.commit()
+    except IntegrityError as error:
+        # Two accounts saving the same number at once: the unique index decides.
+        await session.rollback()
+        raise PhoneNumberTakenError() from error
+    await session.refresh(user)
+    return user
 
 
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:

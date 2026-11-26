@@ -3340,6 +3340,17 @@ completed upload of that organiser's organisation and purpose, else 409.
 
 Brand (#1622): `PATCH /events/manage/organiser` takes `brand_color` (`#rrggbb`, null or blank clears; returned as `OrganiserPublic.brand_color`). Booking profiles take `brand_color` and `logo_file_id` (a completed `booking-logo` upload of the business, else 409) on `PUT /bookings/org/profile`; left out keeps the stored value. Booking and event mail use both; see `docs/email-design.md`.
 
+## Own profile (account app checklist)
+
+`GET` and `PATCH /api/v1/auth/users/me/profile` (`AccountProfilePublic`, `AccountProfileUpdate`) are the signed-in person's own name, email and phone number, for the account app's "Finish your profile" checklist. Like the photo `/me` routes they accept an account token or a session of the account app (`OwnAccountUser`); other apps' tokens get 401. `PATCH /auth/users/me` is unchanged and still refuses app sessions.
+
+| Call | Behaviour |
+| --- | --- |
+| `GET /auth/users/me/profile` | `{email, first_name, last_name, name_is_placeholder, phone}`. `name_is_placeholder` is true while the name is the stand-in a nameless sign-up stores (the part of the email before the @ with no last name) or blank. `phone` is E.164 or null; nothing says whether it was verified |
+| `PATCH /auth/users/me/profile` | Any of `first_name`, `last_name` (1 to 100 characters after trimming; control and invisible characters removed; 422 when empty or null) and `phone`. A field left out is not changed; no other field can be set. `phone` is normalised to E.164 (spaces, dots, dashes and brackets removed, `00` read as `+`; 422 with a sentence for the person otherwise) and a blank or null value removes it. The number is stored unverified and nothing is sent: a changed number clears `phone_verified_at`, so it is no sign-in factor until linked with a code. 409 when another account holds the number. At most 10 a minute per account (429) |
+
+Phone sign-in (`/auth/apps/{app}/phone-code/*`) and linking (`/phone/link/*`) count only a verified holder of a number: a number typed into a profile cannot be used to sign in, and it gives way to the person who links it with a code.
+
 ## Profile photos (#1303)
 
 The `/me` routes accept an account token or a session of the account app

@@ -1,9 +1,11 @@
 import uuid
 from typing import Annotated, Literal
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, field_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.utils.phone import normalise_phone
+from src.utils.text import clean_reason
 
 from .models import RoleAssignmentScope, Title, UserBase
 from .password_policy import PASSWORD_DESCRIPTION, BcryptSafe
@@ -54,6 +56,52 @@ class UserUpdateMe(BaseModel):
     # no password the code from POST /auth/users/me/email-change/code. Never stored.
     current_password: str | None = Field(default=None, max_length=256)
     email_code: str | None = Field(default=None, min_length=6, max_length=6)
+
+
+class AccountProfileUpdate(BaseModel):
+    """The fields a person fills in after a quick sign-up. A field left out is not
+    changed; a blank or null ``phone`` removes the number."""
+
+    first_name: str | None = Field(default=None, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(
+        default=None,
+        max_length=40,
+        description="With the country code, e.g. +1 473 440 1234. Stored as E.164.",
+    )
+
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def _name(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("Enter a name")
+        if not isinstance(value, str):
+            return value
+        if "\x00" in value:
+            raise ValueError("Enter a name")
+        # The shared free-text cleaning: no control, bidi or zero-width characters.
+        cleaned = " ".join((clean_reason(value) or "").split())
+        if not cleaned:
+            raise ValueError("Enter a name")
+        return cleaned
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def _phone(cls, value: object) -> str | None:
+        return normalise_phone(value)
+
+
+class AccountProfilePublic(BaseModel):
+    """The signed-in person's own profile fields, for the account app's checklist."""
+
+    email: str
+    first_name: str
+    last_name: str
+    #: True while the name is the stand-in a nameless sign-up stores (the part of
+    #: the email before the @, with no last name), or blank.
+    name_is_placeholder: bool
+    #: E.164, or null. Never says whether the number was verified.
+    phone: str | None = None
 
 
 class UpdatePassword(BaseModel):
