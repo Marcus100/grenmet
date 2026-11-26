@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-26
 
 ## Purpose
 
@@ -46,8 +46,8 @@ retain their own purpose; the Barrels admin control plane remains distinct.
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
 | `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed at `admin.<domain>` with the 2026-10-21 admin host move (staging first) | `admin.barrels.gd` (the GAA portal is at `gms.barrels.gd`); never merges with the client portal |
-| `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
-| `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
+| `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built and deployed at `cap.barrels.gd` (staging: `cap.staging.barrels.gd`) | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
+| `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built and deployed at `gmsdash.barrels.gd` (staging: `gmsdash.staging.barrels.gd`) | Premium GMS products for external users; more products join later |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Cloudflare Pages site at barrels.gd |
 | `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Static Next.js export on Cloudflare Pages; takes no bookings since 2026-11-13 (Book buttons open the studio's page on `apps/web/bookings` after the cutover; the studio screens are in that app); the client's own domain `babydollbeautybar.com` later |
 | `apps/pwa/printix` | Printix Scanner: gate scanning for Printix, a collaboration and Barrels Grenada's main ticket app (security-printed tickets; also scans Barrels Events tickets); built and run by Barrels, Printix name with Barrels shown | Live at scan.barrels.gd for a first event on 26 December 2026; scanner, offline mode, organiser screens and staff onboarding built (ADR-0060 amendment, ADR-0061) | Installable phone app (React built with Vite, files only) on Cloudflare Pages at `scan.barrels.gd` |
