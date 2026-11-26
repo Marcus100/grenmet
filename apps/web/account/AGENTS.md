@@ -51,7 +51,8 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
 
 ```text
 src/app/
-  page.tsx                     ← profile: name, email, photo upload/replace/remove (server read, client mutations)
+  page.tsx                     ← profile: name, email, "Finish your profile" checklist, photo upload/replace/remove (server reads, client photo mutations)
+  profile/name|phone/page.tsx  ← one-field editors; server actions in `profile/actions.ts` PATCH `/auth/users/me/profile`
   bookings/page.tsx            ← My bookings: Upcoming, Past and Cancelled tabs (?view=), grouped by day, server read; each row links to its manage page
   signin/page.tsx              ← hand-off to auth: renders "Taking you to sign in" (`SignInHandOff`, a client leaf that moves the browser on, with a link); `sign_in=expired` says so and offers a retry
   auth/start|callback|logout   ← single sign-on (ADR-0017)
@@ -59,6 +60,10 @@ src/app/
   api/health/route.ts
   error.tsx, global-error.tsx, not-found.tsx
 ```
+
+## Finish your profile
+
+`ProfileChecklist` (email, name, phone, photo; `src/lib/profile-checklist.ts`) reads `GET /auth/users/me/profile`; the API decides `name_is_placeholder`. The phone is stored unverified and the UI says nothing about verification. Actions report failures with no typed value. States and copy: `docs/design/account.md`.
 
 ## My bookings (ADR-0058, slice 1)
 
