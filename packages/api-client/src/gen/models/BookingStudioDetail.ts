@@ -4,6 +4,7 @@
  */
 
 import type { BookingAddOnLine } from "./BookingAddOnLine.js";
+import type { BookingDepositReceivedMethod } from "./BookingDepositReceivedMethod.js";
 import type { BookingPaymentKind } from "./BookingPaymentKind.js";
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -71,6 +72,12 @@ export type BookingStudioDetail = {
    * @type boolean | undefined
    */
   returning_client?: boolean;
+  /**
+   * @description When staff marked the deposit paid to the business as received.
+   */
+  deposit_received_at?: string | null;
+  deposit_received_method?: BookingDepositReceivedMethod | null;
+  deposit_received_reference?: string | null;
   /**
    * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
    * @type string

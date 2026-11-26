@@ -729,6 +729,11 @@ export {
   useBookingsListStudioBookings,
 } from "./useBookingsListStudioBookings.js";
 export {
+  bookingsMarkDepositReceivedMutationKey,
+  bookingsMarkDepositReceivedMutationOptions,
+  useBookingsMarkDepositReceived,
+} from "./useBookingsMarkDepositReceived.js";
+export {
   bookingsNoShowStudioBookingMutationKey,
   bookingsNoShowStudioBookingMutationOptions,
   useBookingsNoShowStudioBooking,
@@ -773,6 +778,11 @@ export {
   bookingsRotateCalendarFeedMutationOptions,
   useBookingsRotateCalendarFeed,
 } from "./useBookingsRotateCalendarFeed.js";
+export {
+  bookingsUndoDepositReceivedMutationKey,
+  bookingsUndoDepositReceivedMutationOptions,
+  useBookingsUndoDepositReceived,
+} from "./useBookingsUndoDepositReceived.js";
 export {
   bookingsUpdateProviderMutationKey,
   bookingsUpdateProviderMutationOptions,

@@ -1225,6 +1225,8 @@ export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
 export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
 export { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
 export { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
+export { bookingDepositReceivedCreateSchema } from "./bookingDepositReceivedCreateSchema.js";
+export { bookingDepositReceivedMethodSchema } from "./bookingDepositReceivedMethodSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";
@@ -1831,6 +1833,22 @@ export {
   bookingsListStudioBookingsStatus422Schema,
 } from "./bookingsListStudioBookingsSchema.js";
 export {
+  bookingsMarkDepositReceivedBodySchema,
+  bookingsMarkDepositReceivedErrorSchema,
+  bookingsMarkDepositReceivedHeadersSchema,
+  bookingsMarkDepositReceivedHeaderXBarrelsOrganisationSchema,
+  bookingsMarkDepositReceivedPathBookingIdSchema,
+  bookingsMarkDepositReceivedPathSchema,
+  bookingsMarkDepositReceivedResponseSchema,
+  bookingsMarkDepositReceivedStatus200Schema,
+  bookingsMarkDepositReceivedStatus400Schema,
+  bookingsMarkDepositReceivedStatus401Schema,
+  bookingsMarkDepositReceivedStatus403Schema,
+  bookingsMarkDepositReceivedStatus404Schema,
+  bookingsMarkDepositReceivedStatus409Schema,
+  bookingsMarkDepositReceivedStatus422Schema,
+} from "./bookingsMarkDepositReceivedSchema.js";
+export {
   bookingsNoShowStudioBookingErrorSchema,
   bookingsNoShowStudioBookingHeadersSchema,
   bookingsNoShowStudioBookingHeaderXBarrelsOrganisationSchema,
@@ -1960,6 +1978,21 @@ export {
   bookingsRotateCalendarFeedStatus409Schema,
   bookingsRotateCalendarFeedStatus422Schema,
 } from "./bookingsRotateCalendarFeedSchema.js";
+export {
+  bookingsUndoDepositReceivedErrorSchema,
+  bookingsUndoDepositReceivedHeadersSchema,
+  bookingsUndoDepositReceivedHeaderXBarrelsOrganisationSchema,
+  bookingsUndoDepositReceivedPathBookingIdSchema,
+  bookingsUndoDepositReceivedPathSchema,
+  bookingsUndoDepositReceivedResponseSchema,
+  bookingsUndoDepositReceivedStatus200Schema,
+  bookingsUndoDepositReceivedStatus400Schema,
+  bookingsUndoDepositReceivedStatus401Schema,
+  bookingsUndoDepositReceivedStatus403Schema,
+  bookingsUndoDepositReceivedStatus404Schema,
+  bookingsUndoDepositReceivedStatus409Schema,
+  bookingsUndoDepositReceivedStatus422Schema,
+} from "./bookingsUndoDepositReceivedSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,

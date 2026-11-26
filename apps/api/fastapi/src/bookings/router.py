@@ -35,6 +35,7 @@ from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.dependencies import (
     OrgContext,
     require_org_app,
+    require_org_permission,
     resolve_org_caller,
 )
 from src.organisations.models import MembershipRole
@@ -63,6 +64,7 @@ from .schemas import (
     BookingClosureCreate,
     BookingClosureCreated,
     BookingClosurePublic,
+    BookingDepositReceivedCreate,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
@@ -390,6 +392,18 @@ PaymentsEntitled = Annotated[
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
+
+
+# Recording a business-held deposit is an organisation-bound key (owners and admins
+# hold it; a plain member needs a grant). Session only, no API key.
+OrgDepositManager = Annotated[
+    OrgContext,
+    Depends(require_org_permission("bookings.deposits.manage", session_app="bookings")),
+]
+DEPOSIT_RECEIVED_ERRORS = {
+    **WRITE_ERRORS,
+    422: {"model": ApiError, "description": "The arrival time is in the future"},
+}
 
 
 # --- organisation: profile -----------------------------------------------------------------
@@ -1021,6 +1035,65 @@ async def record_manual_deposit(
     if result.replayed:
         response.headers["Idempotency-Replayed"] = "true"
     return result.body
+
+
+@router.post(
+    "/org/bookings/{booking_id}/deposit-received",
+    response_model=BookingStudioDetail,
+    summary="Mark a deposit paid to the business as received",
+    description=(
+        "For a booking whose deposit the customer pays the business by hand "
+        "(`deposit_to_business_minor` above 0). Records the method (cash, bank "
+        "transfer, PayPal or other), an optional reference and when it arrived "
+        "(default now, never in the future). No money moves through Barrels. Audited, "
+        "with a staff-only history note that sends no calendar update. Sends no mail; "
+        "later mails say the deposit was received. 409 with a `code` when the booking "
+        "has no such deposit, is cancelled, declined or no-show, or is already marked. "
+        "Owners, admins and members granted `bookings.deposits.manage`; API keys are "
+        "not accepted."
+    ),
+    operation_id="bookingsMarkDepositReceived",
+    responses=DEPOSIT_RECEIVED_ERRORS,
+)
+async def mark_deposit_received(
+    *,
+    session: SessionDep,
+    org: OrgDepositManager,
+    booking_id: BookingId,
+    payload: BookingDepositReceivedCreate,
+) -> Any:
+    result = await studio.mark_deposit_received(
+        session, org.organisation_id, booking_id, payload, actor=org.user
+    )
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/org/bookings/{booking_id}/deposit-received",
+    response_model=BookingStudioDetail,
+    summary="Undo a deposit marked as received",
+    description=(
+        "Takes back a deposit receipt recorded in error, so the booking shows the "
+        "deposit as due again. Audited, with a staff-only history note. 409 with a "
+        "`code` when the booking has no such deposit, is cancelled, declined or no-show, or "
+        "is not marked received. Owners, admins and members granted "
+        "`bookings.deposits.manage`; API keys are not accepted."
+    ),
+    operation_id="bookingsUndoDepositReceived",
+    responses=WRITE_ERRORS,
+)
+async def undo_deposit_received(
+    *,
+    session: SessionDep,
+    org: OrgDepositManager,
+    booking_id: BookingId,
+) -> Any:
+    result = await studio.undo_deposit_received(
+        session, org.organisation_id, booking_id, actor=org.user
+    )
+    await session.commit()
+    return result
 
 
 @router.post(
