@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { ContributingFactorPublic } from "./ContributingFactorPublic.js";
+import type { InvestigationFactorPublic } from "./InvestigationFactorPublic.js";
 import type { InvestigationStatus } from "./InvestigationStatus.js";
 import type { WhyStep } from "./WhyStep.js";
 
@@ -21,7 +21,7 @@ export type InvestigationPublic = {
   unsafe_conditions: string | null;
   why_steps: WhyStep[];
   root_cause: string | null;
-  contributing_factors: ContributingFactorPublic[];
+  contributing_factors: InvestigationFactorPublic[];
   no_investigation_reason: string | null;
   return_reason: string | null;
   returned_by: string | null;

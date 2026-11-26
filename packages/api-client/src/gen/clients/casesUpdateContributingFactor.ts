@@ -11,7 +11,7 @@ import type {
 } from "../models/CasesUpdateContributingFactor.js";
 
 /**
- * @description Rename, recategorise or retire (`is_active` false). A retired factor stays on the investigations that chose it but cannot be chosen again.
+ * @description Rename, recategorise or retire (`is_active` false). A retired factor stays on the investigations that chose it but cannot be newly chosen. Decided investigations keep the name they had at approval.
  * @summary Change a contributing factor
  * {@link /api/v1/cases/org/:programme/contributing-factors/:factor_id}
  */

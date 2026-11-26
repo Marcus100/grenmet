@@ -2818,21 +2818,6 @@ export type {
   CasesCreateRiskAssessmentStatus422,
 } from "./CasesCreateRiskAssessment.js";
 export type {
-  CasesDecideNoInvestigationBody,
-  CasesDecideNoInvestigationHeaders,
-  CasesDecideNoInvestigationOptions,
-  CasesDecideNoInvestigationPath,
-  CasesDecideNoInvestigationResponse,
-  CasesDecideNoInvestigationResponses,
-  CasesDecideNoInvestigationStatus200,
-  CasesDecideNoInvestigationStatus400,
-  CasesDecideNoInvestigationStatus401,
-  CasesDecideNoInvestigationStatus403,
-  CasesDecideNoInvestigationStatus404,
-  CasesDecideNoInvestigationStatus409,
-  CasesDecideNoInvestigationStatus422,
-} from "./CasesDecideNoInvestigation.js";
-export type {
   CasesGetCaseHeaders,
   CasesGetCaseOptions,
   CasesGetCasePath,
@@ -3002,6 +2987,21 @@ export type {
   CasesUpdateInvestigationStatus409,
   CasesUpdateInvestigationStatus422,
 } from "./CasesUpdateInvestigation.js";
+export type {
+  CasesWaiveInvestigationBody,
+  CasesWaiveInvestigationHeaders,
+  CasesWaiveInvestigationOptions,
+  CasesWaiveInvestigationPath,
+  CasesWaiveInvestigationResponse,
+  CasesWaiveInvestigationResponses,
+  CasesWaiveInvestigationStatus200,
+  CasesWaiveInvestigationStatus400,
+  CasesWaiveInvestigationStatus401,
+  CasesWaiveInvestigationStatus403,
+  CasesWaiveInvestigationStatus404,
+  CasesWaiveInvestigationStatus409,
+  CasesWaiveInvestigationStatus422,
+} from "./CasesWaiveInvestigation.js";
 export type { CaseUpdate } from "./CaseUpdate.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
@@ -7329,11 +7329,13 @@ export type { IntendedUse } from "./IntendedUse.js";
 export { intendedUse } from "./IntendedUse.js";
 export type { IntentStatus } from "./IntentStatus.js";
 export { intentStatus } from "./IntentStatus.js";
-export type { InvestigationDecision } from "./InvestigationDecision.js";
+export type { InvestigationFactorPublic } from "./InvestigationFactorPublic.js";
 export type { InvestigationPublic } from "./InvestigationPublic.js";
+export type { InvestigationReturn } from "./InvestigationReturn.js";
 export type { InvestigationStatus } from "./InvestigationStatus.js";
 export { investigationStatus } from "./InvestigationStatus.js";
 export type { InvestigationUpdate } from "./InvestigationUpdate.js";
+export type { InvestigationWaiver } from "./InvestigationWaiver.js";
 export type { InvitationAccept } from "./InvitationAccept.js";
 export type { InvitationCreate } from "./InvitationCreate.js";
 export type { InvitationPublic } from "./InvitationPublic.js";

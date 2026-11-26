@@ -321,8 +321,13 @@ class ContributingFactor(Base):
 
     __tablename__ = "contributing_factor"
     __table_args__ = (
-        sa.UniqueConstraint(
-            "organisation_id", "programme", "name", name="contributing_factor_name"
+        # Names are unique per programme, ignoring case.
+        sa.Index(
+            "contributing_factor_name",
+            "organisation_id",
+            "programme",
+            sa.text("lower(name)"),
+            unique=True,
         ),
         # The target of the investigation's composite foreign key.
         sa.UniqueConstraint(
@@ -347,9 +352,29 @@ class ContributingFactor(Base):
     category: Mapped[str] = mapped_column(String(20))
     name: Mapped[str] = mapped_column(String(120))
     is_active: Mapped[bool] = mapped_column(default=True)
-    created_by: Mapped[uuid.UUID]
+    #: Null for a starting-list entry written by the system.
+    created_by: Mapped[uuid.UUID | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class FactorSeed(Base):
+    """Marks that an organisation's programme has its starting factor list. Written
+    on a write path only, so a read never writes."""
+
+    __tablename__ = "factor_seed"
+    __table_args__ = (
+        sa.CheckConstraint(_PROGRAMME_CHECK, name="programme"),
+        {"schema": SCHEMA},
+    )
+
+    organisation_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey("org.organisation.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    programme: Mapped[str] = mapped_column(String(30), primary_key=True)
+    seeded_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
 class CaseInvestigation(Base):
@@ -411,7 +436,13 @@ class CaseInvestigation(Base):
     #: Approver of an approved investigation, or the decider of a not-needed one.
     decided_by: Mapped[uuid.UUID | None]
     decided_at: Mapped[datetime | None]
+    #: Who opened the investigation, and who last changed it or submitted it. The
+    #: approver must be none of the three (separation of duties).
     created_by: Mapped[uuid.UUID]
+    last_edited_by: Mapped[uuid.UUID]
+    #: Every user who has written the content (strings of user ids): none of them may
+    #: approve or return the investigation, however many edits came after theirs.
+    editor_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
@@ -450,3 +481,7 @@ class CaseInvestigationFactor(Base):
     factor_id: Mapped[str] = mapped_column(String(100), primary_key=True)
     organisation_id: Mapped[str] = mapped_column(String(100))
     programme: Mapped[str] = mapped_column(String(30))
+    #: The factor's name and category as they were when the investigation was
+    #: approved (refreshed then), so a later rename does not change a decided record.
+    name_snapshot: Mapped[str] = mapped_column(String(120))
+    category_snapshot: Mapped[str] = mapped_column(String(20))

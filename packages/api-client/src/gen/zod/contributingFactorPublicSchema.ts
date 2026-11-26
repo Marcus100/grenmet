@@ -6,12 +6,17 @@
 import * as z from "zod";
 import { factorCategorySchema } from "./factorCategorySchema.js";
 
-export const contributingFactorPublicSchema = z.object({
-  id: z.string(),
-  category: factorCategorySchema.describe(
-    "Categories of contributing factor, after ICAO Doc 9859 and the SHELL model."
-  ),
-  name: z.string(),
-  is_active: z.boolean(),
-  updated_at: z.iso.datetime(),
-});
+export const contributingFactorPublicSchema = z
+  .object({
+    id: z.union([z.string(), z.null()]),
+    category: factorCategorySchema.describe(
+      "Categories of contributing factor, after ICAO Doc 9859 and the SHELL model."
+    ),
+    name: z.string(),
+    is_active: z.boolean(),
+    is_default_suggestion: z.boolean().optional().default(false),
+    updated_at: z.union([z.iso.datetime(), z.null()]),
+  })
+  .describe(
+    "A factor on the programme's list. Before anything is written, the list shows\nthe starting suggestions: they have no ``id``, cannot be chosen, and carry\n``is_default_suggestion`` true. Writing any factor or investigation stores them."
+  );

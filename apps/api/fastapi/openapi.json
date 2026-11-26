@@ -80843,7 +80843,7 @@
           "cases"
         ],
         "summary": "List the contributing factors",
-        "description": "The programme's list, retired entries included (`is_active` false). The first read writes the starting list (ICAO Doc 9859 categories) for this organisation.",
+        "description": "The programme's list, retired entries included (`is_active` false). Until the organisation first writes a factor or an investigation, the list is the starting suggestions: items with `is_default_suggestion` true and no `id`. They cannot be chosen. This route never writes.",
         "operationId": "casesListContributingFactors",
         "security": [
           {
@@ -80955,7 +80955,7 @@
           "cases"
         ],
         "summary": "Add a contributing factor",
-        "description": "Names are unique within the programme, ignoring case.",
+        "description": "Names are unique within the programme, ignoring case. The first write seeds the starting list before this factor is added.",
         "operationId": "casesCreateContributingFactor",
         "security": [
           {
@@ -81085,7 +81085,7 @@
           "cases"
         ],
         "summary": "Change a contributing factor",
-        "description": "Rename, recategorise or retire (`is_active` false). A retired factor stays on the investigations that chose it but cannot be chosen again.",
+        "description": "Rename, recategorise or retire (`is_active` false). A retired factor stays on the investigations that chose it but cannot be newly chosen. Decided investigations keep the name they had at approval.",
         "operationId": "casesUpdateContributingFactor",
         "security": [
           {
@@ -81099,8 +81099,12 @@
             "required": true,
             "schema": {
               "type": "string",
+              "maxLength": 20,
+              "pattern": "^cfa_[0-9a-f]{16}$",
+              "description": "A factor id.",
               "title": "Factor Id"
-            }
+            },
+            "description": "A factor id."
           },
           {
             "name": "programme",
@@ -81341,7 +81345,7 @@
           "cases"
         ],
         "summary": "Write the investigation of a case",
-        "description": "Creates it on first use and changes only the fields sent. The case must be investigating; the investigation must be a draft. `why_steps` (up to five) and `contributing_factor_ids` (active factors of this programme) replace their lists.",
+        "description": "Creates it on first use and changes only the fields sent. The case must be investigating; the investigation must be a draft. `why_steps` (up to five) and `contributing_factor_ids` (factors of this programme; a factor already chosen stays valid if since retired) replace their lists. The first write seeds the starting factor list.",
         "operationId": "casesUpdateInvestigation",
         "security": [
           {
@@ -81480,7 +81484,7 @@
           "cases"
         ],
         "summary": "Submit the investigation for approval",
-        "description": "Needs what happened, at least one why with every answer, and a root cause. The submitter cannot approve or return it.",
+        "description": "Needs what happened, at least one why with every answer, and a root cause. Whoever submits cannot approve or return it.",
         "operationId": "casesSubmitInvestigation",
         "security": [
           {
@@ -81609,7 +81613,7 @@
           "cases"
         ],
         "summary": "Approve the investigation",
-        "description": "Needs the approve key and someone other than the submitter. An approved investigation is read-only until the case is reopened.",
+        "description": "Needs the approve key. Refused to anyone who created, last edited or submitted the investigation. An approved investigation is read-only until the case is reopened.",
         "operationId": "casesApproveInvestigation",
         "security": [
           {
@@ -81738,7 +81742,7 @@
           "cases"
         ],
         "summary": "Return the investigation to draft, with a reason",
-        "description": "Needs the approve key and someone other than the submitter. The reason is kept on the investigation and in its audit history.",
+        "description": "Needs the approve key, and the same separation as approval. The reason is kept on the investigation and in its audit history.",
         "operationId": "casesReturnInvestigation",
         "security": [
           {
@@ -81792,7 +81796,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InvestigationDecision"
+                "$ref": "#/components/schemas/InvestigationReturn"
               }
             }
           }
@@ -81871,14 +81875,14 @@
         }
       }
     },
-    "/api/v1/cases/org/{programme}/cases/{case_id}/investigation/no-investigation": {
+    "/api/v1/cases/org/{programme}/cases/{case_id}/investigation/waiver": {
       "post": {
         "tags": [
           "cases"
         ],
-        "summary": "Record that no investigation is needed",
-        "description": "Needs the approve key and a reason. Allowed while the case is assessing or investigating. It lets the case move on to actions, as an approved investigation does.",
-        "operationId": "casesDecideNoInvestigation",
+        "summary": "Record that no investigation is needed (waiver)",
+        "description": "Needs the approve key and a reason, and a case assessing or investigating. Refused when the caller created, edited or submitted the investigation, or when the draft already has content: it is for a case that needs none. Lets the case move on to actions, as an approved investigation does.",
+        "operationId": "casesWaiveInvestigation",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -81931,7 +81935,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InvestigationDecision"
+                "$ref": "#/components/schemas/InvestigationWaiver"
               }
             }
           }
@@ -98322,7 +98326,14 @@
       "ContributingFactorPublic": {
         "properties": {
           "id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Id"
           },
           "category": {
@@ -98336,9 +98347,21 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "is_default_suggestion": {
+            "type": "boolean",
+            "title": "Is Default Suggestion",
+            "default": false
+          },
           "updated_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Updated At"
           }
         },
@@ -98350,7 +98373,8 @@
           "is_active",
           "updated_at"
         ],
-        "title": "ContributingFactorPublic"
+        "title": "ContributingFactorPublic",
+        "description": "A factor on the programme's list. Before anything is written, the list shows\nthe starting suggestions: they have no ``id``, cannot be chosen, and carry\n``is_default_suggestion`` true. Writing any factor or investigation stores them."
       },
       "ContributingFactorUpdate": {
         "properties": {
@@ -106496,21 +106520,33 @@
         ],
         "title": "IntentStatus"
       },
-      "InvestigationDecision": {
+      "InvestigationFactorPublic": {
         "properties": {
-          "reason": {
+          "id": {
             "type": "string",
-            "maxLength": 1000,
-            "minLength": 1,
-            "title": "Reason"
+            "title": "Id"
+          },
+          "category": {
+            "$ref": "#/components/schemas/FactorCategory"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
           }
         },
         "type": "object",
         "required": [
-          "reason"
+          "id",
+          "category",
+          "name",
+          "is_active"
         ],
-        "title": "InvestigationDecision",
-        "description": "The reason for returning an investigation or for deciding that none is needed."
+        "title": "InvestigationFactorPublic",
+        "description": "A factor chosen for an investigation. For an approved or not-needed one, name\nand category are as they were at approval; ``is_active`` is current."
       },
       "InvestigationPublic": {
         "properties": {
@@ -106578,7 +106614,7 @@
           },
           "contributing_factors": {
             "items": {
-              "$ref": "#/components/schemas/ContributingFactorPublic"
+              "$ref": "#/components/schemas/InvestigationFactorPublic"
             },
             "type": "array",
             "title": "Contributing Factors"
@@ -106712,6 +106748,22 @@
         ],
         "title": "InvestigationPublic"
       },
+      "InvestigationReturn": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "InvestigationReturn",
+        "description": "Why an investigation goes back to draft. Kept on the record."
+      },
       "InvestigationStatus": {
         "type": "string",
         "enum": [
@@ -106807,6 +106859,22 @@
         "type": "object",
         "title": "InvestigationUpdate",
         "description": "Only the fields sent change. ``why_steps`` and ``contributing_factor_ids``\nreplace the whole list when sent. Only a draft changes."
+      },
+      "InvestigationWaiver": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "InvestigationWaiver",
+        "description": "Why no investigation is needed. Only for a case that needs none: never for\nan investigation with written content, or one the caller created, edited or\nsubmitted."
       },
       "InvitationAccept": {
         "properties": {

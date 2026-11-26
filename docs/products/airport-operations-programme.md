@@ -128,8 +128,8 @@ One engine, several programmes, each its own entitlement and permissions.
   default), before and after controls, with acceptance recorded.
 - Investigation: what happened, unsafe acts or conditions, contributing
   factors list, "5 whys" root cause, management approval. Built in the API
-  (draft, submit, approve or return with a reason, no-investigation decision,
-  per-programme factor list). Not yet: confidential investigations, the web screens.
+  (draft, submit, approve or return with a reason, waiver, per-programme
+  factor list). Not yet: confidential investigations, the web screens.
 - Corrective actions, short and long term, each with owner, due date,
   progress, evidence and an optional work order; plan approval and reminders.
 - Hazard register with controls and responsible people; copy the last

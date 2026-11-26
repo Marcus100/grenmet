@@ -271,9 +271,9 @@ Totals: 737 paths and 889 operations.
 | GET | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation` | org | yes | Read the investigation of a case | `casesGetInvestigation` |
 | PATCH | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation` | org | yes | Write the investigation of a case | `casesUpdateInvestigation` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation/approve` | org | yes | Approve the investigation | `casesApproveInvestigation` |
-| POST | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation/no-investigation` | org | yes | Record that no investigation is needed | `casesDecideNoInvestigation` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation/return` | org | yes | Return the investigation to draft, with a reason | `casesReturnInvestigation` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation/submit` | org | yes | Submit the investigation for approval | `casesSubmitInvestigation` |
+| POST | `/api/v1/cases/org/{programme}/cases/{case_id}/investigation/waiver` | org | yes | Record that no investigation is needed (waiver) | `casesWaiveInvestigation` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/risk-assessments` | org | yes | Assess the risk of a case | `casesCreateRiskAssessment` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/risk-assessments/{assessment_id}/acceptance` | org | yes | Accept a tolerable residual risk | `casesAcceptRisk` |
 | POST | `/api/v1/cases/org/{programme}/cases/{case_id}/status` | org | yes | Move a case to another stage | `casesChangeCaseStatus` |

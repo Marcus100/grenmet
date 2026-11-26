@@ -11,7 +11,7 @@ import type {
 } from "../models/CasesCreateContributingFactor.js";
 
 /**
- * @description Names are unique within the programme, ignoring case.
+ * @description Names are unique within the programme, ignoring case. The first write seeds the starting list before this factor is added.
  * @summary Add a contributing factor
  * {@link /api/v1/cases/org/:programme/contributing-factors}
  */

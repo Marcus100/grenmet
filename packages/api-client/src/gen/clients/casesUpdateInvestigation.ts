@@ -11,7 +11,7 @@ import type {
 } from "../models/CasesUpdateInvestigation.js";
 
 /**
- * @description Creates it on first use and changes only the fields sent. The case must be investigating; the investigation must be a draft. `why_steps` (up to five) and `contributing_factor_ids` (active factors of this programme) replace their lists.
+ * @description Creates it on first use and changes only the fields sent. The case must be investigating; the investigation must be a draft. `why_steps` (up to five) and `contributing_factor_ids` (factors of this programme; a factor already chosen stays valid if since retired) replace their lists. The first write seeds the starting factor list.
  * @summary Write the investigation of a case
  * {@link /api/v1/cases/org/:programme/cases/:case_id/investigation}
  */

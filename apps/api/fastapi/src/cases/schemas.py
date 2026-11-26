@@ -3,7 +3,7 @@
 import uuid
 from datetime import date
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from src.models import BaseModel, UtcDateTime
 
@@ -206,11 +206,16 @@ class ContributingFactorUpdate(BaseModel):
 
 
 class ContributingFactorPublic(BaseModel):
-    id: str
+    """A factor on the programme's list. Before anything is written, the list shows
+    the starting suggestions: they have no ``id``, cannot be chosen, and carry
+    ``is_default_suggestion`` true. Writing any factor or investigation stores them."""
+
+    id: str | None
     category: FactorCategory
     name: str
     is_active: bool
-    updated_at: UtcDateTime
+    is_default_suggestion: bool = False
+    updated_at: UtcDateTime | None
 
 
 class WhyStep(BaseModel):
@@ -219,6 +224,29 @@ class WhyStep(BaseModel):
 
     question: str = Field(min_length=1, max_length=500)
     answer: str = Field(default="", max_length=2000)
+
+    @field_validator("question")
+    @classmethod
+    def _question_has_text(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("A why needs a question")
+        return cleaned
+
+    @field_validator("answer")
+    @classmethod
+    def _strip_answer(cls, value: str) -> str:
+        return value.strip()
+
+
+class InvestigationFactorPublic(BaseModel):
+    """A factor chosen for an investigation. For an approved or not-needed one, name
+    and category are as they were at approval; ``is_active`` is current."""
+
+    id: str
+    category: FactorCategory
+    name: str
+    is_active: bool
 
 
 class InvestigationUpdate(BaseModel):
@@ -233,8 +261,16 @@ class InvestigationUpdate(BaseModel):
     contributing_factor_ids: list[str] | None = Field(default=None, max_length=50)
 
 
-class InvestigationDecision(BaseModel):
-    """The reason for returning an investigation or for deciding that none is needed."""
+class InvestigationReturn(BaseModel):
+    """Why an investigation goes back to draft. Kept on the record."""
+
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class InvestigationWaiver(BaseModel):
+    """Why no investigation is needed. Only for a case that needs none: never for
+    an investigation with written content, or one the caller created, edited or
+    submitted."""
 
     reason: str = Field(min_length=1, max_length=1000)
 
@@ -248,7 +284,7 @@ class InvestigationPublic(BaseModel):
     unsafe_conditions: str | None
     why_steps: list[WhyStep]
     root_cause: str | None
-    contributing_factors: list[ContributingFactorPublic]
+    contributing_factors: list[InvestigationFactorPublic]
     no_investigation_reason: str | None
     return_reason: str | None
     returned_by: uuid.UUID | None

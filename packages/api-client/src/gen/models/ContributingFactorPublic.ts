@@ -5,8 +5,14 @@
 
 import type { FactorCategory } from "./FactorCategory.js";
 
+/**
+ * @description A factor on the programme's list. Before anything is written, the list shows
+ * the starting suggestions: they have no ``id``, cannot be chosen, and carry
+ * ``is_default_suggestion`` true. Writing any factor or investigation stores them.
+ * @type object
+ */
 export type ContributingFactorPublic = {
-  id: string;
+  id: string | null;
   /**
    * @description Categories of contributing factor, after ICAO Doc 9859 and the SHELL model.
    * @type string
@@ -15,9 +21,9 @@ export type ContributingFactorPublic = {
   name: string;
   is_active: boolean;
   /**
-   * @description
-   * Format: `date-time`
-   * @type string
+   * @default false
+   * @type boolean | undefined
    */
-  updated_at: string;
+  is_default_suggestion?: boolean;
+  updated_at: string | null;
 };

@@ -16,6 +16,7 @@ from .models import (
     CaseRiskAssessment,
     CaseRiskGrid,
     ContributingFactor,
+    FactorSeed,
 )
 
 SUBJECT = "platform_organisation"
@@ -71,4 +72,11 @@ def register() -> None:
         entity_type=SUBJECT,
         entity_id_attr="organisation_id",
         label="Contributing factor",
+    )
+    registry.track(
+        FactorSeed,
+        record_type="case_factor_seed",
+        entity_type=SUBJECT,
+        entity_id_attr="organisation_id",
+        label="Contributing factor list seed",
     )

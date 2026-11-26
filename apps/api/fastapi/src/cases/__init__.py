@@ -10,7 +10,7 @@ superuser bypass.
 - Tables in the ``cases`` schema (migrations ``2026-11-26_cases.py`` and
   ``2026-11-26_cases_investigation.py``): ``risk_grid``, ``counter``, ``case``,
   ``risk_assessment``, ``action``, ``contributing_factor``, ``investigation``,
-  ``investigation_factor``. Every table carries
+  ``investigation_factor``, ``factor_seed``. Every table carries
   ``organisation_id`` and ``programme``; children point at their case with a
   composite key on all three. ``programme`` is text with a check.
 - Risk (``risk.py``): the default grid is the ICAO Doc 9859 example (5 by 5, index
@@ -34,8 +34,11 @@ superuser bypass.
   holder who did not submit it. Approved and not-needed investigations are read-only;
   reopening the case returns them to draft. Contributing factors are an
   organisation's programme list (seeded from ICAO Doc 9859 categories on first read),
-  managed with ``settings.manage``. Moving to ``actions`` needs an approved or
-  not-needed investigation; a not-needed decision needs a reason and the approve key.
+  managed with ``settings.manage``; reads never write (suggestions until the first
+  write seeds the list). Creator, editors and submitter may not approve or return
+  (``editor_ids``). Moving to ``actions`` needs an approved or not-needed investigation;
+  the waiver (not needed) needs a reason, the approve key and an empty draft. Decided
+  investigations keep the factor names of approval. Reopening resets the draft.
   Investigation text is audited as sensitive.
 - A case may name the record it came from (``source``, ``(kind, id)``); the
   reporter must be able to see it (``src/record_links.py``). ``cases.case`` is

@@ -4,7 +4,7 @@
  */
 
 import * as z from "zod";
-import { contributingFactorPublicSchema } from "./contributingFactorPublicSchema.js";
+import { investigationFactorPublicSchema } from "./investigationFactorPublicSchema.js";
 import { investigationStatusSchema } from "./investigationStatusSchema.js";
 import { whyStepSchema } from "./whyStepSchema.js";
 
@@ -19,7 +19,7 @@ export const investigationPublicSchema = z.object({
   unsafe_conditions: z.union([z.string(), z.null()]),
   why_steps: z.array(whyStepSchema),
   root_cause: z.union([z.string(), z.null()]),
-  contributing_factors: z.array(contributingFactorPublicSchema),
+  contributing_factors: z.array(investigationFactorPublicSchema),
   no_investigation_reason: z.union([z.string(), z.null()]),
   return_reason: z.union([z.string(), z.null()]),
   returned_by: z.union([z.uuid(), z.null()]),

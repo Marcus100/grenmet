@@ -59,7 +59,7 @@ export function casesSubmitInvestigationMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Needs what happened, at least one why with every answer, and a root cause. The submitter cannot approve or return it.
+ * @description Needs what happened, at least one why with every answer, and a root cause. Whoever submits cannot approve or return it.
  * @summary Submit the investigation for approval
  * {@link /api/v1/cases/org/:programme/cases/:case_id/investigation/submit}
  */

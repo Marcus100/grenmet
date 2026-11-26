@@ -66,7 +66,7 @@ export function casesListContributingFactorsQueryOptions(
 }
 
 /**
- * @description The programme's list, retired entries included (`is_active` false). The first read writes the starting list (ICAO Doc 9859 categories) for this organisation.
+ * @description The programme's list, retired entries included (`is_active` false). Until the organisation first writes a factor or an investigation, the list is the starting suggestions: items with `is_default_suggestion` true and no `id`. They cannot be chosen. This route never writes.
  * @summary List the contributing factors
  * {@link /api/v1/cases/org/:programme/contributing-factors}
  */

@@ -1089,11 +1089,6 @@ export {
   useCasesCreateRiskAssessment,
 } from "./useCasesCreateRiskAssessment.js";
 export {
-  casesDecideNoInvestigationMutationKey,
-  casesDecideNoInvestigationMutationOptions,
-  useCasesDecideNoInvestigation,
-} from "./useCasesDecideNoInvestigation.js";
-export {
   casesGetCaseQueryKey,
   casesGetCaseQueryOptions,
   useCasesGetCase,
@@ -1153,6 +1148,11 @@ export {
   casesUpdateInvestigationMutationOptions,
   useCasesUpdateInvestigation,
 } from "./useCasesUpdateInvestigation.js";
+export {
+  casesWaiveInvestigationMutationKey,
+  casesWaiveInvestigationMutationOptions,
+  useCasesWaiveInvestigation,
+} from "./useCasesWaiveInvestigation.js";
 export {
   contactSendContactMessageMutationKey,
   contactSendContactMessageMutationOptions,

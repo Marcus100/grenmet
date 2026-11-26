@@ -23,7 +23,9 @@ export const casesCreateContributingFactorHeaderXBarrelsOrganisationSchema = z
   );
 
 export const casesCreateContributingFactorStatus201Schema =
-  contributingFactorPublicSchema;
+  contributingFactorPublicSchema.describe(
+    "A factor on the programme's list. Before anything is written, the list shows\nthe starting suggestions: they have no ``id``, cannot be chosen, and carry\n``is_default_suggestion`` true. Writing any factor or investigation stores them."
+  );
 
 export const casesCreateContributingFactorStatus400Schema =
   apiErrorSchema.describe("Stable error envelope for documented API failures.");

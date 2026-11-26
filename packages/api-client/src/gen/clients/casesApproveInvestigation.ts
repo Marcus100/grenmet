@@ -11,7 +11,7 @@ import type {
 } from "../models/CasesApproveInvestigation.js";
 
 /**
- * @description Needs the approve key and someone other than the submitter. An approved investigation is read-only until the case is reopened.
+ * @description Needs the approve key. Refused to anyone who created, last edited or submitted the investigation. An approved investigation is read-only until the case is reopened.
  * @summary Approve the investigation
  * {@link /api/v1/cases/org/:programme/cases/:case_id/investigation/approve}
  */

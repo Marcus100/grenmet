@@ -4,10 +4,10 @@
  */
 
 /**
- * @description The reason for returning an investigation or for deciding that none is needed.
+ * @description Why an investigation goes back to draft. Kept on the record.
  * @type object
  */
-export type InvestigationDecision = {
+export type InvestigationReturn = {
   /**
    * @minLength 1
    * @maxLength 1000

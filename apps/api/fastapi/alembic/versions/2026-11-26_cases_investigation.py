@@ -1,6 +1,7 @@
 """Case engine: investigation, contributing factors and their links (ADR-0069 decision 5).
 
-Additive: three new tables in the existing ``cases`` schema. Nothing existing changes.
+Additive: four new tables (factor_seed included) in the existing ``cases`` schema.
+Nothing existing changes.
 Hand-written so every constraint and index name is explicit.
 
 Revision ID: casesinvestigation20261126
@@ -39,7 +40,7 @@ def upgrade() -> None:
         sa.Column("category", sa.String(20), nullable=False),
         sa.Column("name", sa.String(120), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("created_by", sa.Uuid(), nullable=False),
+        sa.Column("created_by", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -47,9 +48,6 @@ def upgrade() -> None:
             [_ORG],
             name=op.f("contributing_factor_organisation_id_fkey"),
             ondelete="CASCADE",
-        ),
-        sa.UniqueConstraint(
-            "organisation_id", "programme", "name", name="contributing_factor_name"
         ),
         sa.UniqueConstraint(
             "id",
@@ -75,6 +73,31 @@ def upgrade() -> None:
         ["organisation_id"],
         schema=SCHEMA,
     )
+    # Names are unique per programme, ignoring case.
+    op.create_index(
+        "contributing_factor_name",
+        "contributing_factor",
+        ["organisation_id", "programme", sa.text("lower(name)")],
+        unique=True,
+        schema=SCHEMA,
+    )
+    op.create_table(
+        "factor_seed",
+        sa.Column("organisation_id", sa.String(100), nullable=False),
+        sa.Column("programme", sa.String(30), nullable=False),
+        sa.Column("seeded_at", sa.DateTime(), nullable=False),
+        sa.PrimaryKeyConstraint(
+            "organisation_id", "programme", name=op.f("factor_seed_pkey")
+        ),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("factor_seed_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
+        sa.CheckConstraint(_PROGRAMME, name=op.f("factor_seed_programme_check")),
+        schema=SCHEMA,
+    )
     op.create_table(
         "investigation",
         sa.Column("id", sa.String(100), primary_key=True),
@@ -96,6 +119,8 @@ def upgrade() -> None:
         sa.Column("decided_by", sa.Uuid(), nullable=True),
         sa.Column("decided_at", sa.DateTime(), nullable=True),
         sa.Column("created_by", sa.Uuid(), nullable=False),
+        sa.Column("last_edited_by", sa.Uuid(), nullable=False),
+        sa.Column("editor_ids", postgresql.JSONB(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -144,6 +169,8 @@ def upgrade() -> None:
         sa.Column("factor_id", sa.String(100), nullable=False),
         sa.Column("organisation_id", sa.String(100), nullable=False),
         sa.Column("programme", sa.String(30), nullable=False),
+        sa.Column("name_snapshot", sa.String(120), nullable=False),
+        sa.Column("category_snapshot", sa.String(20), nullable=False),
         sa.PrimaryKeyConstraint(
             "investigation_id", "factor_id", name=op.f("investigation_factor_pkey")
         ),
@@ -176,4 +203,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("investigation_factor", schema=SCHEMA)
     op.drop_table("investigation", schema=SCHEMA)
+    op.drop_table("factor_seed", schema=SCHEMA)
     op.drop_table("contributing_factor", schema=SCHEMA)

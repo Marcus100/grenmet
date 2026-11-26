@@ -5,8 +5,8 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
-import { investigationDecisionSchema } from "./investigationDecisionSchema.js";
 import { investigationPublicSchema } from "./investigationPublicSchema.js";
+import { investigationReturnSchema } from "./investigationReturnSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const casesReturnInvestigationPathCaseIdSchema = z.string();
@@ -65,8 +65,8 @@ export const casesReturnInvestigationErrorSchema = z.union([
 ]);
 
 export const casesReturnInvestigationBodySchema =
-  investigationDecisionSchema.describe(
-    "The reason for returning an investigation or for deciding that none is needed."
+  investigationReturnSchema.describe(
+    "Why an investigation goes back to draft. Kept on the record."
   );
 
 export const casesReturnInvestigationPathSchema = z.object({

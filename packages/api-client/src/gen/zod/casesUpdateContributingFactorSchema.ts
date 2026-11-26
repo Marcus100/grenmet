@@ -9,7 +9,11 @@ import { contributingFactorPublicSchema } from "./contributingFactorPublicSchema
 import { contributingFactorUpdateSchema } from "./contributingFactorUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const casesUpdateContributingFactorPathFactorIdSchema = z.string();
+export const casesUpdateContributingFactorPathFactorIdSchema = z
+  .string()
+  .max(20)
+  .regex(/^cfa_[0-9a-f]{16}$/)
+  .describe("A factor id.");
 
 export const casesUpdateContributingFactorPathProgrammeSchema = z
   .string()
@@ -25,7 +29,9 @@ export const casesUpdateContributingFactorHeaderXBarrelsOrganisationSchema = z
   );
 
 export const casesUpdateContributingFactorStatus200Schema =
-  contributingFactorPublicSchema;
+  contributingFactorPublicSchema.describe(
+    "A factor on the programme's list. Before anything is written, the list shows\nthe starting suggestions: they have no ``id``, cannot be chosen, and carry\n``is_default_suggestion`` true. Writing any factor or investigation stores them."
+  );
 
 export const casesUpdateContributingFactorStatus400Schema =
   apiErrorSchema.describe("Stable error envelope for documented API failures.");
@@ -65,7 +71,11 @@ export const casesUpdateContributingFactorBodySchema =
   );
 
 export const casesUpdateContributingFactorPathSchema = z.object({
-  factor_id: z.string(),
+  factor_id: z
+    .string()
+    .max(20)
+    .regex(/^cfa_[0-9a-f]{16}$/)
+    .describe("A factor id."),
   programme: z
     .string()
     .max(40)

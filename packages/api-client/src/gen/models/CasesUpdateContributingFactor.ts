@@ -9,6 +9,12 @@ import type { ContributingFactorUpdate } from "./ContributingFactorUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CasesUpdateContributingFactorPath = {
+  /**
+   * @description A factor id.
+   * @maxLength 20
+   * @pattern ^cfa_[0-9a-f]{16}$
+   * @type string
+   */
   factor_id: string;
   /**
    * @description The programme: safety.
@@ -26,6 +32,12 @@ export type CasesUpdateContributingFactorHeaders = {
   "X-Barrels-Organisation"?: string | null;
 };
 
+/**
+ * @description A factor on the programme's list. Before anything is written, the list shows
+ * the starting suggestions: they have no ``id``, cannot be chosen, and carry
+ * ``is_default_suggestion`` true. Writing any factor or investigation stores them.
+ * @type object
+ */
 export type CasesUpdateContributingFactorStatus200 = ContributingFactorPublic;
 
 /**

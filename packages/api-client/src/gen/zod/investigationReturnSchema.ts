@@ -5,10 +5,8 @@
 
 import * as z from "zod";
 
-export const investigationDecisionSchema = z
+export const investigationReturnSchema = z
   .object({
     reason: z.string().min(1).max(1000),
   })
-  .describe(
-    "The reason for returning an investigation or for deciding that none is needed."
-  );
+  .describe("Why an investigation goes back to draft. Kept on the record.");

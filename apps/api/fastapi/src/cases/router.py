@@ -10,7 +10,7 @@ bypass. Only ``safety`` exists today. Routers commit; service functions flush.
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 
 from src import record_links
 from src.dependencies import SessionDep
@@ -55,9 +55,11 @@ from .schemas import (
     ContributingFactorCreate,
     ContributingFactorPublic,
     ContributingFactorUpdate,
-    InvestigationDecision,
+    InvestigationFactorPublic,
     InvestigationPublic,
+    InvestigationReturn,
     InvestigationUpdate,
+    InvestigationWaiver,
     WhyStep,
 )
 
@@ -175,6 +177,13 @@ async def _links(
     )
 
 
+#: A factor id as the service issues it: ``cfa_`` and 16 hex characters.
+FactorId = Annotated[
+    str,
+    Path(pattern=r"^cfa_[0-9a-f]{16}$", max_length=20, description="A factor id."),
+]
+
+
 def _factor(row: ContributingFactor) -> ContributingFactorPublic:
     return ContributingFactorPublic(
         id=row.id,
@@ -182,6 +191,17 @@ def _factor(row: ContributingFactor) -> ContributingFactorPublic:
         name=row.name,
         is_active=row.is_active,
         updated_at=row.updated_at,
+    )
+
+
+def _suggestion(category: FactorCategory, name: str) -> ContributingFactorPublic:
+    return ContributingFactorPublic(
+        id=None,
+        category=category,
+        name=name,
+        is_active=True,
+        is_default_suggestion=True,
+        updated_at=None,
     )
 
 
@@ -196,7 +216,15 @@ def _investigation(view: service.InvestigationView) -> InvestigationPublic:
         unsafe_conditions=row.unsafe_conditions,
         why_steps=[WhyStep(**step) for step in row.why_steps],
         root_cause=row.root_cause,
-        contributing_factors=[_factor(f) for f in view.factors],
+        contributing_factors=[
+            InvestigationFactorPublic(
+                id=f.factor_id,
+                category=FactorCategory(f.category),
+                name=f.name,
+                is_active=f.is_active,
+            )
+            for f in view.factors
+        ],
         no_investigation_reason=row.no_investigation_reason,
         return_reason=row.return_reason,
         returned_by=row.returned_by,
@@ -589,26 +617,30 @@ async def change_action_status(
     response_model=list[ContributingFactorPublic],
     summary="List the contributing factors",
     description=(
-        "The programme's list, retired entries included (`is_active` false). The "
-        "first read writes the starting list (ICAO Doc 9859 categories) for this "
-        "organisation."
+        "The programme's list, retired entries included (`is_active` false). Until the "
+        "organisation first writes a factor or an investigation, the list is the "
+        "starting suggestions: items with `is_default_suggestion` true and no `id`. "
+        "They cannot be chosen. This route never writes."
     ),
     operation_id="casesListContributingFactors",
     responses=READ_ERRORS,
 )
 async def list_contributing_factors(*, session: SessionDep, context: CaseReader) -> Any:
-    await service.ensure_default_factors(
+    seeded = await service.is_seeded(
         session,
         organisation_id=context.organisation_id,
         programme=context.programme,
-        actor=context.org.user,
     )
+    if not seeded:
+        return [
+            _suggestion(category, name)
+            for category, name in service.DEFAULT_CONTRIBUTING_FACTORS
+        ]
     rows = await service.list_factors(
         session,
         organisation_id=context.organisation_id,
         programme=context.programme,
     )
-    await session.commit()
     return [_factor(row) for row in rows]
 
 
@@ -617,7 +649,10 @@ async def list_contributing_factors(*, session: SessionDep, context: CaseReader)
     response_model=ContributingFactorPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Add a contributing factor",
-    description="Names are unique within the programme, ignoring case.",
+    description=(
+        "Names are unique within the programme, ignoring case. The first write seeds "
+        "the starting list before this factor is added."
+    ),
     operation_id="casesCreateContributingFactor",
     responses=WRITE_ERRORS,
 )
@@ -641,7 +676,8 @@ async def create_contributing_factor(
     summary="Change a contributing factor",
     description=(
         "Rename, recategorise or retire (`is_active` false). A retired factor stays "
-        "on the investigations that chose it but cannot be chosen again."
+        "on the investigations that chose it but cannot be newly chosen. Decided "
+        "investigations keep the name they had at approval."
     ),
     operation_id="casesUpdateContributingFactor",
     responses=WRITE_ERRORS,
@@ -650,7 +686,7 @@ async def update_contributing_factor(
     *,
     session: SessionDep,
     context: CaseSettings,
-    factor_id: str,
+    factor_id: FactorId,
     payload: ContributingFactorUpdate,
 ) -> Any:
     factor = await service.update_factor(
@@ -694,8 +730,9 @@ async def get_investigation(
     description=(
         "Creates it on first use and changes only the fields sent. The case must be "
         "investigating; the investigation must be a draft. `why_steps` (up to five) "
-        "and `contributing_factor_ids` (active factors of this programme) replace "
-        "their lists."
+        "and `contributing_factor_ids` (factors of this programme; a factor already "
+        "chosen stays valid if since retired) replace their lists. The first write "
+        "seeds the starting factor list."
     ),
     operation_id="casesUpdateInvestigation",
     responses=WRITE_ERRORS,
@@ -725,7 +762,7 @@ async def update_investigation(
     summary="Submit the investigation for approval",
     description=(
         "Needs what happened, at least one why with every answer, and a root cause. "
-        "The submitter cannot approve or return it."
+        "Whoever submits cannot approve or return it."
     ),
     operation_id="casesSubmitInvestigation",
     responses=WRITE_ERRORS,
@@ -749,8 +786,9 @@ async def submit_investigation(
     response_model=InvestigationPublic,
     summary="Approve the investigation",
     description=(
-        "Needs the approve key and someone other than the submitter. An approved "
-        "investigation is read-only until the case is reopened."
+        "Needs the approve key. Refused to anyone who created, last edited or "
+        "submitted the investigation. An approved investigation is read-only until "
+        "the case is reopened."
     ),
     operation_id="casesApproveInvestigation",
     responses=WRITE_ERRORS,
@@ -774,7 +812,7 @@ async def approve_investigation(
     response_model=InvestigationPublic,
     summary="Return the investigation to draft, with a reason",
     description=(
-        "Needs the approve key and someone other than the submitter. The reason is "
+        "Needs the approve key, and the same separation as approval. The reason is "
         "kept on the investigation and in its audit history."
     ),
     operation_id="casesReturnInvestigation",
@@ -785,7 +823,7 @@ async def return_investigation(
     session: SessionDep,
     context: CaseApprover,
     case_id: str,
-    payload: InvestigationDecision,
+    payload: InvestigationReturn,
 ) -> Any:
     view = await service.return_investigation(
         session,
@@ -800,25 +838,26 @@ async def return_investigation(
 
 
 @router.post(
-    "/cases/{case_id}/investigation/no-investigation",
+    "/cases/{case_id}/investigation/waiver",
     response_model=InvestigationPublic,
-    summary="Record that no investigation is needed",
+    summary="Record that no investigation is needed (waiver)",
     description=(
-        "Needs the approve key and a reason. Allowed while the case is assessing or "
-        "investigating. It lets the case move on to actions, as an approved "
-        "investigation does."
+        "Needs the approve key and a reason, and a case assessing or investigating. "
+        "Refused when the caller created, edited or submitted the investigation, or "
+        "when the draft already has content: it is for a case that needs none. Lets "
+        "the case move on to actions, as an approved investigation does."
     ),
-    operation_id="casesDecideNoInvestigation",
+    operation_id="casesWaiveInvestigation",
     responses=WRITE_ERRORS,
 )
-async def decide_no_investigation(
+async def waive_investigation(
     *,
     session: SessionDep,
     context: CaseApprover,
     case_id: str,
-    payload: InvestigationDecision,
+    payload: InvestigationWaiver,
 ) -> Any:
-    view = await service.decide_no_investigation(
+    view = await service.waive_investigation(
         session,
         organisation_id=context.organisation_id,
         programme=context.programme,

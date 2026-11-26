@@ -11,7 +11,7 @@ import type {
 } from "../models/CasesReturnInvestigation.js";
 
 /**
- * @description Needs the approve key and someone other than the submitter. The reason is kept on the investigation and in its audit history.
+ * @description Needs the approve key, and the same separation as approval. The reason is kept on the investigation and in its audit history.
  * @summary Return the investigation to draft, with a reason
  * {@link /api/v1/cases/org/:programme/cases/:case_id/investigation/return}
  */

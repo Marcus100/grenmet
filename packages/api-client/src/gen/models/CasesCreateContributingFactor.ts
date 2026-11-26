@@ -25,6 +25,12 @@ export type CasesCreateContributingFactorHeaders = {
   "X-Barrels-Organisation"?: string | null;
 };
 
+/**
+ * @description A factor on the programme's list. Before anything is written, the list shows
+ * the starting suggestions: they have no ``id``, cannot be chosen, and carry
+ * ``is_default_suggestion`` true. Writing any factor or investigation stores them.
+ * @type object
+ */
 export type CasesCreateContributingFactorStatus201 = ContributingFactorPublic;
 
 /**

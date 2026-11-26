@@ -4,8 +4,8 @@
  */
 
 import type { ApiError } from "./ApiError.js";
-import type { InvestigationDecision } from "./InvestigationDecision.js";
 import type { InvestigationPublic } from "./InvestigationPublic.js";
+import type { InvestigationReturn } from "./InvestigationReturn.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CasesReturnInvestigationPath = {
@@ -65,10 +65,10 @@ export type CasesReturnInvestigationStatus409 = ApiError;
 export type CasesReturnInvestigationStatus422 = ValidationErrorResponse;
 
 /**
- * @description The reason for returning an investigation or for deciding that none is needed.
+ * @description Why an investigation goes back to draft. Kept on the record.
  * @type object
  */
-export type CasesReturnInvestigationBody = InvestigationDecision;
+export type CasesReturnInvestigationBody = InvestigationReturn;
 
 export type CasesReturnInvestigationOptions = {
   body: CasesReturnInvestigationBody;

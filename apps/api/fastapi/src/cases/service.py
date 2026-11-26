@@ -15,6 +15,7 @@ from datetime import UTC, date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import record_links
@@ -42,6 +43,7 @@ from .models import (
     CaseStatus,
     ContributingFactor,
     FactorCategory,
+    FactorSeed,
     InvestigationStatus,
     Programme,
     new_factor_id,
@@ -158,9 +160,17 @@ async def set_grid(
 
 
 @dataclass(frozen=True)
+class FactorLink:
+    factor_id: str
+    name: str
+    category: str
+    is_active: bool
+
+
+@dataclass(frozen=True)
 class InvestigationView:
     investigation: CaseInvestigation
-    factors: Sequence[ContributingFactor]
+    factors: Sequence[FactorLink]
 
 
 @dataclass(frozen=True)
@@ -436,12 +446,8 @@ async def change_status(
         # A reopened case reassesses its investigation: an approved or not-needed
         # one returns to draft and must be decided again (ADR-0069 decision 5).
         investigation = await investigation_of(session, case)
-        if investigation is not None and investigation.status != (
-            InvestigationStatus.DRAFT.value
-        ):
-            transitions.move_investigation(
-                investigation, InvestigationStatus.DRAFT, actor_id=actor.id
-            )
+        if investigation is not None:
+            _reopen_investigation(investigation, actor_id=actor.id)
     await session.flush()
     return case
 
@@ -719,9 +725,7 @@ def is_overdue(action: CaseAction, today: date) -> bool:
 
 # --- contributing factors -------------------------------------------------------------
 
-#: The starting list (ICAO Doc 9859 and SHELL-style categories). Written once per
-#: organisation and programme, the first time its list is read or an investigation
-#: is written; an organisation then edits its own copy.
+#: The starting list (ICAO Doc 9859 and SHELL-style categories).
 DEFAULT_CONTRIBUTING_FACTORS: tuple[tuple[FactorCategory, str], ...] = (
     (FactorCategory.HUMAN_FACTORS, "Fatigue"),
     (FactorCategory.HUMAN_FACTORS, "Workload or distraction"),
@@ -742,46 +746,59 @@ DEFAULT_CONTRIBUTING_FACTORS: tuple[tuple[FactorCategory, str], ...] = (
 )
 
 
-async def ensure_default_factors(
-    session: AsyncSession,
-    *,
-    organisation_id: str,
-    programme: Programme,
-    actor: User,
-) -> None:
-    """Write the starting list if this organisation has none for the programme.
-    Idempotent: a concurrent writer's rows win (the name is unique)."""
-    present = await session.scalar(
-        select(ContributingFactor.id)
-        .where(
-            ContributingFactor.organisation_id == organisation_id,
-            ContributingFactor.programme == programme.value,
+async def is_seeded(
+    session: AsyncSession, *, organisation_id: str, programme: Programme
+) -> bool:
+    marker = await session.scalar(
+        select(FactorSeed.organisation_id).where(
+            FactorSeed.organisation_id == organisation_id,
+            FactorSeed.programme == programme.value,
         )
-        .limit(1)
     )
-    if present is not None:
+    return marker is not None
+
+
+async def seed_default_factors(
+    session: AsyncSession, *, organisation_id: str, programme: Programme
+) -> None:
+    """Write the starting list once, on a write path. The marker row decides, not the
+    factor rows, so a custom factor written first does not stop the seeding. Seeded
+    rows have no creating user (system), and a default whose name is already taken
+    is skipped. Written through the ORM so the audit trail sees every row."""
+    if await is_seeded(session, organisation_id=organisation_id, programme=programme):
         return
     now = utc_now()
-    await session.execute(
-        pg_insert(ContributingFactor)
-        .values(
-            [
-                {
-                    "id": new_factor_id(),
-                    "organisation_id": organisation_id,
-                    "programme": programme.value,
-                    "category": category.value,
-                    "name": name,
-                    "is_active": True,
-                    "created_by": actor.id,
-                    "created_at": now,
-                    "updated_at": now,
-                }
-                for category, name in DEFAULT_CONTRIBUTING_FACTORS
-            ]
+    session.add(
+        FactorSeed(
+            organisation_id=organisation_id, programme=programme.value, seeded_at=now
         )
-        .on_conflict_do_nothing()
     )
+    taken = set(
+        (
+            await session.scalars(
+                select(func.lower(ContributingFactor.name)).where(
+                    ContributingFactor.organisation_id == organisation_id,
+                    ContributingFactor.programme == programme.value,
+                )
+            )
+        ).all()
+    )
+    for category, name in DEFAULT_CONTRIBUTING_FACTORS:
+        if name.lower() in taken:
+            continue
+        session.add(
+            ContributingFactor(
+                id=new_factor_id(),
+                organisation_id=organisation_id,
+                programme=programme.value,
+                category=category.value,
+                name=name,
+                is_active=True,
+                created_by=None,
+                created_at=now,
+                updated_at=now,
+            )
+        )
     await session.flush()
 
 
@@ -832,6 +849,19 @@ async def _name_taken(
     return (await session.scalar(query.limit(1))) is not None
 
 
+_FACTOR_NAME_TAKEN = "A factor with this name is already on the list"
+
+
+async def _flush_factor(session: AsyncSession) -> None:
+    """Flush a factor write inside a savepoint: a name the database refuses (the
+    case-insensitive unique index, if a concurrent writer won) becomes a 409."""
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError as error:
+        raise CaseConflictError(_FACTOR_NAME_TAKEN) from error
+
+
 async def create_factor(
     session: AsyncSession,
     *,
@@ -840,11 +870,14 @@ async def create_factor(
     actor: User,
     payload: ContributingFactorCreate,
 ) -> ContributingFactor:
+    await seed_default_factors(
+        session, organisation_id=organisation_id, programme=programme
+    )
     name = _text(payload.name, "A factor needs a name")
     if await _name_taken(
         session, organisation_id=organisation_id, programme=programme, name=name
     ):
-        raise CaseConflictError("A factor with this name is already on the list")
+        raise CaseConflictError(_FACTOR_NAME_TAKEN)
     factor = ContributingFactor(
         id=new_factor_id(),
         organisation_id=organisation_id,
@@ -855,7 +888,7 @@ async def create_factor(
         created_by=actor.id,
     )
     session.add(factor)
-    await session.flush()
+    await _flush_factor(session)
     return factor
 
 
@@ -867,6 +900,9 @@ async def update_factor(
     factor_id: str,
     payload: ContributingFactorUpdate,
 ) -> ContributingFactor:
+    await seed_default_factors(
+        session, organisation_id=organisation_id, programme=programme
+    )
     factor = await _get_factor(
         session,
         organisation_id=organisation_id,
@@ -883,7 +919,7 @@ async def update_factor(
             name=name,
             except_id=factor.id,
         ):
-            raise CaseConflictError("A factor with this name is already on the list")
+            raise CaseConflictError(_FACTOR_NAME_TAKEN)
         factor.name = name
     if "category" in sent:
         if payload.category is None:
@@ -893,7 +929,7 @@ async def update_factor(
         if payload.is_active is None:
             raise AppValidationError("Say whether the factor is active")
         factor.is_active = payload.is_active
-    await session.flush()
+    await _flush_factor(session)
     return factor
 
 
@@ -924,6 +960,60 @@ async def investigation_view_of(
     return await _view(session, investigation)
 
 
+async def _view(
+    session: AsyncSession, investigation: CaseInvestigation
+) -> InvestigationView:
+    """Decided investigations show the factor names and categories as they were at
+    approval (the link snapshot); open ones show the list's current values."""
+    decided = investigation.status in (
+        InvestigationStatus.APPROVED.value,
+        InvestigationStatus.NOT_NEEDED.value,
+    )
+    rows = (
+        await session.execute(
+            select(CaseInvestigationFactor, ContributingFactor)
+            .join(
+                ContributingFactor,
+                ContributingFactor.id == CaseInvestigationFactor.factor_id,
+            )
+            .where(
+                CaseInvestigationFactor.investigation_id == investigation.id,
+                CaseInvestigationFactor.organisation_id
+                == investigation.organisation_id,
+            )
+        )
+    ).all()
+    links = [
+        FactorLink(
+            factor_id=link.factor_id,
+            name=link.name_snapshot if decided else factor.name,
+            category=link.category_snapshot if decided else factor.category,
+            is_active=factor.is_active,
+        )
+        for link, factor in rows
+    ]
+    links.sort(key=lambda item: (item.category, item.name))
+    return InvestigationView(investigation=investigation, factors=links)
+
+
+async def _refresh_snapshots(
+    session: AsyncSession, investigation: CaseInvestigation
+) -> None:
+    rows = (
+        await session.execute(
+            select(CaseInvestigationFactor, ContributingFactor)
+            .join(
+                ContributingFactor,
+                ContributingFactor.id == CaseInvestigationFactor.factor_id,
+            )
+            .where(CaseInvestigationFactor.investigation_id == investigation.id)
+        )
+    ).all()
+    for link, factor in rows:
+        link.name_snapshot = factor.name
+        link.category_snapshot = factor.category
+
+
 def _require_investigating(case: Case) -> None:
     if case.status != CaseStatus.INVESTIGATING.value:
         raise CaseConflictError(
@@ -940,6 +1030,22 @@ def _require_draft(investigation: CaseInvestigation) -> None:
         raise CaseConflictError(_READ_ONLY)
 
 
+def _is_party(investigation: CaseInvestigation, actor_id: uuid.UUID) -> bool:
+    """Whoever created, edited (at any point) or submitted the investigation may not
+    approve, return or waive it."""
+    if actor_id in {investigation.created_by, investigation.submitted_by}:
+        return True
+    return str(actor_id) in set(investigation.editor_ids or [])
+
+
+def _record_edit(investigation: CaseInvestigation, actor: User) -> None:
+    investigation.last_edited_by = actor.id
+    editors = list(investigation.editor_ids or [])
+    if str(actor.id) not in editors:
+        editors.append(str(actor.id))
+    investigation.editor_ids = editors
+
+
 async def _investigation_for_write(
     session: AsyncSession, case: Case, actor: User
 ) -> CaseInvestigation:
@@ -952,6 +1058,8 @@ async def _investigation_for_write(
             status=InvestigationStatus.DRAFT.value,
             why_steps=[],
             created_by=actor.id,
+            last_edited_by=actor.id,
+            editor_ids=[str(actor.id)],
         )
         session.add(investigation)
         await session.flush()
@@ -968,22 +1076,10 @@ async def _set_factors(
     investigation: CaseInvestigation,
     factor_ids: list[str],
 ) -> None:
+    """Replace the chosen factors. A factor already chosen stays choosable even if it
+    has since been retired; a newly added one must be active. Links keep the factor's
+    name and category as they are now."""
     wanted = list(dict.fromkeys(factor_ids))
-    if wanted:
-        active = set(
-            await session.scalars(
-                select(ContributingFactor.id).where(
-                    ContributingFactor.id.in_(wanted),
-                    ContributingFactor.organisation_id == investigation.organisation_id,
-                    ContributingFactor.programme == investigation.programme,
-                    ContributingFactor.is_active.is_(True),
-                )
-            )
-        )
-        if active != set(wanted):
-            raise AppValidationError(
-                "A contributing factor is not on this programme's active list"
-            )
     current = (
         await session.scalars(
             select(CaseInvestigationFactor).where(
@@ -991,20 +1087,43 @@ async def _set_factors(
             )
         )
     ).all()
-    kept = {row.factor_id for row in current}
+    linked = {row.factor_id for row in current}
+    factors: dict[str, ContributingFactor] = {}
+    if wanted:
+        found = await session.scalars(
+            select(ContributingFactor).where(
+                ContributingFactor.id.in_(wanted),
+                ContributingFactor.organisation_id == investigation.organisation_id,
+                ContributingFactor.programme == investigation.programme,
+            )
+        )
+        factors = {factor.id: factor for factor in found}
+        for factor_id in wanted:
+            factor = factors.get(factor_id)
+            if factor is None or (not factor.is_active and factor_id not in linked):
+                raise AppValidationError(
+                    "A contributing factor is not on this programme's active list"
+                )
     for row in current:
         if row.factor_id not in wanted:
             await session.delete(row)
     for factor_id in wanted:
-        if factor_id not in kept:
+        factor = factors[factor_id]
+        existing = next((r for r in current if r.factor_id == factor_id), None)
+        if existing is None:
             session.add(
                 CaseInvestigationFactor(
                     investigation_id=investigation.id,
                     factor_id=factor_id,
                     organisation_id=investigation.organisation_id,
                     programme=investigation.programme,
+                    name_snapshot=factor.name,
+                    category_snapshot=factor.category,
                 )
             )
+        else:
+            existing.name_snapshot = factor.name
+            existing.category_snapshot = factor.category
 
 
 async def update_investigation(
@@ -1025,8 +1144,8 @@ async def update_investigation(
     )
     _require_unlocked(case)
     _require_investigating(case)
-    await ensure_default_factors(
-        session, organisation_id=organisation_id, programme=programme, actor=actor
+    await seed_default_factors(
+        session, organisation_id=organisation_id, programme=programme
     )
     investigation = await _investigation_for_write(session, case, actor)
     _require_draft(investigation)
@@ -1041,7 +1160,7 @@ async def update_investigation(
         investigation.root_cause = _optional(payload.root_cause)
     if "why_steps" in sent:
         investigation.why_steps = [
-            {"question": step.question.strip(), "answer": step.answer.strip()}
+            {"question": step.question, "answer": step.answer}
             for step in (payload.why_steps or [])
         ]
     if "contributing_factor_ids" in sent:
@@ -1050,25 +1169,9 @@ async def update_investigation(
             investigation=investigation,
             factor_ids=payload.contributing_factor_ids or [],
         )
+    _record_edit(investigation, actor)
     await session.flush()
     return await _view(session, investigation)
-
-
-async def _view(
-    session: AsyncSession, investigation: CaseInvestigation
-) -> InvestigationView:
-    factors = (
-        await session.scalars(
-            select(ContributingFactor)
-            .join(
-                CaseInvestigationFactor,
-                CaseInvestigationFactor.factor_id == ContributingFactor.id,
-            )
-            .where(CaseInvestigationFactor.investigation_id == investigation.id)
-            .order_by(ContributingFactor.category, ContributingFactor.name)
-        )
-    ).all()
-    return InvestigationView(investigation=investigation, factors=factors)
 
 
 async def get_investigation(
@@ -1094,8 +1197,8 @@ async def submit_investigation(
     case_id: str,
     actor: User,
 ) -> InvestigationView:
-    """Send the draft for approval. Needs what happened, at least one why, every
-    why answered, and a root cause; the approver then sees the same text."""
+    """Send the draft for approval. Needs what happened, at least one why with every
+    answer, and a root cause."""
     case = await get_case(
         session,
         organisation_id=organisation_id,
@@ -1108,8 +1211,7 @@ async def submit_investigation(
     investigation = await investigation_of(session, case)
     if investigation is None:
         raise CaseConflictError("Write the investigation before submitting it")
-    if investigation.status != InvestigationStatus.DRAFT.value:
-        _require_draft(investigation)
+    _require_draft(investigation)
     if investigation.what_happened is None:
         raise AppValidationError("Say what happened before submitting")
     if not investigation.why_steps:
@@ -1149,10 +1251,10 @@ async def _review_target(
         raise CaseConflictError(
             "Only a submitted investigation can be approved or returned"
         )
-    if investigation.submitted_by == actor.id:
+    if _is_party(investigation, actor.id):
         raise CaseForbiddenError(
-            "An investigation is reviewed by someone other than the person who "
-            "submitted it"
+            "An investigation is reviewed by someone who did not create, edit or "
+            "submit it"
         )
     return investigation
 
@@ -1175,6 +1277,7 @@ async def approve_investigation(
     transitions.move_investigation(
         investigation, InvestigationStatus.APPROVED, actor_id=actor.id
     )
+    await _refresh_snapshots(session, investigation)
     await session.flush()
     return await _view(session, investigation)
 
@@ -1206,7 +1309,26 @@ async def return_investigation(
     return await _view(session, investigation)
 
 
-async def decide_no_investigation(
+async def _has_content(session: AsyncSession, investigation: CaseInvestigation) -> bool:
+    if any(
+        (
+            investigation.what_happened,
+            investigation.unsafe_acts,
+            investigation.unsafe_conditions,
+            investigation.root_cause,
+            investigation.why_steps,
+        )
+    ):
+        return True
+    chosen = await session.scalar(
+        select(func.count())
+        .select_from(CaseInvestigationFactor)
+        .where(CaseInvestigationFactor.investigation_id == investigation.id)
+    )
+    return bool(chosen)
+
+
+async def waive_investigation(
     session: AsyncSession,
     *,
     organisation_id: str,
@@ -1216,7 +1338,10 @@ async def decide_no_investigation(
     reason: str,
 ) -> InvestigationView:
     """Record, with a reason, that the case needs no investigation. Allowed while the
-    case is assessing or investigating; lets the case move on to actions."""
+    case is assessing or investigating. It is a decision for a case that needs none,
+    not a way to waive written work: refused when the actor created, edited or
+    submitted the investigation, or when the draft already holds content. On an empty
+    draft it stores the reason only."""
     case = await get_case(
         session,
         organisation_id=organisation_id,
@@ -1234,7 +1359,25 @@ async def decide_no_investigation(
             "investigating"
         )
     cleaned = _text(reason, "Say why no investigation is needed")
-    investigation = await _investigation_for_write(session, case, actor)
+    investigation = await investigation_of(session, case)
+    if investigation is None:
+        investigation = await _investigation_for_write(session, case, actor)
+    else:
+        if investigation.status != InvestigationStatus.DRAFT.value:
+            raise CaseConflictError(
+                "An investigation that is decided or awaiting approval cannot be waived"
+            )
+        if _is_party(investigation, actor.id):
+            raise CaseForbiddenError(
+                "Someone who created, edited or submitted the investigation cannot "
+                "waive it"
+            )
+        if await _has_content(session, investigation):
+            raise CaseConflictError(
+                "The draft already holds investigation content, so it cannot be "
+                "waived; approve it instead"
+            )
+        _record_edit(investigation, actor)
     transitions.move_investigation(
         investigation,
         InvestigationStatus.NOT_NEEDED,
@@ -1243,6 +1386,24 @@ async def decide_no_investigation(
     )
     await session.flush()
     return await _view(session, investigation)
+
+
+def _reopen_investigation(
+    investigation: CaseInvestigation, *, actor_id: uuid.UUID
+) -> None:
+    """A reopened case returns its investigation to a clean draft. The decision, the
+    waiver reason, the last return and the submission are cleared; the audit history
+    keeps them."""
+    if investigation.status != InvestigationStatus.DRAFT.value:
+        transitions.move_investigation(
+            investigation, InvestigationStatus.DRAFT, actor_id=actor_id
+        )
+    investigation.no_investigation_reason = None
+    investigation.return_reason = None
+    investigation.returned_by = None
+    investigation.returned_at = None
+    investigation.submitted_by = None
+    investigation.submitted_at = None
 
 
 async def _check_investigation_decided(session: AsyncSession, case: Case) -> None:
