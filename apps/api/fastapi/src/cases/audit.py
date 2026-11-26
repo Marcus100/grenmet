@@ -1,16 +1,33 @@
 """Case engine change history, under the organisation's history subject.
 
 Readable by the organisation's admins and owners and by platform superusers
-(``src/organisations/audit.py``). This slice holds no confidential reporter data;
-when confidential cases arrive (ADR-0069 decision 9) their text is to be marked
-sensitive here.
+(``src/organisations/audit.py``). Investigation text is sensitive (masked for readers without
+``audit.view_sensitive``). Confidential reporter data (ADR-0069 decision 9) is not
+built yet; when it is, its text is marked sensitive here too.
 """
 
 from src.audit import registry
 
-from .models import Case, CaseAction, CaseRiskAssessment, CaseRiskGrid
+from .models import (
+    Case,
+    CaseAction,
+    CaseInvestigation,
+    CaseInvestigationFactor,
+    CaseRiskAssessment,
+    CaseRiskGrid,
+    ContributingFactor,
+)
 
 SUBJECT = "platform_organisation"
+INVESTIGATION_SENSITIVE = (
+    "what_happened",
+    "unsafe_acts",
+    "unsafe_conditions",
+    "why_steps",
+    "root_cause",
+    "no_investigation_reason",
+    "return_reason",
+)
 
 
 def register() -> None:
@@ -32,4 +49,26 @@ def register() -> None:
         entity_type=SUBJECT,
         entity_id_attr="organisation_id",
         label="Risk grid",
+    )
+    registry.track(
+        CaseInvestigation,
+        record_type="case_investigation",
+        entity_type=SUBJECT,
+        entity_id_attr="organisation_id",
+        sensitive=INVESTIGATION_SENSITIVE,
+        label="Case investigation",
+    )
+    registry.track(
+        CaseInvestigationFactor,
+        record_type="case_investigation_factor",
+        entity_type=SUBJECT,
+        entity_id_attr="organisation_id",
+        label="Case investigation factor",
+    )
+    registry.track(
+        ContributingFactor,
+        record_type="case_contributing_factor",
+        entity_type=SUBJECT,
+        entity_id_attr="organisation_id",
+        label="Contributing factor",
     )

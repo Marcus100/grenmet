@@ -7,9 +7,11 @@ import type { CaseActionPublic } from "./CaseActionPublic.js";
 import type { CaseRiskAssessmentPublic } from "./CaseRiskAssessmentPublic.js";
 import type { CaseSourcePublic } from "./CaseSourcePublic.js";
 import type { CaseStatus } from "./CaseStatus.js";
+import type { InvestigationPublic } from "./InvestigationPublic.js";
 
 /**
- * @description Assessments oldest first; actions by due date.
+ * @description Assessments oldest first; actions by due date. ``investigation`` is null until
+ * the investigation is first written.
  * @type object
  */
 export type CaseDetail = {
@@ -47,4 +49,5 @@ export type CaseDetail = {
   updated_at: string;
   risk_assessments: CaseRiskAssessmentPublic[];
   actions: CaseActionPublic[];
+  investigation?: InvestigationPublic | null;
 };

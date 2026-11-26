@@ -7,7 +7,14 @@ from pydantic import Field
 
 from src.models import BaseModel, UtcDateTime
 
-from .models import CaseActionStatus, CaseRiskBand, CaseRiskKind, CaseStatus
+from .models import (
+    CaseActionStatus,
+    CaseRiskBand,
+    CaseRiskKind,
+    CaseStatus,
+    FactorCategory,
+    InvestigationStatus,
+)
 
 # --- risk grid ----------------------------------------------------------------------
 
@@ -181,8 +188,83 @@ class CaseActionPublic(BaseModel):
     updated_at: UtcDateTime
 
 
+# --- investigation -----------------------------------------------------------------
+
+
+class ContributingFactorCreate(BaseModel):
+    category: FactorCategory
+    name: str = Field(min_length=1, max_length=120)
+
+
+class ContributingFactorUpdate(BaseModel):
+    """Only the fields sent change. A retired factor (``is_active`` false) stays on
+    the investigations that chose it but cannot be chosen again."""
+
+    category: FactorCategory | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    is_active: bool | None = None
+
+
+class ContributingFactorPublic(BaseModel):
+    id: str
+    category: FactorCategory
+    name: str
+    is_active: bool
+    updated_at: UtcDateTime
+
+
+class WhyStep(BaseModel):
+    """One step of the "5 whys". ``answer`` may be empty while the investigation
+    is a draft; submitting needs every step answered."""
+
+    question: str = Field(min_length=1, max_length=500)
+    answer: str = Field(default="", max_length=2000)
+
+
+class InvestigationUpdate(BaseModel):
+    """Only the fields sent change. ``why_steps`` and ``contributing_factor_ids``
+    replace the whole list when sent. Only a draft changes."""
+
+    what_happened: str | None = Field(default=None, max_length=10000)
+    unsafe_acts: str | None = Field(default=None, max_length=10000)
+    unsafe_conditions: str | None = Field(default=None, max_length=10000)
+    why_steps: list[WhyStep] | None = Field(default=None, max_length=5)
+    root_cause: str | None = Field(default=None, max_length=10000)
+    contributing_factor_ids: list[str] | None = Field(default=None, max_length=50)
+
+
+class InvestigationDecision(BaseModel):
+    """The reason for returning an investigation or for deciding that none is needed."""
+
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class InvestigationPublic(BaseModel):
+    id: str
+    case_id: str
+    status: InvestigationStatus
+    what_happened: str | None
+    unsafe_acts: str | None
+    unsafe_conditions: str | None
+    why_steps: list[WhyStep]
+    root_cause: str | None
+    contributing_factors: list[ContributingFactorPublic]
+    no_investigation_reason: str | None
+    return_reason: str | None
+    returned_by: uuid.UUID | None
+    returned_at: UtcDateTime | None
+    submitted_by: uuid.UUID | None
+    submitted_at: UtcDateTime | None
+    decided_by: uuid.UUID | None
+    decided_at: UtcDateTime | None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
 class CaseDetail(CasePublic):
-    """Assessments oldest first; actions by due date."""
+    """Assessments oldest first; actions by due date. ``investigation`` is null until
+    the investigation is first written."""
 
     risk_assessments: list[CaseRiskAssessmentPublic]
     actions: list[CaseActionPublic]
+    investigation: InvestigationPublic | None = None

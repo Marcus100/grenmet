@@ -63,6 +63,29 @@ class CaseActionStatus(str, Enum):
     VERIFIED = "verified"
 
 
+class InvestigationStatus(str, Enum):
+    """``not_needed`` is a recorded decision (with a reason) that no investigation
+    is required; it lets a case move on to actions like an approved one does."""
+
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    APPROVED = "approved"
+    NOT_NEEDED = "not_needed"
+
+
+class FactorCategory(str, Enum):
+    """Categories of contributing factor, after ICAO Doc 9859 and the SHELL model."""
+
+    HUMAN_FACTORS = "human_factors"
+    PROCEDURES = "procedures"
+    EQUIPMENT = "equipment"
+    ENVIRONMENT = "environment"
+    ORGANISATION = "organisation"
+    TRAINING = "training"
+    COMMUNICATION = "communication"
+    SUPERVISION = "supervision"
+
+
 def _values(enum: type[Enum]) -> str:
     return ", ".join(f"'{member.value}'" for member in enum)
 
@@ -80,6 +103,14 @@ def new_assessment_id() -> str:
 
 def new_action_id() -> str:
     return f"caa_{secrets.token_hex(8)}"
+
+
+def new_investigation_id() -> str:
+    return f"civ_{secrets.token_hex(8)}"
+
+
+def new_factor_id() -> str:
+    return f"cfa_{secrets.token_hex(8)}"
 
 
 class CaseRiskGrid(Base):
@@ -281,3 +312,141 @@ class CaseAction(Base):
     created_by: Mapped[uuid.UUID]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class ContributingFactor(Base):
+    """One entry on an organisation's list of contributing factors for a programme.
+    Retired entries stay (``is_active`` false) so that old investigations keep
+    their meaning; only active entries can be chosen."""
+
+    __tablename__ = "contributing_factor"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "organisation_id", "programme", "name", name="contributing_factor_name"
+        ),
+        # The target of the investigation's composite foreign key.
+        sa.UniqueConstraint(
+            "id",
+            "organisation_id",
+            "programme",
+            name="contributing_factor_id_organisation_programme",
+        ),
+        sa.CheckConstraint(_PROGRAMME_CHECK, name="programme"),
+        sa.CheckConstraint(f"category IN ({_values(FactorCategory)})", name="category"),
+        sa.CheckConstraint("char_length(name) BETWEEN 1 AND 120", name="name"),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_factor_id
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    programme: Mapped[str] = mapped_column(String(30))
+    category: Mapped[str] = mapped_column(String(20))
+    name: Mapped[str] = mapped_column(String(120))
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class CaseInvestigation(Base):
+    """The investigation of a case: one per case (ADR-0069 decision 5). Text is
+    audited as sensitive. Editable only while draft; an approved or not-needed
+    investigation is read-only until the case is reopened, which returns it to
+    draft."""
+
+    __tablename__ = "investigation"
+    __table_args__ = (
+        _case_fk("investigation"),
+        sa.UniqueConstraint("case_id", name="investigation_case"),
+        sa.UniqueConstraint(
+            "id",
+            "organisation_id",
+            "programme",
+            name="investigation_id_organisation_programme",
+        ),
+        sa.CheckConstraint(_PROGRAMME_CHECK, name="programme"),
+        sa.CheckConstraint(
+            f"status IN ({_values(InvestigationStatus)})", name="status"
+        ),
+        # Approved and not-needed are the only decided states.
+        sa.CheckConstraint(
+            "(decided_at IS NOT NULL) = (status IN ('approved', 'not_needed'))",
+            name="decided_state",
+        ),
+        sa.CheckConstraint(
+            "(decided_at IS NULL) = (decided_by IS NULL)", name="decided_pair"
+        ),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_investigation_id
+    )
+    case_id: Mapped[str] = mapped_column(String(100))
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    programme: Mapped[str] = mapped_column(String(30))
+    status: Mapped[str] = mapped_column(
+        String(12), default=InvestigationStatus.DRAFT.value
+    )
+    what_happened: Mapped[str | None] = mapped_column(Text)
+    unsafe_acts: Mapped[str | None] = mapped_column(Text)
+    unsafe_conditions: Mapped[str | None] = mapped_column(Text)
+    #: Up to five ``{"question", "answer"}`` steps, in order.
+    why_steps: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    root_cause: Mapped[str | None] = mapped_column(Text)
+    #: Why no investigation is needed (status ``not_needed``).
+    no_investigation_reason: Mapped[str | None] = mapped_column(Text)
+    #: Why the investigation was sent back to draft (the last return).
+    return_reason: Mapped[str | None] = mapped_column(Text)
+    returned_by: Mapped[uuid.UUID | None]
+    returned_at: Mapped[datetime | None]
+    submitted_by: Mapped[uuid.UUID | None]
+    submitted_at: Mapped[datetime | None]
+    #: Approver of an approved investigation, or the decider of a not-needed one.
+    decided_by: Mapped[uuid.UUID | None]
+    decided_at: Mapped[datetime | None]
+    created_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class CaseInvestigationFactor(Base):
+    """A contributing factor chosen for an investigation. Both foreign keys carry
+    the organisation and the programme, so a factor of another list cannot be
+    attached."""
+
+    __tablename__ = "investigation_factor"
+    __table_args__ = (
+        sa.ForeignKeyConstraint(
+            ["investigation_id", "organisation_id", "programme"],
+            [
+                f"{SCHEMA}.investigation.id",
+                f"{SCHEMA}.investigation.organisation_id",
+                f"{SCHEMA}.investigation.programme",
+            ],
+            name="investigation_factor_investigation_fkey",
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["factor_id", "organisation_id", "programme"],
+            [
+                f"{SCHEMA}.contributing_factor.id",
+                f"{SCHEMA}.contributing_factor.organisation_id",
+                f"{SCHEMA}.contributing_factor.programme",
+            ],
+            name="investigation_factor_factor_fkey",
+        ),
+        sa.CheckConstraint(_PROGRAMME_CHECK, name="programme"),
+        {"schema": SCHEMA},
+    )
+
+    investigation_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    factor_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(String(100))
+    programme: Mapped[str] = mapped_column(String(30))

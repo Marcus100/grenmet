@@ -5,7 +5,9 @@ Case: reported, assessing, investigating, actions, monitoring, closed. A case
 moves forward, may skip the investigation, may go back from monitoring to actions,
 and may close from any stage (the rules for closing are checked in
 ``service.py``). A closed case reopens into assessing. Action: open, done,
-verified; a done or verified action can be sent back to open.
+verified; a done or verified action can be sent back to open. Investigation:
+draft, submitted, approved, not_needed. A reopened case returns its investigation
+to draft (from any of the other three).
 """
 
 import uuid
@@ -13,7 +15,14 @@ import uuid
 from src.utils.datetime import utc_now
 
 from .exceptions import CaseConflictError
-from .models import Case, CaseAction, CaseActionStatus, CaseStatus
+from .models import (
+    Case,
+    CaseAction,
+    CaseActionStatus,
+    CaseInvestigation,
+    CaseStatus,
+    InvestigationStatus,
+)
 
 _S = CaseStatus
 CASE_TRANSITIONS: dict[str, frozenset[str]] = {
@@ -78,3 +87,49 @@ def move_action(
         action.verified_at = None
         action.verified_by = None
     action.status = target.value
+
+
+_I = InvestigationStatus
+INVESTIGATION_TRANSITIONS: dict[str, frozenset[str]] = {
+    _I.DRAFT.value: frozenset({_I.SUBMITTED.value, _I.NOT_NEEDED.value}),
+    _I.SUBMITTED.value: frozenset({_I.APPROVED.value, _I.DRAFT.value}),
+    _I.APPROVED.value: frozenset({_I.DRAFT.value}),
+    _I.NOT_NEEDED.value: frozenset({_I.DRAFT.value}),
+}
+
+
+def move_investigation(
+    investigation: CaseInvestigation,
+    target: InvestigationStatus,
+    *,
+    actor_id: uuid.UUID,
+    reason: str | None = None,
+) -> None:
+    """Move an investigation and stamp what the move implies. ``reason`` is kept
+    for a not-needed decision and for a return; a reopening passes none."""
+    if target.value not in INVESTIGATION_TRANSITIONS.get(
+        investigation.status, frozenset()
+    ):
+        raise CaseConflictError(
+            f"An investigation that is {investigation.status} cannot move to "
+            f"{target.value}"
+        )
+    now = utc_now()
+    if target is InvestigationStatus.SUBMITTED:
+        investigation.submitted_by = actor_id
+        investigation.submitted_at = now
+    elif target is InvestigationStatus.APPROVED:
+        investigation.decided_by = actor_id
+        investigation.decided_at = now
+    elif target is InvestigationStatus.NOT_NEEDED:
+        investigation.no_investigation_reason = reason
+        investigation.decided_by = actor_id
+        investigation.decided_at = now
+    else:
+        if reason is not None:
+            investigation.return_reason = reason
+            investigation.returned_by = actor_id
+            investigation.returned_at = now
+        investigation.decided_by = None
+        investigation.decided_at = None
+    investigation.status = target.value
