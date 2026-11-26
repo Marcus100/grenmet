@@ -507,3 +507,31 @@ async def test_no_risk_is_refused_after_a_real_risk_and_reopening_needs_a_new_as
         json={"location": None},
     )
     assert cleared.status_code == 409  # closed again: locked
+
+
+async def test_an_assessor_cannot_accept_their_own_risk(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    world = await _world(db_async)
+    case = await _case(async_client, world)
+    await _status(async_client, world, world.officer, case["id"], status="assessing")
+    # The manager holds the approve key but made the residual assessment, so cannot
+    # accept it; the owner, who did not assess it, can.
+    tolerable = await async_client.post(
+        f"{API}/cases/{case['id']}/risk-assessments",
+        headers=world.h(world.manager),
+        json={"kind": "residual", "likelihood": 3, "severity": "C"},
+    )
+    assert tolerable.status_code == 201, tolerable.text
+    accept = (
+        f"{API}/cases/{case['id']}/risk-assessments/{tolerable.json()['id']}/acceptance"
+    )
+    own = await async_client.post(
+        accept, headers=world.h(world.manager), json={"note": "Mine to accept"}
+    )
+    assert own.status_code == 403
+    assert own.json()["detail"].startswith("A risk is accepted by someone other")
+    by_owner = await async_client.post(
+        accept, headers=world.h(world.owner), json={"note": "Accepted by the owner"}
+    )
+    assert by_owner.status_code == 200, by_owner.text

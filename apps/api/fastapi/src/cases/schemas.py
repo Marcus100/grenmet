@@ -3,11 +3,18 @@
 import uuid
 from datetime import date
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from src.models import BaseModel, UtcDateTime
 
-from .models import CaseActionStatus, CaseRiskBand, CaseRiskKind, CaseStatus
+from .models import (
+    CaseActionStatus,
+    CaseRiskBand,
+    CaseRiskKind,
+    CaseStatus,
+    FactorCategory,
+    InvestigationStatus,
+)
 
 # --- risk grid ----------------------------------------------------------------------
 
@@ -181,8 +188,119 @@ class CaseActionPublic(BaseModel):
     updated_at: UtcDateTime
 
 
+# --- investigation -----------------------------------------------------------------
+
+
+class ContributingFactorCreate(BaseModel):
+    category: FactorCategory
+    name: str = Field(min_length=1, max_length=120)
+
+
+class ContributingFactorUpdate(BaseModel):
+    """Only the fields sent change. A retired factor (``is_active`` false) stays on
+    the investigations that chose it but cannot be chosen again."""
+
+    category: FactorCategory | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    is_active: bool | None = None
+
+
+class ContributingFactorPublic(BaseModel):
+    """A factor on the programme's list. Before anything is written, the list shows
+    the starting suggestions: they have no ``id``, cannot be chosen, and carry
+    ``is_default_suggestion`` true. Writing any factor or investigation stores them."""
+
+    id: str | None
+    category: FactorCategory
+    name: str
+    is_active: bool
+    is_default_suggestion: bool = False
+    updated_at: UtcDateTime | None
+
+
+class WhyStep(BaseModel):
+    """One step of the "5 whys". ``answer`` may be empty while the investigation
+    is a draft; submitting needs every step answered."""
+
+    question: str = Field(min_length=1, max_length=500)
+    answer: str = Field(default="", max_length=2000)
+
+    @field_validator("question")
+    @classmethod
+    def _question_has_text(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("A why needs a question")
+        return cleaned
+
+    @field_validator("answer")
+    @classmethod
+    def _strip_answer(cls, value: str) -> str:
+        return value.strip()
+
+
+class InvestigationFactorPublic(BaseModel):
+    """A factor chosen for an investigation. For an approved or not-needed one, name
+    and category are as they were at approval; ``is_active`` is current."""
+
+    id: str
+    category: FactorCategory
+    name: str
+    is_active: bool
+
+
+class InvestigationUpdate(BaseModel):
+    """Only the fields sent change. ``why_steps`` and ``contributing_factor_ids``
+    replace the whole list when sent. Only a draft changes."""
+
+    what_happened: str | None = Field(default=None, max_length=10000)
+    unsafe_acts: str | None = Field(default=None, max_length=10000)
+    unsafe_conditions: str | None = Field(default=None, max_length=10000)
+    why_steps: list[WhyStep] | None = Field(default=None, max_length=5)
+    root_cause: str | None = Field(default=None, max_length=10000)
+    contributing_factor_ids: list[str] | None = Field(default=None, max_length=50)
+
+
+class InvestigationReturn(BaseModel):
+    """Why an investigation goes back to draft. Kept on the record."""
+
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class InvestigationWaiver(BaseModel):
+    """Why no investigation is needed. Only for a case that needs none: never for
+    an investigation with written content, or one the caller created, edited or
+    submitted."""
+
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class InvestigationPublic(BaseModel):
+    id: str
+    case_id: str
+    status: InvestigationStatus
+    what_happened: str | None
+    unsafe_acts: str | None
+    unsafe_conditions: str | None
+    why_steps: list[WhyStep]
+    root_cause: str | None
+    contributing_factors: list[InvestigationFactorPublic]
+    no_investigation_reason: str | None
+    return_reason: str | None
+    returned_by: uuid.UUID | None
+    returned_at: UtcDateTime | None
+    submitted_by: uuid.UUID | None
+    submitted_at: UtcDateTime | None
+    decided_by: uuid.UUID | None
+    decided_at: UtcDateTime | None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
 class CaseDetail(CasePublic):
-    """Assessments oldest first; actions by due date."""
+    """Assessments oldest first; actions by due date. ``investigation`` is null until
+    the investigation is first written."""
 
     risk_assessments: list[CaseRiskAssessmentPublic]
     actions: list[CaseActionPublic]
+    investigation: InvestigationPublic | None = None

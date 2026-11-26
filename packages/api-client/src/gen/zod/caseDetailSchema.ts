@@ -8,6 +8,7 @@ import { caseActionPublicSchema } from "./caseActionPublicSchema.js";
 import { caseRiskAssessmentPublicSchema } from "./caseRiskAssessmentPublicSchema.js";
 import { caseSourcePublicSchema } from "./caseSourcePublicSchema.js";
 import { caseStatusSchema } from "./caseStatusSchema.js";
+import { investigationPublicSchema } from "./investigationPublicSchema.js";
 
 export const caseDetailSchema = z
   .object({
@@ -30,5 +31,8 @@ export const caseDetailSchema = z
     updated_at: z.iso.datetime(),
     risk_assessments: z.array(caseRiskAssessmentPublicSchema),
     actions: z.array(caseActionPublicSchema),
+    investigation: z.union([investigationPublicSchema, z.null()]).optional(),
   })
-  .describe("Assessments oldest first; actions by due date.");
+  .describe(
+    "Assessments oldest first; actions by due date. ``investigation`` is null until\nthe investigation is first written."
+  );

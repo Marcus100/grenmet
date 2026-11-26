@@ -26,7 +26,8 @@ export type CasesCreateCaseHeaders = {
 };
 
 /**
- * @description Assessments oldest first; actions by due date.
+ * @description Assessments oldest first; actions by due date. ``investigation`` is null until
+ * the investigation is first written.
  * @type object
  */
 export type CasesCreateCaseStatus201 = CaseDetail;

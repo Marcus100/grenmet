@@ -2736,6 +2736,20 @@ export type {
   CasesAcceptRiskStatus422,
 } from "./CasesAcceptRisk.js";
 export type {
+  CasesApproveInvestigationHeaders,
+  CasesApproveInvestigationOptions,
+  CasesApproveInvestigationPath,
+  CasesApproveInvestigationResponse,
+  CasesApproveInvestigationResponses,
+  CasesApproveInvestigationStatus200,
+  CasesApproveInvestigationStatus400,
+  CasesApproveInvestigationStatus401,
+  CasesApproveInvestigationStatus403,
+  CasesApproveInvestigationStatus404,
+  CasesApproveInvestigationStatus409,
+  CasesApproveInvestigationStatus422,
+} from "./CasesApproveInvestigation.js";
+export type {
   CasesChangeActionStatusBody,
   CasesChangeActionStatusHeaders,
   CasesChangeActionStatusOptions,
@@ -2796,6 +2810,21 @@ export type {
   CasesCreateCaseStatus422,
 } from "./CasesCreateCase.js";
 export type {
+  CasesCreateContributingFactorBody,
+  CasesCreateContributingFactorHeaders,
+  CasesCreateContributingFactorOptions,
+  CasesCreateContributingFactorPath,
+  CasesCreateContributingFactorResponse,
+  CasesCreateContributingFactorResponses,
+  CasesCreateContributingFactorStatus201,
+  CasesCreateContributingFactorStatus400,
+  CasesCreateContributingFactorStatus401,
+  CasesCreateContributingFactorStatus403,
+  CasesCreateContributingFactorStatus404,
+  CasesCreateContributingFactorStatus409,
+  CasesCreateContributingFactorStatus422,
+} from "./CasesCreateContributingFactor.js";
+export type {
   CasesCreateRiskAssessmentBody,
   CasesCreateRiskAssessmentHeaders,
   CasesCreateRiskAssessmentOptions,
@@ -2824,6 +2853,19 @@ export type {
   CasesGetCaseStatus422,
 } from "./CasesGetCase.js";
 export type {
+  CasesGetInvestigationHeaders,
+  CasesGetInvestigationOptions,
+  CasesGetInvestigationPath,
+  CasesGetInvestigationResponse,
+  CasesGetInvestigationResponses,
+  CasesGetInvestigationStatus200,
+  CasesGetInvestigationStatus400,
+  CasesGetInvestigationStatus401,
+  CasesGetInvestigationStatus403,
+  CasesGetInvestigationStatus404,
+  CasesGetInvestigationStatus422,
+} from "./CasesGetInvestigation.js";
+export type {
   CasesGetRiskGridHeaders,
   CasesGetRiskGridOptions,
   CasesGetRiskGridPath,
@@ -2851,6 +2893,34 @@ export type {
   CasesListCasesStatus422,
 } from "./CasesListCases.js";
 export type {
+  CasesListContributingFactorsHeaders,
+  CasesListContributingFactorsOptions,
+  CasesListContributingFactorsPath,
+  CasesListContributingFactorsResponse,
+  CasesListContributingFactorsResponses,
+  CasesListContributingFactorsStatus200,
+  CasesListContributingFactorsStatus400,
+  CasesListContributingFactorsStatus401,
+  CasesListContributingFactorsStatus403,
+  CasesListContributingFactorsStatus404,
+  CasesListContributingFactorsStatus422,
+} from "./CasesListContributingFactors.js";
+export type {
+  CasesReturnInvestigationBody,
+  CasesReturnInvestigationHeaders,
+  CasesReturnInvestigationOptions,
+  CasesReturnInvestigationPath,
+  CasesReturnInvestigationResponse,
+  CasesReturnInvestigationResponses,
+  CasesReturnInvestigationStatus200,
+  CasesReturnInvestigationStatus400,
+  CasesReturnInvestigationStatus401,
+  CasesReturnInvestigationStatus403,
+  CasesReturnInvestigationStatus404,
+  CasesReturnInvestigationStatus409,
+  CasesReturnInvestigationStatus422,
+} from "./CasesReturnInvestigation.js";
+export type {
   CasesSetRiskGridBody,
   CasesSetRiskGridHeaders,
   CasesSetRiskGridOptions,
@@ -2865,6 +2935,20 @@ export type {
   CasesSetRiskGridStatus409,
   CasesSetRiskGridStatus422,
 } from "./CasesSetRiskGrid.js";
+export type {
+  CasesSubmitInvestigationHeaders,
+  CasesSubmitInvestigationOptions,
+  CasesSubmitInvestigationPath,
+  CasesSubmitInvestigationResponse,
+  CasesSubmitInvestigationResponses,
+  CasesSubmitInvestigationStatus200,
+  CasesSubmitInvestigationStatus400,
+  CasesSubmitInvestigationStatus401,
+  CasesSubmitInvestigationStatus403,
+  CasesSubmitInvestigationStatus404,
+  CasesSubmitInvestigationStatus409,
+  CasesSubmitInvestigationStatus422,
+} from "./CasesSubmitInvestigation.js";
 export type {
   CasesUpdateActionBody,
   CasesUpdateActionHeaders,
@@ -2895,6 +2979,51 @@ export type {
   CasesUpdateCaseStatus409,
   CasesUpdateCaseStatus422,
 } from "./CasesUpdateCase.js";
+export type {
+  CasesUpdateContributingFactorBody,
+  CasesUpdateContributingFactorHeaders,
+  CasesUpdateContributingFactorOptions,
+  CasesUpdateContributingFactorPath,
+  CasesUpdateContributingFactorResponse,
+  CasesUpdateContributingFactorResponses,
+  CasesUpdateContributingFactorStatus200,
+  CasesUpdateContributingFactorStatus400,
+  CasesUpdateContributingFactorStatus401,
+  CasesUpdateContributingFactorStatus403,
+  CasesUpdateContributingFactorStatus404,
+  CasesUpdateContributingFactorStatus409,
+  CasesUpdateContributingFactorStatus422,
+} from "./CasesUpdateContributingFactor.js";
+export type {
+  CasesUpdateInvestigationBody,
+  CasesUpdateInvestigationHeaders,
+  CasesUpdateInvestigationOptions,
+  CasesUpdateInvestigationPath,
+  CasesUpdateInvestigationResponse,
+  CasesUpdateInvestigationResponses,
+  CasesUpdateInvestigationStatus200,
+  CasesUpdateInvestigationStatus400,
+  CasesUpdateInvestigationStatus401,
+  CasesUpdateInvestigationStatus403,
+  CasesUpdateInvestigationStatus404,
+  CasesUpdateInvestigationStatus409,
+  CasesUpdateInvestigationStatus422,
+} from "./CasesUpdateInvestigation.js";
+export type {
+  CasesWaiveInvestigationBody,
+  CasesWaiveInvestigationHeaders,
+  CasesWaiveInvestigationOptions,
+  CasesWaiveInvestigationPath,
+  CasesWaiveInvestigationResponse,
+  CasesWaiveInvestigationResponses,
+  CasesWaiveInvestigationStatus200,
+  CasesWaiveInvestigationStatus400,
+  CasesWaiveInvestigationStatus401,
+  CasesWaiveInvestigationStatus403,
+  CasesWaiveInvestigationStatus404,
+  CasesWaiveInvestigationStatus409,
+  CasesWaiveInvestigationStatus422,
+} from "./CasesWaiveInvestigation.js";
 export type { CaseUpdate } from "./CaseUpdate.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
@@ -3123,6 +3252,9 @@ export type {
 } from "./ContentSavePost.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
+export type { ContributingFactorCreate } from "./ContributingFactorCreate.js";
+export type { ContributingFactorPublic } from "./ContributingFactorPublic.js";
+export type { ContributingFactorUpdate } from "./ContributingFactorUpdate.js";
 export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { CustomerCreate } from "./CustomerCreate.js";
 export type { CustomerListPublic } from "./CustomerListPublic.js";
@@ -4388,6 +4520,8 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./EventsUpdateSuggestion.js";
+export type { FactorCategory } from "./FactorCategory.js";
+export { factorCategory } from "./FactorCategory.js";
 export type {
   FeatureCreateFlagBody,
   FeatureCreateFlagOptions,
@@ -7217,6 +7351,13 @@ export type { IntendedUse } from "./IntendedUse.js";
 export { intendedUse } from "./IntendedUse.js";
 export type { IntentStatus } from "./IntentStatus.js";
 export { intentStatus } from "./IntentStatus.js";
+export type { InvestigationFactorPublic } from "./InvestigationFactorPublic.js";
+export type { InvestigationPublic } from "./InvestigationPublic.js";
+export type { InvestigationReturn } from "./InvestigationReturn.js";
+export type { InvestigationStatus } from "./InvestigationStatus.js";
+export { investigationStatus } from "./InvestigationStatus.js";
+export type { InvestigationUpdate } from "./InvestigationUpdate.js";
+export type { InvestigationWaiver } from "./InvestigationWaiver.js";
 export type { InvitationAccept } from "./InvitationAccept.js";
 export type { InvitationCreate } from "./InvitationCreate.js";
 export type { InvitationPublic } from "./InvitationPublic.js";
@@ -11344,6 +11485,7 @@ export type {
   WebhooksOutUpdateEndpointStatus422,
 } from "./WebhooksOutUpdateEndpoint.js";
 export type { WebhookTestResult } from "./WebhookTestResult.js";
+export type { WhyStep } from "./WhyStep.js";
 export type { WorkerType } from "./WorkerType.js";
 export { workerType } from "./WorkerType.js";
 export type { WorkflowAction } from "./WorkflowAction.js";

@@ -9,7 +9,7 @@ Additive: two columns on ``bookings.booking``.
   The payment hold of a ``pay_after_acceptance`` booking runs from here.
 
 Revision ID: bookingpayafteraccept20261126
-Revises: usercontactphone20261126
+Revises: casesinvestigation20261126
 """
 
 import sqlalchemy as sa
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "bookingpayafteraccept20261126"
-down_revision = "usercontactphone20261126"
+down_revision = "casesinvestigation20261126"
 branch_labels = None
 depends_on = None
 

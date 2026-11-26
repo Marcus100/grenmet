@@ -3625,3 +3625,34 @@ organisation needs the `safety` entitlement and the caller a key: `safety.cases.
   `POST .../actions/{action_id}/status` (open, done, verified; verifying needs the
   approve key and someone other than the owner). The owner is notified
   (`cases.action_assigned`). `overdue` is true for an open action past its due date.
+- Contributing factors: `GET|POST /contributing-factors`,
+  `PATCH /contributing-factors/{factor_id}` (`category`, `name`, `is_active`). Reading
+  never writes: until the organisation first writes a factor or an investigation, the
+  list is the ICAO Doc 9859 starting suggestions (`is_default_suggestion` true, `id`
+  null, not choosable). The first write stores the starting list, then applies the
+  write. Names are unique per programme, ignoring case (409). Managing the list needs
+  `settings.manage`; reading needs `cases.read`. `factor_id` is `cfa_` and 16 hex
+  characters (422 otherwise). Retired factors (`is_active` false) cannot be newly
+  chosen; a factor already chosen on an investigation stays valid.
+- Investigation (one per case): `GET|PATCH /cases/{case_id}/investigation`. PATCH creates
+  it on first use and needs the case in `investigating` and a draft. Fields:
+  `what_happened`, `unsafe_acts`, `unsafe_conditions`, `root_cause`, `why_steps` (up
+  to 5 `{question, answer}`, a blank question is 422, replaced whole) and
+  `contributing_factor_ids` (factors of this programme, replaced whole; a newly added one
+  must be active, another organisation's or programme's factor is 422). The first write
+  also seeds the starting factor list.
+  `POST .../investigation/submit` (`cases.write`) needs what happened, a root cause and
+  at least one why with every answer. `POST .../investigation/approve` and
+  `.../return` (`reason`) need `cases.approve`. Neither may be done by anyone who
+  created, edited (at any point) or submitted the investigation (403). `POST
+  .../investigation/waiver` (`reason`, `cases.approve`) records that no investigation is
+  needed; it is 409 when the draft already has content, 403 for those parties, and it is
+  allowed while the case is assessing or investigating. Approved and not-needed
+  investigations are read-only (409). Their factor names and categories are as they were
+  at approval. Reopening the case returns the investigation to a clean draft (decision,
+  waiver reason, return and submission cleared; the audit history keeps them).
+- Moving a case to `actions` needs an approved or not-needed investigation (409
+  otherwise); other moves are unchanged. Case detail carries `investigation` (null until
+  written).
+- API keys: the `safety.read` and `safety.write` scopes exist, but the case routes take
+  a signed-in session only, so a key is refused (401/403).
