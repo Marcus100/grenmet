@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import type { EmailCodeState } from "@/app/actions-types";
 import { getAuthConfig } from "@/lib/auth-config";
 import { EMAIL_CODE_RESEND_SECONDS } from "@/lib/email-code";
+import { rememberJoinIntent } from "@/lib/join-intent";
 import { reportError } from "@/lib/report-error";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { isAuthApiError, writeSessionCookie } from "@/lib/session";
@@ -92,6 +93,9 @@ export async function emailCodeAction(
       }
     );
     await writeSessionCookie(session.session_token, session.session_expires_at);
+    // Signing in for an app is the choice to use it: /continue may then join an
+    // instant-join app without a second question (lib/join-intent.ts).
+    await rememberJoinIntent(returnTo, session.session_token);
   } catch (error) {
     if (isAuthApiError(error) && error.detail === MFA_REQUIRED) {
       return {

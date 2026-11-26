@@ -6,6 +6,8 @@ const writeSessionCookie = vi.hoisted(() => vi.fn());
 vi.mock("@barrelsgd/auth/server", () => ({ authApiFetch }));
 vi.mock("@/lib/auth-config", () => ({ getAuthConfig: () => ({}) }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
+const rememberJoinIntent = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/join-intent", () => ({ rememberJoinIntent }));
 vi.mock("@/lib/return-to", () => ({
   getSafeReturnTo: (value: string | null) =>
     value?.startsWith("/") ? value : null,
@@ -73,6 +75,27 @@ describe("emailCodeAction", () => {
       "account-session",
       "2030-01-01T00:00:00Z"
     );
+    // The sign-in was for an app: leave the mark /continue needs to join it
+    // without a second question, bound to the new session.
+    expect(rememberJoinIntent).toHaveBeenCalledWith(
+      "/continue?app=events&state=s",
+      "account-session"
+    );
+  });
+
+  it("answers a code request the same way for every address", async () => {
+    // The API's reply never says whether an account exists; nor does this one.
+    authApiFetch.mockResolvedValue({ message: "sent" });
+    const known = await emailCodeAction(
+      initialEmailCodeState,
+      form({ email: "known@example.com" })
+    );
+    const unknown = await emailCodeAction(
+      initialEmailCodeState,
+      form({ email: "new@example.com" })
+    );
+    expect({ ...known, email: "" }).toEqual({ ...unknown, email: "" });
+    expect(rememberJoinIntent).not.toHaveBeenCalled();
   });
 
   it("asks for the authenticator code when two-factor is on", async () => {
@@ -103,6 +126,7 @@ describe("emailCodeAction", () => {
     );
     expect(result.error).toBe("That code is wrong or has expired.");
     expect(writeSessionCookie).not.toHaveBeenCalled();
+    expect(rememberJoinIntent).not.toHaveBeenCalled();
   });
 
   it("passes the Turnstile token with the code request", async () => {
