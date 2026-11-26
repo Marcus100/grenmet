@@ -351,7 +351,7 @@ const DEPOSIT_409: { match: RegExp; message: string; nextStep: string }[] = [
     match: /paid online|expire or fail/iu,
     message: "The customer's card payment is still open.",
     nextStep:
-      "Wait for it to expire or fail (up to 30 minutes), then record the deposit by hand.",
+      "Wait for it to expire or fail (up to 2 hours), then record the deposit by hand.",
   },
 ];
 

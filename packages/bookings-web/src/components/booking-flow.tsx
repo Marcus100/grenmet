@@ -267,8 +267,14 @@ function BookingDone({
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
         <p>{statusLine(booking.status)}</p>
-        {booking.hold_ends_at ? (
-          <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
+        {booking.status === "pending_payment" && booking.hold_ends_at ? (
+          <p>
+            {holdEndsLine(
+              booking.hold_ends_at,
+              booking.timezone,
+              booking.hold_minutes
+            )}
+          </p>
         ) : null}
         <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
         {lateFee ? <p className="book-late-fee">{lateFee}</p> : null}

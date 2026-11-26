@@ -24,6 +24,7 @@ import {
 import { moneyInput } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
+import { DepositHoldField } from "./deposit-hold-field";
 import { keepTyped, SettingsResult } from "./settings-ui";
 
 /**
@@ -395,6 +396,9 @@ export function DepositRuleForm({
           <p className="text-muted-foreground text-sm">
             Off: bookings take a deposit only where a service sets one.
           </p>
+        )}
+        {business ? null : (
+          <DepositHoldField saved={profile.deposit_hold_minutes ?? null} />
         )}
         <Label className="min-h-11 items-center gap-3">
           <input

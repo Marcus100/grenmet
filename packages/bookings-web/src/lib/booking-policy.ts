@@ -53,11 +53,34 @@ export function nonRefundableDepositLine(
 }
 
 /**
- * When an unpaid hold is released, in the business's timezone. Shown only while
- * the booking waits for payment.
+ * How long a deposit hold lasts, in words: minutes under an hour, whole days from
+ * three days, otherwise whole hours (the hold is minutes, 1 to 10080).
  */
-export function holdEndsLine(holdEndsAt: string, timeZone: string): string {
-  return `Your time is held until ${formatDateTime(holdEndsAt, timeZone)}. It is released if the payment has not arrived by then.`;
+export function holdLengthText(minutes: number): string {
+  const plural = (count: number, unit: string) =>
+    `${count} ${unit}${count === 1 ? "" : "s"}`;
+  if (minutes < 60 || minutes % 60 !== 0) {
+    return plural(minutes, "minute");
+  }
+  const hours = minutes / 60;
+  if (hours >= 72 && hours % 24 === 0) {
+    return plural(hours / 24, "day");
+  }
+  return plural(hours, "hour");
+}
+
+/**
+ * When an unpaid hold is released, in the business's timezone, and how long it
+ * lasts when the API says (`hold_minutes`). Shown only while the booking waits
+ * for payment.
+ */
+export function holdEndsLine(
+  holdEndsAt: string,
+  timeZone: string,
+  holdMinutes?: number | null
+): string {
+  const length = holdMinutes == null ? "" : ` (${holdLengthText(holdMinutes)})`;
+  return `Your time is held until ${formatDateTime(holdEndsAt, timeZone)}${length} while we wait for your deposit.`;
 }
 
 /** Said while the amount for the chosen add-ons is being fetched. */

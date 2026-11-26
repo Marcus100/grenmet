@@ -355,6 +355,35 @@ export function showsAgendaDeposit(booking: {
   );
 }
 
+/**
+ * A deposit the customer pays the business by hand that is still owed: due
+ * while the booking is pending or confirmed and nothing is recorded as received.
+ * A cancelled booking owes nothing, so it is never due.
+ */
+export function businessDepositDue(booking: {
+  deposit_received_at?: string | null;
+  deposit_to_business_minor?: number;
+  status: BookingStatus;
+}): boolean {
+  return (
+    (booking.deposit_to_business_minor ?? 0) > 0 &&
+    (booking.status === "pending" || booking.status === "confirmed") &&
+    !booking.deposit_received_at
+  );
+}
+
+/** "Deposit due EC$X to you", the agenda chip for a business deposit still owed. */
+export function businessDepositDueView(booking: {
+  currency: string;
+  deposit_to_business_minor?: number;
+}): StatusView {
+  const amount = formatMoney(
+    booking.deposit_to_business_minor ?? 0,
+    booking.currency
+  );
+  return { label: `Deposit due ${amount} to you`, tone: "warning" };
+}
+
 export type DepositMethod = "cash" | "bank_transfer" | "paypal" | "other";
 
 export const DEPOSIT_METHODS = [
