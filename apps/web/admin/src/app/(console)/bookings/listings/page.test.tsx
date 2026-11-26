@@ -50,9 +50,9 @@ const approved = {
   sender_name_flagged_at: null,
 };
 
-function page(queue?: string, notice?: string) {
+function page(queue?: string, notice?: string, pageParam?: string) {
   return ListingsPage({
-    searchParams: Promise.resolve({ queue, notice }),
+    searchParams: Promise.resolve({ queue, notice, page: pageParam }),
   });
 }
 
@@ -175,5 +175,42 @@ describe("bookings listing review page", () => {
     });
     render(await page("pending", "already-approved"));
     expect(screen.getByRole("alert").textContent).toContain("already approved");
+  });
+
+  it("encodes the public slug in the public booking link", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [{ ...waiting, public_slug: "shop one/2" }],
+      count: 1,
+      page: 1,
+      size: 25,
+    });
+    render(await page("all"));
+    const link = screen.getByRole("link", { name: PUBLIC_PAGE_LINK });
+    expect(link.getAttribute("href")).toBe(
+      "https://bookings.barrels.gd/shop%20one%2F2"
+    );
+  });
+
+  it("queries the requested page", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [waiting],
+      count: 60,
+      page: 3,
+      size: 25,
+    });
+    render(await page("pending", undefined, "3"));
+    expect(api.listListingReviews).toHaveBeenCalledWith("tok", "pending", 3);
+  });
+
+  it("keeps the notice when an out-of-range page goes to the last page", async () => {
+    api.listListingReviews.mockResolvedValue({
+      data: [],
+      count: 30,
+      page: 5,
+      size: 25,
+    });
+    await expect(page("pending", "approved", "5")).rejects.toThrow(
+      "REDIRECT:/bookings/listings?queue=pending&page=2&notice=approved"
+    );
   });
 });

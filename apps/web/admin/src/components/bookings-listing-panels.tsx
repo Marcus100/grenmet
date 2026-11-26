@@ -22,7 +22,7 @@ type ListingFormAction = (formData: FormData) => Promise<void>;
 
 const TRAILING_SLASH = /\/$/u;
 
-export function stamp(iso: string): string {
+function stamp(iso: string): string {
   return `${new Date(iso).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
@@ -100,12 +100,15 @@ export function listingFlags(row: BookingListingReview): string[] {
 
 export function ListingList({
   approve,
+  page,
   publicOrigin,
   queue,
   rows,
   withdraw,
 }: {
   approve: ListingFormAction;
+  /** The page on screen; an action returns the staff member here. */
+  page: number;
   publicOrigin: string;
   queue: BookingListingQueue;
   rows: BookingListingReview[];
@@ -127,6 +130,7 @@ export function ListingList({
         <ListingRow
           approve={approve}
           key={row.organisation_id}
+          page={page}
           publicOrigin={publicOrigin}
           queue={queue}
           row={row}
@@ -139,12 +143,14 @@ export function ListingList({
 
 function ListingRow({
   approve,
+  page,
   publicOrigin,
   queue,
   row,
   withdraw,
 }: {
   approve: ListingFormAction;
+  page: number;
   publicOrigin: string;
   queue: BookingListingQueue;
   row: BookingListingReview;
@@ -153,7 +159,11 @@ function ListingRow({
   const state = listingState(row);
   const flags = listingFlags(row);
   const publicHref = `${publicOrigin.replace(TRAILING_SLASH, "")}/${encodeURIComponent(row.public_slug)}`;
-  const fields = { organisation_id: row.organisation_id, queue };
+  const fields = {
+    organisation_id: row.organisation_id,
+    page: String(page),
+    queue,
+  };
   const approved = Boolean(row.listing_approved_at);
 
   return (

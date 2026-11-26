@@ -8,6 +8,8 @@ import {
   LISTING_NOTICE_OK,
   type ListingAction,
   listingNoticeForError,
+  listingsHref,
+  parseListingPage,
   parseListingQueue,
 } from "@/lib/bookings-listing-form";
 import { parseOrganisationId } from "@/lib/organisation-form";
@@ -22,24 +24,18 @@ import { requireGate } from "@/lib/staff-gate";
 
 const LISTING_PATH = "/bookings/listings";
 
-function listPath(
-  queue: string,
-  notice?: string
-): `/bookings/listings?${string}` {
-  const params = new URLSearchParams({ queue });
-  if (notice) params.set("notice", notice);
-  return `${LISTING_PATH}?${params}`;
-}
-
 async function decide(
   action: ListingAction,
   formData: FormData
 ): Promise<void> {
   const queue = parseListingQueue(String(formData.get("queue") ?? ""));
+  // The page the staff member was on; the redirect returns there, or to the
+  // last page if the change emptied it.
+  const page = parseListingPage(String(formData.get("page") ?? ""));
   const organisationId = parseOrganisationId(
     String(formData.get("organisation_id") ?? "")
   );
-  if (!organisationId) redirect(listPath(queue, "invalid"));
+  if (!organisationId) redirect(listingsHref(queue, page, "invalid"));
 
   const gate = await requireGate(LISTING_PATH);
   if (gate.status !== "staff") redirect("/");
@@ -57,10 +53,10 @@ async function decide(
     // Expected refusals are not incidents; anything else is reported.
     if (!mapped.known) reportError(error, "admin-bookings-listings");
     revalidatePath(LISTING_PATH);
-    redirect(listPath(queue, mapped.code));
+    redirect(listingsHref(queue, page, mapped.code));
   }
   revalidatePath(LISTING_PATH);
-  redirect(listPath(queue, LISTING_NOTICE_OK[action]));
+  redirect(listingsHref(queue, page, LISTING_NOTICE_OK[action]));
 }
 
 export async function approveListingAction(formData: FormData): Promise<void> {

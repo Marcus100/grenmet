@@ -55,7 +55,7 @@ describe("bookings listing actions", () => {
     );
     expect(api.approveListing).toHaveBeenCalledWith("tok", ORG);
     expect(api.withdrawListing).not.toHaveBeenCalled();
-    expect(url).toBe("/bookings/listings?queue=pending&notice=approved");
+    expect(url).toBe("/bookings/listings?queue=pending&page=1&notice=approved");
   });
 
   it("withdraw calls the client with the organisation id and keeps the queue", async () => {
@@ -65,7 +65,31 @@ describe("bookings listing actions", () => {
     );
     expect(api.withdrawListing).toHaveBeenCalledWith("tok", ORG);
     expect(api.approveListing).not.toHaveBeenCalled();
-    expect(url).toBe("/bookings/listings?queue=approved&notice=withdrawn");
+    expect(url).toBe(
+      "/bookings/listings?queue=approved&page=1&notice=withdrawn"
+    );
+  });
+
+  it("returns to the page the staff member was on after an action", async () => {
+    api.withdrawListing.mockResolvedValue({});
+    const url = await redirected(
+      withdrawListingAction(
+        form({ organisation_id: ORG, queue: "approved", page: "3" })
+      )
+    );
+    expect(url).toBe(
+      "/bookings/listings?queue=approved&page=3&notice=withdrawn"
+    );
+  });
+
+  it("treats a garbled page field as page 1", async () => {
+    api.approveListing.mockResolvedValue({});
+    const url = await redirected(
+      approveListingAction(
+        form({ organisation_id: ORG, queue: "pending", page: "../x" })
+      )
+    );
+    expect(url).toBe("/bookings/listings?queue=pending&page=1&notice=approved");
   });
 
   it("maps a repeat approval (409) to a plain notice without reporting it", async () => {
@@ -76,7 +100,7 @@ describe("bookings listing actions", () => {
       approveListingAction(form({ organisation_id: ORG, queue: "pending" }))
     );
     expect(url).toBe(
-      "/bookings/listings?queue=pending&notice=already-approved"
+      "/bookings/listings?queue=pending&page=1&notice=already-approved"
     );
     expect(report.reportError).not.toHaveBeenCalled();
   });
@@ -88,7 +112,7 @@ describe("bookings listing actions", () => {
     const url = await redirected(
       withdrawListingAction(form({ organisation_id: ORG, queue: "all" }))
     );
-    expect(url).toBe("/bookings/listings?queue=all&notice=not-approved");
+    expect(url).toBe("/bookings/listings?queue=all&page=1&notice=not-approved");
     expect(report.reportError).not.toHaveBeenCalled();
   });
 
@@ -97,7 +121,9 @@ describe("bookings listing actions", () => {
     const url = await redirected(
       approveListingAction(form({ organisation_id: ORG, queue: "pending" }))
     );
-    expect(url).toBe("/bookings/listings?queue=pending&notice=forbidden");
+    expect(url).toBe(
+      "/bookings/listings?queue=pending&page=1&notice=forbidden"
+    );
     expect(report.reportError).not.toHaveBeenCalled();
   });
 
@@ -107,7 +133,7 @@ describe("bookings listing actions", () => {
     const url = await redirected(
       withdrawListingAction(form({ organisation_id: ORG, queue: "pending" }))
     );
-    expect(url).toBe("/bookings/listings?queue=pending&notice=failed");
+    expect(url).toBe("/bookings/listings?queue=pending&page=1&notice=failed");
     expect(report.reportError).toHaveBeenCalledWith(
       error,
       "admin-bookings-listings"
@@ -126,7 +152,7 @@ describe("bookings listing actions", () => {
     const url = await redirected(
       approveListingAction(form({ organisation_id: "../x", queue: "pending" }))
     );
-    expect(url).toBe("/bookings/listings?queue=pending&notice=invalid");
+    expect(url).toBe("/bookings/listings?queue=pending&page=1&notice=invalid");
     expect(api.approveListing).not.toHaveBeenCalled();
   });
 

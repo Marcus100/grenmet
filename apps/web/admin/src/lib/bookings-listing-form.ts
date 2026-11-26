@@ -27,6 +27,25 @@ export function parseListingQueue(
   return LISTING_QUEUES.find((item) => item === value) ?? "pending";
 }
 
+/** A 1-based page number from the URL or a form field; anything else is page 1. */
+export function parseListingPage(value: string | undefined): number {
+  const parsed = Number.parseInt(value ?? "1", 10);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 10_000
+    ? parsed
+    : 1;
+}
+
+/** The list URL for a queue and page, with an optional fixed notice code. */
+export function listingsHref(
+  queue: BookingListingQueue,
+  page: number,
+  notice?: string
+): `/bookings/listings?${string}` {
+  const params = new URLSearchParams({ queue, page: String(page) });
+  if (notice) params.set("notice", notice);
+  return `/bookings/listings?${params}`;
+}
+
 export const LISTING_EMPTY: Record<
   BookingListingQueue,
   { text: string; title: string }

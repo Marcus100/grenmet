@@ -12,6 +12,8 @@ import { StaffOnly } from "@/components/staff-only";
 import { listListingReviews } from "@/lib/bookings-listing-api";
 import {
   LISTING_PAGE_SIZE,
+  listingsHref,
+  parseListingPage,
   parseListingQueue,
 } from "@/lib/bookings-listing-form";
 import { env } from "@/lib/env";
@@ -28,13 +30,6 @@ function one(value: string | string[] | undefined): string | undefined {
   return first?.trim() || undefined;
 }
 
-function pageNumber(value: string | undefined): number {
-  const parsed = Number.parseInt(value ?? "1", 10);
-  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 10_000
-    ? parsed
-    : 1;
-}
-
 export default async function BookingsListingsPage({
   searchParams,
 }: {
@@ -45,7 +40,7 @@ export default async function BookingsListingsPage({
 
   const params = await searchParams;
   const queue = parseListingQueue(one(params.queue));
-  const page = pageNumber(one(params.page));
+  const page = parseListingPage(one(params.page));
   const notice = one(params.notice);
 
   let list: Awaited<ReturnType<typeof listListingReviews>>;
@@ -65,11 +60,10 @@ export default async function BookingsListingsPage({
   }
 
   const lastPage = Math.max(1, Math.ceil(list.count / LISTING_PAGE_SIZE));
-  if (page > lastPage) {
-    redirect(`/bookings/listings?queue=${queue}&page=${lastPage}`);
-  }
-  const linkTo = (target: number) =>
-    `/bookings/listings?queue=${queue}&page=${target}` as const;
+  // An action can leave its page empty (the approved row leaves Waiting), so
+  // an out-of-range page goes to the last page and keeps the notice.
+  if (page > lastPage) redirect(listingsHref(queue, lastPage, notice));
+  const linkTo = (target: number) => listingsHref(queue, target);
 
   return (
     <>
@@ -78,6 +72,7 @@ export default async function BookingsListingsPage({
       <QueueTabs current={queue} />
       <ListingList
         approve={approveListingAction}
+        page={page}
         publicOrigin={env.BOOKINGS_APP_URL}
         queue={queue}
         rows={list.data}

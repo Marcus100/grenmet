@@ -14,6 +14,9 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { type FormEvent, useState, useTransition } from "react";
 
+// 44 px touch targets on coarse pointers for every button in the dialog.
+const COARSE_TARGET = "pointer-coarse:min-h-11";
+
 /**
  * The console's shared confirmation for destructive or recorded actions
  * (docs/design/admin.md: destructive actions confirm first). The trigger opens a
@@ -68,6 +71,7 @@ export function ConfirmActionDialog({
           <Button
             className={cn(
               destructive && "border-destructive/40 text-destructive",
+              COARSE_TARGET,
               className
             )}
             size="sm"
@@ -88,9 +92,11 @@ export function ConfirmActionDialog({
             <input key={name} name={name} type="hidden" value={value} />
           ))}
           <AlertDialogFooter>
-            <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+            <AlertDialogCancel className={COARSE_TARGET}>
+              {cancelLabel}
+            </AlertDialogCancel>
             <Button
-              className={className}
+              className={cn(COARSE_TARGET, className)}
               disabled={pending}
               type="submit"
               variant={destructive ? "destructive" : "default"}
