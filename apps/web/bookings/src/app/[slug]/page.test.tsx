@@ -203,6 +203,66 @@ describe("metadata", () => {
     });
   });
 
+  describe("share preview image", () => {
+    const COVER = "https://storage.example.test/booking-cover/sea-salt.jpg";
+    const LOGO_URL = "https://storage.example.test/booking-logo/sea-salt.png";
+
+    it("uses the cover photo when there is one", async () => {
+      vi.mocked(getStorefront).mockResolvedValue({
+        ...storefront,
+        cover_url: COVER,
+        logo_url: LOGO_URL,
+      });
+      const meta = await generateMetadata(params("sea-salt-spa"));
+      expect(meta.openGraph).toMatchObject({
+        images: [{ url: COVER, alt: "Sea Salt Spa" }],
+      });
+      expect(meta.twitter).toMatchObject({
+        card: "summary_large_image",
+        images: [COVER],
+      });
+    });
+
+    it("falls back to the logo when there is no cover", async () => {
+      vi.mocked(getStorefront).mockResolvedValue({
+        ...storefront,
+        cover_url: null,
+        logo_url: LOGO_URL,
+      });
+      const meta = await generateMetadata(params("sea-salt-spa"));
+      expect(meta.openGraph).toMatchObject({
+        images: [{ url: LOGO_URL, alt: "Sea Salt Spa" }],
+      });
+      expect(meta.twitter).toMatchObject({
+        card: "summary",
+        images: [LOGO_URL],
+      });
+    });
+
+    it("ignores an unsafe cover and uses the logo", async () => {
+      vi.mocked(getStorefront).mockResolvedValue({
+        ...storefront,
+        cover_url: "http://storage.example.test/cover.jpg",
+        logo_url: LOGO_URL,
+      });
+      const meta = await generateMetadata(params("sea-salt-spa"));
+      expect(meta.openGraph).toMatchObject({
+        images: [{ url: LOGO_URL, alt: "Sea Salt Spa" }],
+      });
+    });
+
+    it("leaves the app default when there is neither", async () => {
+      vi.mocked(getStorefront).mockResolvedValue({
+        ...storefront,
+        cover_url: null,
+        logo_url: null,
+      });
+      const meta = await generateMetadata(params("sea-salt-spa"));
+      expect(meta.openGraph).not.toHaveProperty("images");
+      expect(meta).not.toHaveProperty("twitter");
+    });
+  });
+
   it("keeps an unknown slug out of search", async () => {
     vi.mocked(getStorefront).mockResolvedValue(null);
     expect(await generateMetadata(params("nobody-here"))).toMatchObject({
