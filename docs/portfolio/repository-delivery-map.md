@@ -154,6 +154,7 @@ GMS or GAA.
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
 | `.github/CODEOWNERS` | Barrels engineering review routing | Active | Requests owner review on security-sensitive paths; enforcement is a ruleset setting |
 | `.gitleaks.toml` | Barrels engineering secret-scan policy | Active | Default gitleaks rules plus reviewed placeholder allowlists for the secret-scan workflow |
+| `.coderabbit.yaml` | Barrels engineering review automation (trial, issue #1944) | Trial | Advisory pull request comments only; never approves, blocks or sets a status; no product authority |
 | `.github/ISSUE_TEMPLATE` | Barrels engineering issue intake | Active | Agent-task template: deliverable, constraints, non-goals and acceptance check |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
 | `docs/products` | Product specifications and implementation plans, classified by their named owner | Planned/reference | Keep product scope and acceptance criteria aligned with the portfolio and client programme plans |

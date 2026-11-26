@@ -42,7 +42,17 @@ Today staff apps (gaa-admin, cms) still share one legacy cookie on
    Staff apps require an admin to grant access.
 7. **Joining is explicit, once.** The first handoff to a self-sign-up app (Events)
    shows a one-click "Join <app>?" screen on auth; accepting grants the app's
-   default role. Later visits are silent.
+   default role. Later visits are silent. Amended 26 Nov 2026 (owner: "email,
+   code, straight in"): completing an emailed-code sign-in that an app sent the
+   person to is that choice, so auth then joins a self-service app without the
+   screen. A `/continue` request alone never joins (its `state` is checked only
+   by the app, so anyone can write that link); staff apps keep the screen.
+   The join is bound to a 120-second, session-bound cookie that only the
+   emailed-code sign-in sets (`apps/web/auth/src/lib/join-intent.ts`). Residual
+   risk, accepted: a crafted link can lead a signed-out person who completes
+   their own code sign-in to be joined to the self-service app named on the
+   screen (default role only; the app's callback still rejects the foreign
+   `state`).
 8. **Public accounts and staff requests (step 4).** Anyone can sign up and sign
    in at auth.barrels.gd; staff approval moves from sign-in to staff routes and
    staff-app handoffs. Accounts ask for staff access from their account page,

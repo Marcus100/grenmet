@@ -305,6 +305,7 @@ def send_email(
         raise RuntimeError(
             "Email is not configured: set RESEND_API_KEY or SMTP_HOST + EMAILS_FROM_EMAIL"
         )
+    # Never log a subject: the sign-in code email's subject starts with the code.
 
     from_address = sender_header(from_name)
     reply = safe_reply_to(reply_to)
