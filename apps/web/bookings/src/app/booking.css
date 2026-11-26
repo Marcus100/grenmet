@@ -832,13 +832,18 @@ fieldset.notice {
     min-width: 0;
   }
   .book-recap-title,
-  .book-recap-detail,
-  .book-recap-trail {
+  .book-recap-detail {
     min-width: 0;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* The trail wraps rather than cut off: the time is the part a customer checks. */
+  .book-recap-trail {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
   }
   .book-recap-detail {
     font-size: 0.875rem;

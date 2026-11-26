@@ -181,6 +181,19 @@ describe("choices are remembered in the link", () => {
   });
 });
 
+describe("the recap keeps the time on a phone", () => {
+  it("names the time, with a short date, on steps 2 and 3", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("radio", { name: CLASSIC_LASHES }));
+    await user.click(screen.getByRole("button", CONTINUE));
+    await user.click(await screen.findByRole("radio", { name: "9:30 am" }));
+    expect(trail()).toHaveTextContent("Classic lashes · Tue 5 Jan, 9:30 am");
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(trail()).toHaveTextContent("Classic lashes · Tue 5 Jan, 9:30 am");
+  });
+});
+
 describe("Edit links on the chosen-so-far line", () => {
   it("steps 2 and 3 show the service, day and time, and Edit goes back", async () => {
     const user = userEvent.setup();

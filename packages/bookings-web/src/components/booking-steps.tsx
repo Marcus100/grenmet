@@ -2,7 +2,7 @@
 
 import type { ReactNode, RefObject } from "react";
 import {
-  formatDateTime,
+  formatDateTimeShort,
   formatDuration,
   formatMoney,
 } from "../lib/booking-format";
@@ -125,7 +125,7 @@ export function chosenTrail(input: ChosenInput): string {
     parts.push(input.serviceName);
   }
   if (input.startsAt) {
-    parts.push(formatDateTime(input.startsAt, input.timeZone));
+    parts.push(formatDateTimeShort(input.startsAt, input.timeZone));
   }
   return parts.join(" · ");
 }
