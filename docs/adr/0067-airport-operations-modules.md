@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed 25 November 2026 (planning only; nothing built). The owner asked for
+Accepted 25 November 2026, when the owner said build. The operations log is built
+(#1911) and incidents are in progress (#1915); the case engine has its own record,
+ADR-0069. Proposed earlier the same day. The owner asked for
 as many airport-operations features as possible to be built into this
 repository and left the product question open. Programme:
 `docs/products/airport-operations-programme.md`.
