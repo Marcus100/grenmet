@@ -25,7 +25,7 @@ export const casesUpdateCaseHeaderXBarrelsOrganisationSchema = z
   );
 
 export const casesUpdateCaseStatus200Schema = caseDetailSchema.describe(
-  "Assessments oldest first; actions by due date."
+  "Assessments oldest first; actions by due date. ``investigation`` is null until\nthe investigation is first written."
 );
 
 export const casesUpdateCaseStatus400Schema = apiErrorSchema.describe(

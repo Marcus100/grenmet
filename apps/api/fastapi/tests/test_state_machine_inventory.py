@@ -135,6 +135,7 @@ INVENTORY: dict[str, Decision] = {
     "src/incidents/models.py:Incident.status": _table("src/incidents/transitions.py"),
     "src/cases/models.py:Case.status": _table("src/cases/transitions.py"),
     "src/cases/models.py:CaseAction.status": _table("src/cases/transitions.py"),
+    "src/cases/models.py:CaseInvestigation.status": _table("src/cases/transitions.py"),
     "src/hr/absentee/models.py:AbsenteeReport.status": _HR_REQUEST,
     "src/hr/attendance/models.py:ClockPunch.status": _table(
         "src/hr/attendance/transitions.py"
