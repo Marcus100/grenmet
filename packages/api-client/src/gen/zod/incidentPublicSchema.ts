@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { incidentStatusSchema } from "./incidentStatusSchema.js";
+import { incidentWeatherSchema } from "./incidentWeatherSchema.js";
 
 export const incidentPublicSchema = z.object({
   id: z.string(),
@@ -18,6 +19,7 @@ export const incidentPublicSchema = z.object({
   status: incidentStatusSchema,
   reported_by: z.uuid(),
   reported_by_name: z.union([z.string(), z.null()]),
+  weather: z.union([incidentWeatherSchema, z.null()]).optional(),
   opened_at: z.union([z.iso.datetime(), z.null()]),
   closed_at: z.union([z.iso.datetime(), z.null()]),
   closed_by: z.union([z.uuid(), z.null()]),

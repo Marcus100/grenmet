@@ -6877,6 +6877,21 @@ export type {
   IncidentsReopenIncidentStatus422,
 } from "./IncidentsReopenIncident.js";
 export type {
+  IncidentsSetWeatherBody,
+  IncidentsSetWeatherHeaders,
+  IncidentsSetWeatherOptions,
+  IncidentsSetWeatherPath,
+  IncidentsSetWeatherResponse,
+  IncidentsSetWeatherResponses,
+  IncidentsSetWeatherStatus200,
+  IncidentsSetWeatherStatus400,
+  IncidentsSetWeatherStatus401,
+  IncidentsSetWeatherStatus403,
+  IncidentsSetWeatherStatus404,
+  IncidentsSetWeatherStatus409,
+  IncidentsSetWeatherStatus422,
+} from "./IncidentsSetWeather.js";
+export type {
   IncidentsUpdateCategoryBody,
   IncidentsUpdateCategoryHeaders,
   IncidentsUpdateCategoryOptions,
@@ -6956,6 +6971,8 @@ export type { IncidentTimelineKind } from "./IncidentTimelineKind.js";
 export { incidentTimelineKind } from "./IncidentTimelineKind.js";
 export type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
 export type { IncidentUpdate } from "./IncidentUpdate.js";
+export type { IncidentWeather } from "./IncidentWeather.js";
+export type { IncidentWeatherSet } from "./IncidentWeatherSet.js";
 export type { IntendedUse } from "./IntendedUse.js";
 export { intendedUse } from "./IntendedUse.js";
 export type { IntentStatus } from "./IntentStatus.js";

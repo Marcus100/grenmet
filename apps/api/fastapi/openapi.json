@@ -78668,6 +78668,132 @@
           }
         }
       }
+    },
+    "/api/v1/incidents/org/incidents/{incident_id}/weather": {
+      "put": {
+        "tags": [
+          "incidents"
+        ],
+        "summary": "Attach the weather report at the time",
+        "description": "Without `report`, takes the METAR or SPECI of `station` nearest the incident's time from Met Service observations (from 90 minutes before to 30 minutes after); 404 when there is none. With `report`, stores the text as typed and marks it `manual`. Stored as raw text on the incident; replacing it is audited. A closed incident refuses (409).",
+        "operationId": "incidentsSetWeather",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncidentWeatherSet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -100693,6 +100819,16 @@
             ],
             "title": "Reported By Name"
           },
+          "weather": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentWeather"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "opened_at": {
             "anyOf": [
               {
@@ -101297,6 +101433,16 @@
             ],
             "title": "Reported By Name"
           },
+          "weather": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentWeather"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "opened_at": {
             "anyOf": [
               {
@@ -101671,6 +101817,84 @@
         "type": "object",
         "title": "IncidentUpdate",
         "description": "Only the fields sent change. The category can change only on a draft."
+      },
+      "IncidentWeather": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "report": {
+            "type": "string",
+            "title": "Report"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "observed_at",
+          "report",
+          "source"
+        ],
+        "title": "IncidentWeather",
+        "description": "The aerodrome weather report nearest the incident's time."
+      },
+      "IncidentWeatherSet": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "maxLength": 4,
+            "minLength": 4,
+            "title": "Station",
+            "description": "ICAO, e.g. TGPY."
+          },
+          "report": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station"
+        ],
+        "title": "IncidentWeatherSet",
+        "description": "Leave ``report`` out to look the report up from Met Service observations\n(the METAR or SPECI nearest the incident's time). Send it to type one in."
       },
       "IntendedUse": {
         "type": "string",

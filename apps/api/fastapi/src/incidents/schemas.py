@@ -91,6 +91,26 @@ class IncidentUpdate(BaseModel):
     location: str | None = Field(default=None, max_length=200)
 
 
+class IncidentWeather(BaseModel):
+    """The aerodrome weather report nearest the incident's time."""
+
+    station: str
+    observed_at: UtcDateTime | None
+    #: The raw METAR or SPECI text.
+    report: str
+    #: ``observation`` (Met Service observations) or ``manual`` (typed in).
+    source: str
+
+
+class IncidentWeatherSet(BaseModel):
+    """Leave ``report`` out to look the report up from Met Service observations
+    (the METAR or SPECI nearest the incident's time). Send it to type one in."""
+
+    station: str = Field(min_length=4, max_length=4, description="ICAO, e.g. TGPY.")
+    report: str | None = Field(default=None, max_length=1000)
+    observed_at: UtcDateTime | None = None
+
+
 class IncidentPublic(BaseModel):
     id: str
     reference: str
@@ -103,6 +123,7 @@ class IncidentPublic(BaseModel):
     status: IncidentStatus
     reported_by: uuid.UUID
     reported_by_name: str | None
+    weather: IncidentWeather | None = None
     opened_at: UtcDateTime | None
     closed_at: UtcDateTime | None
     closed_by: uuid.UUID | None

@@ -548,6 +548,7 @@ export { incidentsListCategories } from "./incidentsListCategories.js";
 export { incidentsListIncidents } from "./incidentsListIncidents.js";
 export { incidentsOpenIncident } from "./incidentsOpenIncident.js";
 export { incidentsReopenIncident } from "./incidentsReopenIncident.js";
+export { incidentsSetWeather } from "./incidentsSetWeather.js";
 export { incidentsUpdateCategory } from "./incidentsUpdateCategory.js";
 export { incidentsUpdateCheck } from "./incidentsUpdateCheck.js";
 export { incidentsUpdateChecklistItem } from "./incidentsUpdateChecklistItem.js";

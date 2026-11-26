@@ -2749,6 +2749,11 @@ export {
   useIncidentsReopenIncident,
 } from "./useIncidentsReopenIncident.js";
 export {
+  incidentsSetWeatherMutationKey,
+  incidentsSetWeatherMutationOptions,
+  useIncidentsSetWeather,
+} from "./useIncidentsSetWeather.js";
+export {
   incidentsUpdateCategoryMutationKey,
   incidentsUpdateCategoryMutationOptions,
   useIncidentsUpdateCategory,

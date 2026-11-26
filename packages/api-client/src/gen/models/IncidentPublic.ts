@@ -4,6 +4,7 @@
  */
 
 import type { IncidentStatus } from "./IncidentStatus.js";
+import type { IncidentWeather } from "./IncidentWeather.js";
 
 export type IncidentPublic = {
   id: string;
@@ -27,6 +28,7 @@ export type IncidentPublic = {
    */
   reported_by: string;
   reported_by_name: string | null;
+  weather?: IncidentWeather | null;
   opened_at: string | null;
   closed_at: string | null;
   closed_by: string | null;
