@@ -13,9 +13,9 @@ export function PausedBanner({
 }: Readonly<{ canManage: boolean; orgSlug: string }>) {
   return (
     <section aria-labelledby="paused-title" className={`${CARD} space-y-2`}>
-      <h2 className="text-foreground text-lg font-semibold" id="paused-title">
+      <p className="text-foreground text-lg font-semibold" id="paused-title">
         Online booking is paused
-      </h2>
+      </p>
       <p className="text-foreground/80">
         Customers can&apos;t book online right now. Bookings that already stand
         still stand, and the links customers use to change them still work. You

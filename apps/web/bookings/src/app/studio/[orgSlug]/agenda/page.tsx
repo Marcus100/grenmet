@@ -484,7 +484,9 @@ function BookingRow({
       </span>
       <span className="flex flex-wrap gap-2">
         <StatusBadge kind={booking.payment_kind} status={booking.status} />
-        {booking.returning_client ? <ReturningClientTag /> : null}
+        {booking.returning_client && booking.status === "pending" ? (
+          <ReturningClientTag />
+        ) : null}
         {booking.deposit_minor > 0 ? (
           <DepositBadge view={agendaDepositView(booking)} />
         ) : null}

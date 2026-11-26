@@ -372,7 +372,47 @@ describe("returning client notice", () => {
 const PAYMENT_DUE = /Payment due/u;
 const DEPOSIT_DUE = /Deposit due/u;
 
+describe("cancelled booking with a captured deposit", () => {
+  it("shows the deposit as paid, not as cancelled", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "cancelled",
+        deposit_minor: 2500,
+        deposit_captured_minor: 2500,
+      })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit paid")).toBeVisible();
+    expect(screen.queryByText("Payment cancelled")).toBeNull();
+    expect(screen.queryByText("Deposit cancelled")).toBeNull();
+  });
+});
+
 describe("cancelled booking with an unpaid payment (#1849)", () => {
+  it("says Deposit cancelled for a deposit booking", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "cancelled",
+        deposit_minor: 2500,
+        deposit_captured_minor: 0,
+      })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit cancelled")).toBeVisible();
+  });
+
   it("shows Payment cancelled and no due badge or record prompt", async () => {
     vi.mocked(getBooking).mockResolvedValue(
       detail({

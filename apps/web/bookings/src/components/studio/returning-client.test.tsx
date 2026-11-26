@@ -39,14 +39,12 @@ describe("returning client flag", () => {
   });
 
   it("never appears in a public page, component or the shared booking package", () => {
-    // Vitest runs in the bookings package folder. Public code is the customers'
-    // pages, the shared components and lib, and the bookings package; staff-only
-    // files (studio) are excluded.
+    // Vitest runs in the bookings package folder. Everything under src except the
+    // studio (app/studio, components/studio, lib/studio-*) is public surface, as
+    // is the shared bookings package.
     const app = resolve(process.cwd(), "src");
     const publicRoots = [
-      resolve(app, "app/[slug]"),
-      resolve(app, "components"),
-      resolve(app, "lib"),
+      app,
       resolve(process.cwd(), "../../../packages/bookings-web/src"),
     ];
     const offenders = publicRoots

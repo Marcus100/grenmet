@@ -512,7 +512,7 @@ describe("returning client", () => {
         {
           day: "2026-10-21",
           bookings: [
-            item({ returning_client: true }),
+            item({ returning_client: true, status: "pending" }),
             item({
               id: "77777777-7777-4777-8777-777777777777",
               customer_name: "Grace Hopper",
@@ -600,7 +600,7 @@ describe("needs confirming", () => {
 });
 
 describe("cancelled booking with an unpaid payment (#1849)", () => {
-  it("shows Payment cancelled, never Payment due, on the agenda card", async () => {
+  it("keeps the amount label, never Payment due, on a cancelled agenda card", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -623,8 +623,48 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
     );
     const row = screen.getByRole("link", { name: ADA });
     expect(within(row).getByText("Cancelled")).toBeVisible();
-    expect(within(row).getByText("Payment cancelled")).toBeVisible();
+    expect(within(row).getByText("Payment EC$25")).toBeVisible();
     expect(row).not.toHaveTextContent("Payment due");
     expect(row).not.toHaveTextContent("Deposit due");
+    expect(row).not.toHaveTextContent("Payment cancelled");
+  });
+
+  it("does not say due for a cancelled deposit that was kept or refunded", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [item({ status: "cancelled", deposit_minor: 2500 })],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const row = screen.getByRole("link", { name: ADA });
+    expect(within(row).getByText("Deposit EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Deposit due");
+    expect(row).not.toHaveTextContent("Payment due");
+  });
+
+  it("does not show the returning-client tag once the booking is cancelled", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [item({ status: "cancelled", returning_client: true })],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    expect(screen.queryByText("Returning client")).toBeNull();
   });
 });
