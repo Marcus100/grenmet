@@ -355,6 +355,16 @@ class BookingProfileUpdate(BaseModel):
             "out, the stored value is kept."
         ),
     )
+    deposit_hold_minutes: Annotated[int, Field(ge=1, le=10080)] | None = Field(
+        default=None,
+        description=(
+            "How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven "
+            "days), for payment-link and manual deposits such as a bank transfer. An "
+            "online card checkout is held at most 120 minutes whatever is set. Null "
+            "means 30 minutes. Business-collected deposits are never held, so it has "
+            "no effect there. Left out, the stored value is kept."
+        ),
+    )
     deposit_instructions: Annotated[str, Field(max_length=500)] | None = Field(
         default=None,
         description=(
@@ -821,6 +831,15 @@ class BookingAgendaItem(BaseModel):
     source: BookingSource
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer pays the business by hand (`deposit_collection` "
+            "`business`), 0 otherwise. Unpaid until `deposit_received_at` is set. "
+            "Show it as due only while `status` is `pending` or `confirmed`: the UI "
+            "must check the status too, since a cancelled booking owes nothing."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
@@ -840,6 +859,20 @@ class BookingAgendaItem(BaseModel):
             "For a request waiting for confirmation (`pending`): when it cancels "
             "itself if not confirmed, the earlier of `pending_expiry_hours` after "
             "it was made and its start. Null for any other status."
+        ),
+    )
+    hold_expires_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: when the unpaid deposit hold releases "
+            "the slot if the payment has not arrived. Null otherwise."
+        ),
+    )
+    hold_expires_soon: bool = Field(
+        default=False,
+        description=(
+            "True for a booking waiting for its deposit whose hold releases within two "
+            "hours of now. Staff use it to see who to chase; the action is the same."
         ),
     )
 
@@ -1501,6 +1534,15 @@ class BookingPublicDetail(BaseModel):
         description=(
             "While `status` is `pending_payment`: when the unpaid hold is released "
             "if the payment has not arrived. Null otherwise."
+        ),
+    )
+    hold_minutes: int | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: the length of the hold in minutes "
+            "(the business's setting, capped at 120 for an online card checkout). "
+            "Show it as 'Your time is held for N hours until your deposit is "
+            "received'. Null otherwise."
         ),
     )
     add_ons: list[BookingAddOnLine] = Field(

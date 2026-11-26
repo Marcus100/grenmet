@@ -1008,8 +1008,8 @@ class WorkerSettings:
         # Event reminders (events starting in 23-24 hours), hourly; one per member
         # and event start time.
         cron(enqueue_event_reminders, minute={12}, run_at_startup=False),
-        # Unpaid deposit holds (BOOKINGS_DEPOSIT_HOLD_MINUTES, default 30) are
-        # cancelled and their slots released, every 5 minutes.
+        # Unpaid deposit holds (each booking's snapshot of deposit_hold_minutes, else
+        # BOOKINGS_DEPOSIT_HOLD_MINUTES) are cancelled, every 5 minutes.
         cron(
             expire_unpaid_bookings,
             minute=set(range(2, 60, 5)),

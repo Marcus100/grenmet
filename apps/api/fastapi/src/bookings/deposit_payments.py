@@ -368,6 +368,73 @@ async def cancel_unpaid_deposit(session: AsyncSession, booking: Booking) -> bool
     )
 
 
+#: An online card checkout holds the slot at most this long (minutes), whatever
+#: the business set. Payment-link and manual deposits use the business's own hold.
+ONLINE_HOLD_CAP_MINUTES = 120
+
+
+def hold_minutes_for(profile_minutes: int | None, *, online: bool) -> int:
+    """Pure: how many minutes an unpaid deposit holds the slot. ``profile_minutes``
+    is the business's ``deposit_hold_minutes`` (null = ``DEPOSIT_HOLD_MINUTES``).
+    An online (Stripe) checkout is capped at ``ONLINE_HOLD_CAP_MINUTES``."""
+    base = (
+        bookings_settings.DEPOSIT_HOLD_MINUTES
+        if profile_minutes is None
+        else profile_minutes
+    )
+    return min(base, ONLINE_HOLD_CAP_MINUTES) if online else base
+
+
+async def online_held_ids(
+    session: AsyncSession, booking_ids: list[uuid.UUID]
+) -> set[uuid.UUID]:
+    """The bookings whose deposit intent is an online (Stripe) checkout, in one query."""
+    if not booking_ids:
+        return set()
+    rows = await session.scalars(
+        select(Intent.source_id).where(
+            Intent.source_type == SOURCE_TYPE,
+            Intent.provider == ProviderKey.STRIPE.value,
+            Intent.source_id.in_([str(booking_id) for booking_id in booking_ids]),
+        )
+    )
+    return {uuid.UUID(source_id) for source_id in rows if source_id}
+
+
+async def snapshot_hold(
+    session: AsyncSession, profile: BookingProfile, booking: Booking
+) -> int:
+    """Fix the booking's hold when it enters ``pending_payment``: the business's
+    value, capped when its deposit is an online checkout. Sets ``booking.hold_minutes``
+    and returns it. The route is decided once, at creation (``start_deposit``), so the
+    snapshot is not recomputed later."""
+    online = booking.id in await online_held_ids(session, [booking.id])
+    booking.hold_minutes = hold_minutes_for(profile.deposit_hold_minutes, online=online)
+    return booking.hold_minutes
+
+
+async def hold_minutes_for_bookings(
+    session: AsyncSession, profile: BookingProfile, bookings: list[Booking]
+) -> dict[uuid.UUID, int]:
+    """Minutes held for each booking waiting for a deposit (``pending_payment``).
+    The booking's snapshot wins; a booking with no snapshot (made before it existed)
+    is computed from the profile now. Bookings in any other state, and
+    business-collected ones, are not in the result."""
+    if collected_by_business(profile):
+        return {}
+    held = [b for b in bookings if b.status == BookingStatus.PENDING_PAYMENT.value]
+    unsnapped = [b.id for b in held if b.hold_minutes is None]
+    online = await online_held_ids(session, unsnapped)
+    return {
+        b.id: (
+            b.hold_minutes
+            if b.hold_minutes is not None
+            else hold_minutes_for(profile.deposit_hold_minutes, online=b.id in online)
+        )
+        for b in held
+    }
+
+
 async def start_deposit(
     session: AsyncSession,
     booking: Booking,

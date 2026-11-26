@@ -152,6 +152,10 @@ export type BookingProfileUpdate = {
    */
   deposit_collection?: BookingDepositCollection;
   /**
+   * @description How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven days), for payment-link and manual deposits such as a bank transfer. An online card checkout is held at most 120 minutes whatever is set. Null means 30 minutes. Business-collected deposits are never held, so it has no effect there. Left out, the stored value is kept.
+   */
+  deposit_hold_minutes?: number | null;
+  /**
    * @description Plain text, up to 500 characters: how the customer pays the deposit to the business (a payment link, bank details, cash). Shown on the booking page, the confirmation and the request and confirmation emails when a deposit is due to the business. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept.
    */
   deposit_instructions?: string | null;

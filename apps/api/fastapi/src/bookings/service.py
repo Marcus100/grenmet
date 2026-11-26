@@ -116,6 +116,7 @@ KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "booking_policy",
     "deposit_collection",
     "deposit_instructions",
+    "deposit_hold_minutes",
     "late_fee_minor",
     "late_grace_min",
     "brand_color",

@@ -51,6 +51,12 @@ export type BookingAgendaItem = {
   price_minor: number;
   deposit_minor: number;
   /**
+   * @description The deposit the customer pays the business by hand (`deposit_collection` `business`), 0 otherwise. Unpaid until `deposit_received_at` is set. Show it as due only while `status` is `pending` or `confirmed`: the UI must check the status too, since a cancelled booking owes nothing.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
    * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
    * @type string
    */
@@ -71,4 +77,14 @@ export type BookingAgendaItem = {
    * @description For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status.
    */
   expires_at?: string | null;
+  /**
+   * @description While `status` is `pending_payment`: when the unpaid deposit hold releases the slot if the payment has not arrived. Null otherwise.
+   */
+  hold_expires_at?: string | null;
+  /**
+   * @description True for a booking waiting for its deposit whose hold releases within two hours of now. Staff use it to see who to chase; the action is the same.
+   * @default false
+   * @type boolean | undefined
+   */
+  hold_expires_soon?: boolean;
 };

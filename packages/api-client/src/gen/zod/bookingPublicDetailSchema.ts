@@ -106,6 +106,12 @@ export const bookingPublicDetailSchema = z
       .describe(
         "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
       ),
+    hold_minutes: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
+      ),
     add_ons: z
       .array(bookingAddOnLineSchema)
       .optional()

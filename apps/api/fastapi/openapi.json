@@ -83041,6 +83041,12 @@
             "type": "integer",
             "title": "Deposit Minor"
           },
+          "deposit_to_business_minor": {
+            "type": "integer",
+            "title": "Deposit To Business Minor",
+            "description": "The deposit the customer pays the business by hand (`deposit_collection` `business`), 0 otherwise. Unpaid until `deposit_received_at` is set. Show it as due only while `status` is `pending` or `confirmed`: the UI must check the status too, since a cancelled booking owes nothing.",
+            "default": 0
+          },
           "payment_kind": {
             "$ref": "#/components/schemas/BookingPaymentKind",
             "description": "`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say \"Deposit\" or \"Payment\" by it."
@@ -83087,6 +83093,25 @@
             ],
             "title": "Expires At",
             "description": "For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status."
+          },
+          "hold_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Expires At",
+            "description": "While `status` is `pending_payment`: when the unpaid deposit hold releases the slot if the payment has not arrived. Null otherwise."
+          },
+          "hold_expires_soon": {
+            "type": "boolean",
+            "title": "Hold Expires Soon",
+            "description": "True for a booking waiting for its deposit whose hold releases within two hours of now. Staff use it to see who to chase; the action is the same.",
+            "default": false
           }
         },
         "type": "object",
@@ -84503,6 +84528,20 @@
             "description": "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.",
             "default": "online"
           },
+          "deposit_hold_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Hold Minutes",
+            "description": "How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven days), for payment-link and manual deposits such as a bank transfer. An online card checkout is held at most 120 minutes whatever is set. Null means 30 minutes. Business-collected deposits are never held, so it has no effect there. Left out, the stored value is kept."
+          },
           "deposit_instructions": {
             "anyOf": [
               {
@@ -84929,6 +84968,20 @@
             "$ref": "#/components/schemas/BookingDepositCollection",
             "description": "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.",
             "default": "online"
+          },
+          "deposit_hold_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Hold Minutes",
+            "description": "How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven days), for payment-link and manual deposits such as a bank transfer. An online card checkout is held at most 120 minutes whatever is set. Null means 30 minutes. Business-collected deposits are never held, so it has no effect there. Left out, the stored value is kept."
           },
           "deposit_instructions": {
             "anyOf": [
@@ -85856,6 +85909,18 @@
             ],
             "title": "Hold Ends At",
             "description": "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+          },
+          "hold_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Minutes",
+            "description": "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
           },
           "add_ons": {
             "items": {
