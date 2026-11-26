@@ -247,6 +247,55 @@ export function eventLabel(
     : `Created as ${next}`;
 }
 
+/** The API's history notes for a deposit paid to the business (`studio.py`). */
+const DEPOSIT_RECEIVED_NOTE = "Deposit received";
+const DEPOSIT_UNDONE_NOTE = "Deposit receipt undone";
+
+export interface TimelineEntry {
+  /** The line under the time, or null when the title already says it. */
+  detail: string | null;
+  title: string;
+}
+
+function capitalised(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/**
+ * The title and detail of one timeline entry. Only a real change of status is
+ * titled "X to Y". An entry whose status stays the same (a deposit marked
+ * received or not received, a reschedule, a refund) is titled by what
+ * happened, so "Confirmed to Confirmed" is never shown.
+ */
+export function timelineEntry(
+  event: {
+    from_status: BookingStatus | null;
+    note: string | null;
+    to_status: BookingStatus;
+  },
+  kind: PaymentKind = "deposit"
+): TimelineEntry {
+  const note = event.note?.trim() || null;
+  if (event.from_status !== event.to_status) {
+    return {
+      title: eventLabel(event.from_status, event.to_status, kind),
+      detail: note,
+    };
+  }
+  if (note === DEPOSIT_UNDONE_NOTE) {
+    return { title: "Deposit marked not received", detail: null };
+  }
+  if (note?.startsWith(DEPOSIT_RECEIVED_NOTE)) {
+    // "Deposit received by cash" keeps its method as the detail: "By cash".
+    const method = note.slice(DEPOSIT_RECEIVED_NOTE.length).trim();
+    return {
+      title: DEPOSIT_RECEIVED_NOTE,
+      detail: method ? capitalised(method) : null,
+    };
+  }
+  return { title: note ?? "Booking updated", detail: null };
+}
+
 /**
  * Cancelled bookings, whose unpaid business-collected deposit is hidden on the
  * agenda. A no-show is not here: the business may still want the unpaid deposit

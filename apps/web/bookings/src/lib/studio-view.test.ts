@@ -17,6 +17,7 @@ import {
   rotatesKey,
   showsAgendaDeposit,
   statusView,
+  timelineEntry,
   todayIn,
   weekStart,
   zonedToUtcIso,
@@ -307,5 +308,70 @@ describe("deposit paid to the business, received (#1869)", () => {
     expect(
       localWhenNow("America/Grenada", new Date("2027-01-05T13:45:20Z"))
     ).toBe("2027-01-05T09:45");
+  });
+});
+
+describe("timelineEntry", () => {
+  it("titles a real status change as from and to, with its note", () => {
+    expect(
+      timelineEntry({
+        from_status: "pending",
+        to_status: "confirmed",
+        note: "Confirmed by the business",
+      })
+    ).toEqual({
+      title: "Pending to Confirmed",
+      detail: "Confirmed by the business",
+    });
+    expect(
+      timelineEntry({ from_status: null, to_status: "pending", note: null })
+    ).toEqual({ title: "Created as Pending", detail: null });
+  });
+
+  it("titles a deposit marked received by what happened, keeping the method", () => {
+    expect(
+      timelineEntry({
+        from_status: "confirmed",
+        to_status: "confirmed",
+        note: "Deposit received by cash",
+      })
+    ).toEqual({ title: "Deposit received", detail: "By cash" });
+    expect(
+      timelineEntry({
+        from_status: "pending",
+        to_status: "pending",
+        note: "Deposit received by bank transfer",
+      })
+    ).toEqual({ title: "Deposit received", detail: "By bank transfer" });
+  });
+
+  it("titles an undone deposit receipt as marked not received", () => {
+    expect(
+      timelineEntry({
+        from_status: "confirmed",
+        to_status: "confirmed",
+        note: "Deposit receipt undone",
+      })
+    ).toEqual({ title: "Deposit marked not received", detail: null });
+  });
+
+  it("never titles an unchanged status as a change", () => {
+    expect(
+      timelineEntry({
+        from_status: "confirmed",
+        to_status: "confirmed",
+        note: "Rescheduled from 2026-11-20T14:00Z by the business",
+      })
+    ).toEqual({
+      title: "Rescheduled from 2026-11-20T14:00Z by the business",
+      detail: null,
+    });
+    expect(
+      timelineEntry({
+        from_status: "confirmed",
+        to_status: "confirmed",
+        note: null,
+      })
+    ).toEqual({ title: "Booking updated", detail: null });
   });
 });

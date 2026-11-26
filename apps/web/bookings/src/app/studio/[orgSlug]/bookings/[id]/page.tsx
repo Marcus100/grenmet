@@ -29,12 +29,12 @@ import {
   canMarkDepositReceived,
   type DepositState,
   depositState,
-  eventLabel,
   isUuid,
   localWhenNow,
   type PaymentKind,
   paymentWord,
   takesDeposit,
+  timelineEntry,
 } from "@/lib/studio-view";
 
 export const metadata: Metadata = {
@@ -253,20 +253,23 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           </p>
         ) : (
           <ol className="space-y-2">
-            {booking.events.map((event) => (
-              <li
-                className="border-border rounded-xl border p-3"
-                key={`${event.created_at}-${event.to_status}`}
-              >
-                <p className="font-medium">
-                  {eventLabel(event.from_status, event.to_status, kind)}
-                </p>
-                <p className="text-foreground/80 text-sm">
-                  {formatDateTime(event.created_at, zone)}
-                </p>
-                {event.note ? <p className="text-sm">{event.note}</p> : null}
-              </li>
-            ))}
+            {booking.events.map((event) => {
+              const entry = timelineEntry(event, kind);
+              return (
+                <li
+                  className="border-border rounded-xl border p-3"
+                  key={`${event.created_at}-${event.to_status}`}
+                >
+                  <p className="font-medium">{entry.title}</p>
+                  <p className="text-foreground/80 text-sm">
+                    {formatDateTime(event.created_at, zone)}
+                  </p>
+                  {entry.detail ? (
+                    <p className="text-sm">{entry.detail}</p>
+                  ) : null}
+                </li>
+              );
+            })}
           </ol>
         )}
       </section>

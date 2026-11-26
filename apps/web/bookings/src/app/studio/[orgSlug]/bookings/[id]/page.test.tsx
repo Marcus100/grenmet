@@ -155,6 +155,34 @@ describe("studio booking detail", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
+  it("titles a deposit event by what happened, not as a status change", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        events: [
+          {
+            from_status: "confirmed",
+            to_status: "confirmed",
+            actor_user_id: null,
+            note: "Deposit received by cash",
+            created_at: "2026-10-18T12:05:00Z",
+          },
+          {
+            from_status: "confirmed",
+            to_status: "confirmed",
+            actor_user_id: null,
+            note: "Deposit receipt undone",
+            created_at: "2026-10-18T12:06:00Z",
+          },
+        ],
+      })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit received")).toBeInTheDocument();
+    expect(screen.getByText("By cash")).toBeInTheDocument();
+    expect(screen.getByText("Deposit marked not received")).toBeInTheDocument();
+    expect(screen.queryByText("Confirmed to Confirmed")).toBeNull();
+  });
+
   it("shows the action buttons to an admin and an owner, not a member", async () => {
     vi.mocked(getBooking).mockResolvedValue(detail());
     for (const [role, shown] of [
