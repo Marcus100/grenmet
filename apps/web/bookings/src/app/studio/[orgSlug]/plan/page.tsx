@@ -20,6 +20,7 @@ import {
   checkoutAction,
   checkoutReturn,
   checkoutReturnCopy,
+  PLAN_CURRENCY,
   planCopy,
   planPriceLabel,
   planState,
@@ -31,7 +32,7 @@ import { listAppSubscriptions } from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings } from "@/lib/studio-view";
-import { isPurchasable, PLAN_CURRENCY } from "./purchasable";
+import { isPurchasable } from "./purchasable";
 
 export const metadata: Metadata = {
   title: "Plan & billing",
@@ -116,6 +117,10 @@ export default async function PlanPage({
   const action = purchasable ? wanted : null;
   const comingSoon = wanted !== null && !purchasable;
   const copy = planCopy(state);
+  // An open checkout cannot be continued while paid plans are closed, so its
+  // heading must not ask for an action.
+  const heading =
+    comingSoon && state.kind === "pending" ? "Checkout on hold" : copy.heading;
 
   return (
     <div className="space-y-6">
@@ -144,7 +149,7 @@ export default async function PlanPage({
         </h2>
         {read.ok ? (
           <div className="space-y-1">
-            <p className="font-semibold">{copy.heading}</p>
+            <p className="font-semibold">{heading}</p>
             {comingSoon ? null : (
               <p className="text-foreground/80">{copy.detail}</p>
             )}

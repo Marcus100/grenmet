@@ -2,9 +2,6 @@
 // `plan_key:currency` strings and stays empty until Stripe is configured, so a
 // missing or empty list means "not purchasable". Pure: shared by the page and tests.
 
-/** The currency this studio sells in (XCD only; see `lib/billing-plan.ts`). */
-export const PLAN_CURRENCY = "XCD";
-
 /** The API's key for a plan in a currency, for example `bookings-monthly:XCD`. */
 export function purchaseKey(planKey: string, currency: string): string {
   return `${planKey}:${currency}`;
@@ -16,8 +13,5 @@ export function isPurchasable(
   planKey: string,
   currency: string
 ): boolean {
-  if (!purchasable || purchasable.length === 0) {
-    return false;
-  }
-  return purchasable.includes(purchaseKey(planKey, currency));
+  return purchasable?.includes(purchaseKey(planKey, currency)) ?? false;
 }

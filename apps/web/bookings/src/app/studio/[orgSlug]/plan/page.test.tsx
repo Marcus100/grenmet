@@ -140,7 +140,8 @@ describe("/studio/[orgSlug]/plan", () => {
       listing([row({ status: "incomplete" })], [])
     );
     await renderPage();
-    expect(screen.getByText("Checkout not finished")).toBeInTheDocument();
+    expect(screen.getByText("Checkout on hold")).toBeInTheDocument();
+    expect(screen.queryByText("Checkout not finished")).not.toBeInTheDocument();
     expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
     expect(screen.queryByRole("button", CONTINUE)).not.toBeInTheDocument();
   });
