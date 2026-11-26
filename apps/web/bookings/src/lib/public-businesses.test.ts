@@ -1,5 +1,5 @@
 import { inspect } from "node:util";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getPublicBusinesses } from "@/lib/public-businesses";
 
 vi.mock("server-only", () => ({}));
@@ -25,6 +25,10 @@ const PAGE = {
 };
 
 describe("getPublicBusinesses", () => {
+  beforeEach(() => {
+    reportError.mockClear();
+  });
+
   it("asks the public listing for the query, with the visitor's own address", async () => {
     let sent: Request | undefined;
     vi.stubGlobal(
