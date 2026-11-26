@@ -1258,6 +1258,7 @@ export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
 export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
 export { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
+export { bookingListingNotShownReasonSchema } from "./bookingListingNotShownReasonSchema.js";
 export { bookingListingQueueSchema } from "./bookingListingQueueSchema.js";
 export { bookingListingReviewListSchema } from "./bookingListingReviewListSchema.js";
 export { bookingListingReviewSchema } from "./bookingListingReviewSchema.js";

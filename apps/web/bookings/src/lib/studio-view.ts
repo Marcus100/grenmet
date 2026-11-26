@@ -4,6 +4,7 @@
 import type { BookingStatus, MembershipRole } from "@barrelsgd/api-client";
 import {
   addDays,
+  formatDateTime,
   formatDay,
   formatMoney,
   localDay,
@@ -245,6 +246,162 @@ export function eventLabel(
   return from
     ? `${statusView(from, kind).label} to ${next}`
     : `Created as ${next}`;
+}
+
+/** The API's history notes for a deposit paid to the business (`studio.py`). */
+const DEPOSIT_RECEIVED_NOTE = "Deposit received";
+const DEPOSIT_UNDONE_NOTE = "Deposit receipt undone";
+/** "Rescheduled from 2026-11-20T14:00Z by the business" (or "by customer"). */
+const RESCHEDULED_NOTE =
+  /^Rescheduled from (\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z by (the business|customer)$/u;
+/** "Deposit recorded by hand (cash)", or "Payment recorded by hand (cash)". */
+const RECORDED_NOTE = /^(Deposit|Payment) recorded by hand \(.+\)$/u;
+/** "Deposit refunded", "Payment refund queued", "Deposit refund failed; ...". */
+const REFUND_NOTE = /\brefund/iu;
+
+export interface TimelineEvent {
+  created_at: string;
+  from_status: BookingStatus | null;
+  note: string | null;
+  to_status: BookingStatus;
+}
+
+export interface TimelineEntry {
+  /** The line under the time, or null when the title already says it. */
+  detail: string | null;
+  title: string;
+}
+
+/** One entry as the page lists it: when it happened and a key unique in the list. */
+export interface TimelineRow extends TimelineEntry {
+  at: string;
+  key: string;
+}
+
+export interface TimelineContext {
+  kind?: PaymentKind;
+  /**
+   * The start the booking moved to, for a reschedule entry: the API's note
+   * holds only the old one. Null when it is not known.
+   */
+  newStart?: string | null;
+  /** The business's time zone; times are written the way the page writes them. */
+  zone: string;
+}
+
+function capitalised(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The old start in a reschedule note, as an instant; null when it is not one. */
+function rescheduledFrom(note: string | null): string | null {
+  const match = note ? RESCHEDULED_NOTE.exec(note) : null;
+  if (!match) {
+    return null;
+  }
+  const iso = `${match[1]}:00Z`;
+  return Number.isNaN(Date.parse(iso)) ? null : iso;
+}
+
+function rescheduleEntry(
+  note: string,
+  oldStart: string,
+  context: TimelineContext
+): TimelineEntry {
+  const who = note.endsWith("by customer") ? "the customer" : "the business";
+  const from = formatDateTime(oldStart, context.zone);
+  const to = context.newStart
+    ? ` to ${formatDateTime(context.newStart, context.zone)}`
+    : "";
+  return { title: "Time changed", detail: `From ${from}${to}, by ${who}` };
+}
+
+/** An entry whose status stays the same and is not a deposit receipt or a reschedule. */
+function sameStatusEntry(event: TimelineEvent, note: string): TimelineEntry {
+  const recorded = RECORDED_NOTE.exec(note);
+  if (recorded) {
+    return { title: `${recorded[1]} recorded`, detail: note };
+  }
+  if (REFUND_NOTE.test(note)) {
+    return { title: "Refund", detail: note };
+  }
+  if (event.to_status === "cancelled") {
+    // "Deposit kept", "Unpaid deposit cancelled": what happened to the money.
+    return { title: "Cancellation note", detail: note };
+  }
+  return { title: "Booking updated", detail: note };
+}
+
+/**
+ * The title and detail of one timeline entry. Only a real change of status is
+ * titled "X to Y". An entry whose status stays the same is titled by what
+ * happened ("Deposit received", "Time changed", "Refund"), so "Confirmed to
+ * Confirmed" is never shown, and a note this does not recognise is shown as
+ * the detail under "Booking updated", never as a title.
+ */
+export function timelineEntry(
+  event: TimelineEvent,
+  context: TimelineContext
+): TimelineEntry {
+  const note = event.note?.trim() || null;
+  if (event.from_status !== event.to_status) {
+    return {
+      title: eventLabel(event.from_status, event.to_status, context.kind),
+      detail: note,
+    };
+  }
+  if (note === null) {
+    return { title: "Booking updated", detail: null };
+  }
+  if (note === DEPOSIT_UNDONE_NOTE) {
+    return { title: "Deposit marked not received", detail: null };
+  }
+  if (note.startsWith(DEPOSIT_RECEIVED_NOTE)) {
+    // "Deposit received by cash" keeps its method as the detail: "By cash".
+    const method = note.slice(DEPOSIT_RECEIVED_NOTE.length).trim();
+    return {
+      title: DEPOSIT_RECEIVED_NOTE,
+      detail: method ? capitalised(method) : null,
+    };
+  }
+  const oldStart = rescheduledFrom(note);
+  if (oldStart) {
+    return rescheduleEntry(note, oldStart, context);
+  }
+  return sameStatusEntry(event, note);
+}
+
+/**
+ * Every timeline entry, in the order given (the API's: oldest first). A
+ * reschedule's new time is the old time of the next reschedule, or the
+ * booking's start now for the last one.
+ */
+export function timelineEntries(
+  events: TimelineEvent[],
+  booking: { kind?: PaymentKind; startsAt: string; zone: string }
+): TimelineRow[] {
+  const seen = new Map<string, number>();
+  return events.map((event, index) => {
+    // Two entries can share a time and a status, so the key counts repeats.
+    const stem = `${event.created_at}-${event.to_status}`;
+    const repeat = seen.get(stem) ?? 0;
+    seen.set(stem, repeat + 1);
+    const later = events
+      .slice(index + 1)
+      .map((next) =>
+        next.from_status === next.to_status ? rescheduledFrom(next.note) : null
+      )
+      .find((start) => start !== null);
+    return {
+      ...timelineEntry(event, {
+        kind: booking.kind,
+        zone: booking.zone,
+        newStart: later ?? booking.startsAt,
+      }),
+      at: event.created_at,
+      key: `${stem}-${repeat}`,
+    };
+  });
 }
 
 /**

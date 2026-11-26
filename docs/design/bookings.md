@@ -184,21 +184,24 @@ documented map (below).
   business's brand colour when `pageAccent` accepts it (4.5:1 against white, so
   white text is safe), else neutral ink. Inside: logo in a small white circle
   if there is one, the name (30 to 32 px, 800, white), "category or type, city"
-  in plain white; at the bottom a 26 px photo panel (150 px) when `cover_url` is
-  a safe https address (no username or password), else a white panel with the
-  short description and a "Book" pill (decoration). The bottom area's priority is
-  the business's featured services (`featured_services`, up to three from the
-  API; the first two show as white 26 px tiles with a dark price pill, the name
-  in two lines at most, and "N min" in muted text; one service fills the width),
-  then the cover photo, then the description panel. The tiles are plain text
-  inside the card's one link. Pagination links sit under the rail.
-  The storefront page header is unchanged.
+  in plain white. When `cover_url` is a safe https address (no username or
+  password) the photo fills the top area behind the logo, name and line, under a
+  `foreground` scrim at 70% (white text clears 4.5:1 on any photo; the photo is
+  decorative, 26 px corners, 12 px above the bottom area, and a failed load falls
+  back to the brand fill). The bottom area is the business's featured services
+  (`featured_services`; the first two show as white 26 px tiles with a dark price
+  pill, the name in two lines at most, and "N min"; one service fills the width)
+  or, with none, a white panel with the short description and a "Book" pill
+  (decoration). Tiles and panel are plain text inside the card's one link.
+  Pagination links sit under the rail. The storefront page shows the same cover
+  as a banner above the name: `aspect-[2/1]`, max 220 px phones and 280 px md up,
+  rounded 16 px, no banner without a safe cover.
 - "Types of business" (h2, nav "Browse by type"): solid tiles, a white label
   top-left (19 px bold) and the type's white stroke icon bottom-right, 2 columns
   phones (118 px, radius 26) and 6 columns md up (140 px, radius 28). Only
   types from the API's `types_available`, "All" first (ink). The chosen tile has
   a white inner ring and `aria-current="page"`. A tile keeps `q` and clears
-  category and page. No types says "No business types yet." The free-text
+  category and page. With no types the whole block (heading included) and the nav link to it are left out. The free-text
   category chips are gone from the page; `category` still works in the address,
   the search form and the page links.
 - Type fills (white text; contrast against white): beauty `#c2185b` 5.87, hair
