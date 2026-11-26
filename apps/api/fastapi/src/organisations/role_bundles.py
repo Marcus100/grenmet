@@ -59,6 +59,17 @@ ROLE_BUNDLES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
                 "incidents.settings.manage",
             }
         ),
+        # Safety (ADR-0069). Officers work cases; managers also accept risk,
+        # verify actions, close cases and set the risk grid.
+        "safety-officer": frozenset({"safety.cases.read", "safety.cases.write"}),
+        "safety-manager": frozenset(
+            {
+                "safety.cases.read",
+                "safety.cases.write",
+                "safety.cases.approve",
+                "safety.settings.manage",
+            }
+        ),
     }
 )
 
@@ -97,6 +108,14 @@ BUNDLE_COPY: MappingProxyType[str, tuple[str, str]] = MappingProxyType(
         "incidents-manager": (
             "Incident manager",
             "Respond, close and reopen incidents, read private notes and set up categories.",
+        ),
+        "safety-officer": (
+            "Safety officer",
+            "Report and work safety cases, assess risk and manage corrective actions.",
+        ),
+        "safety-manager": (
+            "Safety manager",
+            "Accept risk, verify actions, close and reopen cases and set the risk grid.",
         ),
     }
 )
