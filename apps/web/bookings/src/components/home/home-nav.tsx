@@ -27,6 +27,8 @@ const ICONS = {
   ),
 };
 
+const TYPES_LABEL = "Types of business";
+
 const ITEMS = [
   {
     label: "Home",
@@ -35,7 +37,7 @@ const ITEMS = [
     current: true,
   },
   {
-    label: "Types of business",
+    label: TYPES_LABEL,
     icon: ICONS.types,
     href: { pathname: "/" as const, hash: "types" },
     current: false,
@@ -47,6 +49,15 @@ const ITEMS = [
     current: false,
   },
 ];
+
+interface NavProps {
+  /** False when the page has no "Types of business" block to jump to. */
+  showTypes?: boolean;
+}
+
+function navItems(showTypes: boolean) {
+  return showTypes ? ITEMS : ITEMS.filter((item) => item.label !== TYPES_LABEL);
+}
 
 // No display utility here: `hidden` and `inline-flex` in one string both apply and
 // the later one in the stylesheet wins, which showed the laptop mark on phones.
@@ -68,7 +79,8 @@ function Icon({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 /** Floating left rail on laptops: the home mark, the icons and the account control. */
-export function SideRail() {
+export function SideRail({ showTypes = true }: Readonly<NavProps>) {
+  const items = navItems(showTypes);
   return (
     <>
       <Link
@@ -82,7 +94,7 @@ export function SideRail() {
         aria-label="Main"
         className="bg-background fixed top-1/2 left-5 z-30 hidden -translate-y-1/2 flex-col items-center gap-1.5 rounded-full p-1.5 shadow-lg md:flex"
       >
-        {ITEMS.map((item) => (
+        {items.map((item) => (
           <Link
             aria-current={item.current ? "page" : undefined}
             aria-label={item.label}
@@ -100,13 +112,14 @@ export function SideRail() {
 }
 
 /** Floating pill bar at the bottom on phones. */
-export function BottomNav() {
+export function BottomNav({ showTypes = true }: Readonly<NavProps>) {
+  const items = navItems(showTypes);
   return (
     <nav
       aria-label="Quick links"
       className="bg-background fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 flex items-center justify-between rounded-full p-2 shadow-lg md:hidden"
     >
-      {ITEMS.map((item) => (
+      {items.map((item) => (
         <Link
           aria-current={item.current ? "page" : undefined}
           aria-label={item.label}
