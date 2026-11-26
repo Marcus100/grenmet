@@ -86,16 +86,17 @@ async def test_reply_does_not_wait_for_the_mail_provider(
 
 
 @pytest.mark.asyncio
-async def test_subject_line_does_not_carry_the_code(
-    async_client, db_async, monkeypatch
-):
+async def test_subject_line_starts_with_the_code(async_client, db_async, monkeypatch):
     _ = db_async
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     subjects: list[str] = []
 
+    bodies: list[str] = []
+
     def capture(*, email_to, subject, html_content):
-        _ = (email_to, html_content)
+        _ = email_to
         subjects.append(subject)
+        bodies.append(html_content)
 
     monkeypatch.setattr(
         app_service, "email_settings", SimpleNamespace(EMAILS_ENABLED=True)
@@ -108,8 +109,14 @@ async def test_subject_line_does_not_carry_the_code(
         f"{BASE}/email-code/start", json={"email": "subject@example.com"}
     )
     await _drain_code_emails()
-    assert subjects == ["Your sign-in code"]
-    assert "123456" not in subjects[0]
+    # The code leads the subject so a mail app can offer "Copy code".
+    assert subjects == ["123456 is your Barrels code"]
+    # The body keeps the code, its lifetime and the line for an unexpected email.
+    assert "123456" in bodies[0]
+    assert "If you didn't ask for it, ignore this email." in bodies[0]
+    # No link, image or tracking pixel: the email is the code and nothing else.
+    assert "<a " not in bodies[0]
+    assert "<img" not in bodies[0]
 
 
 @pytest.mark.asyncio
