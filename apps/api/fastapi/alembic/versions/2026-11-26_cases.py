@@ -83,6 +83,7 @@ def upgrade() -> None:
         sa.Column("reported_by", sa.Uuid(), nullable=False),
         sa.Column("closed_at", sa.DateTime(), nullable=True),
         sa.Column("closed_by", sa.Uuid(), nullable=True),
+        sa.Column("reopened_at", sa.DateTime(), nullable=True),
         sa.Column("closed_no_risk", sa.Boolean(), nullable=False),
         sa.Column("close_reason", sa.String(1000), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -224,6 +225,10 @@ def upgrade() -> None:
         sa.CheckConstraint(
             "(status = 'verified') = (verified_at IS NOT NULL)",
             name=op.f("action_verified_state_check"),
+        ),
+        sa.CheckConstraint(
+            "(verified_at IS NULL) = (verified_by IS NULL)",
+            name=op.f("action_verified_pair_check"),
         ),
         schema=SCHEMA,
     )

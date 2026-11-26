@@ -97,7 +97,10 @@ def validate(
     severities: list[dict[str, Any]],
     cells: dict[str, str],
 ) -> None:
-    """A usable grid: 2 to 7 distinct levels each way and a band for every cell."""
+    """A usable grid: distinct levels each way and a band for every cell (the
+    schema limits each way to 2 to 7 levels). Which cell falls in which band is
+    the organisation's decision, as ICAO leaves it; nothing here forces bands to
+    worsen with likelihood or severity."""
     values = [x["value"] for x in likelihoods]
     codes = [x["code"] for x in severities]
     if len(set(values)) != len(values) or len(set(codes)) != len(codes):

@@ -16,11 +16,12 @@ superuser bypass.
   meaning is fixed: acceptable, tolerable, intolerable. An assessment copies the
   labels and band it was made with and is never changed.
 - Acceptance: only the latest residual assessment, only when tolerable, only with
-  ``<programme>.cases.approve``. Intolerable is never accepted (also a database
+  ``<programme>.cases.approve``, and never by the person who assessed it. Intolerable is never accepted (also a database
   check).
 - Closing (``service._check_may_close``): every action verified, and the latest
   residual risk acceptable, or tolerable and accepted; or ``no_risk`` with a
-  reason. Closing and reopening need the approve key; closed cases are locked.
+  reason, refused once any risk above acceptable was assessed. After a reopening
+  (``reopened_at``) the residual risk must be assessed again. Closing and reopening need the approve key; closed cases are locked.
 - Status moves go through ``transitions.py`` (case and action tables).
 - Corrective actions: an owner (active member), a due date, open to done to
   verified; verified by an approver who is not the owner; the owner is notified

@@ -335,8 +335,31 @@ async def _check_may_close(session: AsyncSession, case: Case, *, no_risk: bool) 
             f"{unverified} corrective action(s) are not verified yet"
         )
     if no_risk:
+        # "No risk found" is for a report with no hazard. Once a risk above
+        # acceptable has been assessed, the case closes through the risk rules.
+        assessed = await session.scalar(
+            select(func.count())
+            .select_from(CaseRiskAssessment)
+            .where(
+                CaseRiskAssessment.case_id == case.id,
+                CaseRiskAssessment.band != CaseRiskBand.ACCEPTABLE.value,
+            )
+        )
+        if assessed:
+            raise CaseConflictError(
+                "A risk above acceptable was assessed; this case cannot close as "
+                "no risk found"
+            )
         return
     residual = await _latest_residual(session, case)
+    if (
+        residual is not None
+        and case.reopened_at is not None
+        and residual.created_at < case.reopened_at
+    ):
+        raise CaseConflictError(
+            "The case was reopened: assess the residual risk again before closing"
+        )
     if residual is None:
         raise CaseConflictError(
             "Assess the residual risk first, or close the case as no risk found"
@@ -463,6 +486,10 @@ async def accept_risk(
         raise CaseConflictError("An acceptable risk needs no acceptance")
     if latest.accepted_at is not None:
         raise CaseConflictError("This risk is already accepted")
+    if latest.assessed_by == actor.id:
+        raise CaseForbiddenError(
+            "A risk is accepted by someone other than the person who assessed it"
+        )
     latest.accepted_by = actor.id
     latest.accepted_at = utc_now()
     latest.acceptance_note = _text(note, "Say why the risk is accepted")

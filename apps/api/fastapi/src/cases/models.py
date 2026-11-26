@@ -174,6 +174,9 @@ class Case(Base):
     reported_by: Mapped[uuid.UUID]
     closed_at: Mapped[datetime | None]
     closed_by: Mapped[uuid.UUID | None]
+    #: When the case was last reopened. A residual assessment made before this
+    #: no longer counts for closing: the risk must be assessed again.
+    reopened_at: Mapped[datetime | None]
     #: True when the case closed because no hazard was found (ADR-0069 decision 4).
     closed_no_risk: Mapped[bool] = mapped_column(default=False)
     close_reason: Mapped[str | None] = mapped_column(String(1000))
@@ -249,6 +252,9 @@ class CaseAction(Base):
         sa.CheckConstraint("char_length(title) BETWEEN 1 AND 200", name="title"),
         sa.CheckConstraint(
             "(status = 'verified') = (verified_at IS NOT NULL)", name="verified_state"
+        ),
+        sa.CheckConstraint(
+            "(verified_at IS NULL) = (verified_by IS NULL)", name="verified_pair"
         ),
         sa.Index("action_case_idx", "case_id"),
         sa.Index("action_owner_status_idx", "owner_user_id", "status"),

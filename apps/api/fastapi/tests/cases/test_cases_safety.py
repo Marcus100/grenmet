@@ -451,3 +451,59 @@ async def test_case_raised_from_an_incident_the_reporter_can_see(
     )
     assert seen.json()["source"]["available"] is False
     assert seen.json()["source"]["title"] is None
+
+
+async def test_no_risk_is_refused_after_a_real_risk_and_reopening_needs_a_new_assessment(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    world = await _world(db_async)
+    case = await _case(async_client, world)
+    case_id = case["id"]
+    await _status(async_client, world, world.officer, case_id, status="assessing")
+    await _assess(async_client, world, case_id, "initial", 5, "A")
+    dodge = await _status(
+        async_client,
+        world,
+        world.manager,
+        case_id,
+        status="closed",
+        no_risk=True,
+        reason="Nothing to see",
+    )
+    assert dodge.status_code == 409
+
+    tolerable = await _assess(async_client, world, case_id, "residual", 3, "C")
+    accept = f"{API}/cases/{case_id}/risk-assessments/{tolerable['id']}/acceptance"
+    first = await async_client.post(
+        accept, headers=world.h(world.manager), json={"note": "Mitigated"}
+    )
+    assert first.status_code == 200
+    twice = await async_client.post(
+        accept, headers=world.h(world.manager), json={"note": "Again"}
+    )
+    assert twice.status_code == 409
+    assert (
+        await _status(async_client, world, world.manager, case_id, status="closed")
+    ).status_code == 200
+    await _status(
+        async_client,
+        world,
+        world.manager,
+        case_id,
+        status="assessing",
+        reason="Recurred",
+    )
+    # The old acceptance no longer closes the case.
+    stale = await _status(async_client, world, world.manager, case_id, status="closed")
+    assert stale.status_code == 409
+    again = await _assess(async_client, world, case_id, "residual", 2, "D")
+    assert again["band"] == "acceptable"
+    assert (
+        await _status(async_client, world, world.manager, case_id, status="closed")
+    ).status_code == 200
+    cleared = await async_client.patch(
+        f"{API}/cases/{case['id']}",
+        headers=world.h(world.officer),
+        json={"location": None},
+    )
+    assert cleared.status_code == 409  # closed again: locked

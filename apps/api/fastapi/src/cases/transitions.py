@@ -52,6 +52,7 @@ def move_case(
         case.closed_no_risk = no_risk
         case.close_reason = reason
     elif case.status == CaseStatus.CLOSED.value:
+        case.reopened_at = utc_now()
         case.closed_at = None
         case.closed_by = None
         case.closed_no_risk = False
