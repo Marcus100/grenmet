@@ -533,7 +533,9 @@ describe("deposit paid to the business (#1869)", () => {
 
   it("keeps Record deposit for an online deposit and hides the business one", async () => {
     asRole("admin");
-    vi.mocked(getBooking).mockResolvedValue(detail({ status: "pending" }));
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ deposit_to_business_minor: 0, status: "pending" })
+    );
     render(await StudioBookingPage(props()));
     expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
     expect(screen.getByRole("button", { name: RECORD })).toBeInTheDocument();

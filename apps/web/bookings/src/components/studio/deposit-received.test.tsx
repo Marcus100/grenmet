@@ -1,5 +1,11 @@
 import { formatDateTime } from "@barrelsgd/bookings-web/lib/booking-format";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BOOKING_ID } from "@/test/studio";
 
@@ -117,13 +123,18 @@ describe("deposit paid to the business, mark received", () => {
     fireEvent.click(
       await screen.findByRole("button", { name: "Mark deposit received" })
     );
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(
+    const dialog = screen.getByRole("alertdialog");
+    // One alert, inside the dialog that made the request: none behind the modal.
+    const alerts = await screen.findAllByRole("alert");
+    expect(alerts).toHaveLength(1);
+    expect(within(dialog).getByRole("alert")).toBe(alerts[0]);
+    expect(alerts[0]).toHaveTextContent(
       "The time the deposit arrived cannot be in the future."
     );
-    expect(alert).toHaveTextContent(
+    expect(alerts[0]).toHaveTextContent(
       "Choose an earlier time, or leave it empty to use now."
     );
+    await waitFor(() => expect(alerts[0]).toHaveFocus());
   });
 });
 
@@ -180,6 +191,27 @@ describe("deposit paid to the business, received", () => {
       "sea-salt",
       BOOKING_ID,
     ]);
+  });
+
+  it("shows an undo failure inside the dialog, once, and focuses it", async () => {
+    undoDepositReceivedAction.mockResolvedValue({
+      status: "error",
+      kind: "unavailable",
+      message: "We could not save that change.",
+      nextStep: "Try again in a moment.",
+    });
+    render(ui({ ...RECEIVED, status: "pending" }));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Undo receipt" }));
+    const alert = await screen.findByRole("alert");
+    const dialog = screen.getByRole("alertdialog");
+    expect(within(dialog).getByRole("alert")).toBe(alert);
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(alert).toHaveTextContent("We could not save that change.");
+    expect(alert).toHaveTextContent("Try again in a moment.");
+    await waitFor(() => expect(alert).toHaveFocus());
+    // The dialog stays open so the person can try again or go back.
+    expect(dialog).toBeInTheDocument();
   });
 
   it("keeps the received line but offers no Undo once the booking is cancelled", () => {

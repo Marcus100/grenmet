@@ -42,7 +42,7 @@ import {
 } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
 import { CARD } from "@/components/studio/studio-ui";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
-import { type ActionState, IDLE } from "@/lib/studio-action-state";
+import { IDLE } from "@/lib/studio-action-state";
 import { DEPOSIT_METHOD_LABEL, DEPOSIT_METHODS } from "@/lib/studio-view";
 
 const TARGET = "min-h-11";
@@ -85,16 +85,18 @@ export function DepositReceived({
   status,
   timezone,
 }: DepositReceivedProps) {
-  const [notice, setNotice] = useState<ActionState>(IDLE);
-  const noticeRef = useRef<HTMLParagraphElement>(null);
+  // Only a saved change is announced here. Refusals stay inside the dialog
+  // that made the request, so the alert is never behind the modal.
+  const [saved, setSaved] = useState<string | null>(null);
+  const savedRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    if (notice.status !== "idle") {
-      noticeRef.current?.focus();
+    if (saved !== null) {
+      savedRef.current?.focus();
     }
-  }, [notice]);
+  }, [saved]);
 
-  if (!(receivedAt || canMark) && notice.status === "idle") {
+  if (!(receivedAt || canMark) && saved === null) {
     return null;
   }
 
@@ -119,7 +121,7 @@ export function DepositReceived({
           {OPEN_STATUSES.includes(status) ? (
             <UndoDialog
               bookingId={bookingId}
-              onResult={setNotice}
+              onSaved={setSaved}
               orgSlug={orgSlug}
             />
           ) : null}
@@ -134,32 +136,21 @@ export function DepositReceived({
             amountLabel={amountLabel}
             bookingId={bookingId}
             latest={latest}
-            onResult={setNotice}
+            onSaved={setSaved}
             orgSlug={orgSlug}
           />
         </div>
       )}
-      {notice.status === "success" ? (
+      {saved === null ? null : (
         <p
           className="border-border bg-muted rounded-lg border p-3 font-medium"
-          ref={noticeRef}
+          ref={savedRef}
           role="status"
           tabIndex={-1}
         >
-          {notice.message}
+          {saved}
         </p>
-      ) : null}
-      {notice.status === "error" ? (
-        <div
-          className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
-          ref={noticeRef}
-          role="alert"
-          tabIndex={-1}
-        >
-          <p className="font-semibold">{notice.message}</p>
-          <p className="text-muted-foreground">{notice.nextStep}</p>
-        </div>
-      ) : null}
+      )}
     </section>
   );
 }
@@ -191,26 +182,24 @@ function MarkDialog({
   amountLabel,
   bookingId,
   latest,
-  onResult,
+  onSaved,
   orgSlug,
 }: {
   amountLabel: string;
   bookingId: string;
   latest: string;
-  onResult: (state: ActionState) => void;
+  onSaved: (message: string) => void;
   orgSlug: string;
 }) {
   const [open, setOpen] = useState(false);
   const [opened, setOpened] = useState(0);
-  // Stable, so the form's effect runs once per result.
-  const result = useCallback(
-    (state: ActionState) => {
-      onResult(state);
-      if (state.status === "success") {
-        setOpen(false);
-      }
+  // Stable, so the form's effect runs once per saved change.
+  const saved = useCallback(
+    (message: string) => {
+      onSaved(message);
+      setOpen(false);
     },
-    [onResult]
+    [onSaved]
   );
 
   return (
@@ -234,7 +223,7 @@ function MarkDialog({
           bookingId={bookingId}
           key={opened}
           latest={latest}
-          onResult={result}
+          onSaved={saved}
           orgSlug={orgSlug}
         />
       </AlertDialogContent>
@@ -246,13 +235,13 @@ function MarkForm({
   amountLabel,
   bookingId,
   latest,
-  onResult,
+  onSaved,
   orgSlug,
 }: {
   amountLabel: string;
   bookingId: string;
   latest: string;
-  onResult: (state: ActionState) => void;
+  onSaved: (message: string) => void;
   orgSlug: string;
 }) {
   const [state, formAction, pending] = useActionState(
@@ -266,13 +255,13 @@ function MarkForm({
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (state.status !== "idle") {
-      onResult(state);
+    if (state.status === "success") {
+      onSaved(state.message);
     }
     if (state.status === "error") {
       errorRef.current?.focus();
     }
-  }, [state, onResult]);
+  }, [state, onSaved]);
 
   return (
     <form className="grid gap-4" onSubmit={keepValuesOnSubmit(formAction)}>
@@ -363,11 +352,11 @@ function MarkForm({
 
 function UndoDialog({
   bookingId,
-  onResult,
+  onSaved,
   orgSlug,
 }: {
   bookingId: string;
-  onResult: (state: ActionState) => void;
+  onSaved: (message: string) => void;
   orgSlug: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -375,15 +364,17 @@ function UndoDialog({
     undoDepositReceivedAction.bind(null, orgSlug, bookingId),
     IDLE
   );
+  const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (state.status !== "idle") {
-      onResult(state);
-    }
     if (state.status === "success") {
+      onSaved(state.message);
       setOpen(false);
     }
-  }, [state, onResult]);
+    if (state.status === "error") {
+      errorRef.current?.focus();
+    }
+  }, [state, onSaved]);
 
   return (
     <AlertDialog onOpenChange={setOpen} open={open}>
@@ -402,6 +393,17 @@ function UndoDialog({
               history.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {state.status === "error" ? (
+            <div
+              className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
+              ref={errorRef}
+              role="alert"
+              tabIndex={-1}
+            >
+              <p className="font-semibold">{state.message}</p>
+              <p className="text-muted-foreground">{state.nextStep}</p>
+            </div>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel className={TARGET} size="touch">
               Keep it received
