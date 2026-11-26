@@ -94,6 +94,8 @@ async function run(
   done: string,
   call: Call,
   options: {
+    /** Says something else when the result is not the usual one; null keeps `done`. */
+    doneFor?: (detail: BookingStudioDetail) => string | null;
     /** Words the API's refusal; null leaves it to the shared wording. */
     failure?: (error: unknown) => StudioFailure | null;
     warnOnFailedRefund?: boolean;
@@ -147,8 +149,12 @@ async function run(
       message: `${done} The deposit refund failed; refund it by hand.`,
     };
   }
-  return { status: "success", message: done };
+  return { status: "success", message: options.doneFor?.(detail) ?? done };
 }
+
+/** Accepting a request that is paid afterwards does not confirm it yet: say so. */
+const ACCEPTED_AWAITING_PAYMENT =
+  "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives.";
 
 /** The API records a failed refund as a timeline note on the cancelled booking. */
 function refundFailed(detail: BookingStudioDetail): boolean {
@@ -168,7 +174,10 @@ export async function confirmBookingAction(
   orgSlug: string,
   bookingId: string
 ): Promise<ActionState> {
-  return await run(orgSlug, bookingId, "Booking confirmed.", confirmBooking);
+  return await run(orgSlug, bookingId, "Booking confirmed.", confirmBooking, {
+    doneFor: (detail) =>
+      detail.status === "pending_payment" ? ACCEPTED_AWAITING_PAYMENT : null,
+  });
 }
 
 export async function noShowBookingAction(

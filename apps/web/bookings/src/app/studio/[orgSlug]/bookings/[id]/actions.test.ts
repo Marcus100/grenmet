@@ -94,6 +94,18 @@ describe("booking actions", () => {
     );
   });
 
+  it("says a request paid afterwards is accepted, not confirmed", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue({
+      events: [],
+      status: "pending_payment",
+    } as never);
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
+      status: "success",
+      message:
+        "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives.",
+    });
+  });
+
   it("also refreshes the business layout so the waiting count follows", async () => {
     vi.mocked(confirmBooking).mockResolvedValue(OK);
     await confirmBookingAction(SLUG, BOOKING_ID);

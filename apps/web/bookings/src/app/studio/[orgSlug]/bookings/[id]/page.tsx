@@ -24,6 +24,8 @@ import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import {
+  ACCEPTED_AWAITING_VIEW,
+  acceptedAwaitingPayment,
   businessDepositView,
   canManageBookings,
   canMarkDepositReceived,
@@ -34,6 +36,7 @@ import {
   localWhenNow,
   type PaymentKind,
   paymentWord,
+  paysAfterYouAccept,
   takesDeposit,
 } from "@/lib/studio-view";
 
@@ -110,6 +113,8 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           <HeaderDepositBadge booking={booking} kind={kind} state={deposit} />
         </div>
       </div>
+
+      <PayAfterAcceptanceNotice booking={booking} word={word} />
 
       <ReturningClientNoticeFor
         manages={canManageBookings(org.value.role)}
@@ -274,6 +279,40 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
   );
 }
 
+/**
+ * A request paid by card after acceptance, in words: before you accept nothing
+ * has been asked; after, the customer has been emailed to pay.
+ */
+function PayAfterAcceptanceNotice({
+  booking,
+  word,
+}: {
+  booking: BookingStudioDetail;
+  word: string;
+}) {
+  const amount = formatMoney(booking.deposit_minor, booking.currency);
+  if (acceptedAwaitingPayment(booking)) {
+    return (
+      <p className={CARD}>
+        <strong>Accepted, awaiting payment.</strong> You accepted this request
+        and the customer was emailed to pay the {word.toLowerCase()} of {amount}
+        . The booking is confirmed when the payment arrives. If it does not
+        arrive in time, the booking is cancelled and the time is released.
+      </p>
+    );
+  }
+  if (paysAfterYouAccept(booking)) {
+    return (
+      <p className={CARD}>
+        Nothing has been paid yet. When you confirm this request, the customer
+        is emailed to pay the {word.toLowerCase()} of {amount}, and the booking
+        is confirmed once they have paid.
+      </p>
+    );
+  }
+  return null;
+}
+
 function HeaderDepositBadge({
   booking,
   kind,
@@ -283,6 +322,9 @@ function HeaderDepositBadge({
   kind: PaymentKind;
   state: DepositState;
 }) {
+  if (acceptedAwaitingPayment(booking)) {
+    return <DepositBadge view={ACCEPTED_AWAITING_VIEW} />;
+  }
   if ((booking.deposit_to_business_minor ?? 0) > 0) {
     return <DepositBadge view={businessDepositView(booking)} />;
   }

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACCEPTED_AWAITING_VIEW,
+  acceptedAwaitingPayment,
   agendaChips,
   agendaDepositView,
   businessDepositDueView,
+  paysAfterYouAccept,
 } from "./studio-view";
 
 const ROW = {
@@ -194,6 +197,87 @@ describe("agendaChips", () => {
     };
     expect(agendaChips(booking)).toEqual([
       { kind: "deposit", view: agendaDepositView(booking) },
+    ]);
+  });
+});
+
+describe("agendaChips for a request paid after you accept", () => {
+  const REQUEST = {
+    ...ROW,
+    deposit_minor: 5000,
+    pay_after_acceptance: true,
+    status: "pending" as const,
+  };
+  const ACCEPTED = {
+    ...REQUEST,
+    accepted_at: "2026-11-26T15:00:00Z",
+    status: "pending_payment" as const,
+  };
+
+  it("says the amount follows your acceptance while it needs confirming", () => {
+    expect(paysAfterYouAccept(REQUEST)).toBe(true);
+    expect(agendaChips(REQUEST)).toEqual([
+      {
+        kind: "deposit",
+        view: { label: "Deposit EC$50 after you accept", tone: "neutral" },
+      },
+    ]);
+  });
+
+  it("says Accepted, awaiting payment once you accepted", () => {
+    expect(acceptedAwaitingPayment(ACCEPTED)).toBe(true);
+    expect(ACCEPTED_AWAITING_VIEW).toEqual({
+      label: "Accepted, awaiting payment",
+      tone: "warning",
+    });
+    expect(agendaChips(ACCEPTED)).toEqual([
+      { kind: "deposit", view: ACCEPTED_AWAITING_VIEW },
+    ]);
+  });
+
+  it("keeps Expires soon first when the customer is running out of time", () => {
+    expect(agendaChips({ ...ACCEPTED, hold_expires_soon: true })).toEqual([
+      { kind: "expires_soon" },
+      { kind: "deposit", view: ACCEPTED_AWAITING_VIEW },
+    ]);
+  });
+
+  it("is the usual deposit chip once paid, and for a payment at booking", () => {
+    const confirmed = { ...ACCEPTED, status: "confirmed" as const };
+    expect(agendaChips(confirmed)).toEqual([
+      { kind: "deposit", view: agendaDepositView(confirmed) },
+    ]);
+    const atBooking = {
+      ...ACCEPTED,
+      accepted_at: null,
+      pay_after_acceptance: false,
+    };
+    expect(acceptedAwaitingPayment(atBooking)).toBe(false);
+    expect(agendaChips(atBooking)).toEqual([
+      { kind: "deposit", view: agendaDepositView(atBooking) },
+    ]);
+  });
+});
+
+describe("agendaChips for a request whose deposit is paid to the business", () => {
+  it("says the deposit follows your acceptance, not that it is due", () => {
+    const request = {
+      ...ROW,
+      deposit_to_business_minor: 5000,
+      status: "pending" as const,
+    };
+    expect(agendaChips(request)).toEqual([
+      {
+        kind: "deposit",
+        view: {
+          label: "Deposit EC$50 to you after you accept",
+          tone: "neutral",
+        },
+      },
+    ]);
+    const accepted = { ...request, status: "confirmed" as const };
+    expect(agendaChips(accepted)).toEqual([
+      { kind: "deposit", view: businessDepositDueView(accepted) },
     ]);
   });
 });

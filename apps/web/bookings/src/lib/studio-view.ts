@@ -404,6 +404,73 @@ export function businessDepositDueView(booking: {
   return { label: `Deposit due ${amount} to you`, tone: "warning" };
 }
 
+/** What the API says about a request that is paid by card after acceptance. */
+interface AcceptanceFields {
+  accepted_at?: string | null;
+  pay_after_acceptance?: boolean;
+  status: BookingStatus;
+}
+
+/**
+ * A request you accepted that now waits for the customer's payment: the hold
+ * started when you accepted, and paying confirms the booking.
+ */
+export function acceptedAwaitingPayment(booking: AcceptanceFields): boolean {
+  return (
+    booking.pay_after_acceptance === true &&
+    booking.status === "pending_payment" &&
+    Boolean(booking.accepted_at)
+  );
+}
+
+/** A request the customer pays for only after you accept it: nothing is paid yet. */
+export function paysAfterYouAccept(
+  booking: AcceptanceFields & { deposit_minor: number }
+): boolean {
+  return (
+    booking.pay_after_acceptance === true &&
+    booking.status === "pending" &&
+    booking.deposit_minor > 0
+  );
+}
+
+/** "Accepted, awaiting payment": the state between your yes and the money. */
+export const ACCEPTED_AWAITING_VIEW: StatusView = {
+  label: "Accepted, awaiting payment",
+  tone: "warning",
+};
+
+/** "Deposit EC$50 after you accept", the chip on a request that pays later. */
+export function payAfterAcceptView(booking: {
+  currency: string;
+  deposit_minor: number;
+  payment_kind?: PaymentKind;
+}): StatusView {
+  const amount = formatMoney(booking.deposit_minor, booking.currency);
+  return {
+    label: `${paymentWord(booking.payment_kind ?? "deposit")} ${amount} after you accept`,
+    tone: "neutral",
+  };
+}
+
+/**
+ * "Deposit EC$50 to you after you accept": a request whose deposit is paid to
+ * the business. The customer is asked to pay only once you accept.
+ */
+export function businessDepositAfterAcceptView(booking: {
+  currency: string;
+  deposit_to_business_minor?: number;
+}): StatusView {
+  const amount = formatMoney(
+    booking.deposit_to_business_minor ?? 0,
+    booking.currency
+  );
+  return {
+    label: `Deposit ${amount} to you after you accept`,
+    tone: "neutral",
+  };
+}
+
 /** A chip on an agenda row: the hold warning, or the deposit line. */
 export type AgendaChip =
   | { kind: "expires_soon" }
@@ -416,8 +483,10 @@ export type AgendaChip =
  */
 export function agendaChips(
   booking: Parameters<typeof agendaDepositView>[0] & {
+    accepted_at?: string | null;
     deposit_to_business_minor?: number;
     hold_expires_soon?: boolean;
+    pay_after_acceptance?: boolean;
   }
 ): AgendaChip[] {
   const chips: AgendaChip[] = [];
@@ -425,7 +494,16 @@ export function agendaChips(
     chips.push({ kind: "expires_soon" });
   }
   const businessDue = businessDepositDue(booking);
-  if (businessDue) {
+  if (acceptedAwaitingPayment(booking)) {
+    chips.push({ kind: "deposit", view: ACCEPTED_AWAITING_VIEW });
+  } else if (paysAfterYouAccept(booking)) {
+    chips.push({ kind: "deposit", view: payAfterAcceptView(booking) });
+  } else if (businessDue && booking.status === "pending") {
+    chips.push({
+      kind: "deposit",
+      view: businessDepositAfterAcceptView(booking),
+    });
+  } else if (businessDue) {
     chips.push({ kind: "deposit", view: businessDepositDueView(booking) });
   } else if (showsAgendaDeposit(booking)) {
     chips.push({ kind: "deposit", view: agendaDepositView(booking) });
