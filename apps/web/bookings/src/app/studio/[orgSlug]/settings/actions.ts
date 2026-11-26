@@ -27,6 +27,14 @@ import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import { parseBusinessType } from "@/lib/business-types";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
+import {
+  affectedBookings,
+  CLOSURE_REASON_MAX,
+  type ClosureFieldErrors,
+  type ClosureState,
+  closureFieldErrors,
+  closureWindow,
+} from "@/lib/closures";
 import { DEPOSIT_INSTRUCTIONS_MAX } from "@/lib/deposit-instructions";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
 import { graceMinutes, lateFeeMinor } from "@/lib/late-fee";
@@ -38,11 +46,13 @@ import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
   completeLogoUpload,
   createCalendarFeed,
+  createClosure,
   createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
   createService,
+  deleteClosure,
   deleteException,
   findOrganisation,
   getBusinessTimezone,
@@ -1226,6 +1236,109 @@ export async function removeTimeOffAction(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, "Time off removed.");
+}
+
+// --- closed days (whole-business closures, Settings > Closed days) ------------------------------
+// Owners and admins close and reopen the business for whole local days. The days
+// are sent as typed (already on the business clock), so no timezone is read here.
+// A save reports the bookings inside the new closure: they are not cancelled.
+
+function closureRefusal(
+  message: string,
+  nextStep: string,
+  fields?: ClosureFieldErrors
+): ClosureState {
+  return {
+    status: "error",
+    kind: "invalid",
+    message,
+    nextStep,
+    ...(fields ? { fields } : {}),
+  };
+}
+
+/** Closes the business for the typed days, for every provider. */
+export async function saveClosureAction(
+  orgSlug: string,
+  _previous: ClosureState,
+  formData: FormData
+): Promise<ClosureState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  const reason = field(formData, "reason").trim();
+  if (reason.length > CLOSURE_REASON_MAX) {
+    return closureRefusal(
+      "The reason is too long.",
+      `Keep the reason to ${CLOSURE_REASON_MAX} characters or fewer.`,
+      {
+        reason: `Keep the reason to ${CLOSURE_REASON_MAX} characters or fewer.`,
+      }
+    );
+  }
+  const window = closureWindow(
+    field(formData, "startsOn"),
+    field(formData, "endsOn")
+  );
+  if (!window.ok) {
+    return closureRefusal(
+      window.message,
+      "Fix the highlighted fields.",
+      window.fields
+    );
+  }
+  try {
+    const created = await createClosure(auth.accessToken, auth.organisationId, {
+      starts_on: window.startsOn,
+      ends_on: window.endsOn,
+      reason: reason || null,
+    });
+    revalidatePath(`/studio/${orgSlug}/settings`);
+    return {
+      status: "success",
+      message: "Closed days added.",
+      affected: affectedBookings(created),
+    };
+  } catch (error) {
+    const state = failed(orgSlug, error);
+    const fields = ResponseError.is(error)
+      ? closureFieldErrors(error.data)
+      : undefined;
+    if (state.status !== "error" || !fields) {
+      return state;
+    }
+    return { ...state, message: "Check the highlighted fields.", fields };
+  }
+}
+
+/** Reopens the business for one closure. A closure already removed answers 404 and the page says so. */
+export async function reopenClosureAction(
+  orgSlug: string,
+  closureId: string,
+  _previous: ClosureState,
+  _formData: FormData
+): Promise<ClosureState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  if (!isUuid(closureId)) {
+    return closureRefusal(
+      "Those closed days no longer exist.",
+      "Reload the settings and try again."
+    );
+  }
+  try {
+    await deleteClosure(auth.accessToken, auth.organisationId, closureId);
+  } catch (error) {
+    // The DELETE is idempotent in intent: a closure already gone (404, for
+    // example removed in another tab) is the result the person asked for.
+    if (!(ResponseError.is(error) && error.status === 404)) {
+      return failed(orgSlug, error);
+    }
+  }
+  return saved(orgSlug, "Closed days reopened.");
 }
 
 // --- calendar feed (Settings > Calendar) ---------------------------------------------------
