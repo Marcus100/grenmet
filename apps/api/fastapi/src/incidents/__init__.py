@@ -24,7 +24,9 @@ lookup filters on the organisation in SQL.
 - Photos (``attachments.py``, purpose ``incident-photo``) hold an upload id only.
   Other domains link to an incident through ``src/record_links.py``
   (``record_links.py`` here: title only for holders of the read key).
-- Not built yet (later slices of #1876): persons involved and witnesses, damage
-  and resources, weather at the time, notifications to the category manager,
-  links to work orders and cases, the public report form.
+- Persons involved and witnesses, damage and resources (``details.py``): contact
+  details and injury notes need the private key to read and are sensitive in the
+  audit. Opening and reopening alert the category manager (``notifications.py``).
+- Not built yet (later slices of #1876): weather at the time, links to work
+  orders and cases, the public report form.
 """

@@ -2,11 +2,16 @@
 
 import uuid
 
-from pydantic import Field
+from pydantic import EmailStr, Field
 
 from src.models import BaseModel, UtcDateTime
 
-from .models import IncidentStatus, IncidentTimelineKind
+from .models import (
+    IncidentAffiliation,
+    IncidentPartyKind,
+    IncidentStatus,
+    IncidentTimelineKind,
+)
 
 # --- categories and checklists ----------------------------------------------------
 
@@ -168,6 +173,9 @@ class IncidentDetail(IncidentPublic):
     timeline: list[IncidentTimelinePublic]
     notes: list[IncidentNotePublic]
     attachments: list[IncidentAttachmentPublic] = []
+    parties: list[IncidentPartyPublic] = []
+    damage: list[IncidentDamagePublic] = []
+    resources: list[IncidentResourcePublic] = []
 
 
 class IncidentAttachmentCreate(BaseModel):
@@ -184,6 +192,87 @@ class IncidentAttachmentPublic(BaseModel):
     file_id: uuid.UUID
     caption: str | None
     added_by: uuid.UUID
+    created_at: UtcDateTime
+
+
+# --- persons, damage and resources (slice 2) ----------------------------------------
+
+
+class IncidentPartyCreate(BaseModel):
+    kind: IncidentPartyKind
+    name: str = Field(min_length=1, max_length=120)
+    affiliation: IncidentAffiliation = IncidentAffiliation.OTHER
+    company: str | None = Field(default=None, max_length=120)
+    contact_phone: str | None = Field(default=None, max_length=40)
+    contact_email: EmailStr | None = None
+    injured: bool = False
+    injury_notes: str | None = Field(default=None, max_length=1000)
+    statement: str | None = Field(default=None, max_length=20000)
+
+
+class IncidentPartyUpdate(BaseModel):
+    """Only the fields sent change; the earlier values stay in the history."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    affiliation: IncidentAffiliation | None = None
+    company: str | None = Field(default=None, max_length=120)
+    contact_phone: str | None = Field(default=None, max_length=40)
+    contact_email: EmailStr | None = None
+    injured: bool | None = None
+    injury_notes: str | None = Field(default=None, max_length=1000)
+    statement: str | None = Field(default=None, max_length=20000)
+
+
+class IncidentPartyPublic(BaseModel):
+    """``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer
+    holds ``incidents.incidents.private``."""
+
+    id: str
+    kind: IncidentPartyKind
+    name: str
+    affiliation: IncidentAffiliation
+    company: str | None
+    contact_phone: str | None
+    contact_email: str | None
+    injured: bool
+    injury_notes: str | None
+    statement: str | None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class IncidentDamageCreate(BaseModel):
+    item: str | None = Field(default=None, max_length=200)
+    description: str = Field(min_length=1, max_length=2000)
+    #: In the currency's minor unit (cents).
+    estimated_cost_minor: int | None = Field(default=None, ge=0)
+    currency: str = Field(default="XCD", pattern=r"^[A-Z]{3}$")
+
+
+class IncidentDamagePublic(BaseModel):
+    id: str
+    item: str | None
+    description: str
+    estimated_cost_minor: int | None
+    currency: str
+    created_at: UtcDateTime
+
+
+class IncidentResourceCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    quantity: int = Field(default=1, ge=1, le=10000)
+    started_at: UtcDateTime | None = None
+    ended_at: UtcDateTime | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class IncidentResourcePublic(BaseModel):
+    id: str
+    name: str
+    quantity: int
+    started_at: UtcDateTime | None
+    ended_at: UtcDateTime | None
+    notes: str | None
     created_at: UtcDateTime
 
 

@@ -2694,6 +2694,11 @@ export {
   useIncidentsCreateChecklistItem,
 } from "./useIncidentsCreateChecklistItem.js";
 export {
+  incidentsCreateDamageMutationKey,
+  incidentsCreateDamageMutationOptions,
+  useIncidentsCreateDamage,
+} from "./useIncidentsCreateDamage.js";
+export {
   incidentsCreateIncidentMutationKey,
   incidentsCreateIncidentMutationOptions,
   useIncidentsCreateIncident,
@@ -2703,6 +2708,16 @@ export {
   incidentsCreateNoteMutationOptions,
   useIncidentsCreateNote,
 } from "./useIncidentsCreateNote.js";
+export {
+  incidentsCreatePartyMutationKey,
+  incidentsCreatePartyMutationOptions,
+  useIncidentsCreateParty,
+} from "./useIncidentsCreateParty.js";
+export {
+  incidentsCreateResourceMutationKey,
+  incidentsCreateResourceMutationOptions,
+  useIncidentsCreateResource,
+} from "./useIncidentsCreateResource.js";
 export {
   incidentsCreateTimelineEntryMutationKey,
   incidentsCreateTimelineEntryMutationOptions,
@@ -2753,6 +2768,11 @@ export {
   incidentsUpdateIncidentMutationOptions,
   useIncidentsUpdateIncident,
 } from "./useIncidentsUpdateIncident.js";
+export {
+  incidentsUpdatePartyMutationKey,
+  incidentsUpdatePartyMutationOptions,
+  useIncidentsUpdateParty,
+} from "./useIncidentsUpdateParty.js";
 export {
   janitorialCreateAreaMutationKey,
   janitorialCreateAreaMutationOptions,
