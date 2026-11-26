@@ -29,6 +29,7 @@ import ServicesPage from "./page";
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 const NO_SERVICES = /No services yet/u;
 const SETTINGS_LINK = "Business settings";
+const NO_PEOPLE = /so customers can see times/u;
 const NOBODY_DOES =
   /No one is set to do this service, so customers see no times/u;
 
@@ -53,6 +54,18 @@ const SETTINGS: BookingSettings = {
   deposits_available: false,
 };
 
+const SERVICE = SETTINGS.services[0] as BookingSettings["services"][number];
+const OTHER_ID = "55555555-5555-4555-8555-555555555555";
+const MAYA: BookingSettings["providers"][number] = {
+  id: "33333333-3333-4333-8333-333333333333",
+  name: "Maya",
+  user_id: null,
+  active: true,
+  sort_order: 0,
+  service_ids: [SERVICE.id],
+  working_hours: [],
+};
+
 function role(value: "member" | "admin") {
   vi.mocked(findOrganisation).mockResolvedValue({
     id: ORG_ID,
@@ -68,31 +81,46 @@ beforeEach(() => {
 });
 
 describe("/studio/[orgSlug]/services", () => {
-  it("warns on an active service no person is set to do, with a link to People", async () => {
-    vi.mocked(getSettings).mockResolvedValue(SETTINGS);
+  it("shows one notice, and no badge on each service, when there is no active person", async () => {
+    vi.mocked(getSettings).mockResolvedValue({
+      ...SETTINGS,
+      services: [SERVICE, { ...SERVICE, id: OTHER_ID, name: "Facial" }],
+      providers: [{ ...MAYA, active: false }],
+    });
     render(await ServicesPage({ params }));
-    expect(screen.getByText("No one does this")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "People" }).parentElement
+    ).toHaveTextContent(
+      "Add a person under People so customers can see times."
+    );
+    expect(screen.getByRole("link", { name: "People" })).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/people"
+    );
+    expect(screen.queryByText("No one does this")).toBeNull();
+    expect(screen.queryByText(NOBODY_DOES)).toBeNull();
+  });
+
+  it("badges only the service no one does when there is an active person", async () => {
+    vi.mocked(getSettings).mockResolvedValue({
+      ...SETTINGS,
+      services: [SERVICE, { ...SERVICE, id: OTHER_ID, name: "Facial" }],
+      providers: [MAYA],
+    });
+    render(await ServicesPage({ params }));
+    expect(screen.getAllByText("No one does this")).toHaveLength(1);
     expect(screen.getByText(NOBODY_DOES)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "People" })).toHaveAttribute(
       "href",
       "/studio/sea-salt/people"
     );
+    expect(screen.queryByText(NO_PEOPLE)).toBeNull();
   });
 
   it("does not warn once an active person does the service", async () => {
     vi.mocked(getSettings).mockResolvedValue({
       ...SETTINGS,
-      providers: [
-        {
-          id: "33333333-3333-4333-8333-333333333333",
-          name: "Maya",
-          user_id: null,
-          active: true,
-          sort_order: 0,
-          service_ids: ["44444444-4444-4444-8444-444444444444"],
-          working_hours: [],
-        },
-      ],
+      providers: [MAYA],
     });
     render(await ServicesPage({ params }));
     expect(screen.queryByText("No one does this")).toBeNull();

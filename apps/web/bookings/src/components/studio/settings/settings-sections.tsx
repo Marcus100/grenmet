@@ -185,9 +185,14 @@ export function ServicesSection({
   providers?: BookingProviderPublic[];
   services: BookingServicePublic[];
 }) {
-  const nobodyDoes = providers
+  const unstaffed = providers
     ? servicesNobodyDoes(services, providers)
     : new Set<string>();
+  // With no active person at all, one notice says so; a badge on every service
+  // would only repeat it.
+  const noPeople =
+    unstaffed.size > 0 && !providers?.some((person) => person.active);
+  const nobodyDoes = noPeople ? new Set<string>() : unstaffed;
   const addOnsEnabled = profile?.add_ons_enabled ?? false;
   const depositCollection = profile?.deposit_collection ?? "online";
   const addOnCategories = mainCategories(services);
@@ -200,6 +205,18 @@ export function ServicesSection({
     >
       {profile !== null && editable ? (
         <AddOnsForm orgSlug={orgSlug} profile={profile} />
+      ) : null}
+      {noPeople ? (
+        <p className="border-border rounded-lg border p-3 text-sm">
+          Add a person under{" "}
+          <Link
+            className="font-medium underline underline-offset-4"
+            href={{ pathname: `/studio/${orgSlug}/people` }}
+          >
+            People
+          </Link>{" "}
+          so customers can see times.
+        </p>
       ) : null}
       {services.length === 0 ? (
         <EmptyNote
