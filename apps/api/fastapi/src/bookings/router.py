@@ -1048,7 +1048,7 @@ async def record_manual_deposit(
         "(default now, never in the future). No money moves through Barrels. Audited, "
         "with a staff-only history note that sends no calendar update. Sends no mail; "
         "later mails say the deposit was received. 409 with a `code` when the booking "
-        "has no such deposit, is not pending or confirmed, or is already marked. "
+        "has no such deposit, is cancelled, declined or no-show, or is already marked. "
         "Owners, admins and members granted `bookings.deposits.manage`; API keys are "
         "not accepted."
     ),
@@ -1076,7 +1076,7 @@ async def mark_deposit_received(
     description=(
         "Takes back a deposit receipt recorded in error, so the booking shows the "
         "deposit as due again. Audited, with a staff-only history note. 409 with a "
-        "`code` when the booking has no such deposit, is not pending or confirmed, or "
+        "`code` when the booking has no such deposit, is cancelled, declined or no-show, or "
         "is not marked received. Owners, admins and members granted "
         "`bookings.deposits.manage`; API keys are not accepted."
     ),

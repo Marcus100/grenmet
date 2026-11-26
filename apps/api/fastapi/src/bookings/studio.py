@@ -717,7 +717,14 @@ async def record_manual_deposit(
 
 # --- deposit paid to the business (issue #1869) ---------------------------------------
 
-_DEPOSIT_RECEIVABLE = (BookingStatus.PENDING, BookingStatus.CONFIRMED)
+# A completed booking takes its deposit too: the business often takes a cash deposit
+# at the visit, after it has marked the booking done. Cancelled, declined and no-show
+# bookings do not.
+_DEPOSIT_RECEIVABLE = (
+    BookingStatus.PENDING,
+    BookingStatus.CONFIRMED,
+    BookingStatus.COMPLETED,
+)
 _METHOD_LABELS = {
     BookingDepositReceivedMethod.CASH: "cash",
     BookingDepositReceivedMethod.BANK_TRANSFER: "bank transfer",
@@ -733,7 +740,7 @@ def _require_business_deposit(booking: Booking) -> None:
         )
     if BookingStatus(booking.status) not in _DEPOSIT_RECEIVABLE:
         raise BookingDepositRecordError(
-            "Only a pending or confirmed booking can have its deposit recorded",
+            "Only a pending, confirmed or completed booking can have its deposit recorded",
             "BOOKING_NOT_OPEN",
         )
 

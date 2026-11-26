@@ -59,7 +59,7 @@ export function bookingsUndoDepositReceivedMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Takes back a deposit receipt recorded in error, so the booking shows the deposit as due again. Audited, with a staff-only history note. 409 with a `code` when the booking has no such deposit, is not pending or confirmed, or is not marked received. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.
+ * @description Takes back a deposit receipt recorded in error, so the booking shows the deposit as due again. Audited, with a staff-only history note. 409 with a `code` when the booking has no such deposit, is cancelled, declined or no-show, or is not marked received. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.
  * @summary Undo a deposit marked as received
  * {@link /api/v1/bookings/org/bookings/:booking_id/deposit-received}
  */

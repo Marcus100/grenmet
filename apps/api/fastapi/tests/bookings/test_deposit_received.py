@@ -271,3 +271,46 @@ async def test_the_calendar_sequence_does_not_change(
         )
     )
     assert len(notes) == 1 and notes[0].staff_note is True
+
+
+async def test_a_completed_booking_takes_its_deposit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # The business may take a cash deposit at the visit, after completing the booking.
+    studio, booking_id, _token = await _business_booking(db_async, async_client)
+    completed = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/complete", headers=studio.headers
+    )
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["status"] == "completed"
+    response = await _mark(async_client, studio, booking_id)
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "completed"
+    assert response.json()["deposit_received_method"] == "cash"
+    assert await _audit_actions(db_async, booking_id) == ["deposit_received"]
+
+
+async def test_another_organisations_booking_is_not_found(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id, _token = await _business_booking(db_async, async_client)
+    other = await _business(db_async, async_client)
+    detail_url = f"{API}/org/bookings/{booking_id}"
+
+    # Not yet marked: the other business can neither mark nor undo it.
+    marked = await _mark(async_client, other, booking_id)
+    assert marked.status_code == 404
+    undone = await _undo(async_client, other, booking_id)
+    assert undone.status_code == 404
+    unchanged = await async_client.get(detail_url, headers=studio.headers)
+    assert unchanged.json()["deposit_received_at"] is None
+    assert await _audit_actions(db_async, booking_id) == []
+
+    # Marked by its own business: the other business still cannot undo it.
+    assert (await _mark(async_client, studio, booking_id)).status_code == 200
+    undone = await _undo(async_client, other, booking_id)
+    assert undone.status_code == 404
+    still = await async_client.get(detail_url, headers=studio.headers)
+    assert still.json()["deposit_received_at"] is not None
+    assert still.json()["deposit_received_method"] == "cash"
+    assert await _audit_actions(db_async, booking_id) == ["deposit_received"]

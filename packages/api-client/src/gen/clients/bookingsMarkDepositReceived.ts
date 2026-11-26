@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsMarkDepositReceived.js";
 
 /**
- * @description For a booking whose deposit the customer pays the business by hand (`deposit_to_business_minor` above 0). Records the method (cash, bank transfer, PayPal or other), an optional reference and when it arrived (default now, never in the future). No money moves through Barrels. Audited, with a staff-only history note that sends no calendar update. Sends no mail; later mails say the deposit was received. 409 with a `code` when the booking has no such deposit, is not pending or confirmed, or is already marked. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.
+ * @description For a booking whose deposit the customer pays the business by hand (`deposit_to_business_minor` above 0). Records the method (cash, bank transfer, PayPal or other), an optional reference and when it arrived (default now, never in the future). No money moves through Barrels. Audited, with a staff-only history note that sends no calendar update. Sends no mail; later mails say the deposit was received. 409 with a `code` when the booking has no such deposit, is cancelled, declined or no-show, or is already marked. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.
  * @summary Mark a deposit paid to the business as received
  * {@link /api/v1/bookings/org/bookings/:booking_id/deposit-received}
  */
