@@ -13,8 +13,11 @@ from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
+from src.auth.policy import require_permission
 from src.dependencies import (
+    CurrentUser,
     OwnAccountAnyUser,
     SessionDep,
     TokenDep,
@@ -32,6 +35,7 @@ from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.dependencies import (
     OrgContext,
     require_org_app,
+    require_org_permission,
     resolve_org_caller,
 )
 from src.organisations.models import MembershipRole
@@ -40,7 +44,16 @@ from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
-from . import calendar_feed, deposit_payments, public, service, studio
+from . import (
+    calendar_feed,
+    deposit_payments,
+    go_live,
+    listing_review,
+    public,
+    service,
+    signup,
+    studio,
+)
 from .models import BookingBusinessType, BookingStatus
 from .schemas import (
     BookingAgenda,
@@ -51,12 +64,16 @@ from .schemas import (
     BookingClosureCreate,
     BookingClosureCreated,
     BookingClosurePublic,
+    BookingDepositReceivedCreate,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
     BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingListingQueue,
+    BookingListingReview,
+    BookingListingReviewList,
     BookingManualDepositCreate,
     BookingMyBooking,
     BookingMyBookingList,
@@ -77,7 +94,11 @@ from .schemas import (
     BookingServiceCreate,
     BookingServicePublic,
     BookingServiceUpdate,
+    BookingSetupChecklist,
+    BookingSignupCreate,
+    BookingSignupReceipt,
     BookingSlot,
+    BookingStarterTemplate,
     BookingStorefront,
     BookingStudioCancel,
     BookingStudioCreate,
@@ -87,6 +108,7 @@ from .schemas import (
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
+from .templates import STARTER_TEMPLATES
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -117,10 +139,106 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
     rows = await service.list_my_organisations(session, user.id)
     return [
         BookingMyOrganisation(
-            id=o.id, name=o.name, slug=o.slug, role=MembershipRole(role)
+            id=o.id,
+            name=o.name,
+            slug=o.slug,
+            role=MembershipRole(role),
+            paused_at=paused_at,
         )
-        for o, role in rows
+        for o, role, paused_at in rows
     ]
+
+
+#: Answers 404 while business self sign-up is off (ADR-0066). It runs first, before the
+#: caller is read, the body is checked or the rate limit counts.
+SelfSignupOpen = Annotated[None, Depends(signup.require_self_signup_enabled)]
+
+
+@router.post(
+    "/me/organisations",
+    response_model=BookingSignupReceipt,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sign a business up to Barrels Bookings",
+    description=(
+        "A signed-in account with a verified email creates its own business: closed "
+        "for online booking and unlisted until it is set up, on a 30-day trial, with "
+        "the owner, a provider named after the owner with weekday hours and the "
+        "chosen starter services. One self-created business per account. Requires an "
+        "`Idempotency-Key` (the same key and body replays the first answer with "
+        "`Idempotency-Replayed: true`). Turnstile is required outside local "
+        "development whatever the global switch says. Answers 404 while self sign-up "
+        "is switched off."
+    ),
+    operation_id="bookingsCreateMyOrganisation",
+    responses={
+        **BAD_REQUEST,
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        **CONFLICT,
+        429: {
+            "model": RateLimitedBody,
+            "description": "Three sign-ups an hour per address",
+        },
+    },
+)
+@limiter.limit("3/hour")
+async def create_my_organisation(
+    *,
+    _enabled: SelfSignupOpen,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    user: StudioCaller,
+    payload: BookingSignupCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    require_permission(current_user=user, permission_key=signup.BOOKINGS_ACCESS_KEY)
+    require_verified_email(user, "create a business")
+    organisation = await signup.prepare_organisation(
+        session, user=user, key=idempotency_key, name=payload.name
+    )
+
+    async def create_once() -> tuple[int, dict[str, Any]]:
+        # Turnstile tokens are single-use: the check runs only for a key the server has
+        # not seen. A failed check is not stored and releases the key.
+        await require_turnstile(
+            request, payload.turnstile_token, signup.signup_turnstile_policy()
+        )
+        body = await signup.create_business(
+            session, user=user, organisation=organisation, payload=payload
+        )
+        return status.HTTP_201_CREATED, body
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope=signup.SIGNUP_SCOPE,
+        organisation_id=organisation.id,
+        key=idempotency_key,
+        request_body=payload.model_dump(mode="json", exclude={"turnstile_token"}),
+        handler=create_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.get(
+    "/me/business-templates",
+    response_model=list[BookingStarterTemplate],
+    summary="Starter templates for a new business",
+    description=(
+        "The fixed starter templates a sign-up can name: a short list of services with "
+        "a suggested price in XCD minor units for each business type. Never a deposit "
+        "or a policy. Needs a signed-in account."
+    ),
+    operation_id="bookingsListBusinessTemplates",
+    responses=AUTHENTICATED,
+)
+async def list_business_templates(*, user: StudioCaller) -> Any:
+    require_permission(current_user=user, permission_key=signup.BOOKINGS_ACCESS_KEY)
+    return [signup.template_view(t) for t in STARTER_TEMPLATES.values()]
 
 
 @router.get(
@@ -276,6 +394,18 @@ READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
 
+# Recording a business-held deposit is an organisation-bound key (owners and admins
+# hold it; a plain member needs a grant). Session only, no API key.
+OrgDepositManager = Annotated[
+    OrgContext,
+    Depends(require_org_permission("bookings.deposits.manage", session_app="bookings")),
+]
+DEPOSIT_RECEIVED_ERRORS = {
+    **WRITE_ERRORS,
+    422: {"model": ApiError, "description": "The arrival time is in the future"},
+}
+
+
 # --- organisation: profile -----------------------------------------------------------------
 
 
@@ -291,13 +421,34 @@ async def get_profile(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.get_profile(session, org.organisation_id)
 
 
+@router.get(
+    "/org/setup-checklist",
+    response_model=BookingSetupChecklist,
+    summary="Get my setup checklist",
+    description=(
+        "What the business still needs before it can open online booking (ADR-0066): "
+        "`services` (an active service), `hours` (an active provider with working "
+        "hours who offers an active service) and `contact` (a phone, WhatsApp, "
+        "Instagram or email) are required; `branding` (a logo or colour) is optional. "
+        "A business that signed itself up cannot set `enabled` until `missing` is "
+        "empty: `PUT /org/profile` answers 409 `SETUP_INCOMPLETE` with `missing`."
+    ),
+    operation_id="bookingsGetSetupChecklist",
+    responses=READ_ERRORS,
+)
+async def get_setup_checklist(*, session: SessionDep, org: BookingsOrgRead) -> Any:
+    return await go_live.checklist(session, org.organisation_id)
+
+
 @router.put(
     "/org/profile",
     response_model=BookingProfilePublic,
     summary="Create or update my booking profile",
     description=(
         "Set the public booking address, timezone, currency and booking rules. "
-        "Online booking stays off until `enabled` is true. `brand_color` and "
+        "Online booking stays off until `enabled` is true; a business that signed "
+        "itself up gets 409 `SETUP_INCOMPLETE` until its setup checklist is done. "
+        "`brand_color` and "
         "`logo_file_id` set the accent and logo used in the business's emails."
     ),
     operation_id="bookingsUpsertProfile",
@@ -887,6 +1038,65 @@ async def record_manual_deposit(
 
 
 @router.post(
+    "/org/bookings/{booking_id}/deposit-received",
+    response_model=BookingStudioDetail,
+    summary="Mark a deposit paid to the business as received",
+    description=(
+        "For a booking whose deposit the customer pays the business by hand "
+        "(`deposit_to_business_minor` above 0). Records the method (cash, bank "
+        "transfer, PayPal or other), an optional reference and when it arrived "
+        "(default now, never in the future). No money moves through Barrels. Audited, "
+        "with a staff-only history note that sends no calendar update. Sends no mail; "
+        "later mails say the deposit was received. 409 with a `code` when the booking "
+        "has no such deposit, is cancelled, declined or no-show, or is already marked. "
+        "Owners, admins and members granted `bookings.deposits.manage`; API keys are "
+        "not accepted."
+    ),
+    operation_id="bookingsMarkDepositReceived",
+    responses=DEPOSIT_RECEIVED_ERRORS,
+)
+async def mark_deposit_received(
+    *,
+    session: SessionDep,
+    org: OrgDepositManager,
+    booking_id: BookingId,
+    payload: BookingDepositReceivedCreate,
+) -> Any:
+    result = await studio.mark_deposit_received(
+        session, org.organisation_id, booking_id, payload, actor=org.user
+    )
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/org/bookings/{booking_id}/deposit-received",
+    response_model=BookingStudioDetail,
+    summary="Undo a deposit marked as received",
+    description=(
+        "Takes back a deposit receipt recorded in error, so the booking shows the "
+        "deposit as due again. Audited, with a staff-only history note. 409 with a "
+        "`code` when the booking has no such deposit, is cancelled, declined or no-show, or "
+        "is not marked received. Owners, admins and members granted "
+        "`bookings.deposits.manage`; API keys are not accepted."
+    ),
+    operation_id="bookingsUndoDepositReceived",
+    responses=WRITE_ERRORS,
+)
+async def undo_deposit_received(
+    *,
+    session: SessionDep,
+    org: OrgDepositManager,
+    booking_id: BookingId,
+) -> Any:
+    result = await studio.undo_deposit_received(
+        session, org.organisation_id, booking_id, actor=org.user
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
     "/org/bookings/{booking_id}/decline",
     response_model=BookingStudioDetail,
     summary="Decline a booking request",
@@ -1033,7 +1243,8 @@ async def list_public_businesses(
     summary="Get a business's booking page",
     description=(
         "Active services and providers for a public booking page. Unknown and "
-        "disabled pages both answer 404."
+        "disabled pages both answer 404. A paused business answers 200 with "
+        "`accepting_bookings: false`, its contact details and nothing to book."
     ),
     operation_id="bookingsGetStorefront",
     responses={**NOT_FOUND},
@@ -1057,7 +1268,7 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
         "those add-ons charges now, so the storefront can show the real amount."
     ),
     operation_id="bookingsGetAvailability",
-    responses={**BAD_REQUEST, **NOT_FOUND},
+    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
 )
 @limiter.limit("60/minute")
 async def get_availability(
@@ -1073,6 +1284,7 @@ async def get_availability(
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     slots = await service.available_slots(
         session,
         profile,
@@ -1159,6 +1371,7 @@ async def create_public_booking(
     idempotency_key: idempotency.RequiredIdempotencyKey,
 ) -> Any:
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     policy = await public.turnstile_policy(session, profile)
     if payload.website:
         # Honeypot: look successful, store nothing.
@@ -1207,6 +1420,7 @@ async def create_public_booking(
     responses={
         **BAD_REQUEST,
         **NOT_FOUND,
+        **CONFLICT,
         429: {
             "model": RateLimitedBody,
             "description": "Too many codes requested or attempts made",
@@ -1223,6 +1437,7 @@ async def request_email_code(
     payload: BookingEmailCodeRequest,
 ) -> Any:
     profile = await service.get_public_profile(session, slug)
+    service.require_taking_bookings(profile)
     await require_turnstile(
         request,
         payload.turnstile_token,
@@ -1409,3 +1624,111 @@ async def get_public_calendar_feed(
         media_type="text/calendar; charset=utf-8",
         headers={"Cache-Control": "private, max-age=300"},
     )
+
+
+# --- Barrels staff: listing review (ADR-0066) ----------------------------------------
+# Admin zone: a Barrels staff account with ``bookings.listing.approve`` (superusers hold
+# it). The permission is checked in ``listing_review``; these routes take no organisation.
+
+_REVIEW_ERRORS = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
+
+
+@router.get(
+    "/admin/listing-reviews",
+    response_model=BookingListingReviewList,
+    summary="List business listings for review (Barrels staff)",
+    description=(
+        "Businesses by review state, oldest business first. `queue=pending` (the "
+        "default) lists businesses that asked for the home page listing and wait for "
+        "approval; `approved` lists approved ones; `flagged` lists businesses whose "
+        "owner left or whose sign-up name was refused for email; `all` lists every "
+        "business. Page with `page` and `size`."
+    ),
+    operation_id="bookingsListListingReviews",
+    responses=AUTHENTICATED,
+)
+async def list_listing_reviews(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    pagination: PaginationDep,
+    queue: Annotated[
+        BookingListingQueue, Query(description="Which listings to show.")
+    ] = BookingListingQueue.PENDING,
+) -> Any:
+    reviews, total = await listing_review.list_reviews(
+        session, actor=user, queue=queue, pagination=pagination
+    )
+    return BookingListingReviewList(
+        data=reviews, count=total, page=pagination.page, size=pagination.size
+    )
+
+
+@router.get(
+    "/admin/businesses/{organisation_id}/listing",
+    response_model=BookingListingReview,
+    summary="Get a business's listing review (Barrels staff)",
+    description=(
+        "Whether the business asked for the home page listing, whether staff approved "
+        "it, and the flags staff review (a self-created business, an owner who left)."
+    ),
+    operation_id="bookingsGetListingReview",
+    responses=_REVIEW_ERRORS,
+)
+async def get_listing_review(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    return await listing_review.get_review(
+        session, actor=user, organisation_id=organisation_id
+    )
+
+
+@router.post(
+    "/admin/businesses/{organisation_id}/listing/approve",
+    response_model=BookingListingReview,
+    summary="Approve a business's home page listing (Barrels staff)",
+    description=(
+        "Lets a listed business appear on the home page. Audited. 409 when it is "
+        "already approved."
+    ),
+    operation_id="bookingsApproveListing",
+    responses=_REVIEW_ERRORS,
+)
+async def approve_listing(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    review = await listing_review.approve(
+        session, actor=user, organisation_id=organisation_id
+    )
+    await session.commit()
+    return review
+
+
+@router.post(
+    "/admin/businesses/{organisation_id}/listing/withdraw",
+    response_model=BookingListingReview,
+    summary="Withdraw a business's home page listing approval (Barrels staff)",
+    description=(
+        "Takes a business off the home page. Its booking page still works by its link. "
+        "Audited. 409 when it is not approved."
+    ),
+    operation_id="bookingsWithdrawListing",
+    responses=_REVIEW_ERRORS,
+)
+async def withdraw_listing(
+    *,
+    session: SessionDep,
+    user: CurrentUser,
+    organisation_id: Annotated[str, Path(min_length=1, max_length=100)],
+) -> Any:
+    review = await listing_review.withdraw(
+        session, actor=user, organisation_id=organisation_id
+    )
+    await session.commit()
+    return review

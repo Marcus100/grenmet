@@ -21,10 +21,36 @@ export const bookingServiceCreateSchema = z.object({
     .optional()
     .default(false)
     .describe("An add-on is booked with a main service, never alone."),
+  also_add_on: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "A main service that is also offered as an add-on: bookable alone, and attachable to other services (see `add_on_categories`). Ignored when `is_add_on` is true."
+    ),
   add_on_categories: z
     .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
     .optional()
     .describe(
-      "For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service."
+      "For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service."
+    ),
+  new_clients_only: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Every public booking of this service is a request the business confirms (`pending`); one from a returning client (a confirmed or completed booking with the business) is flagged for staff only. Cannot be combined with `is_add_on` or `also_add_on`. Staff bookings are never held or flagged."
+    ),
+  first_visit_lead_days: z
+    .union([z.int().min(0).max(60), z.null()])
+    .optional()
+    .describe(
+      "Only with `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories` (0 to 60). Shown to customers; not enforced."
+    ),
+  first_visit_categories: z
+    .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
+    .optional()
+    .describe(
+      "Categories the lead time refers to. Only with `new_clients_only`."
     ),
 });

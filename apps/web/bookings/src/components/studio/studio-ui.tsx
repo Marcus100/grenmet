@@ -1,8 +1,9 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 
-// The studio page pattern (docs/design/bookings.md, Studio): a header with the
-// h1, one line of description and the page's primary action, then white cards
-// on the grey ground. Muted text only ever sits on white, never on the ground.
+// The studio page pattern (docs/design/bookings.md, Studio): the admin kit's
+// `PageHeader` (h1, one line of description, the page's primary action), then
+// cards on the white content surface. These are the studio's own action and
+// card classes; the shell and headers come from `@barrelsgd/admin-kit`.
 
 /** Keyboard focus that shows on white and on the grey ground. */
 export const FOCUS =
@@ -31,27 +32,9 @@ export const CARD_LINK = cn(
   "text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
 );
 
-/** The white card: radius 20 on the grey ground. */
-export const CARD = "bg-background rounded-[20px] p-4 sm:p-6";
-
-export function StudioPageHeader({
-  action,
-  description,
-  title,
-}: Readonly<{
-  action?: React.ReactNode;
-  description?: React.ReactNode;
-  title: string;
-}>) {
-  return (
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-foreground text-2xl font-bold">{title}</h1>
-        {description ? (
-          <p className="text-foreground/80">{description}</p>
-        ) : null}
-      </div>
-      {action ? <div className="sm:shrink-0">{action}</div> : null}
-    </header>
-  );
-}
+/**
+ * A content card. The admin shell's surface is white, so a card is told apart
+ * by the same hairline ring the kit's cards use (`PageSection`).
+ */
+export const CARD =
+  "bg-card text-card-foreground ring-foreground/10 rounded-xl p-4 ring-1 sm:p-6";

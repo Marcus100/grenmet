@@ -18,6 +18,7 @@ apps/web/hr/node_modules
 apps/web/mbia/node_modules
 apps/web/signal/node_modules
 packages/cms-migrations/node_modules
+packages/admin-kit/node_modules
 packages/api-client/node_modules
 packages/auth/node_modules
 packages/bookings-web/node_modules

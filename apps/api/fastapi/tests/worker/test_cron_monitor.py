@@ -137,6 +137,7 @@ def test_booking_jobs_are_tracked_by_the_operational_metrics() -> None:
         "expire_unpaid_bookings",
         "expire_pending_bookings",
         "complete_finished_bookings",
+        "evaluate_paused_businesses",
     } <= operational_metrics.JOBS
 
 
@@ -144,7 +145,7 @@ async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     monkeypatch: pytest.MonkeyPatch, checkins: list[dict[str, Any]]
 ) -> None:
     from src import database
-    from src.bookings import deposits, lifecycle, reminders
+    from src.bookings import deposits, lifecycle, paused, reminders
 
     async def no_reminders(_session: object) -> int:
         return 0
@@ -157,12 +158,14 @@ async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     monkeypatch.setattr(deposits, "expire_unpaid", no_expiries)
     monkeypatch.setattr(lifecycle, "expire_stale_requests", no_expiries)
     monkeypatch.setattr(lifecycle, "complete_finished_bookings", no_expiries)
+    monkeypatch.setattr(paused, "evaluate_all", no_expiries)
     _enable(monkeypatch)
 
     assert await main.enqueue_booking_reminders({}) == 0
     assert await main.expire_unpaid_bookings({}) == 0
     assert await main.expire_pending_bookings({}) == 0
     assert await main.complete_finished_bookings({}) == 0
+    assert await main.evaluate_paused_businesses({}) == 0
 
     by_slug = {c["monitor_slug"]: c for c in checkins if c["status"] == "ok"}
     reminder = by_slug["production-worker-enqueue-booking-reminders"]
@@ -180,6 +183,14 @@ async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     )
     completion = by_slug["production-worker-complete-finished-bookings"]
     assert completion["monitor_config"]["schedule"]["value"] == "27 * * * *"
+    daily = by_slug["production-worker-evaluate-paused-businesses"]
+    assert daily["monitor_config"]["schedule"]["value"] == "17 5 * * *"
+    cron_job = next(
+        job
+        for job in main.WorkerSettings.cron_jobs
+        if job.coroutine.__name__ == "evaluate_paused_businesses"
+    )
+    assert (cron_job.hour, cron_job.minute) == ({5}, {17})
 
 
 def test_booking_jobs_keep_their_names() -> None:

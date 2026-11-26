@@ -88,7 +88,7 @@ async def test_bookings_session_admin_can_list_and_checkout(
     )
 
     assert listing.status_code == 200
-    assert listing.json() == {"data": []}
+    assert listing.json()["data"] == []
     assert checkout.status_code == 201
     assert len(fake_gateway.calls) == 1
     assert fake_gateway.calls[0]["organisation_id"] == org.id

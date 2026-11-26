@@ -254,10 +254,18 @@ export function eventLabel(
 export function agendaDepositView(booking: {
   currency: string;
   deposit_minor: number;
+  deposit_received_at?: string | null;
   payment_kind?: PaymentKind;
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
+  // Only a deposit paid to the business is ever marked received (#1869), so a
+  // received mark is always a paid one. A cancelled booking is never shown as paid.
+  if (booking.deposit_received_at && booking.status !== "cancelled") {
+    return { label: "Deposit received", tone: "success" };
+  }
+  // The agenda item has no captured or refunded amount, so a cancelled booking
+  // keeps the neutral amount label (never "due"); the detail page says what was paid.
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
@@ -330,4 +338,159 @@ export function takesDeposit(booking: {
   status: BookingStatus;
 }): boolean {
   return booking.deposit_minor > 0 && DEPOSIT_OPEN.includes(booking.status);
+}
+
+/**
+ * Whether the agenda row shows a deposit badge. A deposit paid to the business
+ * carries no amount on the agenda item, so it shows only once it is received.
+ */
+export function showsAgendaDeposit(booking: {
+  deposit_minor: number;
+  deposit_received_at?: string | null;
+  status: BookingStatus;
+}): boolean {
+  return (
+    booking.deposit_minor > 0 ||
+    (Boolean(booking.deposit_received_at) && booking.status !== "cancelled")
+  );
+}
+
+/**
+ * A deposit the customer pays the business by hand that is still owed: due
+ * while the booking is pending or confirmed and nothing is recorded as received.
+ * A cancelled booking owes nothing, so it is never due.
+ */
+export function businessDepositDue(booking: {
+  deposit_received_at?: string | null;
+  deposit_to_business_minor?: number;
+  status: BookingStatus;
+}): boolean {
+  return (
+    (booking.deposit_to_business_minor ?? 0) > 0 &&
+    (booking.status === "pending" || booking.status === "confirmed") &&
+    !booking.deposit_received_at
+  );
+}
+
+/** "Deposit due EC$X to you", the agenda chip for a business deposit still owed. */
+export function businessDepositDueView(booking: {
+  currency: string;
+  deposit_to_business_minor?: number;
+}): StatusView {
+  const amount = formatMoney(
+    booking.deposit_to_business_minor ?? 0,
+    booking.currency
+  );
+  return { label: `Deposit due ${amount} to you`, tone: "warning" };
+}
+
+/** A chip on an agenda row: the hold warning, or the deposit line. */
+export type AgendaChip =
+  | { kind: "expires_soon" }
+  | { kind: "deposit"; view: StatusView };
+
+/**
+ * The chips for one agenda row, in order. A business deposit still owed replaces
+ * the generic deposit chip; otherwise the generic chip shows as before. The
+ * business-due rule is evaluated once per row.
+ */
+export function agendaChips(
+  booking: Parameters<typeof agendaDepositView>[0] & {
+    deposit_to_business_minor?: number;
+    hold_expires_soon?: boolean;
+  }
+): AgendaChip[] {
+  const chips: AgendaChip[] = [];
+  if (booking.hold_expires_soon) {
+    chips.push({ kind: "expires_soon" });
+  }
+  const businessDue = businessDepositDue(booking);
+  if (businessDue) {
+    chips.push({ kind: "deposit", view: businessDepositDueView(booking) });
+  } else if (showsAgendaDeposit(booking)) {
+    chips.push({ kind: "deposit", view: agendaDepositView(booking) });
+  }
+  return chips;
+}
+
+export type DepositMethod = "cash" | "bank_transfer" | "paypal" | "other";
+
+export const DEPOSIT_METHODS = [
+  "cash",
+  "bank_transfer",
+  "paypal",
+  "other",
+] as const satisfies readonly DepositMethod[];
+
+export const DEPOSIT_METHOD_LABEL: Record<DepositMethod, string> = {
+  cash: "Cash",
+  bank_transfer: "Bank transfer",
+  paypal: "PayPal",
+  other: "Other",
+};
+
+/** Statuses in which a deposit paid to the business can be marked received (the API's rule). */
+const BUSINESS_DEPOSIT_OPEN: readonly BookingStatus[] = [
+  "pending",
+  "confirmed",
+  "completed",
+];
+
+/**
+ * Whether staff can mark the deposit paid to the business as received: it asks
+ * for one and the booking is pending, confirmed or completed. The API decides too.
+ */
+export function canMarkDepositReceived(booking: {
+  deposit_received_at?: string | null;
+  deposit_to_business_minor?: number;
+  status: BookingStatus;
+}): boolean {
+  return (
+    (booking.deposit_to_business_minor ?? 0) > 0 &&
+    !booking.deposit_received_at &&
+    BUSINESS_DEPOSIT_OPEN.includes(booking.status)
+  );
+}
+
+/**
+ * The detail page's badge for a deposit paid to the business. Received is the
+ * only paid state; a cancelled booking is never "due".
+ */
+export function businessDepositView(booking: {
+  deposit_received_at?: string | null;
+  status: BookingStatus;
+}): StatusView {
+  if (booking.deposit_received_at) {
+    return { label: "Deposit received", tone: "success" };
+  }
+  if (booking.status === "cancelled") {
+    return { label: "Deposit cancelled", tone: "neutral" };
+  }
+  if (
+    booking.status === "pending_payment" ||
+    booking.status === "pending" ||
+    booking.status === "confirmed"
+  ) {
+    return { label: "Deposit due", tone: "warning" };
+  }
+  return { label: "Deposit not received", tone: "neutral" };
+}
+
+const LOCAL_WHEN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/u;
+
+/** A `datetime-local` value ("YYYY-MM-DDTHH:MM") read as the business's wall clock. */
+export function parseLocalWhen(
+  value: string
+): { day: string; time: string } | null {
+  const match = LOCAL_WHEN.exec(value);
+  if (!match) {
+    return null;
+  }
+  const [, day = "", time = ""] = match;
+  return isDay(day) && isTime(time) ? { day, time } : null;
+}
+
+/** "Now" on the business's clock in `datetime-local` form: the latest value the form accepts. */
+export function localWhenNow(timeZone: string, now: Date = new Date()): string {
+  return `${todayIn(timeZone, now)}T${localTime(now, timeZone)}`;
 }

@@ -31,6 +31,15 @@ class VerificationStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class EntitlementSource(str, Enum):
+    """Why an ``org.organisation_app`` row grants access (ADR-0066). Staff grants are
+    ``manual``; the self sign-up trial and paid subscription come in later slices."""
+
+    MANUAL = "manual"
+    TRIAL = "trial"
+    SUBSCRIPTION = "subscription"
+
+
 class MembershipRole(str, Enum):
     OWNER = "owner"
     ADMIN = "admin"
@@ -103,6 +112,11 @@ class PlatformOrganisation(Base):
     #: Reason given with the latest decision (approve, reject or unverify).
     verification_reason: Mapped[str | None] = mapped_column(sa.Text)
     verification_decided_at: Mapped[datetime | None]
+    #: Set for a business that its own account created (ADR-0066). Null for every
+    #: organisation Barrels set up. Nothing else reads it yet.
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), default=None
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
@@ -178,13 +192,22 @@ class OrganisationApp(Base):
     """Which registered apps (``src/auth/apps.py`` keys) an organisation may use."""
 
     __tablename__ = "organisation_app"
-    __table_args__ = {"schema": "org"}
+    __table_args__ = (
+        sa.CheckConstraint(f"source IN ({_values(EntitlementSource)})", name="source"),
+        {"schema": "org"},
+    )
 
     organisation_id: Mapped[str] = mapped_column(
         ForeignKey("org.organisation.id", ondelete="CASCADE"), primary_key=True
     )
     app_key: Mapped[str] = mapped_column(String(60), primary_key=True)
     enabled: Mapped[bool] = mapped_column(default=True)
+    #: ``EntitlementSource``: who or what gave access. Every existing row is manual.
+    source: Mapped[str] = mapped_column(
+        String(20),
+        default=EntitlementSource.MANUAL.value,
+        server_default=EntitlementSource.MANUAL.value,
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

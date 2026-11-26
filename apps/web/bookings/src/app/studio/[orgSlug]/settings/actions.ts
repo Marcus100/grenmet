@@ -27,7 +27,18 @@ import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import { parseBusinessType } from "@/lib/business-types";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
+import {
+  affectedBookings,
+  CLOSURE_REASON_MAX,
+  type ClosureFieldErrors,
+  type ClosureState,
+  closureFieldErrors,
+  closureWindow,
+} from "@/lib/closures";
+import { depositHoldField } from "@/lib/deposit-hold";
+import { DEPOSIT_INSTRUCTIONS_MAX } from "@/lib/deposit-instructions";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
+import { graceMinutes, lateFeeMinor } from "@/lib/late-fee";
 import { reportError } from "@/lib/report-error";
 import { checkExpiry, checkMaxOpen } from "@/lib/request-hygiene";
 import { getSession } from "@/lib/session";
@@ -36,11 +47,13 @@ import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
   completeLogoUpload,
   createCalendarFeed,
+  createClosure,
   createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
   createService,
+  deleteClosure,
   deleteException,
   findOrganisation,
   getBusinessTimezone,
@@ -524,6 +537,15 @@ async function savePaymentsSection(
   auth: Granted,
   formData: FormData
 ): Promise<ProfileState> {
+  // Fields the form leaves out (the instructions box is on the page only in
+  // "paid to me" mode; the card choice only in online mode) keep what is stored.
+  const instructions = field(formData, "depositInstructions");
+  if (policyLength(instructions) > DEPOSIT_INSTRUCTIONS_MAX) {
+    return invalid(
+      `The payment instructions are at most ${DEPOSIT_INSTRUCTIONS_MAX} characters.`
+    );
+  }
+  const collection = formData.get("depositCollection");
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -533,7 +555,15 @@ async function savePaymentsSection(
     }
     await saveProfile(auth.accessToken, auth.organisationId, {
       ...storedFields(current),
-      payment_at_booking: paymentAtBooking(formData),
+      ...(formData.has("paymentAtBooking")
+        ? { payment_at_booking: paymentAtBooking(formData) }
+        : {}),
+      ...(collection === "online" || collection === "business"
+        ? { deposit_collection: collection }
+        : {}),
+      ...(formData.has("depositInstructions")
+        ? { deposit_instructions: cleanPolicy(instructions) }
+        : {}),
     });
   } catch (error) {
     return failed(orgSlug, error);
@@ -568,6 +598,14 @@ async function saveDepositSection(
   if (minimum && !minimum.ok) {
     return invalid(minimum.message);
   }
+  // The hold is on the form only for a deposit not paid to the business, and is
+  // named only when changed (see DepositHoldField), so an absent field keeps the stored hold.
+  const hold = formData.has("depositHoldMinutes")
+    ? depositHoldField(field(formData, "depositHoldMinutes"))
+    : null;
+  if (hold && !hold.ok) {
+    return invalid(hold.message);
+  }
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -577,6 +615,7 @@ async function saveDepositSection(
       ...storedFields(current),
       ...rule.value,
       ...(minimum?.ok ? { deposit_min_price_minor: minimum.value } : {}),
+      ...(hold?.ok ? { deposit_hold_minutes: hold.value } : {}),
       deposit_non_refundable: formData.get("depositNonRefundable") === "on",
     });
   } catch (error) {
@@ -662,6 +701,20 @@ async function savePolicySection(
       `The booking policy is at most ${BOOKING_POLICY_MAX} characters.`
     );
   }
+  // The late fee fields are on the form together; a form without them keeps
+  // the stored fee and grace period.
+  const lateFee = formData.has("lateFee")
+    ? lateFeeMinor(field(formData, "lateFee"))
+    : null;
+  if (lateFee && !lateFee.ok) {
+    return invalid(lateFee.message);
+  }
+  const grace = formData.has("lateGrace")
+    ? graceMinutes(field(formData, "lateGrace"))
+    : null;
+  if (grace && !grace.ok) {
+    return invalid(grace.message);
+  }
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -672,6 +725,8 @@ async function savePolicySection(
     await saveProfile(auth.accessToken, auth.organisationId, {
       ...storedFields(current),
       booking_policy: cleanPolicy(text),
+      ...(lateFee?.ok ? { late_fee_minor: lateFee.value } : {}),
+      ...(grace?.ok ? { late_grace_min: grace.value } : {}),
     });
   } catch (error) {
     return failed(orgSlug, error);
@@ -840,14 +895,19 @@ function logoFailed(
 }
 
 /**
- * "This is an add-on" and the categories it is offered with. Categories are
- * sent only for an add-on; none ticked means every main service.
+ * "This is an add-on" (only as an add-on), "Also offer as an add-on" (booked
+ * alone and as an add-on) and the categories it is offered with. Categories are
+ * sent only for an add-on or an also-add-on service; none ticked means every main service.
  */
 function addOnFields(formData: FormData): {
   add_on_categories: string[] | null;
+  also_add_on: boolean;
   is_add_on: boolean;
 } {
+  // The API lets an add-on-only service win over "also an add-on"; the form
+  // never sends both, and this keeps a hand-made request to the same rule.
   const isAddOn = formData.get("isAddOn") === "on";
+  const alsoAddOn = !isAddOn && formData.get("alsoAddOn") === "on";
   const categories = formData
     .getAll("addOnCategory")
     .filter((value): value is string => typeof value === "string")
@@ -855,7 +915,64 @@ function addOnFields(formData: FormData): {
     .filter(Boolean);
   return {
     is_add_on: isAddOn,
-    add_on_categories: isAddOn && categories.length > 0 ? categories : null,
+    also_add_on: alsoAddOn,
+    add_on_categories:
+      (isAddOn || alsoAddOn) && categories.length > 0 ? categories : null,
+  };
+}
+
+interface NewClientFields {
+  first_visit_categories: string[] | null;
+  first_visit_lead_days: number | null;
+  new_clients_only: boolean;
+}
+
+/**
+ * "New clients only" and its lead time. The lead time and categories go only
+ * while the switch is on; with it off both are null, so a service that was
+ * new-clients-only goes back to an ordinary one.
+ */
+function newClientFields(
+  formData: FormData
+): { ok: true; value: NewClientFields } | { message: string; ok: false } {
+  if (formData.get("newClientsOnly") !== "on") {
+    return {
+      ok: true,
+      value: {
+        first_visit_categories: null,
+        first_visit_lead_days: null,
+        new_clients_only: false,
+      },
+    };
+  }
+  const raw = field(formData, "firstVisitLeadDays").trim();
+  let leadDays: number | null = null;
+  if (raw !== "") {
+    const value = WHOLE.test(raw) ? Number(raw) : Number.NaN;
+    if (!(value >= 0 && value <= 60)) {
+      return {
+        message: "Book-ahead days are a whole number from 0 to 60.",
+        ok: false,
+      };
+    }
+    leadDays = value;
+  }
+  const categories = [
+    ...new Set(
+      formData
+        .getAll("firstVisitCategory")
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ),
+  ];
+  return {
+    ok: true,
+    value: {
+      first_visit_categories: categories.length > 0 ? categories : null,
+      first_visit_lead_days: leadDays,
+      new_clients_only: true,
+    },
   };
 }
 
@@ -897,6 +1014,20 @@ export async function saveServiceAction(
   if (deposit > price) {
     return invalid("The deposit cannot exceed the price.");
   }
+  const newClients = newClientFields(formData);
+  if (!newClients.ok) {
+    return invalid(newClients.message);
+  }
+  const addOn = addOnFields(formData);
+  if (
+    newClients.value.new_clients_only &&
+    (addOn.is_add_on || addOn.also_add_on)
+  ) {
+    // The form never sends both; a hand-made request gets a plain refusal, not a silent pick.
+    return invalid(
+      "A service for new clients only cannot also be an add-on. Turn one of them off."
+    );
+  }
   const body = {
     name: input.name,
     category: input.category || null,
@@ -907,7 +1038,8 @@ export async function saveServiceAction(
     price_minor: price,
     deposit_minor: deposit,
     active: formData.get("active") === "on",
-    ...addOnFields(formData),
+    ...addOn,
+    ...newClients.value,
   };
   try {
     if (input.serviceId === "") {
@@ -1114,6 +1246,109 @@ export async function removeTimeOffAction(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, "Time off removed.");
+}
+
+// --- closed days (whole-business closures, Settings > Closed days) ------------------------------
+// Owners and admins close and reopen the business for whole local days. The days
+// are sent as typed (already on the business clock), so no timezone is read here.
+// A save reports the bookings inside the new closure: they are not cancelled.
+
+function closureRefusal(
+  message: string,
+  nextStep: string,
+  fields?: ClosureFieldErrors
+): ClosureState {
+  return {
+    status: "error",
+    kind: "invalid",
+    message,
+    nextStep,
+    ...(fields ? { fields } : {}),
+  };
+}
+
+/** Closes the business for the typed days, for every provider. */
+export async function saveClosureAction(
+  orgSlug: string,
+  _previous: ClosureState,
+  formData: FormData
+): Promise<ClosureState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  const reason = field(formData, "reason").trim();
+  if (reason.length > CLOSURE_REASON_MAX) {
+    return closureRefusal(
+      "The reason is too long.",
+      `Keep the reason to ${CLOSURE_REASON_MAX} characters or fewer.`,
+      {
+        reason: `Keep the reason to ${CLOSURE_REASON_MAX} characters or fewer.`,
+      }
+    );
+  }
+  const window = closureWindow(
+    field(formData, "startsOn"),
+    field(formData, "endsOn")
+  );
+  if (!window.ok) {
+    return closureRefusal(
+      window.message,
+      "Fix the highlighted fields.",
+      window.fields
+    );
+  }
+  try {
+    const created = await createClosure(auth.accessToken, auth.organisationId, {
+      starts_on: window.startsOn,
+      ends_on: window.endsOn,
+      reason: reason || null,
+    });
+    revalidatePath(`/studio/${orgSlug}/settings`);
+    return {
+      status: "success",
+      message: "Closed days added.",
+      affected: affectedBookings(created),
+    };
+  } catch (error) {
+    const state = failed(orgSlug, error);
+    const fields = ResponseError.is(error)
+      ? closureFieldErrors(error.data)
+      : undefined;
+    if (state.status !== "error" || !fields) {
+      return state;
+    }
+    return { ...state, message: "Check the highlighted fields.", fields };
+  }
+}
+
+/** Reopens the business for one closure. A closure already removed answers 404 and the page says so. */
+export async function reopenClosureAction(
+  orgSlug: string,
+  closureId: string,
+  _previous: ClosureState,
+  _formData: FormData
+): Promise<ClosureState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  if (!isUuid(closureId)) {
+    return closureRefusal(
+      "Those closed days no longer exist.",
+      "Reload the settings and try again."
+    );
+  }
+  try {
+    await deleteClosure(auth.accessToken, auth.organisationId, closureId);
+  } catch (error) {
+    // The DELETE is idempotent in intent: a closure already gone (404, for
+    // example removed in another tab) is the result the person asked for.
+    if (!(ResponseError.is(error) && error.status === 404)) {
+      return failed(orgSlug, error);
+    }
+  }
+  return saved(orgSlug, "Closed days reopened.");
 }
 
 // --- calendar feed (Settings > Calendar) ---------------------------------------------------

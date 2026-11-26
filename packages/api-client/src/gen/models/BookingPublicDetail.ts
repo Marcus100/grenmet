@@ -5,6 +5,7 @@
 
 import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingLateFee } from "./BookingLateFee.js";
 import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
@@ -69,6 +70,26 @@ export type BookingPublicDetail = {
    */
   booking_policy?: string | null;
   /**
+   * @description The deposit the customer pays the business by hand, outside Barrels (0 = none). Set when the booking was made.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
+   * @description How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0 and it is not yet received.
+   */
+  deposit_instructions?: string | null;
+  /**
+   * @description The business has confirmed the deposit paid to it by hand (`deposit_to_business_minor`) arrived. Show it as paid; no method or reference is shown to the customer.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_received?: boolean;
+  /**
+   * @description The late-arrival fee rule, or null when none.
+   */
+  late_fee?: BookingLateFee | null;
+  /**
    * @description True while the booking is active and before the cancellation cutoff.
    * @type boolean
    */
@@ -87,9 +108,24 @@ export type BookingPublicDetail = {
    */
   account_invite_url?: string | null;
   /**
+   * @description The service is for first-time clients only.
+   * @default false
+   * @type boolean | undefined
+   */
+  new_clients_only?: boolean;
+  /**
+   * @description Only for a new-clients-only service: it is meant to be booked at least this many days before the first appointment in `first_visit_categories`.
+   */
+  first_visit_lead_days?: number | null;
+  first_visit_categories?: string[] | null;
+  /**
    * @description While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise.
    */
   hold_ends_at?: string | null;
+  /**
+   * @description While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise.
+   */
+  hold_minutes?: number | null;
   /**
    * @description The add-ons booked with the service. `starts_at`..`ends_at` include them.
    * @type array | undefined

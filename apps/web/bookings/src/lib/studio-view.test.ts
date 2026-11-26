@@ -2,15 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   agendaDepositView,
   availableActions,
+  businessDepositView,
   canManageBookings,
+  canMarkDepositReceived,
   daysIn,
   depositState,
   depositView,
   eventLabel,
   isDay,
   localTime,
+  localWhenNow,
+  parseLocalWhen,
   parseRange,
   rotatesKey,
+  showsAgendaDeposit,
   statusView,
   todayIn,
   weekStart,
@@ -187,5 +192,113 @@ describe("localTime", () => {
     expect(localTime("2027-01-05T13:30:00Z", "America/Grenada")).toBe("09:30");
     expect(localTime("2027-01-05T02:05:00Z", "America/Grenada")).toBe("22:05");
     expect(localTime("2027-01-05T04:00:00Z", "America/Grenada")).toBe("00:00");
+  });
+});
+
+describe("deposit paid to the business, received (#1869)", () => {
+  const RECEIVED = "2027-01-05T10:00:00.000Z";
+
+  it("shows the agenda deposit as received, never as due, and never on a cancelled booking", () => {
+    const base = { currency: "XCD", deposit_minor: 0 };
+    expect(
+      agendaDepositView({
+        ...base,
+        deposit_received_at: RECEIVED,
+        status: "confirmed",
+      }).label
+    ).toBe("Deposit received");
+    expect(
+      agendaDepositView({
+        ...base,
+        deposit_received_at: null,
+        status: "pending",
+      }).label
+    ).not.toBe("Deposit due");
+    expect(
+      agendaDepositView({
+        ...base,
+        deposit_minor: 2500,
+        deposit_received_at: RECEIVED,
+        status: "cancelled",
+      }).label
+    ).toBe("Deposit EC$25");
+    expect(
+      showsAgendaDeposit({
+        deposit_minor: 0,
+        deposit_received_at: RECEIVED,
+        status: "cancelled",
+      })
+    ).toBe(false);
+  });
+
+  it("shows an agenda deposit only when it has an amount or is received", () => {
+    expect(showsAgendaDeposit({ deposit_minor: 0, status: "pending" })).toBe(
+      false
+    );
+    expect(showsAgendaDeposit({ deposit_minor: 2500, status: "pending" })).toBe(
+      true
+    );
+    expect(
+      showsAgendaDeposit({
+        deposit_minor: 0,
+        deposit_received_at: RECEIVED,
+        status: "completed",
+      })
+    ).toBe(true);
+  });
+
+  it("badges received, due, cancelled and other states on the detail page", () => {
+    expect(
+      businessDepositView({
+        deposit_received_at: RECEIVED,
+        status: "confirmed",
+      }).label
+    ).toBe("Deposit received");
+    expect(
+      businessDepositView({ deposit_received_at: null, status: "confirmed" })
+        .label
+    ).toBe("Deposit due");
+    expect(
+      businessDepositView({ deposit_received_at: null, status: "cancelled" })
+    ).toEqual({ label: "Deposit cancelled", tone: "neutral" });
+    expect(
+      businessDepositView({ deposit_received_at: null, status: "no_show" })
+        .label
+    ).toBe("Deposit not received");
+  });
+
+  it("offers a receipt only for an open business deposit not yet received", () => {
+    const open = {
+      deposit_to_business_minor: 5300,
+      status: "pending" as const,
+    };
+    expect(canMarkDepositReceived(open)).toBe(true);
+    expect(
+      canMarkDepositReceived({ ...open, status: "completed" as const })
+    ).toBe(true);
+    expect(
+      canMarkDepositReceived({ ...open, status: "cancelled" as const })
+    ).toBe(false);
+    expect(
+      canMarkDepositReceived({ ...open, status: "no_show" as const })
+    ).toBe(false);
+    expect(
+      canMarkDepositReceived({ ...open, deposit_to_business_minor: 0 })
+    ).toBe(false);
+    expect(
+      canMarkDepositReceived({ ...open, deposit_received_at: RECEIVED })
+    ).toBe(false);
+  });
+
+  it("reads the local time of a receipt and gives the latest allowed value", () => {
+    expect(parseLocalWhen("2027-01-05T09:30")).toEqual({
+      day: "2027-01-05",
+      time: "09:30",
+    });
+    expect(parseLocalWhen("2027-02-30T09:30")).toBeNull();
+    expect(parseLocalWhen("2027-01-05 09:30")).toBeNull();
+    expect(
+      localWhenNow("America/Grenada", new Date("2027-01-05T13:45:20Z"))
+    ).toBe("2027-01-05T09:45");
   });
 });

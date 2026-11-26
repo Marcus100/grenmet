@@ -12,9 +12,11 @@ vi.mock("@/lib/studio-api", () => ({
   completeLogoUpload: vi.fn(),
   createCoverUpload: vi.fn(),
   createLogoUpload: vi.fn(),
+  createClosure: vi.fn(),
   createException: vi.fn(),
   createProvider: vi.fn(),
   createService: vi.fn(),
+  deleteClosure: vi.fn(),
   deleteException: vi.fn(),
   findOrganisation: vi.fn(),
   getBusinessTimezone: vi.fn(),
@@ -30,11 +32,13 @@ import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
   completeLogoUpload,
+  createClosure,
   createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
   createService,
+  deleteClosure,
   deleteException,
   findOrganisation,
   getBusinessTimezone,
@@ -48,6 +52,8 @@ import {
   finishCoverUploadAction,
   finishLogoUploadAction,
   removeTimeOffAction,
+  reopenClosureAction,
+  saveClosureAction,
   saveHoursAction,
   saveProfileAction,
   saveProviderAction,
@@ -62,6 +68,12 @@ const ADMIN_ACCESS = /admin access/u;
 const IDLE = { status: "idle" } as const;
 const SERVICE_ID = "44444444-4444-4444-8444-444444444444";
 const EXCEPTION_ID = "55555555-5555-4555-8555-555555555555";
+const CLOSURE_ID = "66666666-6666-4666-8666-666666666666";
+const CHRISTMAS = {
+  startsOn: "2026-12-25",
+  endsOn: "2026-12-25",
+  reason: "Christmas",
+};
 const LEAVE = {
   providerId: PROVIDER_ID,
   startsAt: "2026-11-20T09:00",
@@ -746,7 +758,11 @@ describe("services", () => {
       deposit_minor: 2550,
       active: true,
       is_add_on: false,
+      also_add_on: false,
       add_on_categories: null,
+      new_clients_only: false,
+      first_visit_lead_days: null,
+      first_visit_categories: null,
     });
   });
 
@@ -1092,6 +1108,93 @@ describe("deposit rule", () => {
       deposit_min_price_minor: null,
       deposit_non_refundable: false,
     });
+  });
+
+  it("saves a changed deposit hold in minutes", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 1440 })
+    );
+  });
+
+  it("clears the deposit hold to null when the default is chosen", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 120,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "default" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: null })
+    );
+  });
+
+  it("keeps the stored hold when the field is not sent (unchanged)", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 2880,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositMode: "percent", depositPercent: "10" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 2880 })
+    );
+  });
+
+  it("refuses a hold outside 1 to 10080 minutes without saving", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    for (const depositHoldMinutes of ["0", "10081", "1.5", "soon"]) {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ section: "deposit", depositHoldMinutes })
+      );
+      expect(result).not.toMatchObject({ status: "success" });
+    }
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's own refusal of the hold as an error, not a success", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            loc: ["body", "deposit_hold_minutes"],
+            msg: "Input should be less than or equal to 10080",
+          },
+        ],
+      })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).not.toMatchObject({ status: "success" });
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("saves a fixed amount in minor units and keeps the payment choice", async () => {
@@ -1682,5 +1785,636 @@ describe("booking request hygiene", () => {
     const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
     expect(result).toMatchObject({ status: "error", kind: "forbidden" });
     expect(saveProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("deposit collection and instructions", () => {
+  beforeEach(() => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_collection: "online",
+      deposit_instructions: "Old note",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+  });
+
+  it("saves paid-to-me with trimmed plain-text instructions and keeps the card choice as stored", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "  Send it to account 1234.\r\nThen reply.  ",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    const body = vi.mocked(saveProfile).mock.calls[0]?.[2] as Record<
+      string,
+      unknown
+    >;
+    expect(body).toMatchObject({
+      deposit_collection: "business",
+      deposit_instructions: "Send it to account 1234.\nThen reply.",
+      payment_at_booking: "full_price",
+    });
+  });
+
+  it("clears the instructions when the box is blank", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "   ",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_instructions: null })
+    );
+  });
+
+  it("keeps the stored instructions when switching to online, where the box is not on the page", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "online",
+        paymentAtBooking: "deposit",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+        payment_at_booking: "deposit",
+      })
+    );
+  });
+
+  it("keeps everything stored when a payments save names neither field", async () => {
+    await saveProfileAction(SLUG, IDLE, form({ section: "payments" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+        payment_at_booking: "full_price",
+      })
+    );
+  });
+
+  it("ignores an unknown collection value instead of sending it", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", depositCollection: "cheque" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_collection: "online" })
+    );
+  });
+
+  it("refuses instructions over 500 characters and accepts exactly 500", async () => {
+    const over = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "a".repeat(501),
+      })
+    );
+    expect(over).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+    const exact = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "payments",
+        depositCollection: "business",
+        depositInstructions: "a".repeat(500),
+      })
+    );
+    expect(exact).toMatchObject({ status: "success" });
+  });
+
+  it("maps a refusal from the API to plain wording", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(403, { detail: "Forbidden" })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", depositCollection: "business" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+  });
+
+  it("leaves the instructions and collection alone when another section saves", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "20",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_collection: "online",
+        deposit_instructions: "Old note",
+      })
+    );
+  });
+});
+
+describe("late fee", () => {
+  beforeEach(() => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      late_fee_minor: 2000,
+      late_grace_min: 15,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+  });
+
+  it("saves the fee in minor units and the grace in minutes with the policy", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "policy",
+        bookingPolicy: "Be kind",
+        lateFee: "25.50",
+        lateGrace: "10",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        booking_policy: "Be kind",
+        late_fee_minor: 2550,
+        late_grace_min: 10,
+      })
+    );
+  });
+
+  it("sends null for a blank or zero fee (no late fee) and 0 for a blank grace", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "", lateFee: "", lateGrace: "" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: null, late_grace_min: 0 })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "policy",
+        bookingPolicy: "",
+        lateFee: "0",
+        lateGrace: "0",
+      })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: null, late_grace_min: 0 })
+    );
+  });
+
+  it("keeps the stored fee and grace when the form does not carry them", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "Text" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: 2000, late_grace_min: 15 })
+    );
+  });
+
+  it("keeps the stored fee when another section saves", async () => {
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "addons", addOnsEnabled: "on" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ late_fee_minor: 2000, late_grace_min: 15 })
+    );
+  });
+
+  it.each([
+    ["abc", "15"],
+    ["-5", "15"],
+    ["20.555", "15"],
+    ["2000000", "15"],
+    ["20", "241"],
+    ["20", "-1"],
+    ["20", "1.5"],
+  ])(
+    "refuses fee %s with grace %s without calling the API",
+    async (fee, grace) => {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({
+          section: "policy",
+          bookingPolicy: "",
+          lateFee: fee,
+          lateGrace: grace,
+        })
+      );
+      expect(result).toMatchObject({ status: "error", kind: "invalid" });
+      expect(saveProfile).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts the grace limits 0 and 240", async () => {
+    for (const grace of ["0", "240"]) {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({
+          section: "policy",
+          bookingPolicy: "",
+          lateFee: "20",
+          lateGrace: grace,
+        })
+      );
+      expect(result).toMatchObject({ status: "success" });
+    }
+  });
+});
+
+describe("also offer as an add-on", () => {
+  it("sends also_add_on with the categories", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, alsoAddOn: "on", addOnCategory: ["Lashes"] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        is_add_on: false,
+        also_add_on: true,
+        add_on_categories: ["Lashes"],
+      })
+    );
+  });
+
+  it("sends also_add_on with no categories as null (every main service)", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(SLUG, IDLE, form({ ...SERVICE, alsoAddOn: "on" }));
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ also_add_on: true, add_on_categories: null })
+    );
+  });
+
+  it("never sends both: add-on only wins", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, isAddOn: "on", alsoAddOn: "on" })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: true, also_add_on: false })
+    );
+  });
+
+  it("sends false, never null, for a plain main service so it can be switched off", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, serviceId: SERVICE_ID })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({ also_add_on: false, is_add_on: false })
+    );
+  });
+});
+
+describe("new clients only (services)", () => {
+  const NEW_CLIENTS = { newClientsOnly: "on" };
+
+  it("sends the lead time and categories when the switch is on", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        ...NEW_CLIENTS,
+        firstVisitLeadDays: "2",
+        firstVisitCategory: ["Lashes", " Brows "],
+      })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        new_clients_only: true,
+        first_visit_lead_days: 2,
+        first_visit_categories: ["Lashes", "Brows"],
+      })
+    );
+  });
+
+  it("sends null for a blank lead time and no categories", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        serviceId: SERVICE_ID,
+        ...NEW_CLIENTS,
+        firstVisitLeadDays: " ",
+      })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({
+        new_clients_only: true,
+        first_visit_lead_days: null,
+        first_visit_categories: null,
+      })
+    );
+  });
+
+  it("sends the switch off with null lead time and categories, even if fields were sent", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        serviceId: SERVICE_ID,
+        firstVisitLeadDays: "5",
+        firstVisitCategory: ["Lashes"],
+      })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({
+        new_clients_only: false,
+        first_visit_lead_days: null,
+        first_visit_categories: null,
+      })
+    );
+  });
+
+  it("refuses a lead time outside 0 to 60 without calling the API", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, firstVisitLeadDays: "61" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Book-ahead days are a whole number from 0 to 60.",
+    });
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it("refuses a fractional lead time", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, firstVisitLeadDays: "2.5" })
+    );
+    expect(result).toMatchObject({ status: "error" });
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it("refuses new-clients-only together with an add-on, without calling the API", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, isAddOn: "on" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message:
+        "A service for new clients only cannot also be an add-on. Turn one of them off.",
+    });
+    expect(createService).not.toHaveBeenCalled();
+  });
+});
+
+describe("closed days", () => {
+  it("refuses a member before any add or reopen", async () => {
+    org("member");
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "forbidden",
+    });
+    expect(
+      await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(createClosure).not.toHaveBeenCalled();
+    expect(deleteClosure).not.toHaveBeenCalled();
+  });
+
+  it("closes the typed days as whole local days, with the reason", async () => {
+    org("admin");
+    vi.mocked(createClosure).mockResolvedValue({
+      id: CLOSURE_ID,
+      starts_on: CHRISTMAS.startsOn,
+      ends_on: CHRISTMAS.endsOn,
+      reason: "Christmas",
+      created_at: "2026-11-01T12:00:00Z",
+      affected_bookings: [],
+    });
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toEqual({
+      status: "success",
+      message: "Closed days added.",
+      affected: [],
+    });
+    expect(createClosure).toHaveBeenCalledWith("tok", ORG_ID, {
+      starts_on: "2026-12-25",
+      ends_on: "2026-12-25",
+      reason: "Christmas",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("sends a null reason when none is typed, and returns the bookings the API reports", async () => {
+    org("owner");
+    vi.mocked(createClosure).mockResolvedValue({
+      id: CLOSURE_ID,
+      starts_on: "2026-12-30",
+      ends_on: "2027-01-02",
+      reason: null,
+      created_at: "2026-11-01T12:00:00Z",
+      affected_bookings: [
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          starts_at: "2026-12-31T13:00:00Z",
+          customer_first_name: "Ana",
+        },
+      ],
+    });
+    const result = await saveClosureAction(
+      SLUG,
+      IDLE,
+      form({ startsOn: "2026-12-30", endsOn: "2027-01-02", reason: "  " })
+    );
+    expect(createClosure).toHaveBeenCalledWith("tok", ORG_ID, {
+      starts_on: "2026-12-30",
+      ends_on: "2027-01-02",
+      reason: null,
+    });
+    expect(result).toMatchObject({
+      status: "success",
+      affected: [
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          startsAt: "2026-12-31T13:00:00Z",
+          customerFirstName: "Ana",
+        },
+      ],
+    });
+  });
+
+  it("refuses an end before the start, or a missing day, without calling the API", async () => {
+    org("admin");
+    expect(
+      await saveClosureAction(
+        SLUG,
+        IDLE,
+        form({ ...CHRISTMAS, endsOn: "2026-12-24" })
+      )
+    ).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { endsOn: "The end date can't be before the start date." },
+    });
+    expect(
+      await saveClosureAction(SLUG, IDLE, form({ ...CHRISTMAS, startsOn: "" }))
+    ).toMatchObject({
+      fields: { startsOn: "Choose the first closed day." },
+    });
+    expect(createClosure).not.toHaveBeenCalled();
+  });
+
+  it("refuses a reason over the API's limit without calling the API", async () => {
+    org("admin");
+    expect(
+      await saveClosureAction(
+        SLUG,
+        IDLE,
+        form({ ...CHRISTMAS, reason: "x".repeat(201) })
+      )
+    ).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { reason: "Keep the reason to 200 characters or fewer." },
+    });
+    expect(createClosure).not.toHaveBeenCalled();
+  });
+
+  it("maps the API's own 422 to the field it names, without reporting it", async () => {
+    org("admin");
+    vi.mocked(createClosure).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            type: "value_error",
+            loc: ["body"],
+            msg: "Value error, ends_on must not be before starts_on",
+          },
+        ],
+      })
+    );
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      message: "Check the highlighted fields.",
+      fields: { endsOn: "The end date can't be before the start date." },
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("reports a server fault from the save", async () => {
+    org("admin");
+    const fault = apiError(500);
+    vi.mocked(createClosure).mockRejectedValue(fault);
+    expect(await saveClosureAction(SLUG, IDLE, form(CHRISTMAS))).toMatchObject({
+      status: "error",
+      kind: "unavailable",
+    });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+
+  it("reopens one closure for the resolved organisation", async () => {
+    org("owner");
+    vi.mocked(deleteClosure).mockResolvedValue(undefined);
+    expect(await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))).toEqual(
+      { status: "success", message: "Closed days reopened." }
+    );
+    expect(deleteClosure).toHaveBeenCalledWith("tok", ORG_ID, CLOSURE_ID);
+  });
+
+  it("treats a closure already gone (404) as reopened, revalidates and reports nothing", async () => {
+    org("admin");
+    vi.mocked(deleteClosure).mockRejectedValue(apiError(404, { detail: "x" }));
+    expect(await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))).toEqual(
+      { status: "success", message: "Closed days reopened." }
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("still reports a server fault from the reopen", async () => {
+    org("admin");
+    const fault = apiError(500);
+    vi.mocked(deleteClosure).mockRejectedValue(fault);
+    expect(
+      await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "unavailable" });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
   });
 });

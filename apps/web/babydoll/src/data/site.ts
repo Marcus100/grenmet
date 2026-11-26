@@ -2,7 +2,7 @@
 // appointment wording, services and prices, packages, reviews and social links. Prices mirror the
 // client's Acuity booking page (babydollgnd.as.me); keep them in step.
 
-export const SITE_URL = "https://babydoll.barrels.gd";
+export const SITE_URL = "https://babydollbeautybar.com";
 export const BOOKING_URL = "https://babydollgnd.as.me";
 /**
  * The studio's page on the Barrels bookings site. Every Book button opens it

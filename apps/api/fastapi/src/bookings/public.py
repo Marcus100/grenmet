@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -142,16 +142,14 @@ def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
     return f"{base}/{quote(slug, safe='')}/booking/{token}"
 
 
-def hold_ends_at(booking: Booking) -> datetime | None:
+def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     """When an unpaid hold is released: the same clock the expiry sweeper uses
-    (``created_at`` plus the deposit hold). None for a booking not waiting for payment."""
+    (``created_at`` plus this booking's hold). None for a booking not waiting for payment."""
     if booking.status != BookingStatus.PENDING_PAYMENT.value:
         return None
-    if booking.created_at is None:
+    if booking.created_at is None or hold_minutes is None:
         return None
-    return booking.created_at + timedelta(
-        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
-    )
+    return booking.created_at + timedelta(minutes=hold_minutes)
 
 
 def _single_line(value: str) -> str:
@@ -258,9 +256,11 @@ def record_event(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
+    staff_note: bool = False,
 ) -> BookingEvent:
     """Add a history row and return it. Its id exists at once, so a caller can
-    key an email or webhook to this one change."""
+    key an email or webhook to this one change. A ``staff_note`` row is left out
+    of the customer calendar's SEQUENCE count (see ``booking_ics``)."""
     event = BookingEvent(
         id=uuid.uuid4(),
         booking_id=booking.id,
@@ -269,6 +269,7 @@ def record_event(
         to_status=to_status.value,
         actor_user_id=actor_user_id,
         note=note[:300] if note else None,
+        staff_note=staff_note,
     )
     session.add(event)
     return event
@@ -316,12 +317,20 @@ async def full_detail(
     session: AsyncSession, managed: Managed, now: datetime
 ) -> BookingPublicDetail:
     """``detail`` plus what the customer paid at booking (needs the payments rows)."""
-    result = detail(managed, now)
+    held = await deposit_payments.hold_minutes_for_bookings(
+        session, managed.profile, [managed.booking]
+    )
+    result = detail(managed, now, hold_minutes=held.get(managed.booking.id))
     result.payment = await deposit_payments.payment_summary(session, managed.booking)
     return result
 
 
-def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
+def detail(
+    managed: Managed, now: datetime, *, hold_minutes: int | None = None
+) -> BookingPublicDetail:
+    """The customer's view of a booking. ``hold_minutes`` is the unpaid hold for
+    this booking (``deposit_payments.hold_minutes_for_bookings``), None when it is
+    not waiting for a deposit."""
     booking, profile = managed.booking, managed.profile
     return BookingPublicDetail(
         id=booking.id,
@@ -341,10 +350,25 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         deposit_non_refundable=booking.deposit_non_refundable,
         booking_policy=profile.booking_policy,
+        deposit_to_business_minor=booking.deposit_to_business_minor,
+        deposit_instructions=(
+            profile.deposit_instructions
+            if booking.deposit_to_business_minor > 0
+            and booking.deposit_received_at is None
+            and booking.status
+            in (BookingStatus.PENDING.value, BookingStatus.CONFIRMED.value)
+            else None
+        ),
+        deposit_received=booking.deposit_received_at is not None,
+        late_fee=service.late_fee_of(profile),
+        new_clients_only=managed.service.new_clients_only,
+        first_visit_lead_days=managed.service.first_visit_lead_days,
+        first_visit_categories=managed.service.first_visit_categories,
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
-        hold_ends_at=hold_ends_at(booking),
+        hold_ends_at=hold_ends_at(booking, hold_minutes),
+        hold_minutes=hold_minutes,
         add_ons=[
             BookingAddOnLine(
                 name=line.name,
@@ -381,6 +405,9 @@ def decoy_receipt(
             cancel_cutoff_hours=profile.cancel_cutoff_hours,
             deposit_non_refundable=profile.deposit_non_refundable,
             booking_policy=profile.booking_policy,
+            deposit_to_business_minor=0,
+            deposit_instructions=None,
+            late_fee=service.late_fee_of(profile),
             can_cancel=False,
             contact=BookingBusinessContact(**service.business_contact(profile)),
             account_invite_url=account_signup_url(profile.public_slug),
@@ -440,6 +467,12 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         booking_policy=profile.booking_policy,
         deposit_non_refundable=managed.booking.deposit_non_refundable,
+        deposit_to_business_minor=managed.booking.deposit_to_business_minor,
+        deposit_instructions=profile.deposit_instructions,
+        deposit_received=managed.booking.deposit_received_at is not None,
+        late_fee_minor=profile.late_fee_minor,
+        late_grace_min=profile.late_grace_min or 0,
+        currency=managed.booking.currency,
         booking_confirmed=managed.booking.status == BookingStatus.CONFIRMED.value,
         business_email=profile.contact_email,
         business_phone=profile.contact_phone,
@@ -603,6 +636,8 @@ class PricedBooking:
     add_ons: list[Service]
     price_minor: int
     due_minor: int
+    #: Display only: the deposit paid to the business by hand (``business`` mode).
+    to_business_minor: int = 0
 
     @property
     def email_code_required(self) -> bool:
@@ -632,7 +667,13 @@ async def price_booking(
     due = await deposit_payments.amount_due(
         session, profile, svc, price_minor=price_minor
     )
-    return PricedBooking(svc, chosen, price_minor, due)
+    return PricedBooking(
+        svc,
+        chosen,
+        price_minor,
+        due,
+        deposit_payments.deposit_to_business(profile, svc, price_minor),
+    )
 
 
 def _binding(
@@ -711,6 +752,7 @@ async def create_booking(
         add_on_ids=payload.add_on_ids,
     )
     svc, chosen, deposit = priced.service, priced.add_ons, priced.due_minor
+    to_business = priced.to_business_minor
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
@@ -723,7 +765,15 @@ async def create_booking(
         )
     try:
         return await _create_booking(
-            session, profile, payload, svc, deposit, chosen, payer=payer, now=now
+            session,
+            profile,
+            payload,
+            svc,
+            deposit,
+            chosen,
+            payer=payer,
+            now=now,
+            to_business=to_business,
         )
     except BaseException:
         # The proof is single use, but a booking that never happened must not burn it.
@@ -775,6 +825,37 @@ async def _require_under_open_cap(
         raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
+#: A booking that makes its customer a returning client of the business.
+RETURNING_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.COMPLETED.value)
+
+
+async def _is_returning_client(
+    session: AsyncSession, profile: BookingProfile, contact: Contact
+) -> bool:
+    """True for a returning client of the business: the business's
+    contact (matched by email in ``upsert_contact``, ADR-0058) or another contact of
+    the same organisation linked to the same account has a confirmed or completed
+    booking. Cancelled, expired, declined and unpaid or pending bookings do not count.
+    Only staff ever see the answer (never the customer), so a caller cannot learn
+    whether an email has booked."""
+    same_person = Contact.id == contact.id
+    if contact.user_id is not None:
+        same_person = or_(same_person, Contact.user_id == contact.user_id)
+    returning = await session.scalar(
+        select(Booking.id)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == profile.organisation_id,
+            Booking.status.in_(RETURNING_STATUSES),
+            Contact.organisation_id == profile.organisation_id,
+            same_person,
+        )
+        .limit(1)
+    )
+    return returning is not None
+
+
 async def _create_booking(
     session: AsyncSession,
     profile: BookingProfile,
@@ -785,6 +866,7 @@ async def _create_booking(
     *,
     payer: User | None,
     now: datetime | None,
+    to_business: int = 0,
 ) -> tuple[int, dict[str, Any]]:
     moment = now or utc_now()
     starts_at = service.as_naive_utc(payload.starts_at)
@@ -816,6 +898,9 @@ async def _create_booking(
         contacts_service.take_name_from_linked_account(
             contact, name=_single_line(payload.customer_name), user_id=payer.id
         )
+    flag_returning = svc.new_clients_only and await _is_returning_client(
+        session, profile, contact
+    )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(
         minutes=svc.duration_min + sum(a.duration_min for a in chosen)
@@ -825,7 +910,9 @@ async def _create_booking(
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT
-    elif profile.requires_confirmation:
+    elif profile.requires_confirmation or svc.new_clients_only:
+        # A new-clients-only service is always a request staff confirm, so every
+        # client gets the same answer whatever their history.
         initial = BookingStatus.PENDING
     else:
         initial = BookingStatus.CONFIRMED
@@ -845,10 +932,14 @@ async def _create_booking(
             source=BookingSource.ONLINE.value,
             price_minor=price_minor,
             deposit_minor=deposit,
+            deposit_to_business_minor=to_business,
             deposit_non_refundable=profile.deposit_non_refundable,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
+            returning_client_flagged_at=(
+                service.as_naive_utc(moment) if flag_returning else None
+            ),
         )
         try:
             # A savepoint: losing a race to the exclusion constraint rolls back
@@ -880,6 +971,9 @@ async def _create_booking(
     if booking is None:
         raise BookingConflictError(SLOT_TAKEN)
 
+    # No extra history event for a returning client: the event count feeds the
+    # public ICS SEQUENCE, so one more row would tell the requester the email has
+    # booked here before. The flag column alone marks it for staff.
     record_event(session, booking, None, initial, note="Booked online")
     await emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
@@ -897,6 +991,9 @@ async def _create_booking(
             contact.email,
             title=deposit_payments.checkout_title(booking, svc, profile, deposit),
         )
+        # Fix the hold now, from the route the deposit took: a later profile change
+        # must not move a hold the customer was already told about.
+        await deposit_payments.snapshot_hold(session, profile, booking)
     else:
         mail = build_mail(managed, token)
         confirmed = initial is BookingStatus.CONFIRMED
@@ -1178,7 +1275,10 @@ async def booking_ics(
     changes = await session.scalar(
         select(func.count())
         .select_from(BookingEvent)
-        .where(BookingEvent.booking_id == booking.id)
+        .where(
+            BookingEvent.booking_id == booking.id,
+            BookingEvent.staff_note.is_(False),
+        )
     )
     status = BookingStatus(booking.status)
     ics_status: ics.IcsStatus = "CONFIRMED"

@@ -23,7 +23,9 @@ from typing import Any
 from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
 from src.flights.register import DOMAIN as FLIGHTS
+from src.incidents.register import DOMAIN as INCIDENTS
 from src.monitoring.register import DOMAIN as MONITORING
+from src.opslog.register import DOMAIN as OPSLOG
 from src.printix.register import DOMAIN as PRINTIX
 from src.profile_images.register import DOMAIN as PROFILE_IMAGES
 from src.webhooks_out.register import DOMAIN as WEBHOOKS_OUT
@@ -36,6 +38,8 @@ DOMAINS: tuple[Domain, ...] = (
     PROFILE_IMAGES,
     PRINTIX,
     MONITORING,
+    OPSLOG,
+    INCIDENTS,
 )
 
 # Every router of the app, in mount order (legacy and registered alike).
@@ -117,6 +121,8 @@ MOUNT_ORDER: tuple[str, ...] = (
     "printix.org",
     "printix.me",
     "monitoring.admin",
+    "opslog.org",
+    "incidents.org",
 )
 
 

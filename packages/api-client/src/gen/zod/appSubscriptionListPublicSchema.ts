@@ -8,4 +8,10 @@ import { appSubscriptionPublicSchema } from "./appSubscriptionPublicSchema.js";
 
 export const appSubscriptionListPublicSchema = z.object({
   data: z.array(appSubscriptionPublicSchema),
+  purchasable: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Plans that can be bought now, as `plan_key:currency` (for example `bookings-monthly:XCD`). Empty while billing is not set up."
+    ),
 });

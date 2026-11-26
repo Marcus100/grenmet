@@ -8,6 +8,7 @@ Service functions flush and never commit; the router commits.
 """
 
 import logging
+import math
 import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
@@ -22,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
+from src.bookings import paused
 from src.bookings.config import bookings_settings
 
 from .app_subscription_transitions import move_app_subscription
@@ -33,9 +35,10 @@ from .exceptions import (
     AppSubscriptionPriceNotConfiguredError,
     AppSubscriptionPriceNotFoundError,
     AppSubscriptionStateError,
-    BillingLiveModeRefusedError,
 )
 from .gateway import (
+    LIVE_KEY_PREFIX,
+    TEST_KEY_PREFIX,
     CheckoutSessionResult,
     CheckoutSessionState,
     StripeGateway,
@@ -91,6 +94,24 @@ _SUBSCRIPTION_EVENTS = frozenset(
 def price_key(plan_key: str, currency: str) -> str:
     """The ``BILLING_STRIPE_PRICES`` key for one plan and currency."""
     return f"{plan_key}:{currency}"
+
+
+def purchasable_prices() -> list[str]:
+    """``plan_key:currency`` keys a checkout can start for now: the Stripe key
+    matches the live switch (``sk_live_`` when on, ``sk_test_`` when off) and the
+    plan has a price id. Mirrors the gateway's key check, so a listed plan is
+    never refused for its key."""
+    key = billing_settings.STRIPE_SECRET_KEY or ""
+    prefix = (
+        LIVE_KEY_PREFIX if billing_settings.STRIPE_LIVE_ENABLED else TEST_KEY_PREFIX
+    )
+    if not key.startswith(prefix):
+        return []
+    return sorted(
+        price_key
+        for price_key, price_id in billing_settings.STRIPE_PRICES.items()
+        if price_id
+    )
 
 
 def _view(subscription: AppSubscription, amount_minor: int) -> AppSubscriptionPublic:
@@ -202,10 +223,16 @@ def checkout_return_urls(organisation_slug: str | None) -> tuple[str, str]:
 
 
 async def grant_trial(
-    session: AsyncSession, *, organisation_id: str, plan_key: str, trial_days: int
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    plan_key: str,
+    trial_days: int,
+    trial_ends_at: datetime | None = None,
 ) -> bool:
     """Give an organisation a free trial on one plan. Create-only: an existing grant is
     kept, so a repeat seed never changes it. Returns True when this call created it.
+    ``trial_ends_at`` (naive UTC) fixes the end instead of the day count (ADR-0066).
     Flushes; the caller commits."""
     created = await session.scalar(
         pg_insert(AppSubscriptionTrial)
@@ -213,6 +240,7 @@ async def grant_trial(
             organisation_id=organisation_id,
             plan_key=plan_key,
             trial_days=trial_days,
+            trial_ends_at=trial_ends_at,
             created_at=datetime.now(UTC).replace(tzinfo=None),
         )
         .on_conflict_do_nothing(index_elements=["organisation_id", "plan_key"])
@@ -231,14 +259,19 @@ async def _trial_days(
     ever started for this plan, so a cancelled subscription does not earn a second free
     month. An abandoned Checkout never reached Stripe as a subscription, so it keeps
     its trial."""
-    trial_days = await session.scalar(
-        select(AppSubscriptionTrial.trial_days).where(
-            AppSubscriptionTrial.organisation_id == organisation_id,
-            AppSubscriptionTrial.plan_key == plan_key,
+    grant = (
+        await session.execute(
+            select(
+                AppSubscriptionTrial.trial_days, AppSubscriptionTrial.trial_ends_at
+            ).where(
+                AppSubscriptionTrial.organisation_id == organisation_id,
+                AppSubscriptionTrial.plan_key == plan_key,
+            )
         )
-    )
-    if trial_days is None:
+    ).one_or_none()
+    if grant is None:
         return None
+    trial_days, trial_ends_at = grant
     started = await session.scalar(
         select(AppSubscription.id)
         .where(
@@ -248,7 +281,15 @@ async def _trial_days(
         )
         .limit(1)
     )
-    return None if started is not None else int(trial_days)
+    if started is not None:
+        return None
+    if trial_ends_at is None:
+        return int(trial_days)
+    # A self-created business's trial ends at a stored time (ADR-0066): pass the days
+    # left rounded up, so the owner never loses part of a day they were promised (at
+    # most a few hours extra), and no trial once the end has passed.
+    left = (trial_ends_at - datetime.now(UTC).replace(tzinfo=None)).total_seconds()
+    return math.ceil(left / 86_400) if left > 0 else None
 
 
 async def start_checkout(
@@ -489,6 +530,26 @@ def _move(subscription: AppSubscription, target: AppSubscriptionStatus) -> None:
         )
 
 
+async def _re_evaluate_pause(
+    session: AsyncSession, subscription: AppSubscription
+) -> None:
+    """A status change can pause or resume a Bookings business (ADR-0066 item 6).
+
+    Runs in its own savepoint and never fails the webhook: a bookings fault must
+    not stop the subscription update being saved (Stripe would retry it forever).
+    The daily ``evaluate_paused_businesses`` job repairs the pause state."""
+    if subscription.app_key != "bookings":
+        return
+    try:
+        async with session.begin_nested():
+            await paused.evaluate_organisation(session, subscription.organisation_id)
+    except Exception:
+        logger.exception(
+            "pause re-evaluation failed; the daily job will retry",
+            extra={"organisation_id": subscription.organisation_id},
+        )
+
+
 async def _checkout_completed(session: AsyncSession, obj: Mapping[str, Any]) -> str:
     """Link the Stripe subscription and customer to our row. Status comes from the
     subscription events, so this does not move ``last_event_at`` (Stripe may send
@@ -564,6 +625,7 @@ async def _subscription_event(
     subscription.cancel_at_period_end = bool(obj.get("cancel_at_period_end"))
     subscription.trial_end = _optional_time(obj.get("trial_end"))
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 
@@ -580,6 +642,7 @@ async def _invoice_payment_failed(
         return "ignored"
     _move(subscription, _PAST_DUE)
     subscription.last_event_at = event_time
+    await _re_evaluate_pause(session, subscription)
     return "applied"
 
 
@@ -610,22 +673,14 @@ async def _apply_event(
 async def apply_stripe_event(session: AsyncSession, event: WebhookEventResult) -> str:
     """Apply one verified Stripe event exactly once.
 
-    A live-mode event is refused (503) before anything is written: the product is
-    test-only (ADR-0027), and the refusal leaves the event unrecorded so a later
-    delivery can still be applied.
+    The gateway (``construct_webhook_event``) has already checked the event's mode
+    against the billing mode, so a refused event never gets here.
 
     The event id is inserted first (ON CONFLICT DO NOTHING) inside a savepoint, so a
     repeat delivery finds it and changes nothing. An event whose row is not written yet
     returns ``retry``: the savepoint is rolled back, the id is not kept, and the caller
     answers 503 so Stripe sends it again (issue #1723). Returns ``duplicate``,
     ``applied`` or ``ignored``."""
-    if event.livemode is True:
-        logger.warning(
-            "Live-mode Stripe event refused: app subscriptions are test-only",
-            extra={"stripe_event_type": event.type},
-        )
-        raise BillingLiveModeRefusedError()
-
     obj = event.data_object
     async with session.begin_nested():
         recorded = await session.scalar(

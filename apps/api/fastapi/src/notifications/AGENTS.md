@@ -19,6 +19,19 @@
 - Only a recipient can read or mark their own notifications (another person's → 404).
 - Recipient policy and portal URLs come from `config.py` / deploy env.
 
+## Account deletion and the address (#1629)
+`address_log.clear_address` runs inside `auth.service.delete_user`, in its transaction. It anonymises the person's `outbound_email` rows (address to the placeholder, props, html, subject, dedupe key, error text) and erases their `email.send` outbox payloads. Mail not yet final is marked skipped, so the drain never sends it. Bounce and complaint suppression keeps only its hash and is not changed.
+
+The test's covered set is `outbound_email`, the `email.send` outbox payloads, `audit_entry.changes` and `notification`; none holds the address after deletion. Other stores that hold a raw address, as found in the #1629 review, need an owner decision and are not changed by the deletion:
+- `email_suppression.email`: legacy plaintext column (bounce suppression, ADR-0052). Left alone; its removal is the backup-gated migration.
+- `list_subscription.email`: consent proof for each list (the hash stays). Account deletion does not unsubscribe a list.
+- `contact_message.email`, `contact_data_request.email`: enquiries and data requests, not linked to an account.
+- `contacts.contact.email`, `bookings.customer` contact data, `bookings.notify_email` and `bookings.contact_email`: business records (ADR-0028).
+- `organisation.invitation.email`, `auth.superuser_invitation.email`: invitations addressed to the person.
+- `billing.billing_email`: organisation billing address; the person may be the contact.
+- Redis: `LoginLockout` keys hold the normalised address for up to one hour (`src/auth/lockout.py`).
+- Mail addressed to a previous address (before an email change) is not matched: no address history is stored.
+
 ## Tests
 `tests/notifications/test_notifications.py`; suppression: `tests/webhooks/test_suppression.py`; outbox: `tests/notifications/test_email_outbox.py`, `tests/subscriptions/test_subscriptions.py`.
 

@@ -975,8 +975,8 @@ async def test_my_bookings_row_manage_url_opens_the_booking(
 def test_hold_ends_at_is_the_sweeper_clock_for_unpaid_holds() -> None:
     created = datetime(2026, 11, 22, 12, 0, 0)
     held = Booking(status=BookingStatus.PENDING_PAYMENT.value, created_at=created)
-    assert public.hold_ends_at(held) == created + timedelta(
-        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
-    )
+    assert public.hold_ends_at(
+        held, bookings_settings.DEPOSIT_HOLD_MINUTES
+    ) == created + timedelta(minutes=bookings_settings.DEPOSIT_HOLD_MINUTES)
     paid = Booking(status=BookingStatus.CONFIRMED.value, created_at=created)
-    assert public.hold_ends_at(paid) is None
+    assert public.hold_ends_at(paid, 30) is None

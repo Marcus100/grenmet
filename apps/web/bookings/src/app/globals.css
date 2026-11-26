@@ -9,6 +9,7 @@
    so the reused primitives' utilities are generated (docs/design-system.md). */
 @source "../../node_modules/@barrelsgd/ui/src";
 @source "../../node_modules/@barrelsgd/bookings-web/src";
+@source "../../node_modules/@barrelsgd/admin-kit/src";
 
 /* Home page ground (docs/design/bookings.md, "Home page"): the near-white the
    cards sit on. Token: --color-ground. */

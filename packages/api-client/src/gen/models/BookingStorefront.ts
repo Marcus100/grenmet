@@ -5,6 +5,8 @@
 
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
 import type { BookingBusinessType } from "./BookingBusinessType.js";
+import type { BookingDepositCollection } from "./BookingDepositCollection.js";
+import type { BookingLateFee } from "./BookingLateFee.js";
 import type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 import type { BookingPublicProvider } from "./BookingPublicProvider.js";
 import type { BookingPublicService } from "./BookingPublicService.js";
@@ -14,6 +16,12 @@ import type { BookingPublicService } from "./BookingPublicService.js";
  * @type object
  */
 export type BookingStorefront = {
+  /**
+   * @description False while the business is paused (ADR-0066): show its `contact` and no booking form; availability and booking answer 409 `BUSINESS_PAUSED`.
+   * @default true
+   * @type boolean | undefined
+   */
+  accepting_bookings?: boolean;
   slug: string;
   display_name: string;
   timezone: string;
@@ -29,6 +37,20 @@ export type BookingStorefront = {
    * @description The business's plain-text booking policy, or null when it has none.
    */
   booking_policy?: string | null;
+  /**
+   * @description `business`: the deposit is paid to the business by hand, outside Barrels; show each service's `deposit_to_business_minor` and `deposit_instructions`, and take no online payment for it.
+   * @default 'online'
+   * @type string | undefined
+   */
+  deposit_collection?: BookingDepositCollection;
+  /**
+   * @description Plain text: how to pay the deposit to the business, or null.
+   */
+  deposit_instructions?: string | null;
+  /**
+   * @description The late-arrival fee rule, or null when none.
+   */
+  late_fee?: BookingLateFee | null;
   /**
    * @description How a customer reaches the business by hand. Each is null when the
    * business has not set it; show only the ones that are set.

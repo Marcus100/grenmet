@@ -233,26 +233,6 @@ describe("studio agenda", () => {
     }
   });
 
-  it("offers New booking to admins only", async () => {
-    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
-    render(await AgendaPage({ params, searchParams: search() }));
-    expect(
-      screen.queryByRole("link", { name: "New booking" })
-    ).not.toBeInTheDocument();
-    cleanup();
-    vi.mocked(findOrganisation).mockResolvedValue({
-      id: ORG_ID,
-      name: "Sea Salt Spa",
-      slug: "sea-salt",
-      role: "admin",
-    });
-    render(await AgendaPage({ params, searchParams: search() }));
-    expect(screen.getByRole("link", { name: "New booking" })).toHaveAttribute(
-      "href",
-      "/studio/sea-salt/bookings/new"
-    );
-  });
-
   it("says what to do when the day is empty", async () => {
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(
@@ -525,6 +505,35 @@ describe("studio agenda", () => {
   });
 });
 
+describe("returning client", () => {
+  it("tags a returning client's booking on the agenda, in words", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({ returning_client: true, status: "pending" }),
+            item({
+              id: "77777777-7777-4777-8777-777777777777",
+              customer_name: "Grace Hopper",
+            }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const flagged = screen.getByRole("link", { name: ADA });
+    expect(within(flagged).getByText("Returning client")).toBeVisible();
+    const plain = screen.getByRole("link", { name: GRACE });
+    expect(within(plain).queryByText("Returning client")).toBeNull();
+  });
+});
+
 describe("needs confirming", () => {
   const pendingItem = item({
     id: "99999999-9999-4999-8999-999999999999",
@@ -587,5 +596,75 @@ describe("needs confirming", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Agenda"
     );
+  });
+});
+
+describe("cancelled booking with an unpaid payment (#1849)", () => {
+  it("keeps the amount label, never Payment due, on a cancelled agenda card", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({
+              status: "cancelled",
+              payment_kind: "payment",
+              deposit_minor: 2500,
+            }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const row = screen.getByRole("link", { name: ADA });
+    expect(within(row).getByText("Cancelled")).toBeVisible();
+    expect(within(row).getByText("Payment EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Payment due");
+    expect(row).not.toHaveTextContent("Deposit due");
+    expect(row).not.toHaveTextContent("Payment cancelled");
+  });
+
+  it("does not say due for a cancelled deposit that was kept or refunded", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [item({ status: "cancelled", deposit_minor: 2500 })],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const row = screen.getByRole("link", { name: ADA });
+    expect(within(row).getByText("Deposit EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Deposit due");
+    expect(row).not.toHaveTextContent("Payment due");
+  });
+
+  it("does not show the returning-client tag once the booking is cancelled", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [item({ status: "cancelled", returning_client: true })],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    expect(screen.queryByText("Returning client")).toBeNull();
   });
 });

@@ -65,7 +65,27 @@ export type BookingServiceCreate = {
    */
   is_add_on?: boolean;
   /**
-   * @description For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service.
+   * @description A main service that is also offered as an add-on: bookable alone, and attachable to other services (see `add_on_categories`). Ignored when `is_add_on` is true.
+   * @default false
+   * @type boolean | undefined
+   */
+  also_add_on?: boolean;
+  /**
+   * @description For an add-on or an `also_add_on` service: offer it only with main services in these categories. Null or empty means any main service. Ignored for any other main service.
    */
   add_on_categories?: string[] | null;
+  /**
+   * @description Every public booking of this service is a request the business confirms (`pending`); one from a returning client (a confirmed or completed booking with the business) is flagged for staff only. Cannot be combined with `is_add_on` or `also_add_on`. Staff bookings are never held or flagged.
+   * @default false
+   * @type boolean | undefined
+   */
+  new_clients_only?: boolean;
+  /**
+   * @description Only with `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories` (0 to 60). Shown to customers; not enforced.
+   */
+  first_visit_lead_days?: number | null;
+  /**
+   * @description Categories the lead time refers to. Only with `new_clients_only`.
+   */
+  first_visit_categories?: string[] | null;
 };

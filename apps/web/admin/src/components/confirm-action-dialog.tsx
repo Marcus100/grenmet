@@ -11,7 +11,11 @@ import {
   AlertDialogTrigger,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { type FormEvent, useState, useTransition } from "react";
+
+// 44 px touch targets on coarse pointers for every button in the dialog.
+const COARSE_TARGET = "pointer-coarse:min-h-11";
 
 /**
  * The console's shared confirmation for destructive or recorded actions
@@ -24,6 +28,7 @@ import { type FormEvent, useState, useTransition } from "react";
 export function ConfirmActionDialog({
   action,
   cancelLabel = "Keep it",
+  className,
   confirmLabel,
   description,
   destructive = true,
@@ -33,6 +38,8 @@ export function ConfirmActionDialog({
 }: {
   action: (formData: FormData) => void | Promise<void>;
   cancelLabel?: string;
+  /** Extra classes for the trigger and the confirm button (e.g. touch sizing). */
+  className?: string;
   confirmLabel: string;
   description: string;
   /** Destructive styling for removals; a reversible change uses the plain style. */
@@ -62,9 +69,11 @@ export function ConfirmActionDialog({
       <AlertDialogTrigger
         render={
           <Button
-            className={
-              destructive ? "border-destructive/40 text-destructive" : undefined
-            }
+            className={cn(
+              destructive && "border-destructive/40 text-destructive",
+              COARSE_TARGET,
+              className
+            )}
             size="sm"
             type="button"
             variant="outline"
@@ -83,8 +92,11 @@ export function ConfirmActionDialog({
             <input key={name} name={name} type="hidden" value={value} />
           ))}
           <AlertDialogFooter>
-            <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+            <AlertDialogCancel className={COARSE_TARGET}>
+              {cancelLabel}
+            </AlertDialogCancel>
             <Button
+              className={cn(COARSE_TARGET, className)}
               disabled={pending}
               type="submit"
               variant={destructive ? "destructive" : "default"}

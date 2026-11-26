@@ -377,6 +377,31 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="17 5 * * *", checkin_margin=30, max_runtime=15)
+async def evaluate_paused_businesses(ctx: dict[str, Any]) -> int:
+    """Pause or resume Bookings businesses by their trial and subscription (ADR-0066
+    item 6; idempotent). Does nothing while the switch is off, except resume."""
+    from src.bookings import paused
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await paused.evaluate_all(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "evaluate_paused_businesses",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "evaluate_paused_businesses", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
 @monitored(schedule="40 4 * * *", checkin_margin=30, max_runtime=30)
 async def reconcile_provider_refunds(ctx: dict[str, Any]) -> int:
     """Daily: compare captured Stripe payments' refunds with Stripe's full refund
@@ -927,6 +952,7 @@ class WorkerSettings:
         expire_unpaid_bookings,
         expire_pending_bookings,
         complete_finished_bookings,
+        evaluate_paused_businesses,
         expire_unpaid_event_orders,
         reconcile_provider_refunds,
         send_wis2_publications,
@@ -982,8 +1008,8 @@ class WorkerSettings:
         # Event reminders (events starting in 23-24 hours), hourly; one per member
         # and event start time.
         cron(enqueue_event_reminders, minute={12}, run_at_startup=False),
-        # Unpaid deposit holds (BOOKINGS_DEPOSIT_HOLD_MINUTES, default 30) are
-        # cancelled and their slots released, every 5 minutes.
+        # Unpaid deposit holds (each booking's snapshot of deposit_hold_minutes, else
+        # BOOKINGS_DEPOSIT_HOLD_MINUTES) are cancelled, every 5 minutes.
         cron(
             expire_unpaid_bookings,
             minute=set(range(2, 60, 5)),
@@ -998,6 +1024,9 @@ class WorkerSettings:
         ),
         # Confirmed bookings that ended 48 hours ago are closed as completed, hourly.
         cron(complete_finished_bookings, minute={27}, run_at_startup=False),
+        # Businesses whose trial and subscription ran out are paused, or resumed, daily
+        # (ADR-0066; only acts while BOOKINGS_ACCESS_FOLLOWS_SUBSCRIPTION is on).
+        cron(evaluate_paused_businesses, hour={5}, minute={17}, run_at_startup=False),
         # Unpaid paid-tier orders (EVENTS_ORDER_HOLD_MINUTES, default 30) are
         # cancelled and their stock released, every 5 minutes.
         cron(

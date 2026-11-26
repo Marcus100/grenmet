@@ -44,10 +44,27 @@ vi.mock("@/components/studio/record-deposit", () => ({
   ),
 }));
 
+vi.mock("@/components/studio/deposit-received", () => ({
+  DepositReceived: ({
+    amountLabel,
+    canMark,
+  }: {
+    amountLabel: string;
+    canMark: boolean;
+  }) => (
+    <button type="button">
+      Business deposit {amountLabel} can-mark={String(canMark)}
+    </button>
+  ),
+}));
+
 import { findOrganisation, getBooking } from "@/lib/studio-api";
 import StudioBookingPage from "./page";
 
 const RECORD = /Record deposit/u;
+const BUSINESS_BUTTON = /Business deposit/u;
+const CAN_MARK = /can-mark=true/u;
+const CANNOT_MARK = /can-mark=false/u;
 
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),
@@ -323,5 +340,204 @@ describe("studio booking detail", () => {
       expect(screen.queryByRole("link", { name: "Call" })).toBeNull();
       expect(screen.queryByRole("link", { name: "WhatsApp" })).toBeNull();
     });
+  });
+});
+
+const NOTICE = /They've booked with you before/u;
+
+describe("returning client notice", () => {
+  it("shows to staff on a pending request from a returning client", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending", returning_client: true })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText(NOTICE)).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Returning client" })
+    ).toBeVisible();
+  });
+
+  it("is not shown to a member", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending", returning_client: true })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByText(NOTICE)).toBeNull();
+  });
+
+  it("is not shown once the request is confirmed", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "confirmed", returning_client: true })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByText(NOTICE)).toBeNull();
+  });
+});
+
+const PAYMENT_DUE = /Payment due/u;
+const DEPOSIT_DUE = /Deposit due/u;
+
+describe("cancelled booking with a captured deposit", () => {
+  it("shows the deposit as paid, not as cancelled", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "cancelled",
+        deposit_minor: 2500,
+        deposit_captured_minor: 2500,
+      })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit paid")).toBeVisible();
+    expect(screen.queryByText("Payment cancelled")).toBeNull();
+    expect(screen.queryByText("Deposit cancelled")).toBeNull();
+  });
+});
+
+describe("cancelled booking with an unpaid payment (#1849)", () => {
+  it("says Deposit cancelled for a deposit booking", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "cancelled",
+        deposit_minor: 2500,
+        deposit_captured_minor: 0,
+      })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit cancelled")).toBeVisible();
+  });
+
+  it("shows Payment cancelled and no due badge or record prompt", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "cancelled",
+        payment_kind: "payment",
+        deposit_minor: 2500,
+        deposit_captured_minor: 0,
+      })
+    );
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Payment cancelled")).toBeVisible();
+    expect(screen.queryByText(PAYMENT_DUE)).toBeNull();
+    expect(screen.queryByText(DEPOSIT_DUE)).toBeNull();
+    expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+      "due=false"
+    );
+  });
+});
+
+describe("deposit paid to the business (#1869)", () => {
+  const TO_BUSINESS = { deposit_minor: 0, deposit_to_business_minor: 5300 };
+
+  function asRole(role: "admin" | "member") {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role,
+    });
+  }
+
+  it("offers marking it received to an admin on an open booking, not Record deposit", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "pending" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByRole("button", { name: CAN_MARK })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: RECORD })).toBeNull();
+    expect(screen.getByText("Deposit due")).toBeInTheDocument();
+  });
+
+  it("shows the amount to the business in the price card, not Deposit asked None", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "confirmed" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("To the business").nextSibling).toHaveTextContent(
+      "EC$53"
+    );
+    expect(screen.queryByText("Deposit asked")).toBeNull();
+  });
+
+  it("shows received once marked, and no mark action for it", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        ...TO_BUSINESS,
+        deposit_received_at: "2026-10-20T12:00:00Z",
+        deposit_received_method: "cash",
+        status: "confirmed",
+      })
+    );
+    render(await StudioBookingPage(props()));
+    // The badge; the timeline's own note also reads "Deposit received".
+    expect(
+      screen.getByText("Deposit received", { selector: "span" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: CANNOT_MARK })
+    ).toBeInTheDocument();
+  });
+
+  it("says Deposit cancelled and never due on a cancelled booking", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "cancelled" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit cancelled")).toBeInTheDocument();
+    expect(screen.queryByText("Deposit due")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: CANNOT_MARK })
+    ).toBeInTheDocument();
+  });
+
+  it("is not offered to a member", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "pending" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
+  });
+
+  it("keeps Record deposit for an online deposit and hides the business one", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ deposit_to_business_minor: 0, status: "pending" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
+    expect(screen.getByRole("button", { name: RECORD })).toBeInTheDocument();
   });
 });

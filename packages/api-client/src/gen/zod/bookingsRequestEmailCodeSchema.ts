@@ -23,6 +23,10 @@ export const bookingsRequestEmailCodeStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const bookingsRequestEmailCodeStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const bookingsRequestEmailCodeStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -41,6 +45,7 @@ export const bookingsRequestEmailCodeResponseSchema =
 export const bookingsRequestEmailCodeErrorSchema = z.union([
   bookingsRequestEmailCodeStatus400Schema,
   bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus409Schema,
   bookingsRequestEmailCodeStatus422Schema,
   bookingsRequestEmailCodeStatus429Schema,
   bookingsRequestEmailCodeStatus503Schema,
