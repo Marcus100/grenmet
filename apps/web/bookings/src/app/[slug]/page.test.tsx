@@ -233,7 +233,10 @@ describe("metadata", () => {
       expect(meta.openGraph).toMatchObject({
         images: [{ url: LOGO_URL, alt: "Sea Salt Spa" }],
       });
-      expect(meta.twitter).toMatchObject({ images: [LOGO_URL] });
+      expect(meta.twitter).toMatchObject({
+        card: "summary",
+        images: [LOGO_URL],
+      });
     });
 
     it("ignores an unsafe cover and uses the logo", async () => {

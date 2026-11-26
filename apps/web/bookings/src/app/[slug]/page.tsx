@@ -52,8 +52,8 @@ export async function generateMetadata({
   const title = `Book at ${name}`;
   const description = `Book an appointment online with ${name}. Choose a service and a time.`;
   // The share preview: the cover photo, else the logo, else the app default.
-  const image =
-    safeCoverUrl(storefront.cover_url) ?? safeLogoUrl(storefront.logo_url);
+  const cover = safeCoverUrl(storefront.cover_url);
+  const image = cover ?? safeLogoUrl(storefront.logo_url);
   return {
     title,
     description,
@@ -68,7 +68,8 @@ export async function generateMetadata({
     ...(image
       ? {
           twitter: {
-            card: "summary_large_image",
+            // A cover photo is wide enough for the large card; a logo is not.
+            card: cover ? "summary_large_image" : "summary",
             title,
             description,
             images: [image],

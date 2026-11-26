@@ -73,13 +73,7 @@ describe("agendaChips", () => {
     ]);
   });
 
-  it("shows no payment chip on a cancelled booking when nothing was paid", () => {
-    const online = {
-      ...ROW,
-      deposit_minor: 4500,
-      status: "cancelled" as const,
-    };
-    expect(agendaChips(online)).toEqual([]);
+  it("shows no chip on a cancelled business-collected deposit with nothing received", () => {
     const business = {
       ...ROW,
       deposit_minor: 0,
@@ -87,13 +81,45 @@ describe("agendaChips", () => {
       status: "cancelled" as const,
     };
     expect(agendaChips(business)).toEqual([]);
-    const pay = {
+    expect(agendaChips({ ...business, status: "no_show" as const })).toEqual(
+      []
+    );
+  });
+
+  it("keeps the neutral amount on a cancelled online deposit (captured state unknown)", () => {
+    const online = {
       ...ROW,
       deposit_minor: 4500,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(online)).toEqual([
+      { kind: "deposit", view: { label: "Deposit EC$45", tone: "neutral" } },
+    ]);
+    const pay = {
+      ...online,
+      payment_kind: "payment" as const,
+      status: "no_show" as const,
+    };
+    expect(agendaChips(pay)).toEqual([
+      { kind: "deposit", view: { label: "Payment EC$45", tone: "neutral" } },
+    ]);
+  });
+
+  it("shows no chip on a cancelled booking that owes nothing", () => {
+    expect(agendaChips({ ...ROW, status: "cancelled" as const })).toEqual([]);
+  });
+
+  it("shows Payment received for a payment-kind booking that was received", () => {
+    const booking = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_received_at: "2026-11-26T10:00:00Z",
       payment_kind: "payment" as const,
       status: "cancelled" as const,
     };
-    expect(agendaChips(pay)).toEqual([]);
+    expect(agendaChips(booking)).toEqual([
+      { kind: "deposit", view: { label: "Payment received", tone: "success" } },
+    ]);
   });
 
   it("keeps the received chip on a cancelled booking where money was received", () => {

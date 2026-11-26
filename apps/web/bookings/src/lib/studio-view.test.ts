@@ -231,7 +231,8 @@ describe("deposit paid to the business, received (#1869)", () => {
     ).toBe(true);
     expect(
       showsAgendaDeposit({
-        deposit_minor: 2500,
+        deposit_minor: 0,
+        deposit_to_business_minor: 2500,
         status: "cancelled",
       })
     ).toBe(false);
