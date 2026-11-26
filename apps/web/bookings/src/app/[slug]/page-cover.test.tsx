@@ -69,6 +69,8 @@ describe("/[slug] cover banner", () => {
     const img = container.querySelector("img");
     expect(img?.getAttribute("src")).toBe(COVER);
     expect(img?.getAttribute("alt")).toBe("");
+    // First thing on the page: it must not wait to scroll into view.
+    expect(img?.getAttribute("loading")).toBe("eager");
     const heading = screen.getByRole("heading", {
       level: 1,
       name: "Sea Salt Spa",

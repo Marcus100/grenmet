@@ -2,7 +2,7 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * A business's cover photo in a frame the caller sizes. Decorative: the image
@@ -15,15 +15,35 @@ import { useState } from "react";
  * removes the whole frame, so the caller's fill shows underneath (the card's
  * brand colour, or no banner).
  *
+ * `eager` is for a photo at the top of a page (the booking page banner): it
+ * loads straight away instead of waiting to scroll into view. Cards keep the
+ * default lazy load.
+ *
+ * A photo can fail before React is listening, so the frame also checks the
+ * image once on mount (`complete` with no natural width means it failed).
+ *
  * `referrerPolicy="no-referrer"`: the storage host gets no page address.
  * `unoptimized`: the photo is a storage URL, shown as stored.
  */
 export function CoverPhoto({
   className,
+  eager = false,
   scrim = false,
   src,
-}: Readonly<{ className?: string; scrim?: boolean; src: string }>) {
+}: Readonly<{
+  className?: string;
+  eager?: boolean;
+  scrim?: boolean;
+  src: string;
+}>) {
   const [failed, setFailed] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const image = imageRef.current;
+    if (image?.complete && image.naturalWidth === 0) {
+      setFailed(true);
+    }
+  }, []);
   if (failed) {
     return null;
   }
@@ -33,8 +53,9 @@ export function CoverPhoto({
         alt=""
         className="absolute inset-0 size-full object-cover"
         height={300}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
         onError={() => setFailed(true)}
+        ref={imageRef}
         referrerPolicy="no-referrer"
         src={src}
         unoptimized

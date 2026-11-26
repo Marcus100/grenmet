@@ -133,6 +133,7 @@ export default async function BusinessBookingPage({
       {cover ? (
         <CoverPhoto
           className="relative aspect-[2/1] max-h-[220px] w-full rounded-2xl md:max-h-[280px]"
+          eager
           src={cover}
         />
       ) : null}
