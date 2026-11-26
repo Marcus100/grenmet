@@ -140,6 +140,10 @@ async def _detail(
     )
 
 
+#: Agenda flag: a booking waiting for its deposit whose hold releases within this.
+HOLD_WARNING = timedelta(hours=2)
+
+
 async def agenda(
     session: AsyncSession,
     organisation_id: str,
@@ -193,9 +197,15 @@ async def agenda(
     add_on_lines = await service.booking_add_on_lines(
         session, [booking.id for booking, _, _ in rows]
     )
+    moment = utc_now()
+    holds = await deposit_payments.hold_minutes_for_bookings(
+        session, profile, [booking for booking, _, _ in rows]
+    )
     days: dict[date, list[BookingAgendaItem]] = {}
     for booking, service_name, customer_name in rows:
         local_day = utc_to_local(booking.starts_at, tz).date()
+        hold_until = public.hold_ends_at(booking, holds.get(booking.id))
+        expiring = hold_until is not None and hold_until <= moment + HOLD_WARNING
         days.setdefault(local_day, []).append(
             BookingAgendaItem(
                 id=booking.id,
@@ -210,12 +220,15 @@ async def agenda(
                 source=BookingSource(booking.source),
                 price_minor=booking.price_minor,
                 deposit_minor=booking.deposit_minor,
+                deposit_to_business_minor=booking.deposit_to_business_minor,
                 deposit_received_at=booking.deposit_received_at,
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
                 add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
                 returning_client=booking.returning_client_flagged_at is not None,
                 expires_at=lifecycle.pending_expires_at(booking, profile),
+                hold_expires_at=hold_until,
+                hold_expires_soon=expiring,
             )
         )
     return BookingAgenda(

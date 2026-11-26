@@ -10,17 +10,32 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import (
+    ColumnElement,
+    Integer,
+    String,
+    case,
+    cast,
+    exists,
+    func,
+    literal,
+    literal_column,
+    select,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.payments.models import Intent, ProviderKey
 from src.utils.datetime import utc_now
 
 from . import deposit_payments, emails, public
 from .config import bookings_settings
 from .exceptions import BookingNotFoundError
-from .models import Booking, BookingStatus
+from .models import Booking, BookingProfile, BookingStatus
 
 logger = logging.getLogger(__name__)
+
+#: One minute as a Postgres interval, so the hold is computed in the database.
+_ONE_MINUTE: ColumnElement[timedelta] = literal_column("interval '1 minute'")
 
 EXPIRY_BATCH = 100
 
@@ -95,18 +110,39 @@ async def expire_unpaid(
     ``bookings.deposit_paid`` handler confirms it. Safe to repeat.
     ``organisation_id`` limits the run to one organisation (tests)."""
     moment = now or utc_now()
-    hold = (
-        bookings_settings.DEPOSIT_HOLD_MINUTES if hold_minutes is None else hold_minutes
-    )
+    # Each booking's own hold, computed in SQL: the business's ``deposit_hold_minutes``
+    # (null = the default), capped at the online limit when its deposit intent is a
+    # Stripe checkout. ``hold_minutes`` overrides every booking (tests).
+    hold: ColumnElement[int]
+    if hold_minutes is not None:
+        hold = literal(hold_minutes, Integer)
+    else:
+        online = exists().where(
+            Intent.source_type == deposit_payments.SOURCE_TYPE,
+            Intent.source_id == cast(Booking.id, String),
+            Intent.provider == ProviderKey.STRIPE.value,
+        )
+        profile_hold = func.coalesce(
+            BookingProfile.deposit_hold_minutes,
+            bookings_settings.DEPOSIT_HOLD_MINUTES,
+        )
+        hold = case(
+            (
+                online,
+                func.least(profile_hold, deposit_payments.ONLINE_HOLD_CAP_MINUTES),
+            ),
+            else_=profile_hold,
+        )
     query = (
         select(Booking)
+        .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .where(
             Booking.status == BookingStatus.PENDING_PAYMENT.value,
-            Booking.created_at <= moment - timedelta(minutes=hold),
+            Booking.created_at + hold * _ONE_MINUTE <= moment,
         )
         .order_by(Booking.created_at)
         .limit(limit)
-        .with_for_update(skip_locked=True)
+        .with_for_update(skip_locked=True, of=Booking)
     )
     if organisation_id is not None:
         query = query.where(Booking.organisation_id == organisation_id)
