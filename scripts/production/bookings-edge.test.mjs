@@ -58,11 +58,17 @@ function serviceBlock(name) {
 }
 
 const block = serviceBlock("web-bookings");
+const BOOKINGS_ACCOUNT_URL =
+  /ACCOUNT_APP_URL: https:\/\/account\.\$\{BASE_DOMAIN\}/u;
 
 test("the API service is told the bookings URL and the optional SSO secret", () => {
   const api = serviceBlock("api");
   assert.match(api, API_BOOKINGS_URL);
   assert.match(api, SSO_SECRET);
+});
+
+test("web-bookings links the account menu to the account app, not localhost", () => {
+  assert.match(block, BOOKINGS_ACCOUNT_URL);
 });
 
 test("web-bookings runs the bookings image on port 3015", () => {
