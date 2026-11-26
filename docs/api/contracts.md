@@ -3575,3 +3575,8 @@ Another organisation's records are 404.
   default XCD) and `POST .../resources` (optional start and end times). All refused on a
   closed incident (409). Opening and reopening an incident alert the category's manager
   (`incidents.opened`, urgent; `incidents.reopened`), unless they caused it.
+- Incident weather (#1876): `PUT /incidents/org/incidents/{incident_id}/weather` with
+  `station` (ICAO, four letters). Without `report` it stores the METAR or SPECI nearest
+  the incident's time from Met Service observations (90 minutes before to 30 after; 404
+  when none); with `report` it stores the typed text as `manual`. Incidents return
+  `weather` (`station`, `observed_at`, `report`, `source`). Closed incidents refuse (409).

@@ -6867,6 +6867,22 @@ export {
   incidentsReopenIncidentStatus422Schema,
 } from "./incidentsReopenIncidentSchema.js";
 export {
+  incidentsSetWeatherBodySchema,
+  incidentsSetWeatherErrorSchema,
+  incidentsSetWeatherHeadersSchema,
+  incidentsSetWeatherHeaderXBarrelsOrganisationSchema,
+  incidentsSetWeatherPathIncidentIdSchema,
+  incidentsSetWeatherPathSchema,
+  incidentsSetWeatherResponseSchema,
+  incidentsSetWeatherStatus200Schema,
+  incidentsSetWeatherStatus400Schema,
+  incidentsSetWeatherStatus401Schema,
+  incidentsSetWeatherStatus403Schema,
+  incidentsSetWeatherStatus404Schema,
+  incidentsSetWeatherStatus409Schema,
+  incidentsSetWeatherStatus422Schema,
+} from "./incidentsSetWeatherSchema.js";
+export {
   incidentsUpdateCategoryBodySchema,
   incidentsUpdateCategoryErrorSchema,
   incidentsUpdateCategoryHeadersSchema,
@@ -6952,6 +6968,8 @@ export { incidentTimelineCreateSchema } from "./incidentTimelineCreateSchema.js"
 export { incidentTimelineKindSchema } from "./incidentTimelineKindSchema.js";
 export { incidentTimelinePublicSchema } from "./incidentTimelinePublicSchema.js";
 export { incidentUpdateSchema } from "./incidentUpdateSchema.js";
+export { incidentWeatherSchema } from "./incidentWeatherSchema.js";
+export { incidentWeatherSetSchema } from "./incidentWeatherSetSchema.js";
 export { intendedUseSchema } from "./intendedUseSchema.js";
 export { intentStatusSchema } from "./intentStatusSchema.js";
 export { invitationAcceptSchema } from "./invitationAcceptSchema.js";

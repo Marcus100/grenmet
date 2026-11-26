@@ -145,6 +145,13 @@ class Incident(Base):
         sa.CheckConstraint(
             "(status = 'closed') = (closed_at IS NOT NULL)", name="closed_state"
         ),
+        sa.CheckConstraint(
+            "weather_source IS NULL OR weather_source IN ('observation', 'manual')",
+            name="weather_source",
+        ),
+        sa.CheckConstraint(
+            "(weather_report IS NULL) = (weather_source IS NULL)", name="weather_pair"
+        ),
         sa.Index("incident_organisation_created_idx", "organisation_id", "created_at"),
         {"schema": SCHEMA},
     )
@@ -170,6 +177,13 @@ class Incident(Base):
     exercise: Mapped[bool] = mapped_column(default=False)
     status: Mapped[str] = mapped_column(String(10), default=IncidentStatus.DRAFT.value)
     reported_by: Mapped[uuid.UUID]
+    #: The aerodrome weather report nearest the time of the incident: the raw
+    #: METAR or SPECI text, its station (ICAO location indicator) and its time.
+    #: ``observation`` came from Met Service observations; ``manual`` was typed.
+    weather_station: Mapped[str | None] = mapped_column(String(4))
+    weather_observed_at: Mapped[datetime | None]
+    weather_report: Mapped[str | None] = mapped_column(String(1000))
+    weather_source: Mapped[str | None] = mapped_column(String(12))
     opened_at: Mapped[datetime | None]
     closed_at: Mapped[datetime | None]
     closed_by: Mapped[uuid.UUID | None]

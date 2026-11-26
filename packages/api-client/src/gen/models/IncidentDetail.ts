@@ -11,6 +11,7 @@ import type { IncidentPartyPublic } from "./IncidentPartyPublic.js";
 import type { IncidentResourcePublic } from "./IncidentResourcePublic.js";
 import type { IncidentStatus } from "./IncidentStatus.js";
 import type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
+import type { IncidentWeather } from "./IncidentWeather.js";
 
 /**
  * @description Checks in order, the timeline oldest first, notes oldest first. Private
@@ -39,6 +40,7 @@ export type IncidentDetail = {
    */
   reported_by: string;
   reported_by_name: string | null;
+  weather?: IncidentWeather | null;
   opened_at: string | null;
   closed_at: string | null;
   closed_by: string | null;

@@ -27,6 +27,9 @@ lookup filters on the organisation in SQL.
 - Persons involved and witnesses, damage and resources (``details.py``): contact
   details and injury notes need the private key to read and are sensitive in the
   audit. Opening and reopening alert the category manager (``notifications.py``).
-- Not built yet (later slices of #1876): weather at the time, links to work
-  orders and cases, the public report form.
+- Weather at the time (``weather.py``): the raw METAR or SPECI nearest the
+  incident's time, read from ``wxproducts`` observations or typed in (``manual``),
+  stored on the incident. Tests replace ``weather.nearest_report``.
+- Not built yet (later slices of #1876): links to work orders and cases, the
+  public report form.
 """

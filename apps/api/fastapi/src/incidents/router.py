@@ -24,7 +24,7 @@ from src.organisations import grants
 from src.organisations.dependencies import OrgContext, require_org_permission
 from src.pagination import PaginationDep
 
-from . import attachments, details, service
+from . import attachments, details, service, weather
 from .exceptions import IncidentForbiddenError
 from .models import (
     Incident,
@@ -66,6 +66,8 @@ from .schemas import (
     IncidentTimelineCreate,
     IncidentTimelinePublic,
     IncidentUpdate,
+    IncidentWeather,
+    IncidentWeatherSet,
 )
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
@@ -125,6 +127,17 @@ def _incident(incident: Incident, reporter_name: str | None) -> IncidentPublic:
         status=IncidentStatus(incident.status),
         reported_by=incident.reported_by,
         reported_by_name=reporter_name,
+        weather=(
+            IncidentWeather(
+                station=incident.weather_station or "",
+                observed_at=incident.weather_observed_at,
+                report=incident.weather_report,
+                source=incident.weather_source,
+            )
+            if incident.weather_report is not None
+            and incident.weather_source is not None
+            else None
+        ),
         opened_at=incident.opened_at,
         closed_at=incident.closed_at,
         closed_by=incident.closed_by,
@@ -768,3 +781,36 @@ async def create_resource(
     )
     await session.commit()
     return IncidentResourcePublic.model_validate(resource, from_attributes=True)
+
+
+@router.put(
+    "/org/incidents/{incident_id}/weather",
+    response_model=IncidentDetail,
+    summary="Attach the weather report at the time",
+    description=(
+        "Without `report`, takes the METAR or SPECI of `station` nearest the "
+        "incident's time from Met Service observations (from 90 minutes before to "
+        "30 minutes after); 404 when there is none. With `report`, stores the text "
+        "as typed and marks it `manual`. Stored as raw text on the incident; "
+        "replacing it is audited. A closed incident refuses (409)."
+    ),
+    operation_id="incidentsSetWeather",
+    responses=WRITE_ERRORS,
+)
+async def set_weather(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    payload: IncidentWeatherSet,
+) -> Any:
+    incident = await weather.set_weather(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        station=payload.station,
+        report=payload.report,
+        observed_at=payload.observed_at,
+    )
+    await session.commit()
+    return await _detail_response(session, org, incident)
