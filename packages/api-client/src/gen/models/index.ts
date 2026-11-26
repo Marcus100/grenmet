@@ -1302,6 +1302,8 @@ export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
 export type { BookingFeaturedService } from "./BookingFeaturedService.js";
 export type { BookingLateFee } from "./BookingLateFee.js";
+export type { BookingListingNotShownReason } from "./BookingListingNotShownReason.js";
+export { bookingListingNotShownReason } from "./BookingListingNotShownReason.js";
 export type { BookingListingQueue } from "./BookingListingQueue.js";
 export { bookingListingQueue } from "./BookingListingQueue.js";
 export type { BookingListingReview } from "./BookingListingReview.js";

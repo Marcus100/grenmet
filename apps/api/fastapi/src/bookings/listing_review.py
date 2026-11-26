@@ -6,8 +6,9 @@ booking page works by its link either way (``service._open_for_listing``).
 """
 
 import uuid
+from typing import Any
 
-from sqlalchemy import ColumnElement, and_, func, or_, select
+from sqlalchemy import ColumnElement, Row, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -19,10 +20,29 @@ from src.utils.datetime import utc_now
 
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import BookingProfile
-from .schemas import BookingListingQueue, BookingListingReview
+from .schemas import (
+    BookingListingNotShownReason,
+    BookingListingQueue,
+    BookingListingReview,
+)
+from .service import listing_conditions
 
 LISTING_PERMISSION = "bookings.listing.approve"
 AUDIT_ENTITY = "booking_profile"
+
+
+def _condition_columns() -> list[ColumnElement[bool]]:
+    """The home page conditions as selected columns, one per reason, so whether a
+    business is shown is worked out in SQL with the public listing's own filters."""
+    return [
+        condition.label(reason) for reason, condition in listing_conditions().items()
+    ]
+
+
+def _not_shown(row: Row[Any]) -> list[BookingListingNotShownReason]:
+    """The conditions ``row`` fails, in the order staff would fix them."""
+    met = row._mapping
+    return [reason for reason in BookingListingNotShownReason if not met[reason.value]]
 
 
 async def _load(
@@ -45,8 +65,25 @@ async def _load(
     return profile, organisation
 
 
+async def _not_shown_now(
+    session: AsyncSession, organisation_id: str
+) -> list[BookingListingNotShownReason]:
+    """Why this one business is not on the home page, read after any pending change
+    is flushed."""
+    row = (
+        await session.execute(
+            select(*_condition_columns()).where(
+                BookingProfile.organisation_id == organisation_id
+            )
+        )
+    ).one()
+    return _not_shown(row)
+
+
 def _review(
-    profile: BookingProfile, organisation: PlatformOrganisation
+    profile: BookingProfile,
+    organisation: PlatformOrganisation,
+    not_shown: list[BookingListingNotShownReason],
 ) -> BookingListingReview:
     return BookingListingReview(
         organisation_id=profile.organisation_id,
@@ -58,6 +95,8 @@ def _review(
         self_created=organisation.created_by_user_id is not None,
         owner_left_at=profile.owner_left_at,
         sender_name_flagged_at=profile.sender_name_flagged_at,
+        on_home_page=not not_shown,
+        not_shown_reasons=not_shown,
     )
 
 
@@ -66,7 +105,9 @@ async def get_review(
 ) -> BookingListingReview:
     require_permission(current_user=actor, permission_key=LISTING_PERMISSION)
     profile, organisation = await _load(session, organisation_id)
-    return _review(profile, organisation)
+    return _review(
+        profile, organisation, await _not_shown_now(session, organisation_id)
+    )
 
 
 def _queue_filter(queue: BookingListingQueue) -> ColumnElement[bool] | None:
@@ -95,7 +136,8 @@ async def list_reviews(
     """One SQL page of listings for staff, oldest business first so the longest
     wait is at the top."""
     require_permission(current_user=actor, permission_key=LISTING_PERMISSION)
-    query = select(BookingProfile, PlatformOrganisation).join(
+    columns = _condition_columns()
+    query = select(BookingProfile, PlatformOrganisation, *columns).join(
         PlatformOrganisation,
         PlatformOrganisation.id == BookingProfile.organisation_id,
     )
@@ -112,9 +154,7 @@ async def list_reviews(
             .limit(pagination.limit)
         )
     ).all()
-    return [_review(profile, organisation) for profile, organisation in rows], int(
-        total or 0
-    )
+    return [_review(row[0], row[1], _not_shown(row)) for row in rows], int(total or 0)
 
 
 async def approve(
@@ -133,7 +173,9 @@ async def approve(
     profile.listing_approved_by_user_id = actor.id
     await _audit(session, actor, profile, "listing_approve", changes)
     await session.flush()
-    return _review(profile, organisation)
+    return _review(
+        profile, organisation, await _not_shown_now(session, organisation_id)
+    )
 
 
 async def withdraw(
@@ -156,7 +198,9 @@ async def withdraw(
     profile.listing_approved_by_user_id = None
     await _audit(session, actor, profile, "listing_withdraw", changes)
     await session.flush()
-    return _review(profile, organisation)
+    return _review(
+        profile, organisation, await _not_shown_now(session, organisation_id)
+    )
 
 
 async def _audit(

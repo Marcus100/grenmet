@@ -1024,17 +1024,20 @@ def _contains_pattern(text: str) -> str:
     return f"%{escaped}%"
 
 
-def _open_for_listing() -> list[ColumnElement[bool]]:
-    """Filters for a business that may appear on the home page: it opted in, Barrels
-    approved the listing (ADR-0066), it is enabled, holds the bookings entitlement,
-    sits in an active organisation and has at least one active service. Evaluated in
-    SQL."""
+def listing_conditions() -> dict[str, ColumnElement[bool]]:
+    """What a business needs to appear on the home page, each condition under the
+    name staff see when it is not met (``BookingListingNotShownReason``): it opted
+    in, Barrels approved the listing (ADR-0066), it is enabled and not paused, holds
+    the bookings entitlement, sits in an active organisation and has at least one
+    active service. Evaluated in SQL. Each subquery correlates to the profile
+    only, so it also works as a selected column beside a joined organisation."""
     has_service = (
         select(Service.id)
         .where(
             Service.organisation_id == BookingProfile.organisation_id,
             Service.active.is_(True),
         )
+        .correlate(BookingProfile)
         .exists()
     )
     entitled = (
@@ -1044,6 +1047,7 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
             OrganisationApp.app_key == "bookings",
             OrganisationApp.enabled.is_(True),
         )
+        .correlate(BookingProfile)
         .exists()
     )
     active_organisation = (
@@ -1052,17 +1056,24 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
             PlatformOrganisation.id == BookingProfile.organisation_id,
             PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
         )
+        .correlate(BookingProfile)
         .exists()
     )
-    return [
-        BookingProfile.listed.is_(True),
-        BookingProfile.listing_approved_at.is_not(None),
-        BookingProfile.enabled.is_(True),
-        BookingProfile.paused_at.is_(None),
-        has_service,
-        entitled,
-        active_organisation,
-    ]
+    return {
+        "not_listed": BookingProfile.listed.is_(True),
+        "not_approved": BookingProfile.listing_approved_at.is_not(None),
+        "booking_closed": BookingProfile.enabled.is_(True),
+        "paused": BookingProfile.paused_at.is_(None),
+        "no_active_service": has_service,
+        "not_entitled": entitled,
+        "organisation_inactive": active_organisation,
+    }
+
+
+def _open_for_listing() -> list[ColumnElement[bool]]:
+    """Filters for a business that may appear on the home page: every one of
+    ``listing_conditions``."""
+    return list(listing_conditions().values())
 
 
 def _https_or_none(file_id: uuid.UUID | None) -> str | None:
