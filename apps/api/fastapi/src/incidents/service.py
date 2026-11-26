@@ -659,7 +659,7 @@ async def reopen_incident(
         incident,
         actor=actor,
         event_key=incident_notifications.REOPENED,
-        context={"reference": incident.reference, "reason": reason},
+        context={"reference": incident.reference},
     )
     await session.flush()
     return incident

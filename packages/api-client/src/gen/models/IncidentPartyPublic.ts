@@ -7,8 +7,8 @@ import type { IncidentAffiliation } from "./IncidentAffiliation.js";
 import type { IncidentPartyKind } from "./IncidentPartyKind.js";
 
 /**
- * @description ``contact_*`` and ``injury_notes`` are null unless the viewer holds
- * ``incidents.incidents.private``.
+ * @description ``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer
+ * holds ``incidents.incidents.private``.
  * @type object
  */
 export type IncidentPartyPublic = {

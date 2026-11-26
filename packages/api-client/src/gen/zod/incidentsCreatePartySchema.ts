@@ -20,7 +20,7 @@ export const incidentsCreatePartyHeaderXBarrelsOrganisationSchema = z
 
 export const incidentsCreatePartyStatus201Schema =
   incidentPartyPublicSchema.describe(
-    "``contact_*`` and ``injury_notes`` are null unless the viewer holds\n``incidents.incidents.private``."
+    "``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer\nholds ``incidents.incidents.private``."
   );
 
 export const incidentsCreatePartyStatus400Schema = apiErrorSchema.describe(

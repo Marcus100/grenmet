@@ -224,8 +224,8 @@ class IncidentPartyUpdate(BaseModel):
 
 
 class IncidentPartyPublic(BaseModel):
-    """``contact_*`` and ``injury_notes`` are null unless the viewer holds
-    ``incidents.incidents.private``."""
+    """``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer
+    holds ``incidents.incidents.private``."""
 
     id: str
     kind: IncidentPartyKind

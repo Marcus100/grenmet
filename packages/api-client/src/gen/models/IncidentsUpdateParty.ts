@@ -21,8 +21,8 @@ export type IncidentsUpdatePartyHeaders = {
 };
 
 /**
- * @description ``contact_*`` and ``injury_notes`` are null unless the viewer holds
- * ``incidents.incidents.private``.
+ * @description ``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer
+ * holds ``incidents.incidents.private``.
  * @type object
  */
 export type IncidentsUpdatePartyStatus200 = IncidentPartyPublic;

@@ -13966,6 +13966,252 @@
         }
       }
     },
+    "/api/v1/bookings/org/bookings/{booking_id}/deposit-received": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Mark a deposit paid to the business as received",
+        "description": "For a booking whose deposit the customer pays the business by hand (`deposit_to_business_minor` above 0). Records the method (cash, bank transfer, PayPal or other), an optional reference and when it arrived (default now, never in the future). No money moves through Barrels. Audited, with a staff-only history note that sends no calendar update. Sends no mail; later mails say the deposit was received. 409 with a `code` when the booking has no such deposit, is cancelled, declined or no-show, or is already marked. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.",
+        "operationId": "bookingsMarkDepositReceived",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingDepositReceivedCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The arrival time is in the future",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Undo a deposit marked as received",
+        "description": "Takes back a deposit receipt recorded in error, so the booking shows the deposit as due again. Audited, with a staff-only history note. 409 with a `code` when the booking has no such deposit, is cancelled, declined or no-show, or is not marked received. Owners, admins and members granted `bookings.deposits.manage`; API keys are not accepted.",
+        "operationId": "bookingsUndoDepositReceived",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/org/bookings/{booking_id}/decline": {
       "post": {
         "tags": [
@@ -83323,6 +83569,19 @@
             "type": "array",
             "title": "Add On Names"
           },
+          "deposit_received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Received At",
+            "description": "When staff marked the deposit paid to the business as received."
+          },
           "returning_client": {
             "type": "boolean",
             "title": "Returning Client",
@@ -83732,6 +83991,56 @@
         ],
         "title": "BookingDepositMode",
         "description": "The business-wide deposit rule (owner request 23 Nov 2026), used for a\nservice only when its own ``deposit_minor`` is 0.\n\n``none`` (default): no rule. ``percent``: ``deposit_percent`` of the price,\nrounded up to whole currency units. ``fixed``: ``deposit_fixed_minor`` per\nbooking. Either way the deposit never exceeds the price."
+      },
+      "BookingDepositReceivedCreate": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/BookingDepositReceivedMethod"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "An optional receipt or transfer reference. Staff only."
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At",
+            "description": "When it arrived; defaults to now. Must not be in the future."
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "BookingDepositReceivedCreate",
+        "description": "A deposit paid to the business by hand arrived. ``received_at`` defaults to\nnow and may not be in the future."
+      },
+      "BookingDepositReceivedMethod": {
+        "type": "string",
+        "enum": [
+          "cash",
+          "bank_transfer",
+          "paypal",
+          "other"
+        ],
+        "title": "BookingDepositReceivedMethod",
+        "description": "How a deposit paid to the business by hand arrived (staff record it; no money\nmoves through Barrels)."
       },
       "BookingEmailCodeConfirm": {
         "properties": {
@@ -85965,7 +86274,13 @@
               }
             ],
             "title": "Deposit Instructions",
-            "description": "How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0."
+            "description": "How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0 and it is not yet received."
+          },
+          "deposit_received": {
+            "type": "boolean",
+            "title": "Deposit Received",
+            "description": "The business has confirmed the deposit paid to it by hand (`deposit_to_business_minor`) arrived. Show it as paid; no method or reference is shown to the customer.",
+            "default": false
           },
           "late_fee": {
             "anyOf": [
@@ -87513,6 +87828,40 @@
             "title": "Returning Client",
             "description": "A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer.",
             "default": false
+          },
+          "deposit_received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Received At",
+            "description": "When staff marked the deposit paid to the business as received."
+          },
+          "deposit_received_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingDepositReceivedMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deposit_received_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Received Reference"
           },
           "payment_kind": {
             "$ref": "#/components/schemas/BookingPaymentKind",
@@ -100686,7 +101035,7 @@
           "updated_at"
         ],
         "title": "IncidentPartyPublic",
-        "description": "``contact_*`` and ``injury_notes`` are null unless the viewer holds\n``incidents.incidents.private``."
+        "description": "``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer\nholds ``incidents.incidents.private``."
       },
       "IncidentPartyUpdate": {
         "properties": {

@@ -30,7 +30,7 @@ def register() -> None:
         record_type="incident_party",
         entity_type=SUBJECT,
         entity_id_attr="organisation_id",
-        sensitive=("contact_phone", "contact_email", "injury_notes"),
+        sensitive=("contact_phone", "contact_email", "injury_notes", "statement"),
         label="Incident person",
     )
     for model, record_type, label in (

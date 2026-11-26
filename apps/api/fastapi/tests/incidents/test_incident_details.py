@@ -218,3 +218,105 @@ async def test_opening_alerts_the_category_manager(
         )
     )
     assert mine is None
+
+
+async def test_reopen_alert_and_who_is_not_alerted(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    org_id, owner, responder, manager = await _org(db_async)
+    m = headers_for(manager, org_id)
+    category = await async_client.post(
+        f"{API}/categories",
+        headers=m,
+        json={"name": "Apron", "manager_user_id": str(manager.id)},
+    )
+    # The manager opens it themselves: no alert to the person who caused it.
+    incident = (
+        await async_client.post(
+            f"{API}/incidents",
+            headers=m,
+            json={"title": "FOD on taxiway", "category_id": category.json()["id"]},
+        )
+    ).json()
+    base = f"{API}/incidents/{incident['id']}"
+    await async_client.post(f"{base}/open", headers=m)
+    await async_client.post(f"{base}/close", headers=m)
+
+    async def alerts(user: User) -> list[str]:
+        return list(
+            (
+                await db_async.scalars(
+                    select(Notification.event_key).where(
+                        Notification.recipient_user_id == user.id,
+                        Notification.entity_id == incident["id"],
+                    )
+                )
+            ).all()
+        )
+
+    assert await alerts(manager) == []
+    # The owner reopens: the manager hears, without the free-text reason.
+    await async_client.post(
+        f"{base}/reopen",
+        headers=headers_for(owner, org_id),
+        json={"reason": "Private detail about a person"},
+    )
+    assert await alerts(manager) == ["incidents.reopened"]
+    body = await db_async.scalar(
+        select(Notification.body).where(
+            Notification.recipient_user_id == manager.id,
+            Notification.entity_id == incident["id"],
+        )
+    )
+    assert body is not None and "Private detail" not in body
+    assert await alerts(responder) == []
+
+
+async def test_parties_stay_in_their_incident_and_null_clears(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    org_id, owner, responder, _ = await _org(db_async)
+    other_org, other_owner, _, _ = await _org(db_async)
+    o = headers_for(owner, org_id)
+    first = (
+        await async_client.post(f"{API}/incidents", headers=o, json={"title": "A"})
+    ).json()
+    second = (
+        await async_client.post(f"{API}/incidents", headers=o, json={"title": "B"})
+    ).json()
+    party = (
+        await async_client.post(
+            f"{API}/incidents/{first['id']}/parties",
+            headers=o,
+            json={"kind": "witness", "name": "Bo", "company": "Ground handler"},
+        )
+    ).json()
+    wrong_incident = await async_client.patch(
+        f"{API}/incidents/{second['id']}/parties/{party['id']}",
+        headers=o,
+        json={"name": "x"},
+    )
+    assert wrong_incident.status_code == 404
+    other = await async_client.patch(
+        f"{API}/incidents/{first['id']}/parties/{party['id']}",
+        headers=headers_for(other_owner, other_org),
+        json={"name": "x"},
+    )
+    assert other.status_code == 404
+    cleared = await async_client.patch(
+        f"{API}/incidents/{first['id']}/parties/{party['id']}",
+        headers=o,
+        json={"company": None},
+    )
+    assert cleared.json()["company"] is None
+    assert cleared.json()["name"] == "Bo"
+    # A responder without the private key never sees the statement.
+    await async_client.patch(
+        f"{API}/incidents/{first['id']}/parties/{party['id']}",
+        headers=o,
+        json={"statement": "I saw it"},
+    )
+    seen = await async_client.get(
+        f"{API}/incidents/{first['id']}", headers=headers_for(responder, org_id)
+    )
+    assert seen.json()["parties"][0]["statement"] is None

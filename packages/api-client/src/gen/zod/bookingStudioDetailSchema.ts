@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
+import { bookingDepositReceivedMethodSchema } from "./bookingDepositReceivedMethodSchema.js";
 import { bookingPaymentKindSchema } from "./bookingPaymentKindSchema.js";
 import { bookingSourceSchema } from "./bookingSourceSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -47,6 +48,16 @@ export const bookingStudioDetailSchema = z
       .describe(
         "A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer."
       ),
+    deposit_received_at: z
+      .union([z.iso.datetime(), z.null()])
+      .optional()
+      .describe(
+        "When staff marked the deposit paid to the business as received."
+      ),
+    deposit_received_method: z
+      .union([bookingDepositReceivedMethodSchema, z.null()])
+      .optional(),
+    deposit_received_reference: z.union([z.string(), z.null()]).optional(),
     payment_kind: bookingPaymentKindSchema.describe(
       '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
     ),

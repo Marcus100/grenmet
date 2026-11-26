@@ -169,7 +169,8 @@ def _detail(view: service.IncidentDetailView) -> IncidentDetail:
 
 
 def _party(party: IncidentParty, *, private: bool) -> IncidentPartyPublic:
-    """Contact details and injury notes only for holders of the private key."""
+    """Contact details, injury notes and the statement only for holders of the
+    private key: all three are personal data about a named person."""
     return IncidentPartyPublic(
         id=party.id,
         kind=IncidentPartyKind(party.kind),
@@ -180,7 +181,7 @@ def _party(party: IncidentParty, *, private: bool) -> IncidentPartyPublic:
         contact_email=party.contact_email if private else None,
         injured=party.injured,
         injury_notes=party.injury_notes if private else None,
-        statement=party.statement,
+        statement=party.statement if private else None,
         created_at=party.created_at,
         updated_at=party.updated_at,
     )

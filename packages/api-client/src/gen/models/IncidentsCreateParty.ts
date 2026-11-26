@@ -20,8 +20,8 @@ export type IncidentsCreatePartyHeaders = {
 };
 
 /**
- * @description ``contact_*`` and ``injury_notes`` are null unless the viewer holds
- * ``incidents.incidents.private``.
+ * @description ``contact_*``, ``injury_notes`` and ``statement`` are null unless the viewer
+ * holds ``incidents.incidents.private``.
  * @type object
  */
 export type IncidentsCreatePartyStatus201 = IncidentPartyPublic;

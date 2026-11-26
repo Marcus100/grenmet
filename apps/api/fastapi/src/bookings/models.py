@@ -72,6 +72,16 @@ class BookingDepositMode(str, Enum):
     FIXED = "fixed"
 
 
+class BookingDepositReceivedMethod(str, Enum):
+    """How a deposit paid to the business by hand arrived (staff record it; no money
+    moves through Barrels)."""
+
+    CASH = "cash"
+    BANK_TRANSFER = "bank_transfer"
+    PAYPAL = "paypal"
+    OTHER = "other"
+
+
 class BookingSource(str, Enum):
     ONLINE = "online"
     STUDIO = "studio"
@@ -543,6 +553,20 @@ class Booking(Base):
             "deposit_to_business_minor >= 0", name="deposit_to_business"
         ),
         sa.CheckConstraint(
+            f"deposit_received_method IS NULL OR deposit_received_method IN "
+            f"({_values(BookingDepositReceivedMethod)})",
+            name="deposit_received_method",
+        ),
+        sa.CheckConstraint(
+            "(deposit_received_at IS NULL) = (deposit_received_method IS NULL)",
+            name="deposit_received_pair",
+        ),
+        sa.CheckConstraint(
+            "deposit_received_reference IS NULL"
+            " OR char_length(deposit_received_reference) BETWEEN 1 AND 100",
+            name="deposit_received_reference",
+        ),
+        sa.CheckConstraint(
             "blocked_from <= starts_at AND blocked_until >= ends_at", name="blocked"
         ),
         sa.UniqueConstraint(
@@ -586,6 +610,15 @@ class Booking(Base):
     deposit_non_refundable: Mapped[bool] = mapped_column(
         default=False, server_default=sa.false()
     )
+    #: Staff marked the business-held deposit (``deposit_to_business_minor``) as
+    #: received. Null until then; the method and reference are staff only.
+    deposit_received_at: Mapped[datetime | None] = mapped_column(default=None)
+    deposit_received_method: Mapped[str | None] = mapped_column(
+        String(20), default=None
+    )
+    deposit_received_reference: Mapped[str | None] = mapped_column(
+        String(100), default=None
+    )
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
@@ -614,6 +647,9 @@ class BookingEvent(Base):
     to_status: Mapped[str] = mapped_column(String(20))
     actor_user_id: Mapped[uuid.UUID | None]
     note: Mapped[str | None] = mapped_column(String(300))
+    #: A staff-only note that changes no status. Customer calendar feeds count
+    #: only the other rows (their ICS SEQUENCE), so this never sends an update.
+    staff_note: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
