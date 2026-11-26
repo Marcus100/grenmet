@@ -1064,6 +1064,11 @@ export {
   useCasesAcceptRisk,
 } from "./useCasesAcceptRisk.js";
 export {
+  casesApproveInvestigationMutationKey,
+  casesApproveInvestigationMutationOptions,
+  useCasesApproveInvestigation,
+} from "./useCasesApproveInvestigation.js";
+export {
   casesChangeActionStatusMutationKey,
   casesChangeActionStatusMutationOptions,
   useCasesChangeActionStatus,
@@ -1084,6 +1089,11 @@ export {
   useCasesCreateCase,
 } from "./useCasesCreateCase.js";
 export {
+  casesCreateContributingFactorMutationKey,
+  casesCreateContributingFactorMutationOptions,
+  useCasesCreateContributingFactor,
+} from "./useCasesCreateContributingFactor.js";
+export {
   casesCreateRiskAssessmentMutationKey,
   casesCreateRiskAssessmentMutationOptions,
   useCasesCreateRiskAssessment,
@@ -1093,6 +1103,11 @@ export {
   casesGetCaseQueryOptions,
   useCasesGetCase,
 } from "./useCasesGetCase.js";
+export {
+  casesGetInvestigationQueryKey,
+  casesGetInvestigationQueryOptions,
+  useCasesGetInvestigation,
+} from "./useCasesGetInvestigation.js";
 export {
   casesGetRiskGridQueryKey,
   casesGetRiskGridQueryOptions,
@@ -1104,10 +1119,25 @@ export {
   useCasesListCases,
 } from "./useCasesListCases.js";
 export {
+  casesListContributingFactorsQueryKey,
+  casesListContributingFactorsQueryOptions,
+  useCasesListContributingFactors,
+} from "./useCasesListContributingFactors.js";
+export {
+  casesReturnInvestigationMutationKey,
+  casesReturnInvestigationMutationOptions,
+  useCasesReturnInvestigation,
+} from "./useCasesReturnInvestigation.js";
+export {
   casesSetRiskGridMutationKey,
   casesSetRiskGridMutationOptions,
   useCasesSetRiskGrid,
 } from "./useCasesSetRiskGrid.js";
+export {
+  casesSubmitInvestigationMutationKey,
+  casesSubmitInvestigationMutationOptions,
+  useCasesSubmitInvestigation,
+} from "./useCasesSubmitInvestigation.js";
 export {
   casesUpdateActionMutationKey,
   casesUpdateActionMutationOptions,
@@ -1118,6 +1148,21 @@ export {
   casesUpdateCaseMutationOptions,
   useCasesUpdateCase,
 } from "./useCasesUpdateCase.js";
+export {
+  casesUpdateContributingFactorMutationKey,
+  casesUpdateContributingFactorMutationOptions,
+  useCasesUpdateContributingFactor,
+} from "./useCasesUpdateContributingFactor.js";
+export {
+  casesUpdateInvestigationMutationKey,
+  casesUpdateInvestigationMutationOptions,
+  useCasesUpdateInvestigation,
+} from "./useCasesUpdateInvestigation.js";
+export {
+  casesWaiveInvestigationMutationKey,
+  casesWaiveInvestigationMutationOptions,
+  useCasesWaiveInvestigation,
+} from "./useCasesWaiveInvestigation.js";
 export {
   contactSendContactMessageMutationKey,
   contactSendContactMessageMutationOptions,
