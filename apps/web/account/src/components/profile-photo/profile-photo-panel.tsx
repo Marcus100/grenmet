@@ -19,6 +19,7 @@ import {
 } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { type ChangeEvent, useId, useState } from "react";
 import { ensureSameOriginApiClient } from "@/lib/api-client-setup";
 import { profilePhotoErrorMessage } from "@/lib/profile-photo-error";
@@ -77,6 +78,8 @@ function PhotoPanel({ email, initialPhoto, name }: ProfilePhotoPanelProps) {
   const [photo, setPhoto] = useState<ProfileImagePublic | null>(initialPhoto);
   const [notice, setNotice] = useState<Notice | null>(null);
   const inputId = useId();
+  // The checklist above is rendered on the server: refresh it after a change.
+  const router = useRouter();
   const upload = useProfileImagesSetMine();
   const remove = useProfileImagesRemoveMine();
   const busy = upload.isPending || remove.isPending;
@@ -98,6 +101,7 @@ function PhotoPanel({ email, initialPhoto, name }: ProfilePhotoPanelProps) {
     try {
       const saved = await upload.mutateAsync(uploadVariables(file, type));
       setPhoto(saved);
+      router.refresh();
       setNotice({
         tone: "success",
         text: "Photo saved. People who share an organisation with you can see it now.",
@@ -112,6 +116,7 @@ function PhotoPanel({ email, initialPhoto, name }: ProfilePhotoPanelProps) {
     try {
       await remove.mutateAsync(undefined);
       setPhoto(null);
+      router.refresh();
       setNotice({
         tone: "success",
         text: "Photo removed. Your initials show instead.",

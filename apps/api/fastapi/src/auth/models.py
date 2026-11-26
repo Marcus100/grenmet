@@ -83,6 +83,9 @@ class User(Base):
         String(20), unique=True, index=True, nullable=True
     )
     phone_verified_at: Mapped[datetime | None]
+    # The number a person typed into their own profile (E.164). A contact detail
+    # only: not unique, never verified, never a sign-in factor (that is phone_e164).
+    contact_phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
     email_verification_required: Mapped[bool] = mapped_column(default=False)
     password_setup_pending: Mapped[bool] = mapped_column(default=False)
     registration_pending: Mapped[bool] = mapped_column(default=False)
