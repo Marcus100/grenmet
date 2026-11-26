@@ -111,6 +111,19 @@ investigator read occupational health cases, and the other way round.
      `grants.effective_keys`, which amends ADR-0044, and must be granted to a
      named person. Without this, every organisation admin would see every
      reporter and all occupational health detail.
+   - **Granting it.** The only bundle that holds the key is
+     `<programme>-confidential`. An organisation **owner** may grant or revoke
+     it without holding it. This is the one exception to the rule that a
+     grantor holds every key they give.
+     - The grant needs a session that passed two-step sign-in.
+     - It is audited with the grantor.
+     - It is never self-granted.
+     - Nobody else may grant it, including holders of `<programme>.team.manage`.
+   - **The ADR-0044 amendment** covers every place in `grants.py` that assumes
+     owners and admins hold all keys: `effective_keys`, `_supported_grant_ids`
+     (whether a grant survives a revoke), `_expiry_ceiling` and
+     `end_issued_transitively`. For each, confidential keys count as held only
+     through a live grant.
 3. **Case lifecycle**, as a transition table in `transitions.py`:
    - `reported`, then `assessing`, then `investigating`, then `actions`, then
      `monitoring`, then `closed`;
@@ -139,9 +152,11 @@ investigator read occupational health cases, and the other way round.
      - an `acceptable` risk needs no acceptance;
      - a `tolerable` residual risk needs a recorded acceptance by a holder of
        the approve key;
-     - an `intolerable` risk can never be accepted. The case cannot close
-       while its latest residual assessment is intolerable: the activity
-       stops or is mitigated, and the risk is assessed again.
+     - an `intolerable` risk can never be accepted.
+   - A case closes only when its latest residual assessment is `acceptable`,
+     or `tolerable` with a recorded acceptance. A case with no residual
+     assessment, or with an intolerable one, cannot close: the activity stops
+     or is mitigated, and the risk is assessed again.
 5. **Investigation.** One per case, holding:
    - what happened;
    - unsafe acts and unsafe conditions;
@@ -174,7 +189,8 @@ investigator read occupational health cases, and the other way round.
      marked sensitive in the audit registry.
    - The audit actor of an anonymous or confidential report is not recorded:
      the report is written with no actor set, so Barrels staff reading the
-     audit log cannot identify the reporter.
+     audit log cannot identify the reporter. Later changes by investigators
+     and managers are attributed to them as usual.
 10. **Links.** The engine registers record kinds `cases.case` and
     `cases.action`.
     - Their resolvers check the read key of the case's own programme, and hide
@@ -193,8 +209,8 @@ investigator read occupational health cases, and the other way round.
 
 - **Easier:**
   - a fix to the workflow serves all four programmes;
-  - a new programme (for example, quality management) is a new enum value,
-    product and keys;
+  - a new programme (for example, quality management) is a new value in the
+    check constraint (a small migration), a product and its keys;
   - an organisation buys only the programmes it runs.
 - **Harder:**
   - every query must filter on both organisation and programme;
