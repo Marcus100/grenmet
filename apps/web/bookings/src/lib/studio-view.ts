@@ -248,6 +248,13 @@ export function eventLabel(
 }
 
 /**
+ * Cancelled bookings, whose unpaid business-collected deposit is hidden on the
+ * agenda. A no-show is not here: the business may still want the unpaid deposit
+ * or a late fee, so it keeps the chip it has on `dev`.
+ */
+const CANCELLED_UNPAID = "cancelled";
+
+/**
  * The agenda lists carry no payment amounts, so they can only say a deposit is
  * still awaited or show its size; the detail page shows paid and refunded.
  */
@@ -259,16 +266,18 @@ export function agendaDepositView(booking: {
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
-  // Only a deposit paid to the business is ever marked received (#1869), so a
-  // received mark is always a paid one. A cancelled booking is never shown as paid.
-  if (booking.deposit_received_at && booking.status !== "cancelled") {
-    return { label: "Deposit received", tone: "success" };
+  // Only money the business actually received is marked received, so a received
+  // mark is always a paid one, on any status.
+  if (booking.deposit_received_at) {
+    return { label: `${paymentWord(kind)} received`, tone: "success" };
   }
-  // The agenda item has no captured or refunded amount, so a cancelled booking
-  // keeps the neutral amount label (never "due"); the detail page says what was paid.
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
+  // TODO(agenda-captured): this neutral amount on a cancelled or no-show booking is
+  // kept only because the agenda item has no captured or refunded amount, so it
+  // cannot tell whether an online payment was taken. Remove the cancelled part
+  // once the agenda item carries captured and refunded amounts.
   return {
     label: `${paymentWord(kind)} ${formatMoney(booking.deposit_minor, booking.currency)}`,
     tone: "neutral",
@@ -341,18 +350,29 @@ export function takesDeposit(booking: {
 }
 
 /**
- * Whether the agenda row shows a deposit badge. A deposit paid to the business
- * carries no amount on the agenda item, so it shows only once it is received.
+ * Whether the agenda row shows a deposit badge. Received always shows. A
+ * cancelled booking whose deposit is business-collected (`deposit_to_business_minor`
+ * above 0, `deposit_minor` 0) shows nothing, because Barrels never held it.
+ * Anything else shows its amount when `deposit_minor` is above 0, as on `dev`.
+ * The API never writes both amounts on one booking (`price_booking` and
+ * `deposit_payments` set one by the profile's collection mode), so a row with
+ * both keeps the online amount: a card payment may have been captured.
  */
 export function showsAgendaDeposit(booking: {
   deposit_minor: number;
+  deposit_to_business_minor?: number;
   deposit_received_at?: string | null;
   status: BookingStatus;
 }): boolean {
-  return (
-    booking.deposit_minor > 0 ||
-    (Boolean(booking.deposit_received_at) && booking.status !== "cancelled")
-  );
+  if (booking.deposit_received_at) {
+    return true;
+  }
+  const businessOnly =
+    (booking.deposit_to_business_minor ?? 0) > 0 && booking.deposit_minor <= 0;
+  if (booking.status === CANCELLED_UNPAID && businessOnly) {
+    return false;
+  }
+  return booking.deposit_minor > 0;
 }
 
 /**

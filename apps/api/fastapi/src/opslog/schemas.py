@@ -160,3 +160,9 @@ class OpsLogAttachmentPublic(BaseModel):
 class OpsLogEntryDetail(OpsLogEntryPublic):
     comments: list[OpsLogCommentPublic]
     attachments: list[OpsLogAttachmentPublic] = []
+
+
+class OpsLogSummarySubscription(BaseModel):
+    """Whether you get this log's daily summary (bell and email)."""
+
+    subscribed: bool

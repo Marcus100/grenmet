@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import timedelta
+from typing import Any
 
 import httpx
 from sqlalchemy import select, update
@@ -68,17 +69,15 @@ async def _set_status(db: AsyncSession, booking_id: str, status: str) -> None:
 
 async def _list(
     client: httpx.AsyncClient, studio: Studio, **params: object
-) -> dict[str, object]:
+) -> dict[str, Any]:
     response = await client.get(URL, headers=studio.headers, params=params)
     assert response.status_code == 200, response.text
-    body: dict[str, object] = response.json()
+    body: dict[str, Any] = response.json()
     return body
 
 
-def _names(body: dict[str, object]) -> list[str]:
-    customers = body["customers"]
-    assert isinstance(customers, list)
-    return [row["name"] for row in customers]
+def _names(body: dict[str, Any]) -> list[str]:
+    return [row["name"] for row in body["customers"]]
 
 
 async def test_repeat_customer_is_one_row_with_its_booking_facts(
@@ -97,7 +96,7 @@ async def test_repeat_customer_is_one_row_with_its_booking_facts(
     assert body["total"] == 2
     assert body["limit"] == 50
     assert body["offset"] == 0
-    rows = {row["name"]: row for row in body["customers"]}  # type: ignore[union-attr]
+    rows = {row["name"]: row for row in body["customers"]}
     assert set(rows) == {"Ada Lovelace", "Grace Hopper"}
 
     row = rows["Ada Lovelace"]
@@ -150,7 +149,7 @@ async def test_cancelled_bookings_and_no_shows_are_not_visits(
 
     body = await _list(async_client, studio)
     assert _names(body) == ["Ada Lovelace"]
-    row = body["customers"][0]  # type: ignore[index]
+    row = body["customers"][0]
     assert row["bookings_count"] == 2
     visit = await db_async.get(Booking, uuid.UUID(kept))
     assert visit is not None
@@ -243,7 +242,7 @@ async def test_another_organisation_never_sees_these_customers(
 
     mine = await _list(async_client, studio)
     assert _names(mine) == ["Ada Here"]
-    assert mine["customers"][0]["bookings_count"] == 2  # type: ignore[index]
+    assert mine["customers"][0]["bookings_count"] == 2
     theirs = await _list(async_client, other)
     assert sorted(_names(theirs)) == ["Ada There", "Only There"]
     assert (await _list(async_client, studio, q="Only There"))["total"] == 0

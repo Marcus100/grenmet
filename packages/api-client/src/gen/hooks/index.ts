@@ -2754,6 +2754,11 @@ export {
   useIncidentsReopenIncident,
 } from "./useIncidentsReopenIncident.js";
 export {
+  incidentsSetWeatherMutationKey,
+  incidentsSetWeatherMutationOptions,
+  useIncidentsSetWeather,
+} from "./useIncidentsSetWeather.js";
+export {
   incidentsUpdateCategoryMutationKey,
   incidentsUpdateCategoryMutationOptions,
   useIncidentsUpdateCategory,
@@ -3039,6 +3044,11 @@ export {
   useOpslogGetEntry,
 } from "./useOpslogGetEntry.js";
 export {
+  opslogGetSummarySubscriptionQueryKey,
+  opslogGetSummarySubscriptionQueryOptions,
+  useOpslogGetSummarySubscription,
+} from "./useOpslogGetSummarySubscription.js";
+export {
   opslogListCategoriesQueryKey,
   opslogListCategoriesQueryOptions,
   useOpslogListCategories,
@@ -3053,6 +3063,11 @@ export {
   opslogListLogsQueryOptions,
   useOpslogListLogs,
 } from "./useOpslogListLogs.js";
+export {
+  opslogSetSummarySubscriptionMutationKey,
+  opslogSetSummarySubscriptionMutationOptions,
+  useOpslogSetSummarySubscription,
+} from "./useOpslogSetSummarySubscription.js";
 export {
   opslogUpdateCategoryMutationKey,
   opslogUpdateCategoryMutationOptions,

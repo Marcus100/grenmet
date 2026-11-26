@@ -198,7 +198,7 @@ describe("localTime", () => {
 describe("deposit paid to the business, received (#1869)", () => {
   const RECEIVED = "2027-01-05T10:00:00.000Z";
 
-  it("shows the agenda deposit as received, never as due, and never on a cancelled booking", () => {
+  it("shows the agenda deposit as received, never as due, and shows a cancelled booking only when received", () => {
     const base = { currency: "XCD", deposit_minor: 0 };
     expect(
       agendaDepositView({
@@ -221,11 +221,18 @@ describe("deposit paid to the business, received (#1869)", () => {
         deposit_received_at: RECEIVED,
         status: "cancelled",
       }).label
-    ).toBe("Deposit EC$25");
+    ).toBe("Deposit received");
     expect(
       showsAgendaDeposit({
         deposit_minor: 0,
         deposit_received_at: RECEIVED,
+        status: "cancelled",
+      })
+    ).toBe(true);
+    expect(
+      showsAgendaDeposit({
+        deposit_minor: 0,
+        deposit_to_business_minor: 2500,
         status: "cancelled",
       })
     ).toBe(false);

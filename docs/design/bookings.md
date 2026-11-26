@@ -287,6 +287,11 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   with their labels. Rows stack on a phone and sit in three columns from `md`.
   Empty: "No customers yet. They appear here after their first booking."
   Fifty a page, with "Previous customers" and "More customers".
+  Every member sees it. The search is personal data: it is never part of a
+  sign-in return address, and a failed read is reported without its query
+  string. The API allows 30 reads a minute per person (the page forwards the
+  visitor headers), and an `offset` outside 0 to 100000 starts from the first
+  page. No detail page, export or editing yet.
 - **Booking detail** has Call (`tel:`) and WhatsApp (`https://wa.me/<digits>`,
   new tab). WhatsApp appears only when the number normalises
   (`lib/phone.ts`): a leading `+` is kept, a 7-digit number is taken as Grenada

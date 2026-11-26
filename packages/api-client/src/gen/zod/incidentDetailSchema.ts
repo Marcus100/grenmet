@@ -12,6 +12,7 @@ import { incidentPartyPublicSchema } from "./incidentPartyPublicSchema.js";
 import { incidentResourcePublicSchema } from "./incidentResourcePublicSchema.js";
 import { incidentStatusSchema } from "./incidentStatusSchema.js";
 import { incidentTimelinePublicSchema } from "./incidentTimelinePublicSchema.js";
+import { incidentWeatherSchema } from "./incidentWeatherSchema.js";
 
 export const incidentDetailSchema = z
   .object({
@@ -26,6 +27,7 @@ export const incidentDetailSchema = z
     status: incidentStatusSchema,
     reported_by: z.uuid(),
     reported_by_name: z.union([z.string(), z.null()]),
+    weather: z.union([incidentWeatherSchema, z.null()]).optional(),
     opened_at: z.union([z.iso.datetime(), z.null()]),
     closed_at: z.union([z.iso.datetime(), z.null()]),
     closed_by: z.union([z.uuid(), z.null()]),

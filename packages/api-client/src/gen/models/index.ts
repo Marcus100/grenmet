@@ -6893,6 +6893,21 @@ export type {
   IncidentsReopenIncidentStatus422,
 } from "./IncidentsReopenIncident.js";
 export type {
+  IncidentsSetWeatherBody,
+  IncidentsSetWeatherHeaders,
+  IncidentsSetWeatherOptions,
+  IncidentsSetWeatherPath,
+  IncidentsSetWeatherResponse,
+  IncidentsSetWeatherResponses,
+  IncidentsSetWeatherStatus200,
+  IncidentsSetWeatherStatus400,
+  IncidentsSetWeatherStatus401,
+  IncidentsSetWeatherStatus403,
+  IncidentsSetWeatherStatus404,
+  IncidentsSetWeatherStatus409,
+  IncidentsSetWeatherStatus422,
+} from "./IncidentsSetWeather.js";
+export type {
   IncidentsUpdateCategoryBody,
   IncidentsUpdateCategoryHeaders,
   IncidentsUpdateCategoryOptions,
@@ -6972,6 +6987,8 @@ export type { IncidentTimelineKind } from "./IncidentTimelineKind.js";
 export { incidentTimelineKind } from "./IncidentTimelineKind.js";
 export type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
 export type { IncidentUpdate } from "./IncidentUpdate.js";
+export type { IncidentWeather } from "./IncidentWeather.js";
+export type { IncidentWeatherSet } from "./IncidentWeatherSet.js";
 export type { IntendedUse } from "./IntendedUse.js";
 export { intendedUse } from "./IntendedUse.js";
 export type { IntentStatus } from "./IntentStatus.js";
@@ -7688,6 +7705,7 @@ export type { OpsLogEntryUpdate } from "./OpsLogEntryUpdate.js";
 export type { OpsLogList } from "./OpsLogList.js";
 export type { OpsLogPublic } from "./OpsLogPublic.js";
 export type { OpsLogRecordRef } from "./OpsLogRecordRef.js";
+export type { OpsLogSummarySubscription } from "./OpsLogSummarySubscription.js";
 export type { OpsLogUpdate } from "./OpsLogUpdate.js";
 export type {
   OpslogCreateAttachmentBody,
@@ -7777,6 +7795,19 @@ export type {
   OpslogGetEntryStatus422,
 } from "./OpslogGetEntry.js";
 export type {
+  OpslogGetSummarySubscriptionHeaders,
+  OpslogGetSummarySubscriptionOptions,
+  OpslogGetSummarySubscriptionPath,
+  OpslogGetSummarySubscriptionResponse,
+  OpslogGetSummarySubscriptionResponses,
+  OpslogGetSummarySubscriptionStatus200,
+  OpslogGetSummarySubscriptionStatus400,
+  OpslogGetSummarySubscriptionStatus401,
+  OpslogGetSummarySubscriptionStatus403,
+  OpslogGetSummarySubscriptionStatus404,
+  OpslogGetSummarySubscriptionStatus422,
+} from "./OpslogGetSummarySubscription.js";
+export type {
   OpslogListCategoriesHeaders,
   OpslogListCategoriesOptions,
   OpslogListCategoriesPath,
@@ -7817,6 +7848,21 @@ export type {
   OpslogListLogsStatus404,
   OpslogListLogsStatus422,
 } from "./OpslogListLogs.js";
+export type {
+  OpslogSetSummarySubscriptionBody,
+  OpslogSetSummarySubscriptionHeaders,
+  OpslogSetSummarySubscriptionOptions,
+  OpslogSetSummarySubscriptionPath,
+  OpslogSetSummarySubscriptionResponse,
+  OpslogSetSummarySubscriptionResponses,
+  OpslogSetSummarySubscriptionStatus200,
+  OpslogSetSummarySubscriptionStatus400,
+  OpslogSetSummarySubscriptionStatus401,
+  OpslogSetSummarySubscriptionStatus403,
+  OpslogSetSummarySubscriptionStatus404,
+  OpslogSetSummarySubscriptionStatus409,
+  OpslogSetSummarySubscriptionStatus422,
+} from "./OpslogSetSummarySubscription.js";
 export type {
   OpslogUpdateCategoryBody,
   OpslogUpdateCategoryHeaders,
