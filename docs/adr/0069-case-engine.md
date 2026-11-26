@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted 25 November 2026; not built. Follows ADR-0067 decision 6, which
+Proposed 25 November 2026; not built. Follows ADR-0067 decision 6, which
 asks for this record before the module is built. Issues #1877 to #1879.
 
 ## Context
@@ -83,7 +83,7 @@ investigator read occupational health cases, and the other way round.
    main database (ADR-0003). Every table carries `organisation_id` and
    `programme`, which is one of:
    - `safety`;
-   - `security`;
+   - `aviation_security`;
    - `occupational_health`;
    - `environmental_management`.
 2. **A product and keys per programme.** Each programme is a product in
@@ -97,9 +97,20 @@ investigator read occupational health cases, and the other way round.
    - `<programme>.team.manage`;
    - the `<programme>.read|write` API key scopes.
 
-   Routes are `/cases/org/{programme}/...`. One dependency checks the
-   programme's entitlement and key, so a security investigator holding no
-   safety key gets 403 on safety routes.
+   - Routes are `/cases/org/{programme}/...`, with kebab-case path values
+     (`safety`, `aviation-security`, `occupational-health`,
+     `environmental-management`).
+   - A new dependency maps the path value to the programme, then checks that
+     programme's entitlement and key with the same rules as
+     `require_org_permission`. A security investigator holding no safety key
+     gets 403 on safety routes.
+   - The `<programme>.read|write` API key scopes exist because every product
+     has them. They never return confidential fields or reporter identity.
+   - **Confidential keys are grant-only.** `<programme>.cases.confidential` is
+     never held implicitly by an owner or admin role. It is excluded in
+     `grants.effective_keys`, which amends ADR-0044, and must be granted to a
+     named person. Without this, every organisation admin would see every
+     reporter and all occupational health detail.
 3. **Case lifecycle**, as a transition table in `transitions.py`:
    - `reported`, then `assessing`, then `investigating`, then `actions`, then
      `monitoring`, then `closed`;
@@ -120,8 +131,17 @@ investigator read occupational health cases, and the other way round.
    - A risk assessment is stored with the labels it was made with, so later
      grid edits never rewrite history.
    - Each assessment is either `initial` or `residual` (after controls).
-   - An assessment above "acceptable" needs a recorded acceptance by a holder
-     of the approve key.
+   - Every band has a fixed meaning, `acceptable`, `tolerable` or
+     `intolerable`, in that order. An organisation may relabel and recolour the
+     bands, but not change what they mean. The meaning is stored in each
+     assessment's snapshot.
+   - Following Doc 9859:
+     - an `acceptable` risk needs no acceptance;
+     - a `tolerable` residual risk needs a recorded acceptance by a holder of
+       the approve key;
+     - an `intolerable` risk can never be accepted. The case cannot close
+       while its latest residual assessment is intolerable: the activity
+       stops or is mitigated, and the risk is assessed again.
 5. **Investigation.** One per case, holding:
    - what happened;
    - unsafe acts and unsafe conditions;
@@ -152,9 +172,22 @@ investigator read occupational health cases, and the other way round.
    - Anonymous reports keep no account link at all.
    - History is audited under the organisation's subject. Confidential text is
      marked sensitive in the audit registry.
+   - The audit actor of an anonymous or confidential report is not recorded:
+     the report is written with no actor set, so Barrels staff reading the
+     audit log cannot identify the reporter.
 10. **Links.** The engine registers record kinds `cases.case` and
-    `cases.action`. It posts to the operations log through the outbox only
-    when a case is opened or closed, with no confidential text.
+    `cases.action`.
+    - Their resolvers check the read key of the case's own programme, and hide
+      confidential cases from anyone without the confidential key.
+    - Posting to the operations log, when a case opens or closes, is a
+      per-programme setting. It is on for safety and off by default for
+      aviation security and occupational health, and never carries
+      confidential text.
+11. **Storage rules.**
+    - `programme` is text with a check constraint, not a Postgres enum.
+    - Child tables (assessments, investigation, actions) carry a composite
+      foreign key on `(case_id, organisation_id, programme)`, so a row can
+      never join a case of another organisation or programme.
 
 ## Consequences
 
