@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed 25 November 2026; not built. Follows ADR-0067 decision 6, which
+Accepted 26 November 2026 after four review rounds; not built. Follows ADR-0067 decision 6, which
 asks for this record before the module is built. Issues #1877 to #1879.
 
 ## Context
