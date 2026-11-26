@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { env } from "./env";
 import { type HandoffRequest, handoffRequestFromReturnTo } from "./handoff";
@@ -15,14 +15,15 @@ import { type HandoffRequest, handoffRequestFromReturnTo } from "./handoff";
  * on that GET alone could be triggered by any link. The mark is written only by
  * the emailed-code server action (a same-origin POST the person completed by
  * typing their code on the page that names the app), and it is bound to:
- *   - the account session that sign-in created (its secret is hashed in),
+ *   - the account session that sign-in created (its secret is the HMAC key),
  *   - the app and the exact `state` of the request being signed in for,
- *   - an expiry ten minutes out, the lifetime of the app's own state cookie.
+ *   - an expiry two minutes out: the redirect to /continue follows at once,
+ *     and nothing clears the cookie afterwards, so it is kept short.
  * Without the session secret the value cannot be forged, and it is useless for
  * any other session, app or request.
  */
 const COOKIE_NAME = "auth_join_intent";
-const LIFETIME_SECONDS = 10 * 60;
+const LIFETIME_SECONDS = 120;
 const VALUE = /^(\d{1,15})\.([0-9a-f]{64})$/u;
 
 function proof(
@@ -30,8 +31,9 @@ function proof(
   sessionToken: string,
   expiresAt: number
 ): string {
-  return createHash("sha256")
-    .update([sessionToken, request.app, request.state, expiresAt].join("\n"))
+  // Neither an app key nor a state can hold a newline (see parseHandoffRequest).
+  return createHmac("sha256", sessionToken)
+    .update([request.app, request.state, expiresAt].join("\n"))
     .digest("hex");
 }
 

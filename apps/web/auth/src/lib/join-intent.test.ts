@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -49,7 +50,7 @@ describe("join intent", () => {
     await rememberJoinIntent(RETURN_TO, "account-session");
     expect(jar.get(COOKIE)?.options).toEqual({
       httpOnly: true,
-      maxAge: 600,
+      maxAge: 120,
       path: "/continue",
       sameSite: "strict",
       secure: true,
@@ -79,11 +80,11 @@ describe("join intent", () => {
     ).toBe(false);
   });
 
-  it("is refused once ten minutes have passed, even if the cookie is replayed", async () => {
+  it("is refused once two minutes have passed, even if the cookie is replayed", async () => {
     await rememberJoinIntent(RETURN_TO, "account-session");
-    vi.advanceTimersByTime(9 * 60 * 1000);
+    vi.advanceTimersByTime(119 * 1000);
     expect(await hasJoinIntent(request, "account-session")).toBe(true);
-    vi.advanceTimersByTime(60 * 1000);
+    vi.advanceTimersByTime(1000);
     expect(await hasJoinIntent(request, "account-session")).toBe(false);
   });
 
@@ -92,7 +93,11 @@ describe("join intent", () => {
     const stored = jar.get(COOKIE);
     const [expiresAt = "", proof = ""] = (stored?.value ?? "").split(".");
     const forged = [
-      `${Number(expiresAt) + 300}.${proof}`,
+      `${Number(expiresAt) + 60}.${proof}`,
+      // A plain hash of the same fields is not the keyed proof.
+      `${expiresAt}.${createHash("sha256")
+        .update(["account-session", "bookings", STATE, expiresAt].join("\n"))
+        .digest("hex")}`,
       `${expiresAt}.${"0".repeat(64)}`,
       `${expiresAt}.${proof.slice(0, 32)}`,
       "not-a-mark",
