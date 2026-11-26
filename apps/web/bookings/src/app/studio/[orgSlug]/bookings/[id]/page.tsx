@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import {
   formatDateTime,
   formatMoney,
@@ -10,11 +11,7 @@ import { BookingActions } from "@/components/studio/booking-actions";
 import { ContactButtons } from "@/components/studio/contact-buttons";
 import { RecordDeposit } from "@/components/studio/record-deposit";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import {
-  CARD,
-  CARD_LINK,
-  StudioPageHeader,
-} from "@/components/studio/studio-ui";
+import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import { telHref } from "@/lib/phone";
 import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
@@ -90,7 +87,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         <Link className={CARD_LINK} href={{ pathname: agendaHref }}>
           Back to the agenda
         </Link>
-        <StudioPageHeader
+        <PageHeader
           description={`${formatDateTime(booking.starts_at, zone)} with ${booking.provider_name}`}
           title={booking.service_name}
         />

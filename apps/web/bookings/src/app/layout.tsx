@@ -1,9 +1,9 @@
 import "./globals.css";
 import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 
-import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { RootSkipLink } from "@/components/root-skip-link";
 import { env } from "@/env";
 
 const inter = Inter({
@@ -34,11 +34,13 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // suppressHydrationWarning: the studio's boot script (`@barrelsgd/theme`)
+  // sets display attributes on <html> before hydration.
   return (
-    <html className={inter.variable} lang="en">
+    <html className={inter.variable} lang="en" suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         <PublicEnvScript />
-        <SkipLink />
+        <RootSkipLink />
         {children}
       </body>
     </html>

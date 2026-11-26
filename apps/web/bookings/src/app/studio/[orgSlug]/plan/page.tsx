@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { AppSubscriptionPublic } from "@barrelsgd/api-client";
 import {
   BARRELS_SUPPORT_EMAIL,
@@ -6,7 +7,7 @@ import {
 import type { Metadata } from "next";
 import { StartSubscriptionButton } from "@/components/studio/plan/start-subscription-button";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import { CARD, StudioPageHeader } from "@/components/studio/studio-ui";
+import { CARD } from "@/components/studio/studio-ui";
 import {
   billingFailure,
   billingFailureNeedsReport,
@@ -99,7 +100,7 @@ export default async function PlanPage({
 
   return (
     <div className="space-y-6">
-      <StudioPageHeader title="Plan & billing" />
+      <PageHeader title="Plan & billing" />
 
       {returned ? (
         <p className={`${CARD} text-foreground`} role="status">

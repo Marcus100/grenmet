@@ -1,124 +1,121 @@
+import { AdminShell } from "@barrelsgd/admin-kit/components/admin-shell";
 import { cn } from "@barrelsgd/ui/lib/utils";
+import { CalendarPlus } from "lucide-react";
 import Link from "next/link";
-import { StudioIcon } from "@/components/studio/studio-icons";
-import { StudioSidebarNav, StudioTabBar } from "@/components/studio/studio-nav";
+import { StudioSkipLink } from "@/components/root-skip-link";
 import { FOCUS } from "@/components/studio/studio-ui";
+import { studioNavigation } from "@/lib/studio-navigation";
 
 export interface StudioShellProps {
-  canCreate: boolean;
-  canPlan: boolean;
+  /** Owners and admins: New booking and Plan & billing. */
+  canManage: boolean;
   children: React.ReactNode;
-  /** The business's name; the slug stands in when it could not be read. */
+  /** The business's name; a generic name stands in when it could not be read. */
   name: string;
   orgSlug: string;
   pendingCount: number | null;
   /** The customers' booking page (`/<public slug>`), when the business has one. */
   publicHref: string | null;
-  /** The signed-in person's name. */
-  userName: string;
+  /** The signed-in person. */
+  user: { email: string; name: string };
 }
 
-const LINK =
-  "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 font-medium text-foreground transition-colors duration-[120ms] hover:bg-muted active:bg-muted";
-
-function FooterLinks({
-  publicHref,
-  userName,
-}: Readonly<{ publicHref: string | null; userName: string }>) {
+/** The Barrels Bookings mark: a navy "B", the same in every business's studio. */
+function BookingsMark() {
   return (
-    <div className="space-y-1">
-      <p className="text-foreground/80 truncate px-3 text-sm">{userName}</p>
-      {publicHref ? (
-        <Link className={cn(FOCUS, LINK)} href={{ pathname: publicHref }}>
-          <StudioIcon name="external" />
-          View my page
-        </Link>
-      ) : null}
-      <form action="/auth/logout" method="post">
-        <button className={cn(FOCUS, LINK)} type="submit">
-          <StudioIcon name="sign-out" />
-          Sign out
-        </button>
-      </form>
-    </div>
+    <span
+      aria-hidden="true"
+      className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg text-base font-bold"
+    >
+      B
+    </span>
   );
 }
 
 /**
- * The studio frame, laid out like the staff portal: a fixed left navigation
- * with the business on laptops; on phones a compact top bar and a bottom tab
- * bar. The page itself is the `main` landmark, padded so no bar covers it.
+ * The mark and the business's name. The kit truncates a brand name to one line;
+ * a business name can be long, so it wraps to two lines here and the full name
+ * stays in the tooltip and the link's label.
+ */
+function BusinessBrand({ name }: Readonly<{ name: string }>) {
+  return (
+    <span className="flex min-w-0 items-center gap-2" title={name}>
+      <BookingsMark />
+      <span className="line-clamp-2 min-w-0 text-sm leading-tight font-semibold break-words whitespace-normal">
+        {name}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * The studio frame: the shared admin shell (`@barrelsgd/admin-kit`, ADR-0068)
+ * with the business as the brand, one navigation config filtered by role, the
+ * waiting count on Agenda, New booking in the top bar for owners and admins,
+ * and the phone tab bar. Light only: the studio's own surfaces have no dark
+ * values, so the light/dark switch and the layout controls (which carry the
+ * mode and colour preset) are left out.
  */
 export function StudioShell({
-  canCreate,
-  canPlan,
+  canManage,
   children,
   name,
   orgSlug,
   pendingCount,
   publicHref,
-  userName,
+  user,
 }: Readonly<StudioShellProps>) {
-  const nav = { canCreate, canPlan, orgSlug, pendingCount };
-  const footer = <FooterLinks publicHref={publicHref} userName={userName} />;
   return (
-    <div className="bg-ground min-h-screen">
-      <aside className="border-border bg-background fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r md:flex">
-        <div className="space-y-1 px-5 pt-6 pb-4">
-          <p className="text-foreground text-lg leading-tight font-bold break-words">
-            {name}
-          </p>
-          {publicHref ? (
-            <Link
-              className={cn(
-                FOCUS,
-                "text-primary inline-flex min-h-11 items-center text-sm font-medium break-all underline underline-offset-4"
-              )}
-              href={{ pathname: publicHref }}
-            >
-              {publicHref}
-            </Link>
-          ) : (
-            <p className="text-foreground/80 text-sm">Bookings Studio</p>
-          )}
-        </div>
-        <StudioSidebarNav {...nav} />
-        <div className="border-border border-t px-3 py-3">{footer}</div>
-      </aside>
-
-      <header className="border-border bg-background sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b px-4 md:hidden">
+    <AdminShell
+      brand={{
+        collapsedLogo: <BookingsMark />,
+        hideName: true,
+        href: `/studio/${orgSlug}/agenda`,
+        logo: <BusinessBrand name={name} />,
+        name,
+      }}
+      // On phones the sidebar is a sheet, so the business name sits in the top
+      // bar (it is already in the sidebar from md up).
+      breadcrumb={
         <Link
+          aria-label={`${name}, agenda`}
           className={cn(
             FOCUS,
-            "text-foreground min-w-0 truncate text-base font-bold"
+            "text-foreground flex min-h-11 max-w-[9rem] items-center truncate text-sm font-semibold sm:max-w-[14rem] md:hidden"
           )}
           href={{ pathname: `/studio/${orgSlug}/agenda` }}
+          title={name}
         >
-          {name}
+          <span className="truncate">{name}</span>
         </Link>
-        {canCreate ? (
+      }
+      layoutControls={false}
+      navigation={studioNavigation({
+        canManage,
+        orgSlug,
+        pendingCount,
+        publicHref,
+      })}
+      notifications={
+        canManage ? (
           <Link
+            aria-label="New booking"
             className={cn(
               FOCUS,
-              "bg-primary text-primary-foreground active:bg-primary/80 inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-full px-4 text-sm font-semibold transition-colors duration-[120ms]"
+              "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-primary-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-[120ms] focus-visible:outline-offset-[-3px] [&_svg]:size-4"
             )}
             href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
           >
-            <StudioIcon className="size-4" name="plus" />
-            New booking
+            <CalendarPlus aria-hidden="true" />
+            New<span className="max-sm:hidden">{" booking"}</span>
           </Link>
-        ) : null}
-      </header>
-
-      <main
-        className="w-full px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pt-8 md:pr-8 md:pb-10 md:pl-68"
-        id="main-content"
-      >
-        <div className="mx-auto max-w-4xl">{children}</div>
-      </main>
-
-      <StudioTabBar {...nav} footer={footer} />
-    </div>
+        ) : null
+      }
+      themeSwitcher={false}
+      user={{ user, signOut: { action: "/auth/logout" } }}
+    >
+      <div className="mx-auto w-full max-w-4xl">{children}</div>
+    </AdminShell>
   );
 }
 
@@ -129,6 +126,7 @@ export function StudioPlainFrame({
 }: Readonly<{ children: React.ReactNode; userName?: string }>) {
   return (
     <div className="bg-ground min-h-screen">
+      <StudioSkipLink />
       {userName ? (
         <header className="border-border bg-background border-b">
           <div className="mx-auto flex min-h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 md:px-8">

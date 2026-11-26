@@ -35,6 +35,7 @@ import {
   useState,
 } from "react";
 import { recordDepositAction } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
+import { CARD } from "@/components/studio/studio-ui";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
 import { type PaymentKind, paymentWord, rotatesKey } from "@/lib/studio-view";
@@ -116,10 +117,7 @@ export function RecordDeposit({
   }
 
   return (
-    <section
-      aria-labelledby="deposit-title"
-      className="bg-background space-y-3 rounded-[20px] p-4 sm:p-6"
-    >
+    <section aria-labelledby="deposit-title" className={`${CARD} space-y-3`}>
       <h2 className="text-lg font-semibold" id="deposit-title">
         {word}
       </h2>

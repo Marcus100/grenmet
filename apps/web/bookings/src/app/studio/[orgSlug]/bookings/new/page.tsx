@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import {
   Empty,
   EmptyDescription,
@@ -8,11 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { NewBookingForm } from "@/components/studio/new-booking-form";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import {
-  CARD,
-  CARD_LINK,
-  StudioPageHeader,
-} from "@/components/studio/studio-ui";
+import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import {
   getBusinessProfile,
@@ -82,7 +79,7 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
       <Link className={CARD_LINK} href={{ pathname: agendaHref }}>
         Back to the agenda
       </Link>
-      <StudioPageHeader
+      <PageHeader
         description="For a phone call or a walk-in. The booking is confirmed straight away."
         title="New booking"
       />

@@ -233,26 +233,6 @@ describe("studio agenda", () => {
     }
   });
 
-  it("offers New booking to admins only", async () => {
-    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
-    render(await AgendaPage({ params, searchParams: search() }));
-    expect(
-      screen.queryByRole("link", { name: "New booking" })
-    ).not.toBeInTheDocument();
-    cleanup();
-    vi.mocked(findOrganisation).mockResolvedValue({
-      id: ORG_ID,
-      name: "Sea Salt Spa",
-      slug: "sea-salt",
-      role: "admin",
-    });
-    render(await AgendaPage({ params, searchParams: search() }));
-    expect(screen.getByRole("link", { name: "New booking" })).toHaveAttribute(
-      "href",
-      "/studio/sea-salt/bookings/new"
-    );
-  });
-
   it("says what to do when the day is empty", async () => {
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(
