@@ -432,12 +432,14 @@ def accepted_hold_minutes_for(
     """Pure: how many minutes a request holds its slot for payment once the
     business accepts it. The business's ``deposit_hold_minutes`` (null =
     ``ACCEPTED_HOLD_DEFAULT_MINUTES``), capped at ``ACCEPTED_ONLINE_HOLD_CAP_MINUTES``
-    for a card checkout, and never past the booking's own start (the accept itself
-    is refused inside ``ACCEPT_MIN_MINUTES_TO_START``; at least one minute)."""
+    for a card checkout, never less than ``ACCEPT_MIN_MINUTES_TO_START`` (the accept
+    itself is refused inside that window, so the floor never reaches past the start),
+    and never past the booking's own start (at least one minute)."""
     base = ACCEPTED_HOLD_DEFAULT_MINUTES if profile_minutes is None else profile_minutes
     if online:
         base = min(base, ACCEPTED_ONLINE_HOLD_CAP_MINUTES)
-    return max(min(base, minutes_to_start), 1)
+    floor = min(ACCEPT_MIN_MINUTES_TO_START, minutes_to_start)
+    return max(min(base, minutes_to_start), floor, 1)
 
 
 def hold_started_at(booking: Booking) -> datetime:
@@ -476,12 +478,13 @@ async def snapshot_hold(
     return booking.hold_minutes
 
 
-async def snapshot_accepted_hold(
-    session: AsyncSession, profile: BookingProfile, booking: Booking, now: datetime
+def snapshot_accepted_hold(
+    profile: BookingProfile, booking: Booking, now: datetime, *, online: bool
 ) -> int:
     """Fix the hold of a request the business has just accepted (``accepted_at`` is
-    ``now``): see ``accepted_hold_minutes_for``. Sets ``booking.hold_minutes``."""
-    online = booking.id in await online_held_ids(session, [booking.id])
+    ``now``): see ``accepted_hold_minutes_for``. Sets ``booking.hold_minutes``. It runs
+    before the checkout is made, so ``online`` is whether the checkout will be a card
+    checkout (``stripe_available``), and the checkout can end when the hold does."""
     to_start = int((booking.starts_at - now).total_seconds() // 60)
     booking.hold_minutes = accepted_hold_minutes_for(
         profile.deposit_hold_minutes, online=online, minutes_to_start=to_start
@@ -516,15 +519,28 @@ async def hold_minutes_for_bookings(
     }
 
 
+async def online_payment_open(session: AsyncSession, profile: BookingProfile) -> bool:
+    """May a request accepted now ask the customer to pay online? Only while the
+    business still collects through Barrels and holds the ``payments`` entitlement.
+    Checked at acceptance; a hold already started is then honoured whatever changes."""
+    if collected_by_business(profile):
+        return False
+    return await organisation_service.is_app_enabled(
+        session, organisation_id=profile.organisation_id, app_key="payments"
+    )
+
+
 async def start_deposit(
     session: AsyncSession,
     booking: Booking,
     customer_email: str | None,
     *,
     title: str | None = None,
+    checkout_expires_at: datetime | None = None,
 ) -> str | None:
     """Create the deposit intent. Returns the hosted checkout URL, or None when
-    the studio must record a manual payment."""
+    the studio must record a manual payment. ``checkout_expires_at`` (naive UTC)
+    ends a Stripe checkout at the booking's hold."""
     if stripe_available():
         try:
             async with session.begin_nested():
@@ -536,6 +552,7 @@ async def start_deposit(
                         booking, ProviderKey.STRIPE, customer_email, title
                     ),
                     checkout_title=title,
+                    checkout_expires_at=checkout_expires_at,
                 )
             return result.checkout_url
         except AppException:

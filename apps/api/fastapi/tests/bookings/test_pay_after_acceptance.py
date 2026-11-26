@@ -14,7 +14,7 @@ Service price is 21000 minor and the online deposit 5000 in these tests.
 """
 
 import uuid
-from datetime import timedelta
+from datetime import UTC, timedelta
 from importlib import import_module
 
 import httpx
@@ -32,7 +32,9 @@ from src.bookings import (
 )
 from src.bookings.exceptions import BookingConflictError
 from src.bookings.models import Booking, BookingProfile, BookingStatus, Service
+from src.organisations.models import OrganisationApp
 from src.outbox import Outbox
+from src.payments.exceptions import ProviderUnavailableError
 from src.payments.models import IntentStatus, LedgerEntry
 from src.utils.datetime import utc_now
 from tests.bookings.test_calendar_feed import _feed_path
@@ -157,6 +159,8 @@ def test_only_a_request_can_move_to_awaiting_payment() -> None:
         (10080, False, 20_000, 10080),
         (600, False, 90, 90),  # never past the booking's own start
         (600, False, -5, 1),
+        (5, False, 10_000, 30),  # a business hold under 30 minutes is floored
+        (5, True, 10_000, 30),
     ],
 )
 def test_the_hold_after_acceptance(
@@ -393,6 +397,10 @@ async def test_case_3_a_card_checkout_after_acceptance_is_not_capped_at_two_hour
     assert "Pay now" in text
     # The link opens the manage page, which carries the pay button.
     assert "https://babydoll.example/manage/" in text
+    # The Stripe checkout ends with the hold (accepted now + 600 minutes).
+    ends = (stored.accepted_at + timedelta(minutes=600)).replace(tzinfo=UTC)
+    expires = int(ends.timestamp())
+    assert stripe_env.form()["expires_at"] == str(expires)
 
 
 async def test_case_3_paying_after_acceptance_confirms_and_tells_both_sides(
@@ -784,18 +792,18 @@ async def test_the_hold_follows_the_booking_when_collection_is_switched_to_direc
 ) -> None:
     studio_, receipt = await _request(db_async, async_client, deposit_hold_minutes=90)
     booking_id = receipt["booking"]["id"]
-    # The owner switches to "paid to me" while the request is waiting.
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["status"] == "pending_payment"
+    assert await _intent(db_async, booking_id) is not None
+    # The owner switches to "paid to me" after the business accepted and the
+    # customer was asked to pay. The started hold is still honoured.
     await db_async.execute(
         update(BookingProfile)
         .where(BookingProfile.organisation_id == studio_.org_id)
         .values(deposit_collection="business")
     )
     await db_async.commit()
-
-    accepted = await _accept(async_client, studio_, booking_id)
-    assert accepted.status_code == 200, accepted.text
-    assert accepted.json()["status"] == "pending_payment"
-    assert await _intent(db_async, booking_id) is not None
 
     # The hold is still shown to both sides and still ends.
     view = await _manage(async_client, receipt["manage_token"])
@@ -818,6 +826,81 @@ async def test_the_hold_follows_the_booking_when_collection_is_switched_to_direc
     )
     await db_async.commit()
     assert (await _booking_for(db_async, booking_id)).status == "cancelled"
+
+
+async def test_accepting_after_the_business_switches_to_direct_asks_no_card_payment(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    await db_async.execute(
+        update(BookingProfile)
+        .where(BookingProfile.organisation_id == studio_.org_id)
+        .values(deposit_collection="business")
+    )
+    await db_async.commit()
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    body = accepted.json()
+    assert body["status"] == "confirmed"
+    assert body["accepted_without_payment"] is True
+    # No card intent and no hold: the slot is not blocked by a payment nobody expires.
+    assert await _intent(db_async, booking_id) is None
+    stored = await _booking_for(db_async, booking_id)
+    assert stored.hold_minutes is None
+    late = utc_now() + timedelta(days=2)
+    assert (
+        await deposits.expire_unpaid(db_async, now=late, organisation_id=studio_.org_id)
+        == 0
+    )
+    assert (await _booking_for(db_async, booking_id)).status == "confirmed"
+
+
+async def test_accepting_after_the_payments_entitlement_is_removed_asks_no_card_payment(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    await db_async.execute(
+        update(OrganisationApp)
+        .where(
+            OrganisationApp.organisation_id == studio_.org_id,
+            OrganisationApp.app_key == "payments",
+        )
+        .values(enabled=False)
+    )
+    await db_async.commit()
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["status"] == "confirmed"
+    assert accepted.json()["accepted_without_payment"] is True
+    assert await _intent(db_async, booking_id) is None
+
+
+async def test_a_payment_that_cannot_start_on_acceptance_leaves_the_request_pending(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+
+    async def provider_down(*_args: object, **_kwargs: object) -> str | None:
+        raise ProviderUnavailableError("the provider is down")
+
+    monkeypatch.setattr(deposit_payments, "start_deposit", provider_down)
+    refused = await _accept(async_client, studio_, booking_id)
+    assert refused.status_code == 409, refused.text
+    assert refused.json()["detail"].startswith("The payment could not be started")
+    # Nothing was kept: the request is still pending and Confirm can be tried again.
+    assert (await _booking_for(db_async, booking_id)).status == "pending"
+
+    monkeypatch.undo()
+    retried = await _accept(async_client, studio_, booking_id)
+    assert retried.status_code == 200, retried.text
+    assert retried.json()["status"] == "pending_payment"
 
 
 async def test_an_accepted_request_cannot_be_moved_by_the_customer_until_it_is_paid(

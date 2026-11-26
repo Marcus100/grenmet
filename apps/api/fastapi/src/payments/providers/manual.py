@@ -7,6 +7,7 @@ which is what today's invoice and Events outlet records already are.
 import uuid
 from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from src.payments import transitions
 from src.payments.exceptions import InvalidCallbackError
@@ -25,7 +26,12 @@ class ManualProvider:
     key = ProviderKey.MANUAL.value
 
     async def create_payment(
-        self, _intent: Intent, /, *, title: str | None = None
+        self,
+        _intent: Intent,
+        /,
+        *,
+        title: str | None = None,
+        expires_at: datetime | None = None,
     ) -> PaymentStart:
         return PaymentStart()
 

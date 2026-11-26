@@ -91761,6 +91761,12 @@
             "format": "date-time",
             "title": "Created At"
           },
+          "accepted_without_payment": {
+            "type": "boolean",
+            "title": "Accepted Without Payment",
+            "description": "True only in the response to Confirm on a request that was to be paid online, when online payment was off by then (the payments entitlement or the collection changed). The booking is confirmed with no payment requested; the business agrees how the deposit is paid.",
+            "default": false
+          },
           "deposit_payment_link": {
             "type": "boolean",
             "title": "Deposit Payment Link",

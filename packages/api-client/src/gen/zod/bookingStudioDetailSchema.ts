@@ -84,6 +84,13 @@ export const bookingStudioDetailSchema = z
     cancel_reason: z.union([z.string(), z.null()]),
     cancelled_at: z.union([z.iso.datetime(), z.null()]),
     created_at: z.iso.datetime(),
+    accepted_without_payment: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "True only in the response to Confirm on a request that was to be paid online, when online payment was off by then (the payments entitlement or the collection changed). The booking is confirmed with no payment requested; the business agrees how the deposit is paid."
+      ),
     deposit_payment_link: z
       .boolean()
       .optional()

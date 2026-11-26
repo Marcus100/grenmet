@@ -4,6 +4,7 @@
 import inspect
 import json
 import uuid
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -191,6 +192,19 @@ async def test_create_payment_posts_a_checkout_session(stripe_env: StripeStub) -
     assert form["metadata[intent_id]"] == str(intent.id)
     assert form["payment_intent_data[metadata][intent_id]"] == str(intent.id)
     assert form["success_url"] == "https://example.test/paid"
+
+
+async def test_create_payment_can_end_the_checkout_at_a_time(
+    stripe_env: StripeStub,
+) -> None:
+    intent = _intent(provider_ref=None)
+    # Naive UTC, as every stored time is; Stripe takes Unix seconds.
+    await StripeProvider().create_payment(intent, expires_at=datetime(2026, 11, 27, 9))
+    assert stripe_env.form()["expires_at"] == str(
+        int(datetime(2026, 11, 27, 9, tzinfo=UTC).timestamp())
+    )
+    await StripeProvider().create_payment(intent)
+    assert "expires_at" not in stripe_env.form()
 
 
 async def test_create_payment_needs_return_urls(

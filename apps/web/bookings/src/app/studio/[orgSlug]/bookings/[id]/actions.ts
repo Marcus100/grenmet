@@ -164,8 +164,15 @@ const ACCEPTED_AWAITING_PAYMENT =
 const ACCEPTED_NO_PAY_LINK =
   "Accepted, but the online payment link could not be created. Tell the customer how to pay.";
 
+/** Accepted and confirmed, but online payment was off by then: nothing was asked. */
+const ACCEPTED_WITHOUT_PAYMENT =
+  "Confirmed. Online payment is not on for this business any more, so the customer was not asked to pay. Agree how the deposit is paid, then use Mark deposit received once it is.";
+
 /** What accepting did, when it did not simply confirm the booking. */
 function acceptedMessage(detail: BookingStudioDetail): string | null {
+  if (detail.accepted_without_payment) {
+    return ACCEPTED_WITHOUT_PAYMENT;
+  }
   if (detail.status !== "pending_payment") {
     return null;
   }
@@ -184,6 +191,11 @@ const ACCEPT_REFUSALS: readonly { nextStep: string; start: string }[] = [
   {
     start: "Too close to the start",
     nextStep: "Use Record deposit received, or Cancel booking.",
+  },
+  {
+    start: "The payment could not be started",
+    nextStep:
+      "The request is still pending. Press Confirm again; if it keeps failing, cancel the request.",
   },
 ];
 

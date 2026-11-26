@@ -21,6 +21,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -377,7 +378,12 @@ class StripeProvider:
     # --- PaymentProvider -------------------------------------------------------
 
     async def create_payment(
-        self, intent: Intent, /, *, title: str | None = None
+        self,
+        intent: Intent,
+        /,
+        *,
+        title: str | None = None,
+        expires_at: datetime | None = None,
     ) -> PaymentStart:
         address = return_urls.resolve(
             intent.source_type, intent.source_id, self._config
@@ -400,6 +406,10 @@ class StripeProvider:
             ]
             or intent.source_type,
         }
+        if expires_at is not None:
+            # A checkout the customer cannot pay after the booking's hold ends. Stripe
+            # takes Unix seconds, at least 30 minutes and at most 24 hours ahead.
+            data["expires_at"] = str(int(expires_at.replace(tzinfo=UTC).timestamp()))
         if intent.connected_account_id:
             # Direct charge (ADR-0027, Connect): the Checkout Session lives on the
             # business's account, and the platform fee is taken from that charge.

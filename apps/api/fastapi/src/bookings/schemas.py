@@ -1099,6 +1099,15 @@ class BookingStudioDetail(BaseModel):
     cancel_reason: str | None
     cancelled_at: UtcDateTime | None
     created_at: UtcDateTime
+    accepted_without_payment: bool = Field(
+        default=False,
+        description=(
+            "True only in the response to Confirm on a request that was to be paid "
+            "online, when online payment was off by then (the payments entitlement "
+            "or the collection changed). The booking is confirmed with no payment "
+            "requested; the business agrees how the deposit is paid."
+        ),
+    )
     deposit_payment_link: bool = Field(
         default=False,
         description=(

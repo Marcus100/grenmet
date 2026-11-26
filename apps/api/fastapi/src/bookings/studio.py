@@ -6,6 +6,7 @@ signed-in member, or ``None`` when an API key acts. Another organisation's booki
 id answers 404. Service functions flush; routers commit.
 """
 
+import logging
 import uuid
 from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
@@ -19,6 +20,7 @@ from src.audit import service as audit_service
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import Contact
+from src.exceptions import AppException
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.models import IntentStatus, ProviderKey
@@ -67,7 +69,10 @@ async def get_detail(
 
 
 async def _detail(
-    session: AsyncSession, managed: public.Managed
+    session: AsyncSession,
+    managed: public.Managed,
+    *,
+    accepted_without_payment: bool = False,
 ) -> BookingStudioDetail:
     booking, customer, contact = managed.booking, managed.customer, managed.contact
     events = (
@@ -118,6 +123,7 @@ async def _detail(
         deposit_received_reference=booking.deposit_received_reference,
         pay_after_acceptance=booking.pay_after_acceptance,
         accepted_at=booking.accepted_at,
+        accepted_without_payment=accepted_without_payment,
         deposit_payment_link=(
             intent is not None
             and intent.provider is ProviderKey.STRIPE
@@ -276,18 +282,23 @@ async def confirm(
             raise BookingConflictError(ALREADY_ACCEPTED)
         raise BookingConflictError("This booking is waiting for its deposit")
     moment = now or utc_now()
+    waived = False
     if status is BookingStatus.PENDING and await _payment_due_on_acceptance(
         session, booking
     ):
-        return await _accept_for_payment(
-            session, managed, actor_user_id=actor_user_id, now=moment
-        )
+        if await deposit_payments.online_payment_open(session, managed.profile):
+            return await _accept_for_payment(
+                session, managed, actor_user_id=actor_user_id, now=moment
+            )
+        # Online payment is off now (the entitlement or the collection changed since
+        # the request was made): accept without asking for a card payment, and say so.
+        waived = True
     await public.transition(
         session,
         booking,
         BookingStatus.CONFIRMED,
         actor_user_id=actor_user_id,
-        note="Confirmed by the business",
+        note=WAIVED_NOTE if waived else "Confirmed by the business",
         now=moment,
     )
     booking.accepted_at = moment
@@ -298,9 +309,18 @@ async def confirm(
         f"booking-confirmed:{booking.id}",
     )
     await session.flush()
-    return await _detail(session, managed)
+    return await _detail(session, managed, accepted_without_payment=waived)
 
 
+logger = logging.getLogger(__name__)
+WAIVED_NOTE = (
+    "Accepted without a payment request: online payment is not on for this business "
+    "any more, so the customer was not asked to pay. Agree how the deposit is paid."
+)
+PAYMENT_NOT_STARTED = (
+    "The payment could not be started, so the request is still pending. "
+    "Try Confirm again in a moment."
+)
 TOO_CLOSE_TO_PAY_ONLINE = (
     "Too close to the start to take an online payment. Mark the deposit received "
     "if they have paid you, or cancel the request."
@@ -342,15 +362,28 @@ async def _accept_for_payment(
         now=now,
     )
     booking.accepted_at = now
-    checkout_url = await deposit_payments.start_deposit(
-        session,
-        booking,
-        managed.contact.email,
-        title=deposit_payments.checkout_title(
-            booking, managed.service, profile, booking.deposit_minor
-        ),
+    # The hold is fixed before the checkout is made, so a card checkout ends with it.
+    hold = deposit_payments.snapshot_accepted_hold(
+        profile, booking, now, online=deposit_payments.stripe_available()
     )
-    hold = await deposit_payments.snapshot_accepted_hold(session, profile, booking, now)
+    try:
+        checkout_url = await deposit_payments.start_deposit(
+            session,
+            booking,
+            managed.contact.email,
+            title=deposit_payments.checkout_title(
+                booking, managed.service, profile, booking.deposit_minor
+            ),
+            checkout_expires_at=now + timedelta(minutes=hold),
+        )
+    except AppException as error:
+        # Nothing is kept (the transaction is not committed), so the request is still
+        # pending and Confirm can be tried again.
+        logger.warning(
+            "deposit payment could not start on acceptance",
+            extra={"booking_id": str(booking.id), "error_type": type(error).__name__},
+        )
+        raise BookingConflictError(PAYMENT_NOT_STARTED) from error
     mail = public.build_mail(managed)
     await public.queue_customer_email(
         session,

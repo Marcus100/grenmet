@@ -299,6 +299,13 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
     "Accepted, but the online payment link could not be created. Tell the
     customer how to pay." A second Confirm, or one inside 30 minutes of the
     start, shows the API's own sentence, never the generic conflict text.
+    If online payment went off after the request was made (the payments
+    entitlement or the collection changed), Confirm confirms the booking with no
+    payment asked: "Confirmed. Online payment is not on for this business any more,
+    so the customer was not asked to pay. Agree how the deposit is paid, then use
+    Mark deposit received once it is." If the payment cannot start, the request
+    stays pending: "The payment could not be started ... Press Confirm again; if it
+    keeps failing, cancel the request." 
   - Customer, before acceptance: service row "Deposit EC$50, paid after your
     request is accepted"; form "Nothing to pay now. This is a request: if
     <business> accepts it, we will email you to pay a deposit of EC$50 (the rest
