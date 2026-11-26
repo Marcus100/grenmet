@@ -76,7 +76,7 @@ describe("EmailCodeForm Turnstile", () => {
     fireEvent.change(screen.getByLabelText("Email address"), {
       target: { value: "jane@example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Email me a code" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(sentData().get("turnstile_token")).toBeNull();
   });
@@ -84,7 +84,7 @@ describe("EmailCodeForm Turnstile", () => {
   it("waits for the check, then sends its token with the email", () => {
     siteKey.current = "0xAUTH";
     render(<EmailCodeForm returnTo={null} />);
-    const send = screen.getByRole("button", { name: "Email me a code" });
+    const send = screen.getByRole("button", { name: "Continue" });
     expect(send).toBeDisabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Solve check" }));
@@ -124,6 +124,6 @@ describe("EmailCodeForm Turnstile", () => {
     siteKey.current = "0xAUTH";
     actionState.current = { email: "jane@example.com", step: "code" };
     render(<EmailCodeForm returnTo={null} />);
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
   });
 });

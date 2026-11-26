@@ -5,7 +5,7 @@ Nothing existing changes.
 Hand-written so every constraint and index name is explicit.
 
 Revision ID: casesinvestigation20261126
-Revises: cases20261126
+Revises: usercontactphone20261126
 """
 
 import sqlalchemy as sa
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "casesinvestigation20261126"
-down_revision = "cases20261126"
+down_revision = "usercontactphone20261126"
 branch_labels = None
 depends_on = None
 

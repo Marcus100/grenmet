@@ -6,16 +6,25 @@ issued.
 """
 
 import asyncio
+import logging
 import time
+from collections.abc import Iterator
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
+import resend
 from fakeredis import FakeAsyncRedis
 
+from src import email as email_module
 from src.auth import app_service
 from src.auth.lockout import LoginLockout
+from src.email_config import email_settings
 
 BASE = "/api/v1/auth"
+
+# Captured before conftest swaps send_email for a recorder.
+_real_send_email = email_module.send_email
 
 
 @pytest.mark.asyncio
@@ -86,16 +95,17 @@ async def test_reply_does_not_wait_for_the_mail_provider(
 
 
 @pytest.mark.asyncio
-async def test_subject_line_does_not_carry_the_code(
-    async_client, db_async, monkeypatch
-):
+async def test_subject_line_starts_with_the_code(async_client, db_async, monkeypatch):
     _ = db_async
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     subjects: list[str] = []
 
+    bodies: list[str] = []
+
     def capture(*, email_to, subject, html_content):
-        _ = (email_to, html_content)
+        _ = email_to
         subjects.append(subject)
+        bodies.append(html_content)
 
     monkeypatch.setattr(
         app_service, "email_settings", SimpleNamespace(EMAILS_ENABLED=True)
@@ -108,8 +118,85 @@ async def test_subject_line_does_not_carry_the_code(
         f"{BASE}/email-code/start", json={"email": "subject@example.com"}
     )
     await _drain_code_emails()
-    assert subjects == ["Your sign-in code"]
-    assert "123456" not in subjects[0]
+    # The code leads the subject so a mail app can offer "Copy code".
+    assert subjects == ["123456 is your Barrels code"]
+    # The body keeps the code, its lifetime and the line for an unexpected email.
+    assert "123456" in bodies[0]
+    assert "If you didn't ask for it, ignore this email." in bodies[0]
+    # No link, image or tracking pixel: the email is the code and nothing else.
+    assert "<a " not in bodies[0]
+    assert "<img" not in bodies[0]
+
+
+@pytest.fixture
+def send_logs() -> Iterator[list[logging.LogRecord]]:
+    """Every record the code email's send path can emit. Captured on the loggers
+    themselves: caplog depends on test order (see tests/test_provider_health.py)."""
+    captured: list[logging.LogRecord] = []
+
+    class _Collect(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            captured.append(record)
+
+    handler = _Collect(level=logging.DEBUG)
+    targets = [
+        logging.getLogger(name)
+        for name in ("src.email", "src.auth.app_service", "src.provider_health")
+    ]
+    before = [(target.disabled, target.level) for target in targets]
+    for target in targets:
+        target.disabled = False
+        target.setLevel(logging.DEBUG)
+        target.addHandler(handler)
+    try:
+        yield captured
+    finally:
+        for target, (was_disabled, old_level) in zip(targets, before, strict=True):
+            target.removeHandler(handler)
+            target.disabled = was_disabled
+            target.setLevel(old_level)
+
+
+def _logged_text(records: list[logging.LogRecord]) -> str:
+    """Everything a log handler would write: messages, arguments and tracebacks."""
+    formatter = logging.Formatter()
+    return "\n".join(
+        f"{formatter.format(record)} {record.args!r}" for record in records
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provider_fails", [False, True])
+async def test_sending_the_code_email_never_logs_the_code(
+    monkeypatch, send_logs, provider_fails
+):
+    """The subject starts with the code, so no log line may carry the subject."""
+    sent: list[dict[str, Any]] = []
+
+    def provider(params: dict[str, Any]) -> dict[str, str]:
+        sent.append(dict(params))
+        if provider_fails:
+            raise OSError(f"refused: {params['subject']}")
+        return {"id": "re_1"}
+
+    monkeypatch.setattr(app_service, "send_email", _real_send_email)
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(resend.Emails, "send", provider)
+
+    await app_service._deliver_code_email(
+        email="reader@example.com",
+        app_label="Barrels",
+        code="574554",
+        subject="574554 is your Barrels code",
+    )
+
+    # The provider did get the subject, so the logs below are of a real send.
+    assert sent[0]["subject"] == "574554 is your Barrels code"
+    assert send_logs, "expected the send to log its outcome"
+    logged = _logged_text(send_logs)
+    assert "574554" not in logged
+    assert "is your Barrels code" not in logged
 
 
 @pytest.mark.asyncio

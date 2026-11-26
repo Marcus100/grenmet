@@ -170,6 +170,7 @@ async def test_deletion_scrubs_personal_fields_and_keeps_the_row(
     user.title = Title.MR
     user.phone_e164 = "+14735550123"
     user.phone_verified_at = utc_now()
+    user.contact_phone = "+14735550124"
     user.totp_secret = "fernet-secret-placeholder"
     user.totp_enabled = True
     user.mfa_recovery_hashes = ["0123abcd"]
@@ -196,6 +197,7 @@ async def test_deletion_scrubs_personal_fields_and_keeps_the_row(
     assert anonymous.title is None
     assert anonymous.phone_e164 is None
     assert anonymous.phone_verified_at is None
+    assert anonymous.contact_phone is None
     assert anonymous.totp_secret is None
     assert anonymous.totp_enabled is False
     assert anonymous.mfa_recovery_hashes == []

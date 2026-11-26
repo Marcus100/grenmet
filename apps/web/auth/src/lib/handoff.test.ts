@@ -6,7 +6,13 @@ vi.mock("@barrelsgd/auth/server", () => ({ authApiFetch }));
 vi.mock("./auth-config", () => ({ getAuthConfig: () => ({}) }));
 
 import { AuthApiError } from "@barrelsgd/auth";
-import { continuePath, parseHandoffRequest, startHandoff } from "./handoff";
+import {
+  continuePath,
+  fetchAppLabel,
+  handoffRequestFromReturnTo,
+  parseHandoffRequest,
+  startHandoff,
+} from "./handoff";
 
 const STATE = "s".repeat(32);
 const request = { app: "events", state: STATE };
@@ -21,6 +27,50 @@ describe("parseHandoffRequest", () => {
     expect(parseHandoffRequest("events/../x", STATE)).toBeNull();
     expect(parseHandoffRequest(null, STATE)).toBeNull();
     expect(continuePath(request)).toBe(`/continue?app=events&state=${STATE}`);
+  });
+});
+
+describe("handoffRequestFromReturnTo", () => {
+  it("reads the request only from a local /continue address", () => {
+    expect(handoffRequestFromReturnTo(continuePath(request))).toEqual(request);
+    expect(handoffRequestFromReturnTo("/security")).toBeNull();
+    expect(handoffRequestFromReturnTo(null)).toBeNull();
+    expect(
+      handoffRequestFromReturnTo("/continue?app=events&state=short")
+    ).toBeNull();
+    expect(
+      handoffRequestFromReturnTo(
+        `https://auth.example.com${continuePath(request)}`
+      )
+    ).toBeNull();
+    expect(
+      handoffRequestFromReturnTo(`/continued?app=events&state=${STATE}`)
+    ).toBeNull();
+  });
+});
+
+describe("fetchAppLabel", () => {
+  it("returns the registry's name", async () => {
+    authApiFetch.mockResolvedValueOnce({ label: "Barrels Bookings" });
+    expect(await fetchAppLabel("bookings", 1500)).toBe("Barrels Bookings");
+    expect(authApiFetch.mock.calls[0]?.[1]).toBe("/auth/apps/bookings");
+  });
+
+  it("asks the fetch wrapper for the short timeout through its config", async () => {
+    // The wrapper ignores a caller's abort signal; its timeout is a config
+    // value. The real wait is exercised in app-label-timeout.test.ts.
+    authApiFetch.mockResolvedValue({ label: "Barrels Bookings" });
+    await fetchAppLabel("bookings", 1500);
+    expect(authApiFetch.mock.calls[0]?.[0]).toEqual({ authApiTimeoutMs: 1500 });
+    expect(authApiFetch.mock.calls[0]?.[3]).toBeUndefined();
+
+    await fetchAppLabel("bookings");
+    expect(authApiFetch.mock.calls[1]?.[0]).toEqual({});
+  });
+
+  it("returns null when the API fails", async () => {
+    authApiFetch.mockRejectedValueOnce(new AuthApiError(404, "Unknown app"));
+    expect(await fetchAppLabel("nope")).toBeNull();
   });
 });
 

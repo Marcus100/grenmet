@@ -908,6 +908,146 @@
         ]
       }
     },
+    "/api/v1/auth/users/me/profile": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get my profile",
+        "description": "The signed-in person's own name, email and phone number, for the account app's profile checklist. Accepts an account token or the account app's session; other apps' tokens are refused.",
+        "operationId": "authGetMyProfile",
+        "responses": {
+          "200": {
+            "description": "Profile returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update my profile",
+        "description": "Save the signed-in person's own first name, last name and phone number. A field left out is not changed. The phone number is a contact detail: it is normalised to E.164, nothing is sent, and it is not a sign-in factor; a blank or null phone removes it. Accepts an account token or the account app's session.",
+        "operationId": "authUpdateMyProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many changes; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authupdatemyprofile"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/users/me/email-change/code": {
       "post": {
         "tags": [
@@ -82683,6 +82823,91 @@
         ],
         "title": "AccountEmailCodeStart",
         "description": "The account's code start: also carries the Turnstile token (#959)."
+      },
+      "AccountProfilePublic": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "name_is_placeholder": {
+            "type": "boolean",
+            "title": "Name Is Placeholder"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "first_name",
+          "last_name",
+          "name_is_placeholder"
+        ],
+        "title": "AccountProfilePublic",
+        "description": "The signed-in person's own profile fields, for the account app's checklist."
+      },
+      "AccountProfileUpdate": {
+        "properties": {
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "With the country code, e.g. +1 473 440 1234. Stored as E.164."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AccountProfileUpdate",
+        "description": "The fields a person fills in after a quick sign-up. A field left out is not\nchanged; a blank or null ``phone`` removes the number. A one-word name is\nallowed: the first name is required, the last name may be blank."
       },
       "AccountSecurityPublic": {
         "properties": {
