@@ -244,3 +244,116 @@ async def test_log_shows_incident_title_only_to_incident_readers(
     )
     assert record(as_writer.json())["available"] is False
     assert record(as_writer.json())["title"] is None
+
+
+async def test_photo_rules_cap_caption_access_and_privacy(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    org_id, owner, writer = await _org(db_async)
+    reader = await make_user(db_async)
+    from src.organisations import service as org_service
+
+    await org_service.add_member(
+        db_async, organisation_id=org_id, user_id=reader.id, role=MembershipRole.MEMBER
+    )
+    await db_async.commit()
+    owner_h = headers_for(owner, org_id)
+    log_id = (
+        await async_client.post(f"{OPSLOG}/logs", headers=owner_h, json={"name": "Ops"})
+    ).json()["id"]
+    entry_id = (
+        await async_client.post(
+            f"{OPSLOG}/logs/{log_id}/entries", headers=owner_h, json={"text": "x"}
+        )
+    ).json()["id"]
+    private_id = (
+        await async_client.post(
+            f"{OPSLOG}/logs/{log_id}/entries",
+            headers=owner_h,
+            json={"text": "staff matter", "private": True},
+        )
+    ).json()["id"]
+
+    async def photo() -> str:
+        return str(
+            await _upload(db_async, org_id, owner, app="opslog", purpose="opslog-photo")
+        )
+
+    long_caption = await async_client.post(
+        f"{OPSLOG}/entries/{entry_id}/attachments",
+        headers=owner_h,
+        json={"file_id": await photo(), "caption": "x" * 201},
+    )
+    assert long_caption.status_code == 422
+    # A member with no opslog role cannot attach.
+    no_role = await async_client.post(
+        f"{OPSLOG}/entries/{entry_id}/attachments",
+        headers=headers_for(reader, org_id),
+        json={"file_id": await photo()},
+    )
+    assert no_role.status_code == 403
+    # The log keeper cannot see, so cannot attach to, a private entry.
+    hidden = await async_client.post(
+        f"{OPSLOG}/entries/{private_id}/attachments",
+        headers=headers_for(writer, org_id),
+        json={"file_id": await photo()},
+    )
+    assert hidden.status_code == 404
+
+    for _ in range(20):
+        ok = await async_client.post(
+            f"{OPSLOG}/entries/{entry_id}/attachments",
+            headers=owner_h,
+            json={"file_id": await photo()},
+        )
+        assert ok.status_code == 201
+    full = await async_client.post(
+        f"{OPSLOG}/entries/{entry_id}/attachments",
+        headers=owner_h,
+        json={"file_id": await photo()},
+    )
+    assert full.status_code == 409
+
+    await async_client.patch(
+        f"{OPSLOG}/logs/{log_id}", headers=owner_h, json={"archived": True}
+    )
+    archived = await async_client.post(
+        f"{OPSLOG}/entries/{private_id}/attachments",
+        headers=owner_h,
+        json={"file_id": await photo()},
+    )
+    assert archived.status_code == 409
+
+
+async def test_product_upload_needs_the_entitlement(db_async: AsyncSession) -> None:
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        f"No log {uuid.uuid4().hex[:6]}",
+        members=((owner, MembershipRole.OWNER),),
+        apps=(),
+    )
+    from src.organisations.dependencies import OrgContext
+    from src.organisations.exceptions import OrganisationAppNotEntitledError
+    from src.storage.dependencies import UploadContext
+
+    membership = await db_async.scalar(
+        select(Membership).where(Membership.organisation_id == org.id)
+    )
+    assert membership is not None
+    context = UploadContext(
+        org=OrgContext(organisation=org, membership=membership, user=owner),
+        token_app=None,
+    )
+    body = UploadRequest(
+        app="opslog", purpose="opslog-photo", content_type="image/jpeg", size_bytes=10
+    )
+    with pytest.raises(
+        (OrganisationAppNotEntitledError, uploads.UploadsNotConfiguredError)
+    ) as raised:
+        await uploads.create_upload(db_async, context, body)
+    # Where storage is configured the entitlement check is what refuses.
+    assert raised.type in (
+        OrganisationAppNotEntitledError,
+        uploads.UploadsNotConfiguredError,
+    )

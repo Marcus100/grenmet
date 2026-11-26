@@ -12,6 +12,7 @@ import uuid
 from collections.abc import Sequence
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -36,11 +37,17 @@ async def add_attachment(
     file_id: uuid.UUID,
     caption: str | None,
 ) -> OpsLogAttachment:
+    # Checked first: it opens its own connection, which should not wait on the lock.
+    if not await uploads.file_is_usable(
+        file_id, organisation_id=organisation_id, purpose=PURPOSE
+    ):
+        raise AppValidationError("The photo is not a finished upload for this log")
     entry = await service.visible_entry(
         session,
         organisation_id=organisation_id,
         entry_id=entry_id,
         can_read_private=can_read_private,
+        lock=True,
     )
     log = await service.get_log(
         session, organisation_id=organisation_id, log_id=entry.log_id
@@ -49,10 +56,6 @@ async def add_attachment(
         raise OpsLogConflictError("This log is archived")
     if log.edit_rule == OpsLogEditRule.LOCKED.value:
         raise OpsLogConflictError("This log is locked; entries take no photos")
-    if not await uploads.file_is_usable(
-        file_id, organisation_id=organisation_id, purpose=PURPOSE
-    ):
-        raise AppValidationError("The photo is not a finished upload for this log")
     count = await session.scalar(
         select(func.count())
         .select_from(OpsLogAttachment)
@@ -75,7 +78,11 @@ async def add_attachment(
         added_by=author.id,
     )
     session.add(attachment)
-    await session.flush()
+    try:
+        await session.flush()
+    except IntegrityError as exc:
+        # The unique (entry, file) pair: a second request raced past the check.
+        raise OpsLogConflictError("This photo is already on the entry") from exc
     return attachment
 
 

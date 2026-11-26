@@ -11,6 +11,7 @@ import uuid
 from collections.abc import Sequence
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -34,15 +35,16 @@ async def add_attachment(
     file_id: uuid.UUID,
     caption: str | None,
 ) -> IncidentAttachment:
+    # Checked first: it opens its own connection, which should not wait on the lock.
+    if not await uploads.file_is_usable(
+        file_id, organisation_id=organisation_id, purpose=PURPOSE
+    ):
+        raise AppValidationError("The photo is not a finished upload for incidents")
     incident = await service.get_incident(
         session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status == IncidentStatus.CLOSED.value:
         raise IncidentConflictError("This incident is closed; reopen it to add photos")
-    if not await uploads.file_is_usable(
-        file_id, organisation_id=organisation_id, purpose=PURPOSE
-    ):
-        raise AppValidationError("The photo is not a finished upload for incidents")
     count = await session.scalar(
         select(func.count())
         .select_from(IncidentAttachment)
@@ -68,7 +70,11 @@ async def add_attachment(
         added_by=author.id,
     )
     session.add(attachment)
-    await session.flush()
+    try:
+        await session.flush()
+    except IntegrityError as exc:
+        # The unique (incident, file) pair: a second request raced past the check.
+        raise IncidentConflictError("This photo is already on the incident") from exc
     return attachment
 
 
