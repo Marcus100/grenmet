@@ -38,6 +38,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import apps as auth_apps
 from src.database import async_session_factory
 from src.exceptions import AppException, NotFoundError
+from src.organisations import entitlements
+from src.organisations import service as org_service
 from src.storage import image_metadata, transitions
 from src.storage import service as storage
 from src.storage.dependencies import UploadContext
@@ -67,6 +69,9 @@ BOOKING_LOGO_MAX_PIXELS = 4_000_000
 #: A home page cover is a wide photo shown across a card; 8 megapixels is generous.
 BOOKING_COVER_MAX_PIXELS = 8_000_000
 ORGANISER_LOGO_MAX_PIXELS = 16_000_000
+#: Operational photos (log entries, incidents) are phone photos: 12 megapixels is the
+#: usual size, 24 leaves room for larger sensors without unbounded decoding.
+OPS_PHOTO_MAX_PIXELS = 24_000_000
 
 
 @dataclass(frozen=True)
@@ -104,6 +109,23 @@ PURPOSES: dict[str, Purpose] = {
         public=True,
         strip_metadata=True,
         max_pixels=BOOKING_COVER_MAX_PIXELS,
+    ),
+    # Airport operations (ADR-0067): private evidence photos. Metadata is stripped
+    # (a phone photo carries its GPS position and camera serial); the place is
+    # recorded as text on the record instead.
+    "opslog-photo": Purpose(
+        app="opslog",
+        max_bytes=10 * 1024 * 1024,
+        public=False,
+        strip_metadata=True,
+        max_pixels=OPS_PHOTO_MAX_PIXELS,
+    ),
+    "incident-photo": Purpose(
+        app="incidents",
+        max_bytes=10 * 1024 * 1024,
+        public=False,
+        strip_metadata=True,
+        max_pixels=OPS_PHOTO_MAX_PIXELS,
     ),
 }
 
@@ -149,7 +171,9 @@ def validate_request(body: UploadRequest) -> Purpose:
     purpose = PURPOSES.get(body.purpose)
     if purpose is None:
         raise UploadRejectedError("Unknown upload purpose")
-    if body.app != purpose.app or not auth_apps.is_registered(body.app):
+    if body.app != purpose.app or not (
+        auth_apps.is_registered(body.app) or body.app in entitlements.PRODUCTS
+    ):
         raise UploadRejectedError("That purpose does not belong to this app")
     if body.content_type not in IMAGE_TYPES:
         raise UploadRejectedError("Only JPEG, PNG and WebP images are accepted")
@@ -167,6 +191,11 @@ async def create_upload(
     validate_request(body)
     if context.token_app is not None and context.token_app != body.app:
         raise UploadAppError()
+    if not auth_apps.is_registered(body.app):
+        # A platform product has no sign-in of its own; the organisation must hold it.
+        await org_service.require_app_enabled(
+            session, organisation_id=context.org.organisation_id, app_key=body.app
+        )
     upload_id, key = object_key(
         context.org.organisation_id,
         body.app,

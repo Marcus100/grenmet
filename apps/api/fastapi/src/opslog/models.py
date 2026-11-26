@@ -189,3 +189,38 @@ class OpsLogComment(Base):
     author_id: Mapped[uuid.UUID]
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+def new_attachment_id() -> str:
+    return f"ola_{secrets.token_hex(8)}"
+
+
+class OpsLogAttachment(Base):
+    """A photo added to an entry: the storage upload id only (purpose
+    ``opslog-photo``). Rows are only ever inserted."""
+
+    __tablename__ = "entry_attachment"
+    __table_args__ = (
+        sa.UniqueConstraint("entry_id", "file_id", name="entry_attachment_entry_file"),
+        sa.CheckConstraint(
+            "caption IS NULL OR char_length(caption) BETWEEN 1 AND 200",
+            name="caption",
+        ),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_attachment_id
+    )
+    entry_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.entry.id", ondelete="CASCADE"),
+        index=True,
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    file_id: Mapped[uuid.UUID]
+    caption: Mapped[str | None] = mapped_column(String(200))
+    added_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

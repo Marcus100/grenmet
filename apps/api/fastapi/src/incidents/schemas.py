@@ -167,3 +167,24 @@ class IncidentDetail(IncidentPublic):
     checks: list[IncidentCheckPublic]
     timeline: list[IncidentTimelinePublic]
     notes: list[IncidentNotePublic]
+    attachments: list[IncidentAttachmentPublic] = []
+
+
+class IncidentAttachmentCreate(BaseModel):
+    """A finished ``incident-photo`` upload (``POST /storage/uploads``)."""
+
+    file_id: uuid.UUID
+    caption: str | None = Field(default=None, max_length=200)
+
+
+class IncidentAttachmentPublic(BaseModel):
+    """Read the photo with ``GET /storage/files/{file_id}``."""
+
+    id: str
+    file_id: uuid.UUID
+    caption: str | None
+    added_by: uuid.UUID
+    created_at: UtcDateTime
+
+
+IncidentDetail.model_rebuild()

@@ -75758,6 +75758,132 @@
         }
       }
     },
+    "/api/v1/opslog/org/entries/{entry_id}/attachments": {
+      "post": {
+        "tags": [
+          "opslog"
+        ],
+        "summary": "Add a photo to a log entry",
+        "description": "Upload first with `POST /storage/uploads` (app `opslog`, purpose `opslog-photo`; private, metadata stripped), then attach its id. At most 20 per entry; never changed or removed. Locked and archived logs refuse.",
+        "operationId": "opslogCreateAttachment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpsLogAttachmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsLogAttachmentPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/incidents/org/categories": {
       "get": {
         "tags": [
@@ -77572,6 +77698,132 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/IncidentCheckPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/org/incidents/{incident_id}/attachments": {
+      "post": {
+        "tags": [
+          "incidents"
+        ],
+        "summary": "Add a photo to an incident",
+        "description": "Upload first with `POST /storage/uploads` (app `incidents`, purpose `incident-photo`; private, metadata stripped), then attach its id. At most 50 per incident; never changed or removed. A closed incident refuses (409).",
+        "operationId": "incidentsCreateAttachment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncidentAttachmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentAttachmentPublic"
                 }
               }
             }
@@ -98796,6 +99048,77 @@
         ],
         "title": "ImportStatus"
       },
+      "IncidentAttachmentCreate": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "IncidentAttachmentCreate",
+        "description": "A finished ``incident-photo`` upload (``POST /storage/uploads``)."
+      },
+      "IncidentAttachmentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "added_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Added By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "file_id",
+          "caption",
+          "added_by",
+          "created_at"
+        ],
+        "title": "IncidentAttachmentPublic",
+        "description": "Read the photo with ``GET /storage/files/{file_id}``."
+      },
       "IncidentCategoryCreate": {
         "properties": {
           "name": {
@@ -99379,6 +99702,14 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentAttachmentPublic"
+            },
+            "type": "array",
+            "title": "Attachments",
+            "default": []
           }
         },
         "type": "object",
@@ -105999,6 +106330,77 @@
         ],
         "title": "OnboardingStatus"
       },
+      "OpsLogAttachmentCreate": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "OpsLogAttachmentCreate",
+        "description": "A finished ``opslog-photo`` upload (``POST /storage/uploads``)."
+      },
+      "OpsLogAttachmentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "added_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Added By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "file_id",
+          "caption",
+          "added_by",
+          "created_at"
+        ],
+        "title": "OpsLogAttachmentPublic",
+        "description": "Read the photo with ``GET /storage/files/{file_id}``."
+      },
       "OpsLogCategoryCreate": {
         "properties": {
           "name": {
@@ -106416,6 +106818,14 @@
             },
             "type": "array",
             "title": "Comments"
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/OpsLogAttachmentPublic"
+            },
+            "type": "array",
+            "title": "Attachments",
+            "default": []
           }
         },
         "type": "object",
@@ -106759,6 +107169,22 @@
           "id": {
             "type": "string",
             "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "default": false
           }
         },
         "type": "object",
@@ -106767,7 +107193,7 @@
           "id"
         ],
         "title": "OpsLogRecordRef",
-        "description": "The record another module posted an entry about (ADR-0067)."
+        "description": "The record another module posted an entry about (ADR-0067).\n\n``title`` is filled only when the viewer may see that record; otherwise\n``available`` is false and the screen shows \"record not available\"."
       },
       "OpsLogUpdate": {
         "properties": {

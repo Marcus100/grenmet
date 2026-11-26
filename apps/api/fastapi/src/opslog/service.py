@@ -703,3 +703,19 @@ async def add_automatic_entry(
     session.add(entry)
     await session.flush()
     return entry
+
+
+async def visible_entry(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    entry_id: str,
+    can_read_private: bool,
+) -> OpsLogEntry:
+    """The organisation's entry if the caller may see it; 404 otherwise."""
+    return await _get_entry(
+        session,
+        organisation_id=organisation_id,
+        entry_id=entry_id,
+        can_read_private=can_read_private,
+    )

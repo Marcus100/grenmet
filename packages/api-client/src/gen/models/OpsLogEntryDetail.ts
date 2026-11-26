@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { OpsLogAttachmentPublic } from "./OpsLogAttachmentPublic.js";
 import type { OpsLogCommentPublic } from "./OpsLogCommentPublic.js";
 import type { OpsLogEntrySource } from "./OpsLogEntrySource.js";
 import type { OpsLogRecordRef } from "./OpsLogRecordRef.js";
@@ -33,4 +34,9 @@ export type OpsLogEntryDetail = {
    */
   created_at: string;
   comments: OpsLogCommentPublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  attachments?: OpsLogAttachmentPublic[];
 };

@@ -6571,6 +6571,8 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesT
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
+export { incidentAttachmentCreateSchema } from "./incidentAttachmentCreateSchema.js";
+export { incidentAttachmentPublicSchema } from "./incidentAttachmentPublicSchema.js";
 export { incidentCategoryCreateSchema } from "./incidentCategoryCreateSchema.js";
 export { incidentCategoryListSchema } from "./incidentCategoryListSchema.js";
 export { incidentCategoryPublicSchema } from "./incidentCategoryPublicSchema.js";
@@ -6603,6 +6605,22 @@ export {
   incidentsCloseIncidentStatus409Schema,
   incidentsCloseIncidentStatus422Schema,
 } from "./incidentsCloseIncidentSchema.js";
+export {
+  incidentsCreateAttachmentBodySchema,
+  incidentsCreateAttachmentErrorSchema,
+  incidentsCreateAttachmentHeadersSchema,
+  incidentsCreateAttachmentHeaderXBarrelsOrganisationSchema,
+  incidentsCreateAttachmentPathIncidentIdSchema,
+  incidentsCreateAttachmentPathSchema,
+  incidentsCreateAttachmentResponseSchema,
+  incidentsCreateAttachmentStatus201Schema,
+  incidentsCreateAttachmentStatus400Schema,
+  incidentsCreateAttachmentStatus401Schema,
+  incidentsCreateAttachmentStatus403Schema,
+  incidentsCreateAttachmentStatus404Schema,
+  incidentsCreateAttachmentStatus409Schema,
+  incidentsCreateAttachmentStatus422Schema,
+} from "./incidentsCreateAttachmentSchema.js";
 export {
   incidentsCreateCategoryBodySchema,
   incidentsCreateCategoryErrorSchema,
@@ -7473,6 +7491,8 @@ export { observationSendPropertiesStatusEnumSchema } from "./observationSendProp
 export { observationSendPropertiesTargetEnumSchema } from "./observationSendPropertiesTargetEnumSchema.js";
 export { observationSendSchema } from "./observationSendSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
+export { opsLogAttachmentCreateSchema } from "./opsLogAttachmentCreateSchema.js";
+export { opsLogAttachmentPublicSchema } from "./opsLogAttachmentPublicSchema.js";
 export { opsLogCategoryCreateSchema } from "./opsLogCategoryCreateSchema.js";
 export { opsLogCategoryListSchema } from "./opsLogCategoryListSchema.js";
 export { opsLogCategoryPublicSchema } from "./opsLogCategoryPublicSchema.js";
@@ -7491,6 +7511,22 @@ export { opsLogListSchema } from "./opsLogListSchema.js";
 export { opsLogPublicSchema } from "./opsLogPublicSchema.js";
 export { opsLogRecordRefSchema } from "./opsLogRecordRefSchema.js";
 export { opsLogUpdateSchema } from "./opsLogUpdateSchema.js";
+export {
+  opslogCreateAttachmentBodySchema,
+  opslogCreateAttachmentErrorSchema,
+  opslogCreateAttachmentHeadersSchema,
+  opslogCreateAttachmentHeaderXBarrelsOrganisationSchema,
+  opslogCreateAttachmentPathEntryIdSchema,
+  opslogCreateAttachmentPathSchema,
+  opslogCreateAttachmentResponseSchema,
+  opslogCreateAttachmentStatus201Schema,
+  opslogCreateAttachmentStatus400Schema,
+  opslogCreateAttachmentStatus401Schema,
+  opslogCreateAttachmentStatus403Schema,
+  opslogCreateAttachmentStatus404Schema,
+  opslogCreateAttachmentStatus409Schema,
+  opslogCreateAttachmentStatus422Schema,
+} from "./opslogCreateAttachmentSchema.js";
 export {
   opslogCreateCategoryBodySchema,
   opslogCreateCategoryErrorSchema,

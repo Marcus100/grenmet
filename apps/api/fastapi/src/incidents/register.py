@@ -10,5 +10,5 @@ DOMAIN = Domain(
     mounts=(Mount("incidents.org", "src.incidents.router:router"),),
     schemas=("incidents",),
     model_modules=("src.incidents.models",),
-    registrations=("src.incidents.audit",),
+    registrations=("src.incidents.audit", "src.incidents.record_links"),
 )

@@ -2669,6 +2669,11 @@ export {
   useIncidentsCloseIncident,
 } from "./useIncidentsCloseIncident.js";
 export {
+  incidentsCreateAttachmentMutationKey,
+  incidentsCreateAttachmentMutationOptions,
+  useIncidentsCreateAttachment,
+} from "./useIncidentsCreateAttachment.js";
+export {
   incidentsCreateCategoryMutationKey,
   incidentsCreateCategoryMutationOptions,
   useIncidentsCreateCategory,
@@ -2968,6 +2973,11 @@ export {
   notificationsUpdateNotificationSettingMutationOptions,
   useNotificationsUpdateNotificationSetting,
 } from "./useNotificationsUpdateNotificationSetting.js";
+export {
+  opslogCreateAttachmentMutationKey,
+  opslogCreateAttachmentMutationOptions,
+  useOpslogCreateAttachment,
+} from "./useOpslogCreateAttachment.js";
 export {
   opslogCreateCategoryMutationKey,
   opslogCreateCategoryMutationOptions,
