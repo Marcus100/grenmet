@@ -1223,6 +1223,8 @@ export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js"
 export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
 export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
 export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
+export { bookingCustomerListItemSchema } from "./bookingCustomerListItemSchema.js";
+export { bookingCustomerListSchema } from "./bookingCustomerListSchema.js";
 export { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
 export { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 export { bookingDepositReceivedCreateSchema } from "./bookingDepositReceivedCreateSchema.js";
@@ -1730,6 +1732,22 @@ export {
   bookingsListClosuresStatus404Schema,
   bookingsListClosuresStatus422Schema,
 } from "./bookingsListClosuresSchema.js";
+export {
+  bookingsListCustomersErrorSchema,
+  bookingsListCustomersHeadersSchema,
+  bookingsListCustomersHeaderXBarrelsOrganisationSchema,
+  bookingsListCustomersQueryLimitSchema,
+  bookingsListCustomersQueryOffsetSchema,
+  bookingsListCustomersQueryQSchema,
+  bookingsListCustomersQuerySchema,
+  bookingsListCustomersResponseSchema,
+  bookingsListCustomersStatus200Schema,
+  bookingsListCustomersStatus400Schema,
+  bookingsListCustomersStatus401Schema,
+  bookingsListCustomersStatus403Schema,
+  bookingsListCustomersStatus404Schema,
+  bookingsListCustomersStatus422Schema,
+} from "./bookingsListCustomersSchema.js";
 export {
   bookingsListExceptionsErrorSchema,
   bookingsListExceptionsHeadersSchema,
