@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
+import { CoverPhoto } from "@/components/cover-photo";
 import { ReportListingLink } from "@/components/report-listing-link";
 import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
@@ -100,6 +101,8 @@ export default async function BusinessBookingPage({
   // Older cached payloads may lack these fields: both fall back to the shared
   // tokens and no logo. The accent is checked for contrast before it is used.
   const logo = safeLogoUrl(storefront.logo_url);
+  // The cover photo is a banner above the name. No safe cover: no banner.
+  const cover = safeCoverUrl(storefront.cover_url);
   const transition = businessTransitionStyle(slug);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
@@ -127,6 +130,13 @@ export default async function BusinessBookingPage({
           storefront
         )}
       />
+      {cover ? (
+        <CoverPhoto
+          className="relative aspect-[2/1] max-h-[220px] w-full rounded-2xl md:max-h-[280px]"
+          eager
+          src={cover}
+        />
+      ) : null}
       <header className="space-y-2">
         {visitor ? (
           <div className="flex justify-end">

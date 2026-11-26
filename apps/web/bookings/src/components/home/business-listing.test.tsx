@@ -1,5 +1,5 @@
 import type { BookingPublicBusinessPage } from "@barrelsgd/api-client";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { INK, TYPE_FILL } from "@/lib/business-type-colours";
 import { BusinessListing, cardEntrance, tileOffset } from "./business-listing";
@@ -174,7 +174,7 @@ describe("BusinessListing", () => {
     expect(screen.getByText("Book")).toBeTruthy();
   });
 
-  it("shows the first two featured services in the card, ahead of the cover and the description", () => {
+  it("shows the first two featured services as tiles at the bottom of the card", () => {
     const service = {
       id: "s1",
       name: "Gel manicure",
@@ -182,7 +182,7 @@ describe("BusinessListing", () => {
       currency: "XCD",
       duration_min: 45,
     };
-    const { container } = render(
+    render(
       <BusinessListing
         listing={page({
           items: [
@@ -205,20 +205,88 @@ describe("BusinessListing", () => {
     expect(within(link).getByText("EC$120")).toBeTruthy();
     expect(within(link).getByText("EC$80")).toBeTruthy();
     expect(within(link).queryByText("Third")).toBeNull();
-    // The tiles take the bottom area: no cover photo, no description, no Book pill.
-    expect(container.querySelector("img")).toBeNull();
+    // The tiles take the bottom area: no description and no Book pill.
     expect(screen.queryByText("Book")).toBeNull();
     expect(screen.queryByText("Fades and beards, walk-ins welcome")).toBeNull();
     expect(link.querySelector("a, button")).toBeNull();
   });
 
-  it("falls back to the cover, then the description, when there are no featured services", () => {
-    const { container, rerender } = render(
+  it("shows a cover photo at the top of a card that also has service tiles", () => {
+    const service = {
+      id: "s1",
+      name: "Gel manicure",
+      price_minor: 12_000,
+      currency: "XCD",
+      duration_min: 45,
+    };
+    const { container } = render(
       <BusinessListing
         listing={page({
           items: [
             {
               ...TIDE,
+              cover_url: "https://cdn.example.test/cover.jpg",
+              featured_services: [service],
+            },
+          ],
+        })}
+        query={NO_QUERY}
+      />
+    );
+
+    const link = screen.getByRole("link", { name: TIDE_NAME });
+    const img = container.querySelector("img");
+    expect(img?.getAttribute("src")).toBe("https://cdn.example.test/cover.jpg");
+    expect(img?.getAttribute("alt")).toBe("");
+    // The photo comes before the name in reading order: it sits at the top.
+    const name = within(link).getByRole("heading", { name: "Tide Barbers" });
+    expect(img ? name.compareDocumentPosition(img) : 0).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING
+    );
+    // The tiles stay at the bottom, and the description panel is not shown.
+    expect(within(link).getByText("EC$120")).toBeTruthy();
+    expect(screen.queryByText("Book")).toBeNull();
+    expect(screen.queryByText("Fades and beards, walk-ins welcome")).toBeNull();
+  });
+
+  it("keeps the description panel and no photo for a card with no cover", () => {
+    const { container } = render(
+      <BusinessListing
+        listing={page({ items: [{ ...TIDE, featured_services: [] }] })}
+        query={NO_QUERY}
+      />
+    );
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Book")).toBeTruthy();
+    expect(screen.getByText("Fades and beards, walk-ins welcome")).toBeTruthy();
+  });
+
+  it("shows no photo for an unsafe cover address", () => {
+    for (const cover_url of [
+      "http://cdn.example.test/cover.jpg",
+      "https://user:pass@cdn.example.test/cover.jpg",
+      "javascript:alert(1)",
+    ]) {
+      const { container, unmount } = render(
+        <BusinessListing
+          listing={page({ items: [{ ...TIDE, cover_url }] })}
+          query={NO_QUERY}
+        />
+      );
+      expect(container.querySelector("img")).toBeNull();
+      unmount();
+    }
+  });
+
+  it("removes the photo when it fails to load and keeps the name on the brand fill", () => {
+    const { container } = render(
+      <BusinessListing
+        listing={page({
+          items: [
+            {
+              ...TIDE,
+              brand_color: "#8a1a45",
               cover_url: "https://cdn.example.test/cover.jpg",
               featured_services: [],
             },
@@ -227,14 +295,18 @@ describe("BusinessListing", () => {
         query={NO_QUERY}
       />
     );
-    expect(container.querySelector("img")?.getAttribute("src")).toBe(
-      "https://cdn.example.test/cover.jpg"
-    );
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    if (img) {
+      fireEvent.error(img);
+    }
 
-    rerender(<BusinessListing listing={page()} query={NO_QUERY} />);
     expect(container.querySelector("img")).toBeNull();
+    expect(fillOf(screen.getByRole("link", { name: TIDE_NAME }))).toBe(
+      `background-color: ${rgb("#8a1a45")}`
+    );
+    expect(screen.getByRole("heading", { name: "Tide Barbers" })).toBeTruthy();
     expect(screen.getByText("Book")).toBeTruthy();
-    expect(screen.getByText("Fades and beards, walk-ins welcome")).toBeTruthy();
   });
 
   it("says so when no business is listed yet", () => {
@@ -511,7 +583,7 @@ describe("BusinessListing", () => {
   });
 
   describe("cover photos", () => {
-    it("fills the photo panel with a safe https cover, keeping the logo circle", () => {
+    it("fills the top of the card with a safe https cover, ahead of the logo circle", () => {
       const { container } = render(
         <BusinessListing
           listing={page({
@@ -528,16 +600,18 @@ describe("BusinessListing", () => {
       );
 
       const images = Array.from(container.querySelectorAll("img"));
+      // The photo is the top layer of the card; the logo sits on top of it.
       expect(images.map((image) => image.getAttribute("src"))).toEqual([
-        "https://cdn.example.test/logo.png",
         "https://cdn.example.test/cover.jpg",
+        "https://cdn.example.test/logo.png",
       ]);
-      const cover = images[1];
+      const cover = images[0];
       expect(cover?.getAttribute("alt")).toBe("");
       expect(cover?.getAttribute("class")).toContain("object-cover");
       expect(cover?.getAttribute("referrerpolicy")).toBe("no-referrer");
-      // The white description panel gives way to the photo.
-      expect(screen.queryByText("Book")).toBeNull();
+      expect(cover?.getAttribute("loading")).toBe("lazy");
+      // The bottom area is unchanged: no services, so the description panel stays.
+      expect(screen.getByText("Book")).toBeTruthy();
     });
 
     it("ignores a cover that is not a safe https address and shows the white panel", () => {
