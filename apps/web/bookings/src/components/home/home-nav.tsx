@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AccountControl } from "@/components/account-control";
 
 // Real destinations only. "My bookings" and "Account" live in the account app,
 // whose address this app has no typed setting for, so they are not linked yet.
@@ -47,8 +48,6 @@ const ITEMS = [
   },
 ];
 
-const SIGN_IN = { pathname: "/signin" as const, query: { returnTo: "/" } };
-
 // No display utility here: `hidden` and `inline-flex` in one string both apply and
 // the later one in the stylesheet wins, which showed the laptop mark on phones.
 const ITEM_BASE =
@@ -68,7 +67,7 @@ function Icon({ children }: Readonly<{ children: ReactNode }>) {
   );
 }
 
-/** Floating left rail on laptops: the home mark, the icons and a Sign in pill. */
+/** Floating left rail on laptops: the home mark, the icons and the account control. */
 export function SideRail() {
   return (
     <>
@@ -95,12 +94,7 @@ export function SideRail() {
           </Link>
         ))}
       </nav>
-      <Link
-        className={`${ITEM_BASE} bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex`}
-        href={SIGN_IN}
-      >
-        Sign in
-      </Link>
+      <AccountControl className="bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex" />
     </>
   );
 }
@@ -123,12 +117,9 @@ export function BottomNav() {
           <Icon>{item.icon}</Icon>
         </Link>
       ))}
-      <Link
-        className={`${ITEM} text-secondary-foreground h-12 px-3 text-[13px] font-semibold`}
-        href={SIGN_IN}
-      >
-        Sign in
-      </Link>
+      <AccountControl
+        className={`${ITEM} text-secondary-foreground h-12 text-[13px] font-semibold`}
+      />
     </nav>
   );
 }

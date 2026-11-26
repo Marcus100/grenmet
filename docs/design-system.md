@@ -366,6 +366,10 @@ Avoid hardcoding values that exist in the token set. Run the audit to find drift
 pnpm design-system:audit
 ```
 
+### Account menu (composed)
+
+`AccountMenu` (`@barrelsgd/ui/components/account-menu`) is the corner control every Barrels app shows: a "Sign in" link when signed out, and when signed in a 44 px avatar button that opens the person's name and email, "Manage your Barrels account" (the account app), an optional "Your apps" list and "Sign out". It is presentational: the app reads its own session and env and passes the values and its own `/auth/logout` (or a Server Action) in. Colours come only from semantic tokens, so each lane's theme applies. Bookings is the first app to use it.
+
 ---
 
 ## Lanes
