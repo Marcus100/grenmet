@@ -26,7 +26,11 @@ import {
   type Outcome,
   tellsToContact,
 } from "../lib/booking-errors";
-import { businessDepositOf, lateFeeLine } from "../lib/booking-extras";
+import {
+  businessDepositLaterLine,
+  businessDepositOf,
+  lateFeeLine,
+} from "../lib/booking-extras";
 import {
   type BookingFields,
   type FieldErrors,
@@ -42,7 +46,12 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
-import { payNowLine } from "../lib/booking-payment";
+import {
+  awaitsAcceptance,
+  payAfterAcceptanceLine,
+  payLaterLine,
+  payNowLine,
+} from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type {
   Booked,
@@ -209,7 +218,10 @@ function buttonLabel(
   return needsCode ? "Email me a verification code" : "Request my booking";
 }
 
-function statusLine(status: string): string {
+function statusLine(status: string, payLater: string | null = null): string {
+  if (payLater) {
+    return `Your request is in. ${payLater}`;
+  }
   if (status === "confirmed") {
     return "Your appointment is confirmed.";
   }
@@ -266,7 +278,14 @@ function BookingDone({
         <h2 id="book-done" ref={headingRef} tabIndex={-1}>
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
-        <p>{statusLine(booking.status)}</p>
+        <p>
+          {statusLine(
+            booking.status,
+            awaitsAcceptance(booking)
+              ? payLaterLine(booking.deposit_minor, currency, studioName)
+              : null
+          )}
+        </p>
         {booking.status === "pending_payment" && booking.hold_ends_at ? (
           <p>
             {holdEndsLine(
@@ -897,6 +916,23 @@ function depositRuleFields(
   };
 }
 
+/** What the form says about money online: paid now, or after the business accepts. */
+function moneyLine(
+  payLater: boolean,
+  dueMinor: number,
+  priceMinor: number,
+  storefront: BookingStorefront
+): string | null {
+  return payLater
+    ? payAfterAcceptanceLine(
+        dueMinor,
+        priceMinor,
+        storefront.currency,
+        storefront.display_name
+      )
+    : payNowLine(dueMinor, priceMinor, storefront.currency);
+}
+
 /** What is paid online for the chosen service, and its description. */
 function ServiceNotes({
   businessDeposit,
@@ -917,7 +953,17 @@ function ServiceNotes({
       <div aria-live="polite" role="status">
         {service && payNow && <p className="notice payment-notice">{payNow}</p>}
       </div>
-      {service && businessDeposit && (
+      {service && businessDeposit && service.pay_after_acceptance && (
+        <p className="notice payment-notice deposit-business">
+          {businessDepositLaterLine(
+            businessDeposit.amountNote ? null : businessDeposit.minor,
+            storefront.currency,
+            storefront.display_name,
+            false
+          )}
+        </p>
+      )}
+      {service && businessDeposit && !service.pay_after_acceptance && (
         <DepositToBusiness
           amountNote={businessDeposit.amountNote}
           businessName={storefront.display_name}
@@ -1115,9 +1161,11 @@ function BookingFlowBody({
   const needsCode =
     ((selection?.emailCodeRequired ?? false) && !ownAccountEmail) ||
     (serviceId !== null && codeForced === serviceId);
+  // A request (the business accepts by hand): nothing is paid when it is made.
+  const payLater = service?.pay_after_acceptance === true;
   const payNow =
     service && knownDue !== null && totals
-      ? payNowLine(knownDue, totals.priceMinor, storefront.currency)
+      ? moneyLine(payLater, knownDue, totals.priceMinor, storefront)
       : null;
   const businessDeposit = businessDepositFor(
     storefront,
@@ -1511,6 +1559,7 @@ function BookingFlowBody({
               dueMinor: ruleMoney.dueMinor,
               nonRefundable: storefront.deposit_non_refundable,
               ownDepositMinor: service?.deposit_minor,
+              payAfterAcceptance: payLater,
               priceMinor: totals?.priceMinor,
             }}
           />

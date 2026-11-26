@@ -38,6 +38,10 @@ const NAMED = /please contact Babydoll Beauty Bar/u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
 
+const PAY_BY = /^Pay by .*5 January 2027, 9:00 am/u;
+const HELD_FOR_DEPOSIT = /while we wait for your deposit/u;
+const NOT_RECEIVED = /not received yet/u;
+const STAYS_A_REQUEST = /stays a request until they do/u;
 const booking: BookingPublicDetail = {
   id: "b1",
   status: "confirmed",
@@ -520,7 +524,7 @@ const RX_8 = /Please book at least/u;
 describe("business deposit, late fee and new clients on the manage page", () => {
   const WITH_DEPOSIT: BookingPublicDetail = {
     ...booking,
-    status: "pending",
+    status: "confirmed",
     business_name: "Babydoll Beauty Bar",
     deposit_to_business_minor: 5300,
     deposit_instructions: "Send EC$53 to account 12345.\nUse your name.",
@@ -529,7 +533,7 @@ describe("business deposit, late fee and new clients on the manage page", () => 
   const DEPOSIT_AMOUNT = "Deposit to pay: EC$53";
   const LATE = "Arriving more than 15 minutes late adds a late fee of EC$25.";
 
-  it("shows the deposit, the instructions and the late fee while pending", () => {
+  it("shows the deposit, the instructions and the late fee once accepted", () => {
     renderManage(WITH_DEPOSIT);
     expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
     expect(
@@ -544,9 +548,20 @@ describe("business deposit, late fee and new clients on the manage page", () => 
     expect(screen.getByText(LATE)).toBeVisible();
   });
 
-  it("keeps showing them once confirmed", () => {
-    renderManage({ ...WITH_DEPOSIT, status: "confirmed" });
-    expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
+  it("asks for nothing while the request waits: the amount, no instructions", () => {
+    renderManage({ ...WITH_DEPOSIT, status: "pending" });
+    expect(
+      screen.getByText(
+        "Nothing to pay yet. We will email you when Babydoll Beauty Bar accepts. You then pay a deposit of EC$53 directly to Babydoll Beauty Bar, not through Barrels."
+      )
+    ).toBeVisible();
+    expect(screen.queryByText(DEPOSIT_AMOUNT)).toBeNull();
+    expect(screen.queryByText(RX_2)).toBeNull();
+    expect(
+      screen.queryByRole("heading", {
+        name: "How to pay your deposit to Babydoll Beauty Bar",
+      })
+    ).toBeNull();
     expect(screen.getByText(LATE)).toBeVisible();
   });
 
@@ -589,5 +604,75 @@ describe("business deposit, late fee and new clients on the manage page", () => 
     });
     expect(screen.getByText(RX_7)).toBeVisible();
     expect(screen.queryByText(RX_8)).toBeNull();
+  });
+});
+
+describe("a request paid after the business accepts", () => {
+  const NOTHING_YET =
+    "Nothing to pay yet. We will email you when Babydoll Beauty Bar accepts. You pay then (EC$50).";
+  const ACCEPTED_LINE =
+    "Babydoll Beauty Bar accepted your request. Pay EC$50 to confirm your booking.";
+  const request: BookingPublicDetail = {
+    ...booking,
+    business_name: "Babydoll Beauty Bar",
+    status: "pending",
+    deposit_minor: 5000,
+    pay_after_acceptance: true,
+    new_clients_only: true,
+    payment: null,
+  };
+
+  it("asks for nothing before the business accepts: no Pay now, no hold", () => {
+    renderManage(request);
+    expect(screen.getByText("Waiting for the studio to confirm")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Payment" })).toBeVisible();
+    expect(screen.getByText(NOTHING_YET)).toBeVisible();
+    expect(screen.getByText(STAYS_A_REQUEST)).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Pay now" })).toBeNull();
+    expect(screen.queryByText(PAY_BY)).toBeNull();
+    expect(screen.queryByText(HELD_FOR_DEPOSIT)).toBeNull();
+    expect(screen.queryByText(NOT_RECEIVED)).toBeNull();
+  });
+
+  it("shows the amount, the pay button and the deadline once accepted", () => {
+    renderManage({
+      ...request,
+      status: "pending_payment",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+      hold_minutes: 600,
+      payment: {
+        status: "due",
+        amount_minor: 5000,
+        paid_minor: 0,
+        refunded_minor: 0,
+        balance_at_salon_minor: 17_500,
+        currency: "XCD",
+        checkout_url: "https://checkout.stripe.com/c/pay/cs_test_2",
+      },
+    });
+    expect(
+      screen.getByText("Accepted, waiting for your payment")
+    ).toBeVisible();
+    expect(screen.getByText(ACCEPTED_LINE)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Pay now" })).toHaveAttribute(
+      "href",
+      "https://checkout.stripe.com/c/pay/cs_test_2"
+    );
+    expect(screen.getByText(PAY_BY)).toBeVisible();
+    expect(screen.queryByText(NOTHING_YET)).toBeNull();
+    // It is no longer a request the business still has to answer.
+    expect(screen.queryByText(STAYS_A_REQUEST)).toBeNull();
+  });
+
+  it("leaves a payment at booking as it was", () => {
+    renderManage({
+      ...booking,
+      status: "pending_payment",
+      deposit_minor: 5000,
+      hold_ends_at: "2027-01-05T13:00:00Z",
+    });
+    expect(screen.getByText("Waiting for payment")).toBeVisible();
+    expect(screen.getByText(HELD_FOR_DEPOSIT)).toBeVisible();
+    expect(screen.queryByText(PAY_BY)).toBeNull();
   });
 });

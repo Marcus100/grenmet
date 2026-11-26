@@ -89,6 +89,8 @@ const slots = {
   },
 };
 
+const PAID_AFTER = /EC\$10 deposit, paid after your request is accepted/u;
+const HELD = /Your time is held/u;
 const booking = {
   id: "b1",
   status: "pending" as const,
@@ -1032,5 +1034,62 @@ describe("BookingFlow rules line and full policy", () => {
     unmount();
     renderFlow("", { ...storefront, booking_policy: null });
     expect(screen.queryByText("Full policy")).toBeNull();
+  });
+});
+
+describe("BookingFlow for a request paid after the business accepts", () => {
+  const PAY_LATER =
+    "Nothing to pay now. This is a request: if Test Studio accepts it, we will email you to pay a deposit of EC$10 (the rest is paid at the business).";
+  const REQUEST_IN =
+    "Your request is in. Nothing to pay yet. We will email you when Test Studio accepts. You pay then (EC$50).";
+  const request: BookingStorefront = {
+    ...storefront,
+    services: storefront.services.map((service) => ({
+      ...service,
+      due_at_booking_minor: 1000,
+      pay_after_acceptance: true,
+    })),
+  };
+
+  it("says before submitting that payment follows acceptance, never You pay now", async () => {
+    const user = userEvent.setup();
+    renderFlow("", request);
+    expect(
+      screen.getByText("Deposit EC$10, paid after your request is accepted")
+    ).toBeVisible();
+    await chooseSlot(user);
+    expect(screen.getByText(PAY_LATER)).toBeVisible();
+    expect(screen.getByText(PAID_AFTER)).toBeVisible();
+    expect(screen.queryByText(ANY_PAY_NOW)).not.toBeInTheDocument();
+  });
+
+  it("confirms the request with nothing to pay: no Pay now and no hold", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: {
+        manageToken: "secret-token-value-123",
+        booking: {
+          ...booking,
+          status: "pending",
+          deposit_minor: 5000,
+          pay_after_acceptance: true,
+          payment: null,
+        },
+      },
+    });
+    renderFlow();
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    expect(await screen.findByText(REQUEST_IN)).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Pay now" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Payment" })).toBeNull();
+    expect(screen.queryByText(HELD)).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("href", "/booking/secret-token-value-123");
   });
 });

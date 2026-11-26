@@ -7,11 +7,20 @@ import type { BookingPaymentSummary } from "@barrelsgd/api-client";
 import { formatMoney } from "./booking-format";
 import { depositRefundLine } from "./booking-policy";
 
-/** One line for the manage page and the confirmation. */
-export function paymentLine(payment: BookingPaymentSummary): string {
+/**
+ * One line for the manage page and the confirmation. `accepted`: the business
+ * accepted a request that is paid after acceptance, and names itself.
+ */
+export function paymentLine(
+  payment: BookingPaymentSummary,
+  accepted?: { businessName: string }
+): string {
   const amount = formatMoney(payment.amount_minor, payment.currency);
   switch (payment.status) {
     case "due":
+      if (accepted) {
+        return `${accepted.businessName.trim() || "The business"} accepted your request. Pay ${amount} to confirm your booking.`;
+      }
       return `Payment of ${amount} not received yet. Your time is held until it arrives.`;
     case "paid":
       if (payment.refunded_minor > 0) {
@@ -68,6 +77,64 @@ export function payNowLine(
   return cutoffHours === undefined
     ? deposit
     : `${deposit} ${depositRefundLine(cutoffHours, nonRefundable)}`;
+}
+
+/** A request that is paid by card only after the business accepts it. */
+interface PaidAfterAcceptance {
+  pay_after_acceptance?: boolean;
+  status: string;
+}
+
+/**
+ * The request is in and the business has not answered: nothing is paid or asked
+ * yet, whatever amount the booking carries.
+ */
+export function awaitsAcceptance(booking: PaidAfterAcceptance): boolean {
+  return booking.pay_after_acceptance === true && booking.status === "pending";
+}
+
+/** The business accepted the request and it now waits for the payment. */
+export function acceptedAwaitingPayment(booking: PaidAfterAcceptance): boolean {
+  return (
+    booking.pay_after_acceptance === true &&
+    booking.status === "pending_payment"
+  );
+}
+
+/**
+ * Said before the customer submits a request that is paid after acceptance:
+ * nothing now, and how much follows. Empty when nothing will be due.
+ */
+export function payAfterAcceptanceLine(
+  dueMinor: number,
+  priceMinor: number,
+  currency: string,
+  businessName: string
+): string | null {
+  if (dueMinor <= 0) {
+    return null;
+  }
+  const who = businessName.trim() || "the business";
+  const due = formatMoney(dueMinor, currency);
+  const what =
+    dueMinor >= priceMinor
+      ? `the full price, ${due}`
+      : `a deposit of ${due} (the rest is paid at the business)`;
+  return `Nothing to pay now. This is a request: if ${who} accepts it, we will email you to pay ${what}.`;
+}
+
+/**
+ * On the confirmation and manage page while the request waits for the business:
+ * nothing to pay yet, and what follows.
+ */
+export function payLaterLine(
+  dueMinor: number,
+  currency: string,
+  businessName: string
+): string {
+  const who = businessName.trim() || "the business";
+  const amount = dueMinor > 0 ? ` (${formatMoney(dueMinor, currency)})` : "";
+  return `Nothing to pay yet. We will email you when ${who} accepts. You pay then${amount}.`;
 }
 
 /** The status text for a held booking: paid but not yet confirmed says so. */
