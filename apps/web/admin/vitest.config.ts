@@ -24,6 +24,7 @@ export default defineConfig({
       AUTH_API_URL: "http://localhost:8000",
       AUTH_API_V1_STR: "/api/v1",
       BARRELS_ADMIN_SESSION_COOKIE_NAME: "barrels_admin_session",
+      BOOKINGS_APP_URL: "https://bookings.barrels.gd",
     },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
