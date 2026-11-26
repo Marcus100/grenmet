@@ -204,12 +204,25 @@ async def test_audit_history_loses_the_cleared_values(db_async: AsyncSession) ->
         )
     ).all()
     assert history
-    dump = str([entry.changes for entry in history])
-    assert STREET not in dump
-    assert "2 Old Road" not in dump
-    assert "1990" not in dump
-    assert "1989" not in dump
+    # Check the scrubbed values themselves. A substring search over the whole dump
+    # is not safe: the history also holds the random user ID, and a UUID can contain
+    # a year such as "1989" by chance (flaky CI, issue #1912).
+    changes = [change for entry in history for change in (entry.changes or [])]
+    scrubbed = [
+        change
+        for change in changes
+        if change.get("field") in {"date_of_birth", "line_1"}
+    ]
+    assert scrubbed
+    for change in scrubbed:
+        assert change["old"] is None
+        assert change["new"] is None
+        assert change["scrubbed"] is True
+    values = {str(change.get(key)) for change in changes for key in ("old", "new")}
+    for personal in (STREET, "2 Old Road", DOB.isoformat(), "1989-01-01"):
+        assert personal not in values
     # Entries, field names and non-personal values stay.
+    dump = str([entry.changes for entry in history])
     assert "Grenada" in dump
     assert "female" in dump
     assert "'field': 'line_1'" in dump
