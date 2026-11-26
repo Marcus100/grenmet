@@ -40,6 +40,21 @@ function shell(overrides: Partial<Parameters<typeof StudioShell>[0]> = {}) {
   );
 }
 
+describe("studio shell paused banner", () => {
+  it("is drawn above the page content when paused", () => {
+    render(shell({ paused: true }));
+    expect(screen.getByText("Online booking is paused")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Agenda"
+    );
+  });
+
+  it("is not drawn when not paused", () => {
+    render(shell({ paused: false }));
+    expect(screen.queryByText("Online booking is paused")).toBeNull();
+  });
+});
+
 describe("studio shell", () => {
   it("names the business in the brand and puts the page in main", () => {
     render(shell());

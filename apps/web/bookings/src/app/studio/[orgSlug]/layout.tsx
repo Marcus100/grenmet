@@ -11,6 +11,7 @@ import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
 interface ShellData {
   canManage: boolean;
   name: string | null;
+  paused: boolean;
   pendingCount: number | null;
   publicSlug: string | null;
 }
@@ -28,6 +29,7 @@ async function loadShellData(
   const data: ShellData = {
     canManage: false,
     name: null,
+    paused: false,
     pendingCount: null,
     publicSlug: null,
   };
@@ -38,6 +40,8 @@ async function loadShellData(
     }
     data.name = org.name;
     data.canManage = canManageBookings(org.role);
+    // Read from the same organisation list, so the banner costs no extra call.
+    data.paused = org.paused_at != null;
     const profile = await loadBusinessProfile(accessToken, org.id);
     data.publicSlug = profile.publicSlug ?? null;
     const pending = await loadPendingRequests(
@@ -70,6 +74,7 @@ export default async function OrganisationLayout({
       canManage={data.canManage}
       name={data.name ?? "Barrels Bookings Studio"}
       orgSlug={orgSlug}
+      paused={data.paused}
       pendingCount={data.pendingCount}
       publicHref={data.publicSlug ? `/${data.publicSlug}` : null}
       user={{ email: session.email, name: session.name }}
