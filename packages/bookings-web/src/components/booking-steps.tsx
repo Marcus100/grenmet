@@ -3,7 +3,6 @@
 import type { ReactNode, RefObject } from "react";
 import {
   formatDateTime,
-  formatDay,
   formatDuration,
   formatMoney,
 } from "../lib/booking-format";
@@ -79,8 +78,6 @@ export function StepHeader({
 
 export interface ChosenInput {
   currency: string;
-  /** The day the picker shows, before a time is chosen (YYYY-MM-DD), or null. */
-  day: string | null;
   /** Money paid online when booking, when known. */
   dueMinor: number | null;
   durationMin: number | undefined;
@@ -118,8 +115,9 @@ export function chosenSummary(input: ChosenInput): ChosenSummary {
 }
 
 /**
- * One line for steps 2 and 3: service · day and time. Before a time is chosen
- * the day the picker shows is named, if there is one.
+ * One line for steps 2 and 3: service · day and time. The day is named only
+ * with a chosen time: the picker's own day can differ from one remembered in
+ * the link (a past day, or one with no open times), and must not be claimed.
  */
 export function chosenTrail(input: ChosenInput): string {
   const parts: string[] = [];
@@ -128,8 +126,6 @@ export function chosenTrail(input: ChosenInput): string {
   }
   if (input.startsAt) {
     parts.push(formatDateTime(input.startsAt, input.timeZone));
-  } else if (input.day) {
-    parts.push(formatDay(input.day, true));
   }
   return parts.join(" · ");
 }

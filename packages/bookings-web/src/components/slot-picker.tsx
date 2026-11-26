@@ -25,11 +25,11 @@ interface SlotPickerProps {
   initialDay?: string | null;
   /** Fetches the open slots for the 14 days from `firstDay`. */
   load: (firstDay: string) => Promise<Outcome<SlotList>>;
-  /** Called with the day the visitor picks (YYYY-MM-DD), or null when it is cleared. */
+  /** Called with true while times are loading, false once they have arrived. */
   onBusyChange?: (busy: boolean) => void;
   /** Called with the chosen start (UTC ISO) or null when the choice is cleared. */
   onChange: (startsAt: string | null) => void;
-  /** Called with the day the visitor picks, so the flow can remember it. */
+  /** Called with the day the visitor picks (YYYY-MM-DD), or null when it is cleared, so the flow can remember it. */
   onDayChange?: (day: string | null) => void;
   /** Called when the chosen time is gone from a fresh list (taken, or no longer fits). */
   onUnavailable?: () => void;

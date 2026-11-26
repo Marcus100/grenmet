@@ -5,10 +5,15 @@ import type {
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  readBookingDetails,
+  saveBookingDetails,
+} from "../lib/booking-details-store";
 import type { BookingFlowActions } from "../lib/booking-types";
 import { BookingFlow, type BookingFlowProps } from "./booking-flow";
 
 const CLASSIC_LASHES = /Classic lashes/u;
+const HIDDEN_FROM_RADIO = /Read more|Full policy|Late arrivals/u;
 const BROW_SHAPING = /Brow shaping/u;
 const CODE_WORD = /code/iu;
 
@@ -243,3 +248,80 @@ describe("typed details survive a reload or a trip to sign in", () => {
     expect(window.sessionStorage.length).toBeLessThanOrEqual(1);
   });
 });
+
+describe("remembered details on a shared tab", () => {
+  const SIGNED_IN = {
+    email: "ada@example.com",
+    name: "",
+    phone: "",
+    signOutAction: "/sign-out",
+  };
+
+  it("clears details saved for another email instead of showing them to a signed-in visitor", () => {
+    saveBookingDetails("choices-studio", {
+      email: "someone@example.com",
+      marketing: false,
+      name: "Someone Else",
+      notes: "",
+      phone: "",
+    });
+    renderFlow({ signedIn: SIGNED_IN });
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+    expect(readBookingDetails("choices-studio")).toBeNull();
+  });
+
+  it("restores details saved for the same signed-in email", async () => {
+    saveBookingDetails("choices-studio", {
+      email: "ada@example.com",
+      marketing: false,
+      name: "Ada",
+      notes: "",
+      phone: "",
+    });
+    renderFlow({ signedIn: SIGNED_IN });
+    expect(await screen.findByDisplayValue("Ada")).toBeInTheDocument();
+  });
+});
+
+describe("the chosen-so-far line and the remembered day", () => {
+  it("does not name a remembered day that is in the past", async () => {
+    const user = userEvent.setup();
+    renderFlow({ initialDay: "2026-11-01", initialServiceId: LASHES });
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(trail().textContent).toBe("Classic lashes");
+  });
+
+  it("opens the picker on the day of a remembered time that has no day", async () => {
+    const user = userEvent.setup();
+    renderFlow({ initialServiceId: LASHES, initialStartsAt: TUE });
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(await screen.findByRole("radio", { name: "9:30 am" })).toBeChecked();
+    expect(loadSlots).toHaveBeenCalledWith(LASHES, "2027-01-05");
+  });
+});
+
+describe("the radio's description", () => {
+  it("is the description and facts, not the Read more button or the policy", () => {
+    const storefrontWithPolicy = {
+      ...storefront,
+      booking_policy: "Late arrivals lose their slot.",
+      services: [{ ...lashes, description: "x".repeat(300) }, brows],
+    };
+    renderFlow({ storefront: storefrontWithPolicy, initialServiceId: LASHES });
+    const radio = screen.getByRole("radio", { name: CLASSIC_LASHES });
+    const described = (radio.getAttribute("aria-describedby") ?? "")
+      .split(" ")
+      .map((id) => document.getElementById(id)?.textContent ?? "")
+      .join(" ");
+    expect(described).toContain("1 hr");
+    expect(described).not.toMatch(HIDDEN_FROM_RADIO);
+  });
+});
+
+function trail(): HTMLElement {
+  const found = document.querySelector<HTMLElement>(".book-recap-trail");
+  if (!found) {
+    throw new Error("no trail line");
+  }
+  return found;
+}

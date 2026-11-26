@@ -13,6 +13,25 @@ import { dueAtBooking } from "../lib/booking-payment";
 import { bookingRulesLine } from "../lib/booking-policy";
 import { BookingPolicyText } from "./booking-policy-text";
 
+/** The id of the facts block (duration, price, payment) for a details id. */
+function factsId(id: string): string {
+  return `${id}-facts`;
+}
+
+/**
+ * What the radio reads out as its description: the service's description (when
+ * it has one) and its facts. Not the "Read more" button, add-ons or policy.
+ */
+export function describedBy(
+  id: string,
+  description: string | null | undefined
+): string {
+  const ids = description?.trim()
+    ? [`${id}-description`, factsId(id)]
+    : [factsId(id)];
+  return ids.join(" ");
+}
+
 export interface ServiceDetailsProps {
   /** Add-ons are ticked: the amount then depends on them, so none is stated here. */
   addOnsChosen?: boolean;
@@ -82,21 +101,23 @@ export function ServiceDetails({
   });
 
   return (
-    <div className="service-details" id={id}>
+    <div className="service-details">
       {description ? <Description id={id} text={description} /> : null}
-      <dl className="service-facts">
-        <div>
-          <dt>Duration</dt>
-          <dd>{formatDuration(service.duration_min)}</dd>
-        </div>
-        <div>
-          <dt>Price</dt>
-          <dd>{formatMoney(service.price_minor, storefront.currency)}</dd>
-        </div>
-      </dl>
-      {payment && !addOnsChosen ? (
-        <p className="service-payment">{payment}</p>
-      ) : null}
+      <div id={factsId(id)}>
+        <dl className="service-facts">
+          <div>
+            <dt>Duration</dt>
+            <dd>{formatDuration(service.duration_min)}</dd>
+          </div>
+          <div>
+            <dt>Price</dt>
+            <dd>{formatMoney(service.price_minor, storefront.currency)}</dd>
+          </div>
+        </dl>
+        {payment && !addOnsChosen ? (
+          <p className="service-payment">{payment}</p>
+        ) : null}
+      </div>
       {newClients.map((line) => (
         <p className="service-new-clients" key={line}>
           {line}

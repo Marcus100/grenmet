@@ -1023,9 +1023,18 @@ function BookingFlowBody({
   );
   // The day and time come from the page's link only with a service that is
   // still offered; the picker then checks the time against the live list.
-  const [day, setDay] = useState<string | null>(() =>
-    serviceId ? (initialDay ?? null) : null
-  );
+  // A remembered time without a day names its own day, so the picker opens there.
+  const [day, setDay] = useState<string | null>(() => {
+    if (!serviceId) {
+      return null;
+    }
+    if (initialDay) {
+      return initialDay;
+    }
+    return initialStartsAt
+      ? localDay(initialStartsAt, storefront.timezone)
+      : null;
+  });
   const [startsAt, setStartsAt] = useState<string | null>(() =>
     serviceId ? (initialStartsAt ?? null) : null
   );
@@ -1052,6 +1061,9 @@ function BookingFlowBody({
 
   // The choices live in the page's own link (`?service=`, `?day=`, `?time=`),
   // so a reload or a shared link keeps them. Written in place: no history entry.
+  // Re-run on each step change too: Back and Edit can land on an entry whose
+  // link was written before the latest choice, so the link follows the state.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: step is a trigger only; the link is re-derived from the choices on each step change
   useEffect(() => {
     const here = window.location.href;
     const there = withChoices(here, {
@@ -1062,13 +1074,20 @@ function BookingFlowBody({
     if (there !== here) {
       window.history.replaceState(window.history.state, "", there);
     }
-  }, [day, serviceId, startsAt]);
+  }, [day, serviceId, startsAt, step]);
 
   // What was typed comes back after a reload or a trip to sign in (this tab only).
   // Filled fields are left alone, so a signed-in visitor keeps their own details.
+  // A signed-in visitor only gets details saved for their own account: on a
+  // shared tab, anyone else's are cleared, not shown.
+  const signedInEmail = signedIn?.email;
   useEffect(() => {
     const saved = readBookingDetails(storefront.slug);
     if (!saved) {
+      return;
+    }
+    if (signedInEmail !== undefined && !sameEmail(saved.email, signedInEmail)) {
+      clearBookingDetails(storefront.slug);
       return;
     }
     setName((value) => value || saved.name);
@@ -1076,7 +1095,7 @@ function BookingFlowBody({
     setPhone((value) => value || saved.phone);
     setNotes((value) => value || saved.notes);
     setMarketing((value) => value || saved.marketing);
-  }, [storefront.slug]);
+  }, [storefront.slug, signedInEmail]);
   const [website, setWebsite] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
@@ -1381,7 +1400,6 @@ function BookingFlowBody({
 
   const chosen = {
     currency: storefront.currency,
-    day,
     dueMinor: knownDue,
     durationMin: service?.duration_min,
     priceMinor: totals?.priceMinor,

@@ -13,7 +13,7 @@ import {
   groupServicesByCategory,
   serviceCountLabel,
 } from "../lib/service-categories";
-import { ServiceDetails } from "./service-details";
+import { describedBy, ServiceDetails } from "./service-details";
 
 export interface ServiceListProps {
   /** Add-ons are ticked, so the chosen service's details leave out the amount. */
@@ -51,7 +51,9 @@ function ServiceOption({
     <div className="service-option" data-chosen={chosen ? "true" : undefined}>
       <label className="service-row">
         <input
-          aria-describedby={chosen ? detailsId : undefined}
+          aria-describedby={
+            chosen ? describedBy(detailsId, item.description) : undefined
+          }
           checked={chosen}
           name="service"
           onChange={() => onPick(item.id)}
