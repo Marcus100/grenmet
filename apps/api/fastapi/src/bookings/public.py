@@ -991,6 +991,9 @@ async def _create_booking(
             contact.email,
             title=deposit_payments.checkout_title(booking, svc, profile, deposit),
         )
+        # Fix the hold now, from the route the deposit took: a later profile change
+        # must not move a hold the customer was already told about.
+        await deposit_payments.snapshot_hold(session, profile, booking)
     else:
         mail = build_mail(managed, token)
         confirmed = initial is BookingStatus.CONFIRMED

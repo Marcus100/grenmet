@@ -835,7 +835,9 @@ class BookingAgendaItem(BaseModel):
         default=0,
         description=(
             "The deposit the customer pays the business by hand (`deposit_collection` "
-            "`business`), 0 otherwise. Unpaid until `deposit_received_at` is set."
+            "`business`), 0 otherwise. Unpaid until `deposit_received_at` is set. "
+            "Show it as due only while `status` is `pending` or `confirmed`: the UI "
+            "must check the status too, since a cancelled booking owes nothing."
         ),
     )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)

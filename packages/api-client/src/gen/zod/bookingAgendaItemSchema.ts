@@ -26,7 +26,7 @@ export const bookingAgendaItemSchema = z.object({
     .optional()
     .default(0)
     .describe(
-      "The deposit the customer pays the business by hand (`deposit_collection` `business`), 0 otherwise. Unpaid until `deposit_received_at` is set."
+      "The deposit the customer pays the business by hand (`deposit_collection` `business`), 0 otherwise. Unpaid until `deposit_received_at` is set. Show it as due only while `status` is `pending` or `confirmed`: the UI must check the status too, since a cancelled booking owes nothing."
     ),
   payment_kind: bookingPaymentKindSchema.describe(
     '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'

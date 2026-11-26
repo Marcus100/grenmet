@@ -30,7 +30,7 @@ from src.utils.datetime import utc_now
 from . import deposit_payments, emails, public
 from .config import bookings_settings
 from .exceptions import BookingNotFoundError
-from .models import Booking, BookingProfile, BookingStatus
+from .models import Booking, BookingDepositCollection, BookingProfile, BookingStatus
 
 logger = logging.getLogger(__name__)
 
@@ -126,18 +126,24 @@ async def expire_unpaid(
             BookingProfile.deposit_hold_minutes,
             bookings_settings.DEPOSIT_HOLD_MINUTES,
         )
-        hold = case(
+        # The snapshot taken at creation wins; a booking with none (made before it
+        # existed) uses the profile's value now.
+        fallback = case(
             (
                 online,
                 func.least(profile_hold, deposit_payments.ONLINE_HOLD_CAP_MINUTES),
             ),
             else_=profile_hold,
         )
+        hold = func.coalesce(Booking.hold_minutes, fallback)
     query = (
         select(Booking)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .where(
             Booking.status == BookingStatus.PENDING_PAYMENT.value,
+            # Business-collected deposits are never held (same rule as the read side).
+            BookingProfile.deposit_collection
+            != BookingDepositCollection.BUSINESS.value,
             Booking.created_at + hold * _ONE_MINUTE <= moment,
         )
         .order_by(Booking.created_at)

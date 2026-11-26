@@ -576,6 +576,10 @@ class Booking(Base):
             name="deposit_received_reference",
         ),
         sa.CheckConstraint(
+            "hold_minutes IS NULL OR hold_minutes BETWEEN 1 AND 10080",
+            name="hold_minutes",
+        ),
+        sa.CheckConstraint(
             "blocked_from <= starts_at AND blocked_until >= ends_at", name="blocked"
         ),
         sa.UniqueConstraint(
@@ -628,6 +632,10 @@ class Booking(Base):
     deposit_received_reference: Mapped[str | None] = mapped_column(
         String(100), default=None
     )
+    #: The unpaid-deposit hold (minutes) fixed when the booking entered
+    #: ``pending_payment``: the business's value, capped for an online checkout. Null
+    #: for a booking made before the snapshot existed (the sweeper then computes it).
+    hold_minutes: Mapped[int | None] = mapped_column(default=None)
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
