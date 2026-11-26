@@ -90,6 +90,7 @@ NEW_ORGANISATION_KEYS = {
     "events.team.manage",
     "bookings.agenda.read",
     "bookings.bookings.manage",
+    "bookings.deposits.manage",
     "bookings.settings.manage",
     "bookings.team.manage",
 }

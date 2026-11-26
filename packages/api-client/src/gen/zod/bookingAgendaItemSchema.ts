@@ -26,6 +26,12 @@ export const bookingAgendaItemSchema = z.object({
   ),
   currency: z.string(),
   add_on_names: z.array(z.string()).optional(),
+  deposit_received_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "When staff marked the deposit paid to the business as received."
+    ),
   returning_client: z
     .boolean()
     .optional()

@@ -58,6 +58,10 @@ export type BookingAgendaItem = {
   currency: string;
   add_on_names?: string[];
   /**
+   * @description When staff marked the deposit paid to the business as received.
+   */
+  deposit_received_at?: string | null;
+  /**
    * @description Staff only: a returning client requested a new-clients-only service.
    * @default false
    * @type boolean | undefined

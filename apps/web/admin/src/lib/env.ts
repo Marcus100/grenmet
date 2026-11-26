@@ -13,6 +13,13 @@ export const env = createEnv({
       .string()
       .optional()
       .default("barrels_admin_session"),
+    // Public URL of the Bookings site; listing review links each business to
+    // `<BOOKINGS_APP_URL>/<business slug>` (docs/env.md).
+    BOOKINGS_APP_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3015"),
     // Deployment passes "" when the secret isn't set: treat that as off.
     BARRELS_ADMIN_SSO_CLIENT_SECRET: z.preprocess(
       (value) => value || undefined,
@@ -33,6 +40,7 @@ export const env = createEnv({
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     BARRELS_ADMIN_SESSION_COOKIE_NAME:
       process.env.BARRELS_ADMIN_SESSION_COOKIE_NAME,
+    BOOKINGS_APP_URL: process.env.BOOKINGS_APP_URL,
     BARRELS_ADMIN_SSO_CLIENT_SECRET:
       process.env.BARRELS_ADMIN_SSO_CLIENT_SECRET,
     NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),

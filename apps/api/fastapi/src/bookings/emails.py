@@ -69,6 +69,8 @@ class BookingEmail:
     #: the business's plain-text instructions and the booking's currency.
     deposit_to_business_minor: int = 0
     deposit_instructions: str | None = None
+    #: The business confirmed the deposit arrived: the mail says so instead.
+    deposit_received: bool = False
     currency: str = ""
     #: The late-arrival rule: fee in minor units (None = no fee) and grace minutes.
     late_fee_minor: int | None = None
@@ -113,6 +115,14 @@ def _deposit_due(mail: BookingEmail) -> tuple[tuple[layout.Row, ...], tuple[str,
     when the customer pays the deposit to the business by hand."""
     if mail.deposit_to_business_minor <= 0:
         return (), ()
+    if mail.deposit_received:
+        # Paid and confirmed: no instructions any more, only the fact.
+        return (
+            layout.Row(
+                "Deposit received",
+                money_text(mail.deposit_to_business_minor, mail.currency),
+            ),
+        ), ()
     row = layout.Row(
         "Deposit to pay", money_text(mail.deposit_to_business_minor, mail.currency)
     )

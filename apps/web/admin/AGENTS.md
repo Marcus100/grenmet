@@ -23,6 +23,7 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   `organisations/printix-actions.ts` proxy `/printix/admin/organisations/...`
   (`lib/printix-form.ts` for validation and notice codes). Guide:
   `docs/operations/printix-onboarding.md`.
+- **Bookings listings (ADR-0066).** `/bookings/listings` (queues Waiting, Approved, Flagged, All; paginated) lists `GET /bookings/admin/listing-reviews`. Approve and Withdraw are confirmed server actions (`bookings/listings/actions.ts`) that proxy `/bookings/admin/businesses/{id}/listing/*`; 409 and 403 show written notices. Needs `bookings.listing.approve`.
 - **Moderation (organiser verification).** `/moderation` (queue with
   Pending/Approved/Rejected tabs, paginated) and `/moderation/[id]` (case,
   owners, history), linked from the console nav. Reads and decisions proxy

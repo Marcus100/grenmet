@@ -5,7 +5,7 @@ storage upload id (``org.upload``, no foreign key: the upload table belongs to t
 storage domain), an optional caption and who added it.
 
 Revision ID: opsattach20261125
-Revises: incidents20261125
+Revises: bookingdepositreceived20261125
 """
 
 import sqlalchemy as sa
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "opsattach20261125"
-down_revision = "incidents20261125"
+down_revision = "bookingdepositreceived20261125"
 branch_labels = None
 depends_on = None
 

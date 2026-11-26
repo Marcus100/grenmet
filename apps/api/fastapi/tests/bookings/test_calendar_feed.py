@@ -675,3 +675,25 @@ async def test_a_name_that_is_an_e_mail_never_reaches_the_feed(
     assert event["SUMMARY"] == "Classic full set"
     assert "ada.private" not in text
     assert "@example.com" not in text
+
+
+async def test_a_deposit_receipt_does_not_bump_the_feed_sequence(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # Staff record a deposit paid to the business: the history row is staff only, so
+    # the calendar feed sends no update (issue #1869).
+    salon = await _salon(db_async, async_client)
+    url = await _create_feed(async_client, salon)
+    booking = await _book(async_client, salon, _in_days(2))
+    await _set_booking(db_async, booking, deposit_to_business_minor=5000)
+    before = _events((await async_client.get(_feed_path(url))).text)[_uid(booking)]
+
+    marked = await async_client.post(
+        f"{API}/org/bookings/{booking}/deposit-received",
+        headers=salon.headers,
+        json={"method": "cash"},
+    )
+    assert marked.status_code == 200, marked.text
+
+    after = _events((await async_client.get(_feed_path(url))).text)[_uid(booking)]
+    assert after["SEQUENCE"] == before["SEQUENCE"]

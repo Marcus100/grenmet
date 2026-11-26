@@ -76,9 +76,15 @@ export type BookingPublicDetail = {
    */
   deposit_to_business_minor?: number;
   /**
-   * @description How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0.
+   * @description How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0 and it is not yet received.
    */
   deposit_instructions?: string | null;
+  /**
+   * @description The business has confirmed the deposit paid to it by hand (`deposit_to_business_minor`) arrived. Show it as paid; no method or reference is shown to the customer.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_received?: boolean;
   /**
    * @description The late-arrival fee rule, or null when none.
    */
