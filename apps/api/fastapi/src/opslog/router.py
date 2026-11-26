@@ -18,14 +18,17 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, status
 
+from src import record_links
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations import grants
 from src.organisations.dependencies import OrgContext, require_org_permission
 
-from . import service
-from .models import OpsLogEntrySource
+from . import attachments, service
+from .models import OpsLogEntry, OpsLogEntrySource
 from .schemas import (
+    OpsLogAttachmentCreate,
+    OpsLogAttachmentPublic,
     OpsLogCategoryCreate,
     OpsLogCategoryList,
     OpsLogCategoryPublic,
@@ -68,11 +71,47 @@ async def _can_private(session: SessionDep, org: OrgContext) -> bool:
     )
 
 
-def _entry(view: service.EntryView) -> OpsLogEntryPublic:
+def _ref(entry: OpsLogEntry) -> tuple[str, str] | None:
+    if entry.source_kind is None or entry.source_id is None:
+        return None
+    return entry.source_kind, entry.source_id
+
+
+async def _links(
+    session: SessionDep, org: OrgContext, views: list[service.EntryView]
+) -> dict[tuple[str, str], record_links.RecordLink]:
+    refs = [ref for v in views if (ref := _ref(v.entry)) is not None]
+    if not refs:
+        return {}
+    return await record_links.resolve(
+        session,
+        organisation_id=org.organisation_id,
+        membership=org.membership,
+        refs=refs,
+    )
+
+
+async def _entries(
+    session: SessionDep, org: OrgContext, views: list[service.EntryView]
+) -> list[OpsLogEntryPublic]:
+    links = await _links(session, org, views)
+    return [_entry(v, links) for v in views]
+
+
+def _entry(
+    view: service.EntryView, links: dict[tuple[str, str], record_links.RecordLink]
+) -> OpsLogEntryPublic:
     entry = view.entry
+    ref = _ref(entry)
+    link = links.get(ref) if ref is not None else None
     record = (
-        OpsLogRecordRef(kind=entry.source_kind, id=entry.source_id)
-        if entry.source_kind is not None and entry.source_id is not None
+        OpsLogRecordRef(
+            kind=ref[0],
+            id=ref[1],
+            title=link.title if link else None,
+            available=link is not None,
+        )
+        if ref is not None
         else None
     )
     return OpsLogEntryPublic(
@@ -294,7 +333,9 @@ async def list_entries(
         cursor=cursor,
     )
     return OpsLogEntryPage(
-        data=[_entry(v) for v in views], limit=limit, next_cursor=next_cursor
+        data=await _entries(session, org, views),
+        limit=limit,
+        next_cursor=next_cursor,
     )
 
 
@@ -322,7 +363,8 @@ async def create_entry(
         payload=payload,
     )
     await session.commit()
-    return _entry(view)
+    [public] = await _entries(session, org, [view])
+    return public
 
 
 @router.get(
@@ -341,7 +383,12 @@ async def get_entry(*, session: SessionDep, org: OpsLogReader, entry_id: str) ->
         can_read_private=await _can_private(session, org),
     )
     return OpsLogEntryDetail(
-        **_entry(view).model_dump(), comments=[_comment(c) for c in comments]
+        **(await _entries(session, org, [view]))[0].model_dump(),
+        comments=[_comment(c) for c in comments],
+        attachments=[
+            OpsLogAttachmentPublic.model_validate(a, from_attributes=True)
+            for a in await attachments.for_entry(session, view.entry.id)
+        ],
     )
 
 
@@ -373,7 +420,8 @@ async def update_entry(
         payload=payload,
     )
     await session.commit()
-    return _entry(view)
+    [public] = await _entries(session, org, [view])
+    return public
 
 
 @router.post(
@@ -402,3 +450,36 @@ async def create_comment(
     )
     await session.commit()
     return _comment(view)
+
+
+@router.post(
+    "/org/entries/{entry_id}/attachments",
+    response_model=OpsLogAttachmentPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a photo to a log entry",
+    description=(
+        "Upload first with `POST /storage/uploads` (app `opslog`, purpose "
+        "`opslog-photo`; private, metadata stripped), then attach its id. At most "
+        "20 per entry; never changed or removed. Locked and archived logs refuse."
+    ),
+    operation_id="opslogCreateAttachment",
+    responses=WRITE_ERRORS,
+)
+async def create_attachment(
+    *,
+    session: SessionDep,
+    org: OpsLogWriter,
+    entry_id: str,
+    payload: OpsLogAttachmentCreate,
+) -> Any:
+    attachment = await attachments.add_attachment(
+        session,
+        organisation_id=org.organisation_id,
+        entry_id=entry_id,
+        author=org.user,
+        can_read_private=await _can_private(session, org),
+        file_id=payload.file_id,
+        caption=payload.caption,
+    )
+    await session.commit()
+    return OpsLogAttachmentPublic.model_validate(attachment, from_attributes=True)

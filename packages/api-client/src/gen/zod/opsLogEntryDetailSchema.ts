@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { opsLogAttachmentPublicSchema } from "./opsLogAttachmentPublicSchema.js";
 import { opsLogCommentPublicSchema } from "./opsLogCommentPublicSchema.js";
 import { opsLogEntrySourceSchema } from "./opsLogEntrySourceSchema.js";
 import { opsLogRecordRefSchema } from "./opsLogRecordRefSchema.js";
@@ -24,4 +25,5 @@ export const opsLogEntryDetailSchema = z.object({
   edited_at: z.union([z.iso.datetime(), z.null()]),
   created_at: z.iso.datetime(),
   comments: z.array(opsLogCommentPublicSchema),
+  attachments: z.array(opsLogAttachmentPublicSchema).optional().default([]),
 });

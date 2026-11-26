@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { IncidentAttachmentPublic } from "./IncidentAttachmentPublic.js";
 import type { IncidentCheckPublic } from "./IncidentCheckPublic.js";
 import type { IncidentNotePublic } from "./IncidentNotePublic.js";
 import type { IncidentStatus } from "./IncidentStatus.js";
@@ -53,4 +54,9 @@ export type IncidentDetail = {
   checks: IncidentCheckPublic[];
   timeline: IncidentTimelinePublic[];
   notes: IncidentNotePublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  attachments?: IncidentAttachmentPublic[];
 };

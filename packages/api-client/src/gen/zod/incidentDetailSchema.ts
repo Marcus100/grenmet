@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { incidentAttachmentPublicSchema } from "./incidentAttachmentPublicSchema.js";
 import { incidentCheckPublicSchema } from "./incidentCheckPublicSchema.js";
 import { incidentNotePublicSchema } from "./incidentNotePublicSchema.js";
 import { incidentStatusSchema } from "./incidentStatusSchema.js";
@@ -30,6 +31,7 @@ export const incidentDetailSchema = z
     checks: z.array(incidentCheckPublicSchema),
     timeline: z.array(incidentTimelinePublicSchema),
     notes: z.array(incidentNotePublicSchema),
+    attachments: z.array(incidentAttachmentPublicSchema).optional().default([]),
   })
   .describe(
     "Checks in order, the timeline oldest first, notes oldest first. Private\nnotes appear only for holders of ``incidents.incidents.private``."

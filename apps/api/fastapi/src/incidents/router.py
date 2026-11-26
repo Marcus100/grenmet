@@ -24,7 +24,7 @@ from src.organisations import grants
 from src.organisations.dependencies import OrgContext, require_org_permission
 from src.pagination import PaginationDep
 
-from . import service
+from . import attachments, service
 from .exceptions import IncidentForbiddenError
 from .models import (
     Incident,
@@ -35,6 +35,8 @@ from .models import (
     IncidentTimelineKind,
 )
 from .schemas import (
+    IncidentAttachmentCreate,
+    IncidentAttachmentPublic,
     IncidentCategoryCreate,
     IncidentCategoryList,
     IncidentCategoryPublic,
@@ -156,13 +158,23 @@ def _detail(view: service.IncidentDetailView) -> IncidentDetail:
     )
 
 
+async def _with_attachments(
+    session: SessionDep, detail: IncidentDetail
+) -> IncidentDetail:
+    rows = await attachments.for_incident(session, detail.id)
+    detail.attachments = [
+        IncidentAttachmentPublic.model_validate(a, from_attributes=True) for a in rows
+    ]
+    return detail
+
+
 async def _detail_response(
     session: SessionDep, org: OrgContext, incident: Incident
 ) -> IncidentDetail:
     view = await service.detail_of(
         session, incident, can_read_private=await _can_private(session, org)
     )
-    return _detail(view)
+    return await _with_attachments(session, _detail(view))
 
 
 # --- categories -------------------------------------------------------------------
@@ -366,7 +378,7 @@ async def get_incident(
         incident_id=incident_id,
         can_read_private=await _can_private(session, org),
     )
-    return _detail(view)
+    return await _with_attachments(session, _detail(view))
 
 
 @router.patch(
@@ -571,3 +583,35 @@ async def update_check(
     )
     await session.commit()
     return IncidentCheckPublic.model_validate(check, from_attributes=True)
+
+
+@router.post(
+    "/org/incidents/{incident_id}/attachments",
+    response_model=IncidentAttachmentPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a photo to an incident",
+    description=(
+        "Upload first with `POST /storage/uploads` (app `incidents`, purpose "
+        "`incident-photo`; private, metadata stripped), then attach its id. At most "
+        "50 per incident; never changed or removed. A closed incident refuses (409)."
+    ),
+    operation_id="incidentsCreateAttachment",
+    responses=WRITE_ERRORS,
+)
+async def create_attachment(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    payload: IncidentAttachmentCreate,
+) -> Any:
+    attachment = await attachments.add_attachment(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        author=org.user,
+        file_id=payload.file_id,
+        caption=payload.caption,
+    )
+    await session.commit()
+    return IncidentAttachmentPublic.model_validate(attachment, from_attributes=True)

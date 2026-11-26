@@ -12,6 +12,9 @@ import {
   type BookingAgenda,
   type BookingCalendarFeedLink,
   type BookingCalendarFeedStatus,
+  type BookingClosureCreate,
+  type BookingClosureCreated,
+  type BookingClosurePublic,
   type BookingDepositReceivedMethod,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
@@ -36,17 +39,20 @@ import {
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
   bookingsCreateCalendarFeed,
+  bookingsCreateClosure,
   bookingsCreateException,
   bookingsCreateProvider,
   bookingsCreateService,
   bookingsCreateStudioBooking,
   bookingsDeclineStudioBooking,
+  bookingsDeleteClosure,
   bookingsDeleteException,
   bookingsGetAgenda,
   bookingsGetCalendarFeedStatus,
   bookingsGetProfile,
   bookingsGetSettings,
   bookingsGetStudioBooking,
+  bookingsListClosures,
   bookingsListExceptions,
   bookingsListMyOrganisations,
   bookingsListProviders,
@@ -654,6 +660,51 @@ export function replaceHours(
     body: { periods },
   })
     .unwrap()
+    .catch(redactRequest);
+}
+
+// --- closed days (whole-business closures, BK-20) ----------------------------------
+// Every provider is closed on these local days. Existing bookings inside a new
+// closure are reported back, never cancelled.
+
+/** The business's closures, earliest first. `size` is the API's page limit (1000 at most). */
+export function listClosures(
+  accessToken: string,
+  organisationId: string,
+  size: number
+): Promise<BookingClosurePublic[]> {
+  return bookingsListClosures({
+    client: studioClient(accessToken, organisationId),
+    query: { size },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function createClosure(
+  accessToken: string,
+  organisationId: string,
+  body: BookingClosureCreate
+): Promise<BookingClosureCreated> {
+  return bookingsCreateClosure({
+    client: studioClient(accessToken, organisationId),
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function deleteClosure(
+  accessToken: string,
+  organisationId: string,
+  closureId: string
+): Promise<void> {
+  return bookingsDeleteClosure({
+    client: studioClient(accessToken, organisationId),
+    path: { closure_id: closureId },
+  })
+    .unwrap()
+    .then(() => undefined)
     .catch(redactRequest);
 }
 

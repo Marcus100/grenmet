@@ -91,10 +91,15 @@ class OpsLogEntryUpdate(BaseModel):
 
 
 class OpsLogRecordRef(BaseModel):
-    """The record another module posted an entry about (ADR-0067)."""
+    """The record another module posted an entry about (ADR-0067).
+
+    ``title`` is filled only when the viewer may see that record; otherwise
+    ``available`` is false and the screen shows "record not available"."""
 
     kind: str
     id: str
+    title: str | None = None
+    available: bool = False
 
 
 class OpsLogEntryPublic(BaseModel):
@@ -135,5 +140,23 @@ class OpsLogCommentPublic(BaseModel):
     created_at: UtcDateTime
 
 
+class OpsLogAttachmentCreate(BaseModel):
+    """A finished ``opslog-photo`` upload (``POST /storage/uploads``)."""
+
+    file_id: uuid.UUID
+    caption: str | None = Field(default=None, max_length=200)
+
+
+class OpsLogAttachmentPublic(BaseModel):
+    """Read the photo with ``GET /storage/files/{file_id}``."""
+
+    id: str
+    file_id: uuid.UUID
+    caption: str | None
+    added_by: uuid.UUID
+    created_at: UtcDateTime
+
+
 class OpsLogEntryDetail(OpsLogEntryPublic):
     comments: list[OpsLogCommentPublic]
+    attachments: list[OpsLogAttachmentPublic] = []

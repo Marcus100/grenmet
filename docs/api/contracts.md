@@ -3550,3 +3550,20 @@ Another organisation's records are 404.
 - Opening, closing and reopening enqueue `opslog.entry_post` with record
   `incidents.incident`, so the operations log gets an automatic entry when the
   organisation has it.
+
+## Operations photos and record links (ADR-0067)
+
+- Photos: upload with `POST /storage/uploads` (app `opslog`, purpose `opslog-photo`, or
+  app `incidents`, purpose `incident-photo`; JPEG, PNG or WebP up to 10 MB; private;
+  metadata stripped on completion; the organisation must hold the product), then attach
+  the id with `POST /opslog/org/entries/{entry_id}/attachments` or
+  `POST /incidents/org/incidents/{incident_id}/attachments` (`file_id`, optional
+  `caption`). A pending upload, another organisation's file or another purpose is 422;
+  a duplicate is 409. Entry and incident details list `attachments`; read each photo
+  with `GET /storage/files/{file_id}`. Attachments are never changed or removed;
+  locked or archived logs and closed incidents refuse them (409).
+- Record links (`src/record_links.py`): a domain that owns a record kind registers a
+  resolver; a domain that shows a `(kind, id)` reference asks for its title. Operations
+  log entries return `record.title` and `record.available`; the title is filled only
+  for a viewer who may see the record (for `incidents.incident`, a holder of
+  `incidents.incidents.read`), otherwise `available` is false.

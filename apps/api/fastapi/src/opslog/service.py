@@ -461,13 +461,15 @@ async def _get_entry(
     organisation_id: str,
     entry_id: str,
     can_read_private: bool,
+    lock: bool = False,
 ) -> OpsLogEntry:
-    entry = await session.scalar(
-        select(OpsLogEntry).where(
-            OpsLogEntry.id == entry_id,
-            OpsLogEntry.organisation_id == organisation_id,
-        )
+    query = select(OpsLogEntry).where(
+        OpsLogEntry.id == entry_id,
+        OpsLogEntry.organisation_id == organisation_id,
     )
+    if lock:
+        query = query.with_for_update()
+    entry = await session.scalar(query)
     if entry is None or (entry.private and not can_read_private):
         raise OpsLogEntryNotFoundError()
     return entry
@@ -703,3 +705,22 @@ async def add_automatic_entry(
     session.add(entry)
     await session.flush()
     return entry
+
+
+async def visible_entry(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    entry_id: str,
+    can_read_private: bool,
+    lock: bool = False,
+) -> OpsLogEntry:
+    """The organisation's entry if the caller may see it; 404 otherwise. ``lock``
+    holds the row so concurrent additions to it queue up."""
+    return await _get_entry(
+        session,
+        organisation_id=organisation_id,
+        entry_id=entry_id,
+        can_read_private=can_read_private,
+        lock=lock,
+    )
