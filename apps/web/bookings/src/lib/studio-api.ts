@@ -8,7 +8,7 @@ import "server-only";
 
 import {
   type AppSubscriptionCheckoutPublic,
-  type AppSubscriptionPublic,
+  type AppSubscriptionListPublic,
   type BookingAgenda,
   type BookingCalendarFeedLink,
   type BookingCalendarFeedStatus,
@@ -119,19 +119,20 @@ export async function findOrganisation(
 
 /**
  * The organisation's Barrels app subscriptions (ADR-0065), newest first. The list
- * also holds other apps' rows, so callers pick their own app. Organisation admins
- * and owners only (FastAPI decides).
+ * also holds other apps' rows, so callers pick their own app. The whole body is
+ * returned: `purchasable` lists the `plan_key:currency` pairs a checkout can start
+ * now (empty until billing is configured). Organisation admins and owners only
+ * (FastAPI decides).
  */
-export async function listAppSubscriptions(
+export function listAppSubscriptions(
   accessToken: string,
   organisationId: string
-): Promise<AppSubscriptionPublic[]> {
-  const result = await billingListAppSubscriptions({
+): Promise<AppSubscriptionListPublic> {
+  return billingListAppSubscriptions({
     client: studioClient(accessToken, organisationId),
   })
     .unwrap()
     .catch(redactRequest);
-  return result.data;
 }
 
 /**

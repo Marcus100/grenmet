@@ -27,11 +27,11 @@ import {
 } from "@/lib/billing-plan";
 import { reportError } from "@/lib/report-error";
 import { requireSession, type StudioSession } from "@/lib/session";
+import { listAppSubscriptions } from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings } from "@/lib/studio-view";
 import { isPurchasable, PLAN_CURRENCY } from "./purchasable";
-import { readAppSubscriptionList } from "./subscription-list";
 
 export const metadata: Metadata = {
   title: "Plan & billing",
@@ -51,7 +51,7 @@ async function readSubscriptions(
   organisationId: string
 ): Promise<SubscriptionRead> {
   try {
-    const list = await readAppSubscriptionList(
+    const list = await listAppSubscriptions(
       session.accessToken,
       organisationId
     );
