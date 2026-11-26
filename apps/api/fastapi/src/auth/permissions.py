@@ -269,6 +269,43 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Give organisation members Printix roles you hold yourself",
         binding="organisation",
     ),
+    # Operations log (ADR-0067). Organisation keys; owners and admins hold them all.
+    # API key scopes (ADR-0029) every product has; no opslog route takes an API key yet.
+    PermissionDef(
+        "opslog.read",
+        "API key: read Barrels Operations Log data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.write",
+        "API key: change Barrels Operations Log data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.read",
+        "Operations log: read logs, categories and entries (not private ones)",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.write",
+        "Operations log: write entries, edit your own under the log's rule and add comments",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.private",
+        "Operations log: see and write private entries",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.settings.manage",
+        "Operations log: create and change logs and their categories",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.team.manage",
+        "Give organisation members operations log roles you hold yourself",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

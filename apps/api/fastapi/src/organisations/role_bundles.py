@@ -34,6 +34,17 @@ ROLE_BUNDLES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
             {"printix.events.manage", "printix.gates.manage"}
         ),
         "printix-gate-lead": frozenset({"printix.gates.manage"}),
+        # Operations log (ADR-0067). Writers keep the log; supervisors also see
+        # private entries and set up logs and categories.
+        "opslog-writer": frozenset({"opslog.entries.read", "opslog.entries.write"}),
+        "opslog-supervisor": frozenset(
+            {
+                "opslog.entries.read",
+                "opslog.entries.write",
+                "opslog.entries.private",
+                "opslog.settings.manage",
+            }
+        ),
     }
 )
 
@@ -56,6 +67,14 @@ BUNDLE_COPY: MappingProxyType[str, tuple[str, str]] = MappingProxyType(
         "printix-gate-lead": (
             "Gate lead",
             "Make and cancel gate QR codes on event night.",
+        ),
+        "opslog-writer": (
+            "Log keeper",
+            "Read the operations logs, write entries and add updates.",
+        ),
+        "opslog-supervisor": (
+            "Log supervisor",
+            "Keep the logs, see private entries and set up logs and categories.",
         ),
     }
 )
