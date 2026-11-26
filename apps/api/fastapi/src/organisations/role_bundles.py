@@ -45,6 +45,20 @@ ROLE_BUNDLES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
                 "opslog.settings.manage",
             }
         ),
+        # Incidents (ADR-0067). Responders report and work an incident; managers
+        # also close, reopen, read private notes and set up categories.
+        "incidents-responder": frozenset(
+            {"incidents.incidents.read", "incidents.incidents.write"}
+        ),
+        "incidents-manager": frozenset(
+            {
+                "incidents.incidents.read",
+                "incidents.incidents.write",
+                "incidents.incidents.private",
+                "incidents.incidents.manage",
+                "incidents.settings.manage",
+            }
+        ),
     }
 )
 
@@ -75,6 +89,14 @@ BUNDLE_COPY: MappingProxyType[str, tuple[str, str]] = MappingProxyType(
         "opslog-supervisor": (
             "Log supervisor",
             "Keep the logs, see private entries and set up logs and categories.",
+        ),
+        "incidents-responder": (
+            "Responder",
+            "Report incidents, record response actions and notes, tick checklists.",
+        ),
+        "incidents-manager": (
+            "Incident manager",
+            "Respond, close and reopen incidents, read private notes and set up categories.",
         ),
     }
 )

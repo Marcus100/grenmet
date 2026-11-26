@@ -6598,6 +6598,244 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { IncidentCategoryCreate } from "./IncidentCategoryCreate.js";
+export type { IncidentCategoryList } from "./IncidentCategoryList.js";
+export type { IncidentCategoryPublic } from "./IncidentCategoryPublic.js";
+export type { IncidentCategoryUpdate } from "./IncidentCategoryUpdate.js";
+export type { IncidentChecklistItemCreate } from "./IncidentChecklistItemCreate.js";
+export type { IncidentChecklistItemPublic } from "./IncidentChecklistItemPublic.js";
+export type { IncidentChecklistItemUpdate } from "./IncidentChecklistItemUpdate.js";
+export type { IncidentCheckPublic } from "./IncidentCheckPublic.js";
+export type { IncidentCheckUpdate } from "./IncidentCheckUpdate.js";
+export type { IncidentCreate } from "./IncidentCreate.js";
+export type { IncidentDetail } from "./IncidentDetail.js";
+export type { IncidentNoteCreate } from "./IncidentNoteCreate.js";
+export type { IncidentNotePublic } from "./IncidentNotePublic.js";
+export type { IncidentPage } from "./IncidentPage.js";
+export type { IncidentPublic } from "./IncidentPublic.js";
+export type { IncidentReopen } from "./IncidentReopen.js";
+export type { IncidentStatus } from "./IncidentStatus.js";
+export { incidentStatus } from "./IncidentStatus.js";
+export type {
+  IncidentsCloseIncidentHeaders,
+  IncidentsCloseIncidentOptions,
+  IncidentsCloseIncidentPath,
+  IncidentsCloseIncidentResponse,
+  IncidentsCloseIncidentResponses,
+  IncidentsCloseIncidentStatus200,
+  IncidentsCloseIncidentStatus400,
+  IncidentsCloseIncidentStatus401,
+  IncidentsCloseIncidentStatus403,
+  IncidentsCloseIncidentStatus404,
+  IncidentsCloseIncidentStatus409,
+  IncidentsCloseIncidentStatus422,
+} from "./IncidentsCloseIncident.js";
+export type {
+  IncidentsCreateCategoryBody,
+  IncidentsCreateCategoryHeaders,
+  IncidentsCreateCategoryOptions,
+  IncidentsCreateCategoryResponse,
+  IncidentsCreateCategoryResponses,
+  IncidentsCreateCategoryStatus201,
+  IncidentsCreateCategoryStatus400,
+  IncidentsCreateCategoryStatus401,
+  IncidentsCreateCategoryStatus403,
+  IncidentsCreateCategoryStatus404,
+  IncidentsCreateCategoryStatus409,
+  IncidentsCreateCategoryStatus422,
+} from "./IncidentsCreateCategory.js";
+export type {
+  IncidentsCreateChecklistItemBody,
+  IncidentsCreateChecklistItemHeaders,
+  IncidentsCreateChecklistItemOptions,
+  IncidentsCreateChecklistItemPath,
+  IncidentsCreateChecklistItemResponse,
+  IncidentsCreateChecklistItemResponses,
+  IncidentsCreateChecklistItemStatus201,
+  IncidentsCreateChecklistItemStatus400,
+  IncidentsCreateChecklistItemStatus401,
+  IncidentsCreateChecklistItemStatus403,
+  IncidentsCreateChecklistItemStatus404,
+  IncidentsCreateChecklistItemStatus409,
+  IncidentsCreateChecklistItemStatus422,
+} from "./IncidentsCreateChecklistItem.js";
+export type {
+  IncidentsCreateIncidentBody,
+  IncidentsCreateIncidentHeaders,
+  IncidentsCreateIncidentOptions,
+  IncidentsCreateIncidentResponse,
+  IncidentsCreateIncidentResponses,
+  IncidentsCreateIncidentStatus201,
+  IncidentsCreateIncidentStatus400,
+  IncidentsCreateIncidentStatus401,
+  IncidentsCreateIncidentStatus403,
+  IncidentsCreateIncidentStatus404,
+  IncidentsCreateIncidentStatus409,
+  IncidentsCreateIncidentStatus422,
+} from "./IncidentsCreateIncident.js";
+export type {
+  IncidentsCreateNoteBody,
+  IncidentsCreateNoteHeaders,
+  IncidentsCreateNoteOptions,
+  IncidentsCreateNotePath,
+  IncidentsCreateNoteResponse,
+  IncidentsCreateNoteResponses,
+  IncidentsCreateNoteStatus201,
+  IncidentsCreateNoteStatus400,
+  IncidentsCreateNoteStatus401,
+  IncidentsCreateNoteStatus403,
+  IncidentsCreateNoteStatus404,
+  IncidentsCreateNoteStatus409,
+  IncidentsCreateNoteStatus422,
+} from "./IncidentsCreateNote.js";
+export type {
+  IncidentsCreateTimelineEntryBody,
+  IncidentsCreateTimelineEntryHeaders,
+  IncidentsCreateTimelineEntryOptions,
+  IncidentsCreateTimelineEntryPath,
+  IncidentsCreateTimelineEntryResponse,
+  IncidentsCreateTimelineEntryResponses,
+  IncidentsCreateTimelineEntryStatus201,
+  IncidentsCreateTimelineEntryStatus400,
+  IncidentsCreateTimelineEntryStatus401,
+  IncidentsCreateTimelineEntryStatus403,
+  IncidentsCreateTimelineEntryStatus404,
+  IncidentsCreateTimelineEntryStatus409,
+  IncidentsCreateTimelineEntryStatus422,
+} from "./IncidentsCreateTimelineEntry.js";
+export type {
+  IncidentsGetIncidentHeaders,
+  IncidentsGetIncidentOptions,
+  IncidentsGetIncidentPath,
+  IncidentsGetIncidentResponse,
+  IncidentsGetIncidentResponses,
+  IncidentsGetIncidentStatus200,
+  IncidentsGetIncidentStatus400,
+  IncidentsGetIncidentStatus401,
+  IncidentsGetIncidentStatus403,
+  IncidentsGetIncidentStatus404,
+  IncidentsGetIncidentStatus422,
+} from "./IncidentsGetIncident.js";
+export type {
+  IncidentsListCategoriesHeaders,
+  IncidentsListCategoriesOptions,
+  IncidentsListCategoriesQuery,
+  IncidentsListCategoriesResponse,
+  IncidentsListCategoriesResponses,
+  IncidentsListCategoriesStatus200,
+  IncidentsListCategoriesStatus400,
+  IncidentsListCategoriesStatus401,
+  IncidentsListCategoriesStatus403,
+  IncidentsListCategoriesStatus404,
+  IncidentsListCategoriesStatus422,
+} from "./IncidentsListCategories.js";
+export type {
+  IncidentsListIncidentsHeaders,
+  IncidentsListIncidentsOptions,
+  IncidentsListIncidentsQuery,
+  IncidentsListIncidentsResponse,
+  IncidentsListIncidentsResponses,
+  IncidentsListIncidentsStatus200,
+  IncidentsListIncidentsStatus400,
+  IncidentsListIncidentsStatus401,
+  IncidentsListIncidentsStatus403,
+  IncidentsListIncidentsStatus404,
+  IncidentsListIncidentsStatus422,
+} from "./IncidentsListIncidents.js";
+export type {
+  IncidentsOpenIncidentHeaders,
+  IncidentsOpenIncidentOptions,
+  IncidentsOpenIncidentPath,
+  IncidentsOpenIncidentResponse,
+  IncidentsOpenIncidentResponses,
+  IncidentsOpenIncidentStatus200,
+  IncidentsOpenIncidentStatus400,
+  IncidentsOpenIncidentStatus401,
+  IncidentsOpenIncidentStatus403,
+  IncidentsOpenIncidentStatus404,
+  IncidentsOpenIncidentStatus409,
+  IncidentsOpenIncidentStatus422,
+} from "./IncidentsOpenIncident.js";
+export type {
+  IncidentsReopenIncidentBody,
+  IncidentsReopenIncidentHeaders,
+  IncidentsReopenIncidentOptions,
+  IncidentsReopenIncidentPath,
+  IncidentsReopenIncidentResponse,
+  IncidentsReopenIncidentResponses,
+  IncidentsReopenIncidentStatus200,
+  IncidentsReopenIncidentStatus400,
+  IncidentsReopenIncidentStatus401,
+  IncidentsReopenIncidentStatus403,
+  IncidentsReopenIncidentStatus404,
+  IncidentsReopenIncidentStatus409,
+  IncidentsReopenIncidentStatus422,
+} from "./IncidentsReopenIncident.js";
+export type {
+  IncidentsUpdateCategoryBody,
+  IncidentsUpdateCategoryHeaders,
+  IncidentsUpdateCategoryOptions,
+  IncidentsUpdateCategoryPath,
+  IncidentsUpdateCategoryResponse,
+  IncidentsUpdateCategoryResponses,
+  IncidentsUpdateCategoryStatus200,
+  IncidentsUpdateCategoryStatus400,
+  IncidentsUpdateCategoryStatus401,
+  IncidentsUpdateCategoryStatus403,
+  IncidentsUpdateCategoryStatus404,
+  IncidentsUpdateCategoryStatus409,
+  IncidentsUpdateCategoryStatus422,
+} from "./IncidentsUpdateCategory.js";
+export type {
+  IncidentsUpdateCheckBody,
+  IncidentsUpdateCheckHeaders,
+  IncidentsUpdateCheckOptions,
+  IncidentsUpdateCheckPath,
+  IncidentsUpdateCheckResponse,
+  IncidentsUpdateCheckResponses,
+  IncidentsUpdateCheckStatus200,
+  IncidentsUpdateCheckStatus400,
+  IncidentsUpdateCheckStatus401,
+  IncidentsUpdateCheckStatus403,
+  IncidentsUpdateCheckStatus404,
+  IncidentsUpdateCheckStatus409,
+  IncidentsUpdateCheckStatus422,
+} from "./IncidentsUpdateCheck.js";
+export type {
+  IncidentsUpdateChecklistItemBody,
+  IncidentsUpdateChecklistItemHeaders,
+  IncidentsUpdateChecklistItemOptions,
+  IncidentsUpdateChecklistItemPath,
+  IncidentsUpdateChecklistItemResponse,
+  IncidentsUpdateChecklistItemResponses,
+  IncidentsUpdateChecklistItemStatus200,
+  IncidentsUpdateChecklistItemStatus400,
+  IncidentsUpdateChecklistItemStatus401,
+  IncidentsUpdateChecklistItemStatus403,
+  IncidentsUpdateChecklistItemStatus404,
+  IncidentsUpdateChecklistItemStatus409,
+  IncidentsUpdateChecklistItemStatus422,
+} from "./IncidentsUpdateChecklistItem.js";
+export type {
+  IncidentsUpdateIncidentBody,
+  IncidentsUpdateIncidentHeaders,
+  IncidentsUpdateIncidentOptions,
+  IncidentsUpdateIncidentPath,
+  IncidentsUpdateIncidentResponse,
+  IncidentsUpdateIncidentResponses,
+  IncidentsUpdateIncidentStatus200,
+  IncidentsUpdateIncidentStatus400,
+  IncidentsUpdateIncidentStatus401,
+  IncidentsUpdateIncidentStatus403,
+  IncidentsUpdateIncidentStatus404,
+  IncidentsUpdateIncidentStatus409,
+  IncidentsUpdateIncidentStatus422,
+} from "./IncidentsUpdateIncident.js";
+export type { IncidentTimelineCreate } from "./IncidentTimelineCreate.js";
+export type { IncidentTimelineKind } from "./IncidentTimelineKind.js";
+export { incidentTimelineKind } from "./IncidentTimelineKind.js";
+export type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
+export type { IncidentUpdate } from "./IncidentUpdate.js";
 export type { IntendedUse } from "./IntendedUse.js";
 export { intendedUse } from "./IntendedUse.js";
 export type { IntentStatus } from "./IntentStatus.js";
