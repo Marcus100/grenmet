@@ -153,6 +153,10 @@ describe("CalendarFeedSection", () => {
       "Calendar address"
     )) as HTMLInputElement;
     await waitFor(() => expect(address.value).toBe(SECOND_URL));
+    // The dialog closes in an effect after the new address renders. While it
+    // is open, Base UI hides the rest of the page from assistive tech, so wait
+    // for it to unmount before querying by role.
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     expect(
       screen
         .getByRole("link", { name: "Add to my phone calendar" })

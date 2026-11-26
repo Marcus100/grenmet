@@ -10,7 +10,7 @@ bypass. Only ``safety`` exists today. Routers commit; service functions flush.
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 
 from src import record_links
 from src.dependencies import SessionDep
@@ -28,6 +28,9 @@ from .models import (
     CaseRiskBand,
     CaseRiskKind,
     CaseStatus,
+    ContributingFactor,
+    FactorCategory,
+    InvestigationStatus,
 )
 from .risk import Grid
 from .schemas import (
@@ -49,6 +52,15 @@ from .schemas import (
     CaseSourcePublic,
     CaseStatusChange,
     CaseUpdate,
+    ContributingFactorCreate,
+    ContributingFactorPublic,
+    ContributingFactorUpdate,
+    InvestigationFactorPublic,
+    InvestigationPublic,
+    InvestigationReturn,
+    InvestigationUpdate,
+    InvestigationWaiver,
+    WhyStep,
 )
 
 router = APIRouter(prefix="/cases/org/{programme}", tags=["cases"])
@@ -165,6 +177,67 @@ async def _links(
     )
 
 
+#: A factor id as the service issues it: ``cfa_`` and 16 hex characters.
+FactorId = Annotated[
+    str,
+    Path(pattern=r"^cfa_[0-9a-f]{16}$", max_length=20, description="A factor id."),
+]
+
+
+def _factor(row: ContributingFactor) -> ContributingFactorPublic:
+    return ContributingFactorPublic(
+        id=row.id,
+        category=FactorCategory(row.category),
+        name=row.name,
+        is_active=row.is_active,
+        updated_at=row.updated_at,
+    )
+
+
+def _suggestion(category: FactorCategory, name: str) -> ContributingFactorPublic:
+    return ContributingFactorPublic(
+        id=None,
+        category=category,
+        name=name,
+        is_active=True,
+        is_default_suggestion=True,
+        updated_at=None,
+    )
+
+
+def _investigation(view: service.InvestigationView) -> InvestigationPublic:
+    row = view.investigation
+    return InvestigationPublic(
+        id=row.id,
+        case_id=row.case_id,
+        status=InvestigationStatus(row.status),
+        what_happened=row.what_happened,
+        unsafe_acts=row.unsafe_acts,
+        unsafe_conditions=row.unsafe_conditions,
+        why_steps=[WhyStep(**step) for step in row.why_steps],
+        root_cause=row.root_cause,
+        contributing_factors=[
+            InvestigationFactorPublic(
+                id=f.factor_id,
+                category=FactorCategory(f.category),
+                name=f.name,
+                is_active=f.is_active,
+            )
+            for f in view.factors
+        ],
+        no_investigation_reason=row.no_investigation_reason,
+        return_reason=row.return_reason,
+        returned_by=row.returned_by,
+        returned_at=row.returned_at,
+        submitted_by=row.submitted_by,
+        submitted_at=row.submitted_at,
+        decided_by=row.decided_by,
+        decided_at=row.decided_at,
+        created_at=row.created_at,
+        updated_at=row.updated_at,
+    )
+
+
 async def _detail(session: SessionDep, context: CaseContext, case: Case) -> CaseDetail:
     view = await service.detail_of(session, case)
     links = await _links(session, context, [case])
@@ -173,6 +246,9 @@ async def _detail(session: SessionDep, context: CaseContext, case: Case) -> Case
         **base.model_dump(),
         risk_assessments=[_assessment(a) for a in view.assessments],
         actions=[_action(a, view.names.get(a.owner_user_id)) for a in view.actions],
+        investigation=(
+            _investigation(view.investigation) if view.investigation else None
+        ),
     )
 
 
@@ -531,3 +607,263 @@ async def change_action_status(
     await session.commit()
     owners = await service.names(session, {action.owner_user_id})
     return _action(action, owners.get(action.owner_user_id))
+
+
+# --- contributing factors -----------------------------------------------------------
+
+
+@router.get(
+    "/contributing-factors",
+    response_model=list[ContributingFactorPublic],
+    summary="List the contributing factors",
+    description=(
+        "The programme's list, retired entries included (`is_active` false). Until the "
+        "organisation first writes a factor or an investigation, the list is the "
+        "starting suggestions: items with `is_default_suggestion` true and no `id`. "
+        "They cannot be chosen. This route never writes."
+    ),
+    operation_id="casesListContributingFactors",
+    responses=READ_ERRORS,
+)
+async def list_contributing_factors(*, session: SessionDep, context: CaseReader) -> Any:
+    seeded = await service.is_seeded(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+    )
+    if not seeded:
+        return [
+            _suggestion(category, name)
+            for category, name in service.DEFAULT_CONTRIBUTING_FACTORS
+        ]
+    rows = await service.list_factors(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+    )
+    return [_factor(row) for row in rows]
+
+
+@router.post(
+    "/contributing-factors",
+    response_model=ContributingFactorPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a contributing factor",
+    description=(
+        "Names are unique within the programme, ignoring case. The first write seeds "
+        "the starting list before this factor is added."
+    ),
+    operation_id="casesCreateContributingFactor",
+    responses=WRITE_ERRORS,
+)
+async def create_contributing_factor(
+    *, session: SessionDep, context: CaseSettings, payload: ContributingFactorCreate
+) -> Any:
+    factor = await service.create_factor(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        actor=context.org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return _factor(factor)
+
+
+@router.patch(
+    "/contributing-factors/{factor_id}",
+    response_model=ContributingFactorPublic,
+    summary="Change a contributing factor",
+    description=(
+        "Rename, recategorise or retire (`is_active` false). A retired factor stays "
+        "on the investigations that chose it but cannot be newly chosen. Decided "
+        "investigations keep the name they had at approval."
+    ),
+    operation_id="casesUpdateContributingFactor",
+    responses=WRITE_ERRORS,
+)
+async def update_contributing_factor(
+    *,
+    session: SessionDep,
+    context: CaseSettings,
+    factor_id: FactorId,
+    payload: ContributingFactorUpdate,
+) -> Any:
+    factor = await service.update_factor(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        factor_id=factor_id,
+        payload=payload,
+    )
+    await session.commit()
+    return _factor(factor)
+
+
+# --- investigation ------------------------------------------------------------------
+
+
+@router.get(
+    "/cases/{case_id}/investigation",
+    response_model=InvestigationPublic,
+    summary="Read the investigation of a case",
+    description="One per case. 404 until it is first written.",
+    operation_id="casesGetInvestigation",
+    responses=READ_ERRORS,
+)
+async def get_investigation(
+    *, session: SessionDep, context: CaseReader, case_id: str
+) -> Any:
+    view = await service.get_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+    )
+    return _investigation(view)
+
+
+@router.patch(
+    "/cases/{case_id}/investigation",
+    response_model=InvestigationPublic,
+    summary="Write the investigation of a case",
+    description=(
+        "Creates it on first use and changes only the fields sent. The case must be "
+        "investigating; the investigation must be a draft. `why_steps` (up to five) "
+        "and `contributing_factor_ids` (factors of this programme; a factor already "
+        "chosen stays valid if since retired) replace their lists. The first write "
+        "seeds the starting factor list."
+    ),
+    operation_id="casesUpdateInvestigation",
+    responses=WRITE_ERRORS,
+)
+async def update_investigation(
+    *,
+    session: SessionDep,
+    context: CaseWriter,
+    case_id: str,
+    payload: InvestigationUpdate,
+) -> Any:
+    view = await service.update_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+        actor=context.org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return _investigation(view)
+
+
+@router.post(
+    "/cases/{case_id}/investigation/submit",
+    response_model=InvestigationPublic,
+    summary="Submit the investigation for approval",
+    description=(
+        "Needs what happened, at least one why with every answer, and a root cause. "
+        "Whoever submits cannot approve or return it."
+    ),
+    operation_id="casesSubmitInvestigation",
+    responses=WRITE_ERRORS,
+)
+async def submit_investigation(
+    *, session: SessionDep, context: CaseWriter, case_id: str
+) -> Any:
+    view = await service.submit_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+        actor=context.org.user,
+    )
+    await session.commit()
+    return _investigation(view)
+
+
+@router.post(
+    "/cases/{case_id}/investigation/approve",
+    response_model=InvestigationPublic,
+    summary="Approve the investigation",
+    description=(
+        "Needs the approve key. Refused to anyone who created, last edited or "
+        "submitted the investigation. An approved investigation is read-only until "
+        "the case is reopened."
+    ),
+    operation_id="casesApproveInvestigation",
+    responses=WRITE_ERRORS,
+)
+async def approve_investigation(
+    *, session: SessionDep, context: CaseApprover, case_id: str
+) -> Any:
+    view = await service.approve_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+        actor=context.org.user,
+    )
+    await session.commit()
+    return _investigation(view)
+
+
+@router.post(
+    "/cases/{case_id}/investigation/return",
+    response_model=InvestigationPublic,
+    summary="Return the investigation to draft, with a reason",
+    description=(
+        "Needs the approve key, and the same separation as approval. The reason is "
+        "kept on the investigation and in its audit history."
+    ),
+    operation_id="casesReturnInvestigation",
+    responses=WRITE_ERRORS,
+)
+async def return_investigation(
+    *,
+    session: SessionDep,
+    context: CaseApprover,
+    case_id: str,
+    payload: InvestigationReturn,
+) -> Any:
+    view = await service.return_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+        actor=context.org.user,
+        reason=payload.reason,
+    )
+    await session.commit()
+    return _investigation(view)
+
+
+@router.post(
+    "/cases/{case_id}/investigation/waiver",
+    response_model=InvestigationPublic,
+    summary="Record that no investigation is needed (waiver)",
+    description=(
+        "Needs the approve key and a reason, and a case assessing or investigating. "
+        "Refused when the caller created, edited or submitted the investigation, or "
+        "when the draft already has content: it is for a case that needs none. Lets "
+        "the case move on to actions, as an approved investigation does."
+    ),
+    operation_id="casesWaiveInvestigation",
+    responses=WRITE_ERRORS,
+)
+async def waive_investigation(
+    *,
+    session: SessionDep,
+    context: CaseApprover,
+    case_id: str,
+    payload: InvestigationWaiver,
+) -> Any:
+    view = await service.waive_investigation(
+        session,
+        organisation_id=context.organisation_id,
+        programme=context.programme,
+        case_id=case_id,
+        actor=context.org.user,
+        reason=payload.reason,
+    )
+    await session.commit()
+    return _investigation(view)

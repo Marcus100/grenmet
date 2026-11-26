@@ -1318,7 +1318,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `POST /api/v1/bookings/me/organisations` | Account token or the bookings app session with `app.bookings.access` (other apps 401); verified email; `Idempotency-Key` required (replays with `Idempotency-Replayed: true`); Turnstile inside the handler, always enforced outside local; 3 a visitor address an hour (429); 404 while `BOOKINGS_SELF_SIGNUP_ENABLED` is off | Creates the caller's business (ADR-0066): closed for booking and unlisted, a 30-day trial (`trial_ends_at`), the owner, starter services from `template` (`null` for none). One self-created business per account (409). Body: `name`, `business_type`, optional `town`, `template`, `turnstile_token`. Answers `BookingSignupReceipt` (201) |
-| `GET /api/v1/bookings/admin/listing-reviews` | Barrels staff with `bookings.listing.approve` (403 otherwise); no organisation header | Staff queue of business listings (ADR-0066), oldest business first, paged with `page` and `size`: `queue=pending` (default; listed and not approved), `approved`, `flagged` (owner left, or the sign-up name was refused for email) or `all`. Answers `BookingListingReviewList` of `BookingListingReview` (now with `sender_name_flagged_at`) |
+| `GET /api/v1/bookings/admin/listing-reviews` | Barrels staff with `bookings.listing.approve` (403 otherwise); no organisation header | Staff queue of business listings (ADR-0066), oldest business first, paged with `page` and `size`: `queue=pending` (default; listed and not approved), `approved`, `flagged` (owner left, or the sign-up name was refused for email) or `all`. Answers `BookingListingReviewList` of `BookingListingReview` (now with `sender_name_flagged_at`, and `on_home_page` with `not_shown_reasons`: whether the business meets every condition of the public home page list and, if not, which fail) |
 | `GET /api/v1/bookings/admin/businesses/{organisation_id}/listing` · `POST …/listing/approve` · `POST …/listing/withdraw` | Barrels staff with `bookings.listing.approve` | One business's listing review; approve and withdraw are audited and answer 409 on a repeat. Approval gates only the public home page list |
 | `GET /api/v1/bookings/me/business-templates` | Account token or the bookings app session with `app.bookings.access`; no organisation header | The fixed starter templates (`BookingStarterTemplate`): key, label, business type and suggested services with `price_minor` (XCD minor units). Never a deposit or a policy |
 | `GET /api/v1/bookings/me/bookings?upcoming&cancelled&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. `cancelled` true: only cancelled bookings; false: every other status; omitted: all. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking) and `manage_url` (a signed link to the booking's manage page on the bookings app, null once it lapses a week after the booking ends or the stored token was cleared; minted per read, not stored). No stored manage token, notes or other customers' details |
@@ -3625,3 +3625,34 @@ organisation needs the `safety` entitlement and the caller a key: `safety.cases.
   `POST .../actions/{action_id}/status` (open, done, verified; verifying needs the
   approve key and someone other than the owner). The owner is notified
   (`cases.action_assigned`). `overdue` is true for an open action past its due date.
+- Contributing factors: `GET|POST /contributing-factors`,
+  `PATCH /contributing-factors/{factor_id}` (`category`, `name`, `is_active`). Reading
+  never writes: until the organisation first writes a factor or an investigation, the
+  list is the ICAO Doc 9859 starting suggestions (`is_default_suggestion` true, `id`
+  null, not choosable). The first write stores the starting list, then applies the
+  write. Names are unique per programme, ignoring case (409). Managing the list needs
+  `settings.manage`; reading needs `cases.read`. `factor_id` is `cfa_` and 16 hex
+  characters (422 otherwise). Retired factors (`is_active` false) cannot be newly
+  chosen; a factor already chosen on an investigation stays valid.
+- Investigation (one per case): `GET|PATCH /cases/{case_id}/investigation`. PATCH creates
+  it on first use and needs the case in `investigating` and a draft. Fields:
+  `what_happened`, `unsafe_acts`, `unsafe_conditions`, `root_cause`, `why_steps` (up
+  to 5 `{question, answer}`, a blank question is 422, replaced whole) and
+  `contributing_factor_ids` (factors of this programme, replaced whole; a newly added one
+  must be active, another organisation's or programme's factor is 422). The first write
+  also seeds the starting factor list.
+  `POST .../investigation/submit` (`cases.write`) needs what happened, a root cause and
+  at least one why with every answer. `POST .../investigation/approve` and
+  `.../return` (`reason`) need `cases.approve`. Neither may be done by anyone who
+  created, edited (at any point) or submitted the investigation (403). `POST
+  .../investigation/waiver` (`reason`, `cases.approve`) records that no investigation is
+  needed; it is 409 when the draft already has content, 403 for those parties, and it is
+  allowed while the case is assessing or investigating. Approved and not-needed
+  investigations are read-only (409). Their factor names and categories are as they were
+  at approval. Reopening the case returns the investigation to a clean draft (decision,
+  waiver reason, return and submission cleared; the audit history keeps them).
+- Moving a case to `actions` needs an approved or not-needed investigation (409
+  otherwise); other moves are unchanged. Case detail carries `investigation` (null until
+  written).
+- API keys: the `safety.read` and `safety.write` scopes exist, but the case routes take
+  a signed-in session only, so a key is refused (401/403).
