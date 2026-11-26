@@ -258,9 +258,11 @@ def record_event(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
+    staff_note: bool = False,
 ) -> BookingEvent:
     """Add a history row and return it. Its id exists at once, so a caller can
-    key an email or webhook to this one change."""
+    key an email or webhook to this one change. A ``staff_note`` row is left out
+    of the customer calendar's SEQUENCE count (see ``booking_ics``)."""
     event = BookingEvent(
         id=uuid.uuid4(),
         booking_id=booking.id,
@@ -269,6 +271,7 @@ def record_event(
         to_status=to_status.value,
         actor_user_id=actor_user_id,
         note=note[:300] if note else None,
+        staff_note=staff_note,
     )
     session.add(event)
     return event
@@ -345,10 +348,12 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         deposit_instructions=(
             profile.deposit_instructions
             if booking.deposit_to_business_minor > 0
+            and booking.deposit_received_at is None
             and booking.status
             in (BookingStatus.PENDING.value, BookingStatus.CONFIRMED.value)
             else None
         ),
+        deposit_received=booking.deposit_received_at is not None,
         late_fee=service.late_fee_of(profile),
         new_clients_only=managed.service.new_clients_only,
         first_visit_lead_days=managed.service.first_visit_lead_days,
@@ -457,6 +462,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         deposit_non_refundable=managed.booking.deposit_non_refundable,
         deposit_to_business_minor=managed.booking.deposit_to_business_minor,
         deposit_instructions=profile.deposit_instructions,
+        deposit_received=managed.booking.deposit_received_at is not None,
         late_fee_minor=profile.late_fee_minor,
         late_grace_min=profile.late_grace_min or 0,
         currency=managed.booking.currency,
@@ -1259,7 +1265,10 @@ async def booking_ics(
     changes = await session.scalar(
         select(func.count())
         .select_from(BookingEvent)
-        .where(BookingEvent.booking_id == booking.id)
+        .where(
+            BookingEvent.booking_id == booking.id,
+            BookingEvent.staff_note.is_(False),
+        )
     )
     status = BookingStatus(booking.status)
     ics_status: ics.IcsStatus = "CONFIRMED"

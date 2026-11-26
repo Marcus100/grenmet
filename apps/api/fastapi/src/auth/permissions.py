@@ -438,6 +438,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         binding="organisation",
     ),
     PermissionDef(
+        "bookings.deposits.manage",
+        "Record a deposit paid to the business as received, and undo it",
+        binding="organisation",
+    ),
+    PermissionDef(
         "bookings.settings.manage",
         "Change services, staff hours and booking settings",
         binding="organisation",

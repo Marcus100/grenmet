@@ -26,9 +26,14 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
 from . import deposit_payments, emails, lifecycle, public, service
-from .exceptions import BookingConflictError, BookingValidationError
+from .exceptions import (
+    BookingConflictError,
+    BookingDepositRecordError,
+    BookingValidationError,
+)
 from .models import (
     Booking,
+    BookingDepositReceivedMethod,
     BookingEvent,
     BookingSource,
     BookingStatus,
@@ -41,6 +46,7 @@ from .schemas import (
     BookingAgenda,
     BookingAgendaDay,
     BookingAgendaItem,
+    BookingDepositReceivedCreate,
     BookingStudioCreate,
     BookingStudioCustomer,
     BookingStudioDetail,
@@ -103,6 +109,13 @@ async def _detail(
         cancel_reason=booking.cancel_reason,
         cancelled_at=booking.cancelled_at,
         created_at=booking.created_at,
+        deposit_received_at=booking.deposit_received_at,
+        deposit_received_method=(
+            BookingDepositReceivedMethod(booking.deposit_received_method)
+            if booking.deposit_received_method
+            else None
+        ),
+        deposit_received_reference=booking.deposit_received_reference,
         deposit_intent_id=intent.id if intent else None,
         deposit_captured_minor=intent.captured_minor if intent else 0,
         deposit_refunded_minor=intent.refunded_minor if intent else 0,
@@ -197,6 +210,7 @@ async def agenda(
                 source=BookingSource(booking.source),
                 price_minor=booking.price_minor,
                 deposit_minor=booking.deposit_minor,
+                deposit_received_at=booking.deposit_received_at,
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
                 add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
@@ -699,3 +713,143 @@ async def record_manual_deposit(
     await session.flush()
     detail = await _detail(session, managed)
     return 200, detail.model_dump(mode="json")
+
+
+# --- deposit paid to the business (issue #1869) ---------------------------------------
+
+_DEPOSIT_RECEIVABLE = (BookingStatus.PENDING, BookingStatus.CONFIRMED)
+_METHOD_LABELS = {
+    BookingDepositReceivedMethod.CASH: "cash",
+    BookingDepositReceivedMethod.BANK_TRANSFER: "bank transfer",
+    BookingDepositReceivedMethod.PAYPAL: "PayPal",
+    BookingDepositReceivedMethod.OTHER: "other",
+}
+
+
+def _require_business_deposit(booking: Booking) -> None:
+    if booking.deposit_to_business_minor <= 0:
+        raise BookingDepositRecordError(
+            "This booking has no deposit paid to the business", "NO_BUSINESS_DEPOSIT"
+        )
+    if BookingStatus(booking.status) not in _DEPOSIT_RECEIVABLE:
+        raise BookingDepositRecordError(
+            "Only a pending or confirmed booking can have its deposit recorded",
+            "BOOKING_NOT_OPEN",
+        )
+
+
+async def mark_deposit_received(
+    session: AsyncSession,
+    organisation_id: str,
+    booking_id: uuid.UUID,
+    payload: BookingDepositReceivedCreate,
+    *,
+    actor: User,
+    now: datetime | None = None,
+) -> BookingStudioDetail:
+    """Staff record that the deposit paid to the business by hand arrived. No money
+    moves through Barrels and no ledger entry is written. Audited, with a staff-only
+    history note that sends no calendar update. Mails are not sent."""
+    moment = now or utc_now()
+    managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
+    booking = managed.booking
+    _require_business_deposit(booking)
+    if booking.deposit_received_at is not None:
+        raise BookingDepositRecordError(
+            "This deposit is already marked received", "DEPOSIT_ALREADY_RECEIVED"
+        )
+    received_at = (
+        service.as_naive_utc(payload.received_at)
+        if payload.received_at is not None
+        else moment
+    )
+    if received_at > moment:
+        raise BookingDepositRecordError(
+            "The time a deposit arrived cannot be in the future",
+            "DEPOSIT_RECEIVED_IN_FUTURE",
+            422,
+        )
+    reference = (payload.reference or "").strip() or None
+    booking.deposit_received_at = received_at
+    booking.deposit_received_method = payload.method.value
+    booking.deposit_received_reference = reference
+    audit_service.set_actor(session, actor.id)
+    await audit_service.record_change(
+        session,
+        entity_type="booking",
+        entity_id=str(booking.id),
+        record_type="booking",
+        record_id=str(booking.id),
+        action="deposit_received",
+        changes={
+            "deposit_received_at": (None, received_at.isoformat()),
+            "deposit_received_method": (None, payload.method.value),
+            "deposit_received_reference": (None, reference),
+        },
+        sensitive=frozenset({"deposit_received_reference"}),
+        organisation_id=organisation_id,
+    )
+    status = BookingStatus(booking.status)
+    public.record_event(
+        session,
+        booking,
+        status,
+        status,
+        actor_user_id=actor.id,
+        note=f"Deposit received by {_METHOD_LABELS[payload.method]}",
+        staff_note=True,
+    )
+    await session.flush()
+    return await _detail(session, managed)
+
+
+async def undo_deposit_received(
+    session: AsyncSession,
+    organisation_id: str,
+    booking_id: uuid.UUID,
+    *,
+    actor: User,
+) -> BookingStudioDetail:
+    """Staff take back a deposit receipt recorded in error. Audited, with a staff-only
+    history note."""
+    managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
+    booking = managed.booking
+    _require_business_deposit(booking)
+    if booking.deposit_received_at is None:
+        raise BookingDepositRecordError(
+            "This deposit is not marked received", "DEPOSIT_NOT_RECEIVED"
+        )
+    previous_at = booking.deposit_received_at
+    previous_method = booking.deposit_received_method
+    previous_reference = booking.deposit_received_reference
+    booking.deposit_received_at = None
+    booking.deposit_received_method = None
+    booking.deposit_received_reference = None
+    audit_service.set_actor(session, actor.id)
+    await audit_service.record_change(
+        session,
+        entity_type="booking",
+        entity_id=str(booking.id),
+        record_type="booking",
+        record_id=str(booking.id),
+        action="deposit_undone",
+        changes={
+            "deposit_received_at": (previous_at.isoformat(), None),
+            "deposit_received_method": (previous_method, None),
+            "deposit_received_reference": (previous_reference, None),
+        },
+        sensitive=frozenset({"deposit_received_reference"}),
+        organisation_id=organisation_id,
+    )
+    status = BookingStatus(booking.status)
+    public.record_event(
+        session,
+        booking,
+        status,
+        status,
+        actor_user_id=actor.id,
+        note="Deposit receipt undone",
+        staff_note=True,
+    )
+    await session.flush()
+    return await _detail(session, managed)

@@ -18,6 +18,7 @@ from .models import (
     BookingBusinessType,
     BookingDepositCollection,
     BookingDepositMode,
+    BookingDepositReceivedMethod,
     BookingExceptionKind,
     BookingPaymentMode,
     BookingSource,
@@ -823,6 +824,10 @@ class BookingAgendaItem(BaseModel):
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    deposit_received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When staff marked the deposit paid to the business as received.",
+    )
     returning_client: bool = Field(
         default=False,
         description=(
@@ -864,6 +869,22 @@ class BookingAgenda(BaseModel):
 class BookingManualDepositCreate(ManualPaymentCreate):
     """How a deposit taken outside Stripe was paid (``method``, optional receipt
     or transfer ``reference``)."""
+
+
+class BookingDepositReceivedCreate(BaseModel):
+    """A deposit paid to the business by hand arrived. ``received_at`` defaults to
+    now and may not be in the future."""
+
+    method: BookingDepositReceivedMethod
+    reference: str | None = Field(
+        default=None,
+        max_length=100,
+        description="An optional receipt or transfer reference. Staff only.",
+    )
+    received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When it arrived; defaults to now. Must not be in the future.",
+    )
 
 
 class BookingStudioDecline(BaseModel):
@@ -956,6 +977,12 @@ class BookingStudioDetail(BaseModel):
             "customer."
         ),
     )
+    deposit_received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When staff marked the deposit paid to the business as received.",
+    )
+    deposit_received_method: BookingDepositReceivedMethod | None = None
+    deposit_received_reference: str | None = None
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -1426,7 +1453,15 @@ class BookingPublicDetail(BaseModel):
         default=None,
         description=(
             "How to pay that deposit (plain text); only set while "
-            "`deposit_to_business_minor` is above 0."
+            "`deposit_to_business_minor` is above 0 and it is not yet received."
+        ),
+    )
+    deposit_received: bool = Field(
+        default=False,
+        description=(
+            "The business has confirmed the deposit paid to it by hand "
+            "(`deposit_to_business_minor`) arrived. Show it as paid; no method or "
+            "reference is shown to the customer."
         ),
     )
     late_fee: BookingLateFee | None = Field(

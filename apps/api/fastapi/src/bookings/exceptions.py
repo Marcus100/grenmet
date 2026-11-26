@@ -33,6 +33,15 @@ class BookingSetupIncompleteError(AppException):
         self.extra["missing"] = list(missing)
 
 
+class BookingDepositRecordError(AppException):
+    """A refused mark or undo of a deposit paid to the business. ``code`` says why
+    (for example ``DEPOSIT_ALREADY_RECEIVED``) so Studio can explain it."""
+
+    def __init__(self, message: str, code: str, status_code: int = 409) -> None:
+        super().__init__(message, status_code)
+        self.extra["code"] = code
+
+
 class BookingValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)

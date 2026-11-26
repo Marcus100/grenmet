@@ -66,7 +66,7 @@ def _checks(connection) -> set[str]:
 def test_there_is_a_single_alembic_head() -> None:
     # Later slices stack on this one; the head moves with each new revision.
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["opslog20261125"]
+    assert heads == ["bookingdepositreceived20261125"]
 
 
 def test_upgrade_adds_both_columns_with_their_defaults(rehearsal):

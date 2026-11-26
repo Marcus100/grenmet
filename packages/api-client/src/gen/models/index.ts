@@ -1265,6 +1265,9 @@ export type { BookingDepositCollection } from "./BookingDepositCollection.js";
 export { bookingDepositCollection } from "./BookingDepositCollection.js";
 export type { BookingDepositMode } from "./BookingDepositMode.js";
 export { bookingDepositMode } from "./BookingDepositMode.js";
+export type { BookingDepositReceivedCreate } from "./BookingDepositReceivedCreate.js";
+export type { BookingDepositReceivedMethod } from "./BookingDepositReceivedMethod.js";
+export { bookingDepositReceivedMethod } from "./BookingDepositReceivedMethod.js";
 export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
@@ -1845,6 +1848,21 @@ export type {
   BookingsListStudioBookingsStatus422,
 } from "./BookingsListStudioBookings.js";
 export type {
+  BookingsMarkDepositReceivedBody,
+  BookingsMarkDepositReceivedHeaders,
+  BookingsMarkDepositReceivedOptions,
+  BookingsMarkDepositReceivedPath,
+  BookingsMarkDepositReceivedResponse,
+  BookingsMarkDepositReceivedResponses,
+  BookingsMarkDepositReceivedStatus200,
+  BookingsMarkDepositReceivedStatus400,
+  BookingsMarkDepositReceivedStatus401,
+  BookingsMarkDepositReceivedStatus403,
+  BookingsMarkDepositReceivedStatus404,
+  BookingsMarkDepositReceivedStatus409,
+  BookingsMarkDepositReceivedStatus422,
+} from "./BookingsMarkDepositReceived.js";
+export type {
   BookingsNoShowStudioBookingHeaders,
   BookingsNoShowStudioBookingOptions,
   BookingsNoShowStudioBookingPath,
@@ -1969,6 +1987,20 @@ export type {
   BookingsRotateCalendarFeedStatus409,
   BookingsRotateCalendarFeedStatus422,
 } from "./BookingsRotateCalendarFeed.js";
+export type {
+  BookingsUndoDepositReceivedHeaders,
+  BookingsUndoDepositReceivedOptions,
+  BookingsUndoDepositReceivedPath,
+  BookingsUndoDepositReceivedResponse,
+  BookingsUndoDepositReceivedResponses,
+  BookingsUndoDepositReceivedStatus200,
+  BookingsUndoDepositReceivedStatus400,
+  BookingsUndoDepositReceivedStatus401,
+  BookingsUndoDepositReceivedStatus403,
+  BookingsUndoDepositReceivedStatus404,
+  BookingsUndoDepositReceivedStatus409,
+  BookingsUndoDepositReceivedStatus422,
+} from "./BookingsUndoDepositReceived.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,
