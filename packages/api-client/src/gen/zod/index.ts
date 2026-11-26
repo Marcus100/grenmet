@@ -7636,6 +7636,7 @@ export { opsLogEntryUpdateSchema } from "./opsLogEntryUpdateSchema.js";
 export { opsLogListSchema } from "./opsLogListSchema.js";
 export { opsLogPublicSchema } from "./opsLogPublicSchema.js";
 export { opsLogRecordRefSchema } from "./opsLogRecordRefSchema.js";
+export { opsLogSummarySubscriptionSchema } from "./opsLogSummarySubscriptionSchema.js";
 export { opsLogUpdateSchema } from "./opsLogUpdateSchema.js";
 export {
   opslogCreateAttachmentBodySchema,
@@ -7730,6 +7731,20 @@ export {
   opslogGetEntryStatus422Schema,
 } from "./opslogGetEntrySchema.js";
 export {
+  opslogGetSummarySubscriptionErrorSchema,
+  opslogGetSummarySubscriptionHeadersSchema,
+  opslogGetSummarySubscriptionHeaderXBarrelsOrganisationSchema,
+  opslogGetSummarySubscriptionPathLogIdSchema,
+  opslogGetSummarySubscriptionPathSchema,
+  opslogGetSummarySubscriptionResponseSchema,
+  opslogGetSummarySubscriptionStatus200Schema,
+  opslogGetSummarySubscriptionStatus400Schema,
+  opslogGetSummarySubscriptionStatus401Schema,
+  opslogGetSummarySubscriptionStatus403Schema,
+  opslogGetSummarySubscriptionStatus404Schema,
+  opslogGetSummarySubscriptionStatus422Schema,
+} from "./opslogGetSummarySubscriptionSchema.js";
+export {
   opslogListCategoriesErrorSchema,
   opslogListCategoriesHeadersSchema,
   opslogListCategoriesHeaderXBarrelsOrganisationSchema,
@@ -7782,6 +7797,22 @@ export {
   opslogListLogsStatus404Schema,
   opslogListLogsStatus422Schema,
 } from "./opslogListLogsSchema.js";
+export {
+  opslogSetSummarySubscriptionBodySchema,
+  opslogSetSummarySubscriptionErrorSchema,
+  opslogSetSummarySubscriptionHeadersSchema,
+  opslogSetSummarySubscriptionHeaderXBarrelsOrganisationSchema,
+  opslogSetSummarySubscriptionPathLogIdSchema,
+  opslogSetSummarySubscriptionPathSchema,
+  opslogSetSummarySubscriptionResponseSchema,
+  opslogSetSummarySubscriptionStatus200Schema,
+  opslogSetSummarySubscriptionStatus400Schema,
+  opslogSetSummarySubscriptionStatus401Schema,
+  opslogSetSummarySubscriptionStatus403Schema,
+  opslogSetSummarySubscriptionStatus404Schema,
+  opslogSetSummarySubscriptionStatus409Schema,
+  opslogSetSummarySubscriptionStatus422Schema,
+} from "./opslogSetSummarySubscriptionSchema.js";
 export {
   opslogUpdateCategoryBodySchema,
   opslogUpdateCategoryErrorSchema,

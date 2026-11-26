@@ -7,16 +7,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
+from src.opslog import outbox_handlers
+from src.opslog.messages import ENTRY_POST_TOPIC
 from src.opslog.models import OpsLog, OpsLogEntry, OpsLogEntrySource
-
-# Importing the handler module registers the handler.
-from src.opslog.outbox_handlers import ENTRY_POST_TOPIC
 from src.organisations.models import MembershipRole
 from src.utils.datetime import utc_now
 from tests.factories import make_user
 from tests.organisations.support import make_org
 
 pytestmark = pytest.mark.asyncio
+
+# Importing the handler module registers the handler.
+assert outbox_handlers.entry_post is not None
 
 
 async def _org(db: AsyncSession, *, apps: tuple[str, ...] = ("opslog",)) -> str:
