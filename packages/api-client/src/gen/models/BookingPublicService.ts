@@ -35,7 +35,7 @@ export type BookingPublicService = {
    */
   new_clients_only?: boolean;
   /**
-   * @description A booking of this service is a request, and anything due online (`due_at_booking_minor`) is paid only after the business accepts it: nothing is charged when the request is made.
+   * @description A booking of this service is a request the business accepts by hand, and any payment (`due_at_booking_minor` by card, or `deposit_to_business_minor` to the business) is made only after it accepts: nothing is asked when the request is made.
    * @default false
    * @type boolean | undefined
    */

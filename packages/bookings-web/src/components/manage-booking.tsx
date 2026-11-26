@@ -135,6 +135,41 @@ function BookingPayment({ booking }: { booking: BookingPublicDetail }) {
   );
 }
 
+/**
+ * Change time and Cancel booking. A request the business accepted cannot be
+ * moved until it is paid (the API refuses it); cancelling stays open.
+ */
+function ViewActions({
+  canChangeTime,
+  onStart,
+}: {
+  canChangeTime: boolean;
+  onStart: (mode: "reschedule" | "confirm-cancel") => void;
+}) {
+  return (
+    <div className="actions">
+      {canChangeTime ? (
+        <button
+          className="btn btn-solid"
+          onClick={() => onStart("reschedule")}
+          type="button"
+        >
+          Change time
+        </button>
+      ) : (
+        <p className="muted">Pay first, then you can change the time.</p>
+      )}
+      <button
+        className="btn"
+        onClick={() => onStart("confirm-cancel")}
+        type="button"
+      >
+        Cancel booking
+      </button>
+    </div>
+  );
+}
+
 type Mode = "view" | "reschedule" | "confirm-cancel";
 
 export function ManageBooking({
@@ -264,30 +299,14 @@ export function ManageBooking({
       )}
 
       {editable && mode === "view" && (
-        <div className="actions">
-          <button
-            className="btn btn-solid"
-            onClick={() => {
-              setError(null);
-              setNotice(null);
-              setMode("reschedule");
-            }}
-            type="button"
-          >
-            Change time
-          </button>
-          <button
-            className="btn"
-            onClick={() => {
-              setError(null);
-              setNotice(null);
-              setMode("confirm-cancel");
-            }}
-            type="button"
-          >
-            Cancel booking
-          </button>
-        </div>
+        <ViewActions
+          canChangeTime={!acceptedAwaitingPayment(booking)}
+          onStart={(next) => {
+            setError(null);
+            setNotice(null);
+            setMode(next);
+          }}
+        />
       )}
 
       {editable && mode === "confirm-cancel" && (

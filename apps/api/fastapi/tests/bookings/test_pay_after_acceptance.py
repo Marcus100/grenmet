@@ -22,11 +22,20 @@ import pytest
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bookings import deposit_payments, deposits, emails, reminders, transitions
+from src.bookings import (
+    deposit_payments,
+    deposits,
+    emails,
+    reminders,
+    studio,
+    transitions,
+)
+from src.bookings.exceptions import BookingConflictError
 from src.bookings.models import Booking, BookingProfile, BookingStatus, Service
 from src.outbox import Outbox
 from src.payments.models import IntentStatus, LedgerEntry
 from src.utils.datetime import utc_now
+from tests.bookings.test_calendar_feed import _feed_path
 from tests.bookings.test_deposits import (
     DEPOSIT,
     _book_deposit,
@@ -140,7 +149,9 @@ def test_only_a_request_can_move_to_awaiting_payment() -> None:
 @pytest.mark.parametrize(
     ("profile_minutes", "online", "to_start", "expected"),
     [
-        (None, False, 10_000, 30),
+        (None, False, 10_000, 1440),  # no setting: a day, not 30 minutes
+        (None, True, 10_000, 1380),
+        (45, False, 10_000, 45),
         (600, True, 10_000, 600),  # not the 2-hour cap of a checkout at booking
         (10080, True, 20_000, 1380),  # a checkout link lasts a day
         (10080, False, 20_000, 10080),
@@ -476,11 +487,13 @@ async def test_case_3_a_payment_after_the_hold_lapsed_is_refunded(
     assert (await _accept(async_client, studio, booking_id)).status_code == 200
     intent = await _intent(db_async, booking_id)
     assert intent is not None
-    late = utc_now() + timedelta(minutes=45)
-    assert (
-        await deposits.expire_unpaid(db_async, now=late, organisation_id=studio.org_id)
-        == 1
-    )
+    # No hold set by the business: an accepted request has a day to pay.
+    assert (await _booking_for(db_async, booking_id)).hold_minutes == 1440
+    args = {"organisation_id": studio.org_id}
+    soon = utc_now() + timedelta(hours=23)
+    assert await deposits.expire_unpaid(db_async, now=soon, **args) == 0
+    late = utc_now() + timedelta(hours=25)
+    assert await deposits.expire_unpaid(db_async, now=late, **args) == 1
     await db_async.commit()
     assert (
         await deposits.confirm_paid(
@@ -613,8 +626,8 @@ async def test_the_storefront_says_when_payment_follows_acceptance(
         deposit_collection="business",
     )
     flags = []
-    for studio in (plain, by_hand, direct):
-        body = (await async_client.get(f"{API}/public/{studio.slug}")).json()
+    for shop in (plain, by_hand, direct):
+        body = (await async_client.get(f"{API}/public/{shop.slug}")).json()
         flags.append(body["services"][0]["pay_after_acceptance"])
     # A deposit paid to the business is also asked for only after acceptance.
     assert flags == [False, True, True]
@@ -684,6 +697,219 @@ async def test_a_booking_paid_before_this_rule_still_waits_for_the_business(
     assert accepted.status_code == 200, accepted.text
     assert accepted.json()["status"] == "confirmed"  # paid already: no second ask
     assert await _mail(db_async, studio, f"booking-accepted:{booking_id}") is None
+
+
+# --- review fixes: close to the start, switched collection, moves, feed, no pay link ---
+
+
+@pytest.mark.parametrize(("minutes_before", "accepted"), [(29, False), (30, True)])
+async def test_accepting_needs_half_an_hour_before_the_start_to_take_a_payment(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    minutes_before: int,
+    accepted: bool,
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking = await _booking_for(db_async, receipt["booking"]["id"])
+    now = booking.starts_at - timedelta(minutes=minutes_before)
+    if not accepted:
+        with pytest.raises(BookingConflictError) as refused:
+            await studio.confirm(
+                db_async, studio_.org_id, booking.id, actor_user_id=None, now=now
+            )
+        assert refused.value.status_code == 409
+        assert refused.value.message == (
+            "Too close to the start to take an online payment. Mark the deposit "
+            "received if they have paid you, or cancel the request."
+        )
+        await db_async.rollback()
+        stored = await _booking_for(db_async, receipt["booking"]["id"])
+        assert stored.status == "pending"
+        assert stored.accepted_at is None
+        assert await _intent(db_async, receipt["booking"]["id"]) is None
+        return
+    detail = await studio.confirm(
+        db_async, studio_.org_id, booking.id, actor_user_id=None, now=now
+    )
+    await db_async.commit()
+    assert detail.status is BookingStatus.PENDING_PAYMENT
+    # Half an hour to pay: the hold ends at the start, never after it.
+    assert (await _booking_for(db_async, receipt["booking"]["id"])).hold_minutes == 30
+
+
+async def test_accepting_after_the_start_is_refused_not_given_a_deadline(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking = await _booking_for(db_async, receipt["booking"]["id"])
+    with pytest.raises(BookingConflictError) as refused:
+        await studio.confirm(
+            db_async,
+            studio_.org_id,
+            booking.id,
+            actor_user_id=None,
+            now=booking.starts_at + timedelta(minutes=5),
+        )
+    assert "Too close to the start" in refused.value.message
+    await db_async.rollback()
+    assert (await _booking_for(db_async, receipt["booking"]["id"])).status == "pending"
+
+
+async def test_a_deposit_marked_received_is_accepted_even_close_to_the_start(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    recorded = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/manual-deposit",
+        headers={**studio_.headers, "Idempotency-Key": uuid.uuid4().hex},
+        json={"method": "cash", "reference": "R-10"},
+    )
+    assert recorded.status_code == 200, recorded.text
+    await _drain(db_async)
+    booking = await _booking_for(db_async, booking_id)
+    detail = await studio.confirm(
+        db_async,
+        studio_.org_id,
+        booking.id,
+        actor_user_id=None,
+        now=booking.starts_at - timedelta(minutes=10),
+    )
+    await db_async.commit()
+    assert detail.status is BookingStatus.CONFIRMED
+
+
+async def test_the_hold_follows_the_booking_when_collection_is_switched_to_direct(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client, deposit_hold_minutes=90)
+    booking_id = receipt["booking"]["id"]
+    # The owner switches to "paid to me" while the request is waiting.
+    await db_async.execute(
+        update(BookingProfile)
+        .where(BookingProfile.organisation_id == studio_.org_id)
+        .values(deposit_collection="business")
+    )
+    await db_async.commit()
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["status"] == "pending_payment"
+    assert await _intent(db_async, booking_id) is not None
+
+    # The hold is still shown to both sides and still ends.
+    view = await _manage(async_client, receipt["manage_token"])
+    assert view["hold_minutes"] == 90
+    assert view["hold_ends_at"] is not None
+    from tests.bookings.booking_day import DAY
+
+    agenda = await async_client.get(
+        f"{API}/org/agenda",
+        headers=studio_.headers,
+        params={"from_date": DAY, "to_date": DAY},
+    )
+    rows = [b for day in agenda.json()["days"] for b in day["bookings"]]
+    assert rows[0]["hold_expires_at"] is not None
+
+    late = utc_now() + timedelta(minutes=95)
+    assert (
+        await deposits.expire_unpaid(db_async, now=late, organisation_id=studio_.org_id)
+        == 1
+    )
+    await db_async.commit()
+    assert (await _booking_for(db_async, booking_id)).status == "cancelled"
+
+
+async def test_an_accepted_request_cannot_be_moved_by_the_customer_until_it_is_paid(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    assert (await _accept(async_client, studio_, booking_id)).status_code == 200
+    target = (await _slots(async_client, studio_))[0]
+    assert target != receipt["booking"]["starts_at"]
+
+    moved = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/reschedule",
+        json={"starts_at": target},
+    )
+    assert moved.status_code == 409
+    assert moved.json()["detail"] == "Pay first, then you can change the time"
+    stored = await _booking_for(db_async, booking_id)
+    assert stored.status == "pending_payment"
+
+    # Once paid it is a confirmed booking and moves like any other.
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    await _pay_manually(async_client, studio_, intent.id)
+    await _drain(db_async)
+    moved = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/reschedule",
+        json={"starts_at": target},
+    )
+    assert moved.status_code == 200, moved.text
+
+
+async def test_the_staff_calendar_feed_keeps_a_booking_that_waits_for_payment(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    created = await async_client.post(
+        f"{API}/org/calendar-feed", headers=studio_.headers
+    )
+    assert created.status_code == 201, created.text
+    path = _feed_path(str(created.json()["url"]))
+
+    before = (await async_client.get(path)).text
+    assert before.count("BEGIN:VEVENT") == 1
+    assert "STATUS:TENTATIVE" in before
+
+    assert (
+        await _accept(async_client, studio_, receipt["booking"]["id"])
+    ).status_code == 200
+    after = (await async_client.get(path)).text
+    # Accepted and waiting for the money: the slot is held, so it stays listed.
+    assert after.count("BEGIN:VEVENT") == 1
+    assert "STATUS:TENTATIVE" in after
+
+
+async def test_accepting_says_when_no_pay_link_could_be_made(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    # The card rail is on but the provider cannot start a checkout (no usable key
+    # here), so the deposit falls back to one the business takes itself.
+    monkeypatch.setattr(deposit_payments, "stripe_available", lambda: True)
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    detail = accepted.json()
+    assert detail["status"] == "pending_payment"
+    assert detail["deposit_payment_link"] is False
+    view = await _manage(async_client, receipt["manage_token"])
+    assert view["payment"]["status"] == "due"
+    assert view["payment"]["checkout_url"] is None
+
+    mail = await _mail(db_async, studio_, f"booking-accepted:{booking_id}")
+    assert mail is not None
+    text = payload_text(mail.payload)
+    assert "will tell you how to pay" in text
+    assert "Pay now" not in text
+
+
+async def test_accepting_reports_the_pay_link_when_the_checkout_was_made(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    _ = stripe_env
+    studio_, receipt = await _request(db_async, async_client)
+    accepted = await _accept(async_client, studio_, receipt["booking"]["id"])
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["deposit_payment_link"] is True
 
 
 # --- 4. acceptance, direct -------------------------------------------------------------------

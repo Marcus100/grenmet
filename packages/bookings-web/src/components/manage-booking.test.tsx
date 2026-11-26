@@ -664,6 +664,34 @@ describe("a request paid after the business accepts", () => {
     expect(screen.queryByText(STAYS_A_REQUEST)).toBeNull();
   });
 
+  it("cannot change the time until it is paid, but can still cancel", () => {
+    renderManage({
+      ...request,
+      status: "pending_payment",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+    });
+    expect(screen.queryByRole("button", { name: "Change time" })).toBeNull();
+    expect(
+      screen.getByText("Pay first, then you can change the time.")
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Cancel booking" })
+    ).toBeVisible();
+  });
+
+  it("offers Change time while the request waits and once it is confirmed", () => {
+    const { unmount } = renderManage(request);
+    expect(screen.getByRole("button", { name: "Change time" })).toBeVisible();
+    unmount();
+    renderManage({ ...request, status: "confirmed" });
+    expect(screen.getByRole("button", { name: "Change time" })).toBeVisible();
+  });
+
+  it("stops saying it stays a request once the business confirmed it", () => {
+    renderManage({ ...request, status: "confirmed" });
+    expect(screen.queryByText(STAYS_A_REQUEST)).toBeNull();
+  });
+
   it("leaves a payment at booking as it was", () => {
     renderManage({
       ...booking,

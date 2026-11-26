@@ -90353,7 +90353,7 @@
           "pay_after_acceptance": {
             "type": "boolean",
             "title": "Pay After Acceptance",
-            "description": "A booking of this service is a request, and anything due online (`due_at_booking_minor`) is paid only after the business accepts it: nothing is charged when the request is made.",
+            "description": "A booking of this service is a request the business accepts by hand, and any payment (`due_at_booking_minor` by card, or `deposit_to_business_minor` to the business) is made only after it accepts: nothing is asked when the request is made.",
             "default": false
           },
           "first_visit_lead_days": {
@@ -91732,6 +91732,12 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "deposit_payment_link": {
+            "type": "boolean",
+            "title": "Deposit Payment Link",
+            "description": "True while the deposit has an open online checkout the customer can pay through. False for an accepted request means no pay link could be made: the business has to tell the customer how to pay.",
+            "default": false
           },
           "deposit_intent_id": {
             "anyOf": [

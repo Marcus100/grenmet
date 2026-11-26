@@ -109,6 +109,12 @@ export type BookingStudioDetail = {
    */
   created_at: string;
   /**
+   * @description True while the deposit has an open online checkout the customer can pay through. False for an accepted request means no pay link could be made: the business has to tell the customer how to pay.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_payment_link?: boolean;
+  /**
    * @description The payments intent for the deposit, to record a manual payment.
    */
   deposit_intent_id: string | null;

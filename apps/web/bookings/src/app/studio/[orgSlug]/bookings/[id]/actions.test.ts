@@ -94,15 +94,54 @@ describe("booking actions", () => {
     );
   });
 
-  it("says a request paid afterwards is accepted, not confirmed", async () => {
+  it("says a request paid afterwards is accepted, what happens next and the way out", async () => {
     vi.mocked(confirmBooking).mockResolvedValue({
       events: [],
       status: "pending_payment",
+      deposit_payment_link: true,
     } as never);
     expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
       status: "success",
       message:
-        "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives.",
+        "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives and released if it does not. To take the acceptance back, use Cancel booking.",
+    });
+  });
+
+  it("says plainly when it was accepted without an online pay link", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue({
+      events: [],
+      status: "pending_payment",
+      deposit_payment_link: false,
+    } as never);
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
+      status: "success",
+      message:
+        "Accepted, but the online payment link could not be created. Tell the customer how to pay.",
+    });
+  });
+
+  it("shows the API's own words on a second accept, not a generic failure", async () => {
+    vi.mocked(confirmBooking).mockRejectedValue(
+      apiError(409, {
+        detail: "This request is already accepted and is waiting for payment",
+      })
+    );
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
+      status: "error",
+      message: "This request is already accepted and is waiting for payment",
+      nextStep:
+        "The customer has been emailed to pay. To take the acceptance back, use Cancel booking.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says why a request too close to its start cannot take an online payment", async () => {
+    const detail =
+      "Too close to the start to take an online payment. Mark the deposit received if they have paid you, or cancel the request.";
+    vi.mocked(confirmBooking).mockRejectedValue(apiError(409, { detail }));
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
+      status: "error",
+      message: detail,
     });
   });
 

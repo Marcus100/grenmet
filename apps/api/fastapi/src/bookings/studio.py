@@ -118,6 +118,12 @@ async def _detail(
         deposit_received_reference=booking.deposit_received_reference,
         pay_after_acceptance=booking.pay_after_acceptance,
         accepted_at=booking.accepted_at,
+        deposit_payment_link=(
+            intent is not None
+            and intent.provider is ProviderKey.STRIPE
+            and intent.status
+            in (IntentStatus.REQUIRES_PAYMENT, IntentStatus.PROCESSING)
+        ),
         deposit_intent_id=intent.id if intent else None,
         deposit_captured_minor=intent.captured_minor if intent else 0,
         deposit_refunded_minor=intent.refunded_minor if intent else 0,
@@ -267,9 +273,7 @@ async def confirm(
     status = BookingStatus(booking.status)
     if status is BookingStatus.PENDING_PAYMENT:
         if booking.pay_after_acceptance and booking.accepted_at is not None:
-            raise BookingConflictError(
-                "This request is already accepted and is waiting for payment"
-            )
+            raise BookingConflictError(ALREADY_ACCEPTED)
         raise BookingConflictError("This booking is waiting for its deposit")
     moment = now or utc_now()
     if status is BookingStatus.PENDING and await _payment_due_on_acceptance(
@@ -297,6 +301,13 @@ async def confirm(
     return await _detail(session, managed)
 
 
+TOO_CLOSE_TO_PAY_ONLINE = (
+    "Too close to the start to take an online payment. Mark the deposit received "
+    "if they have paid you, or cancel the request."
+)
+ALREADY_ACCEPTED = "This request is already accepted and is waiting for payment"
+
+
 async def _payment_due_on_acceptance(session: AsyncSession, booking: Booking) -> bool:
     """True when accepting this request must ask the customer to pay: it is paid
     after acceptance, something is due and nothing has been captured for it."""
@@ -318,6 +329,10 @@ async def _accept_for_payment(
     paying confirms the booking (``deposits.confirm_paid``) and an unpaid hold is
     released by the sweeper (``deposits.expire_unpaid``) like any other."""
     booking, profile = managed.booking, managed.profile
+    closest = timedelta(minutes=deposit_payments.ACCEPT_MIN_MINUTES_TO_START)
+    if booking.starts_at - now < closest:
+        # Never an impossible deadline: the customer could not pay in time.
+        raise BookingConflictError(TOO_CLOSE_TO_PAY_ONLINE)
     await public.transition(
         session,
         booking,

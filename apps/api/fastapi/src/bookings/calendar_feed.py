@@ -71,7 +71,13 @@ _CONTACT_IN_NAME = re.compile(
     r"|\.(?:com|net|org|edu|gov|io|co|me|info|biz)\b|\d{7,}",
     re.IGNORECASE,
 )
+#: A booking waiting for its payment still holds its slot, so it stays on the feed.
+_TENTATIVE_STATUSES = (
+    BookingStatus.PENDING_PAYMENT.value,
+    BookingStatus.PENDING.value,
+)
 _LIVE_STATUSES = (
+    BookingStatus.PENDING_PAYMENT.value,
     BookingStatus.PENDING.value,
     BookingStatus.CONFIRMED.value,
     BookingStatus.COMPLETED.value,
@@ -277,7 +283,7 @@ async def _window_rows(
 def _event(row: Any, profile: BookingProfile) -> ics.CalendarEvent:
     if row.status == BookingStatus.CANCELLED.value:
         status: ics.IcsStatus = "CANCELLED"
-    elif row.status == BookingStatus.PENDING.value:
+    elif row.status in _TENTATIVE_STATUSES:
         status = "TENTATIVE"
     else:
         status = "CONFIRMED"

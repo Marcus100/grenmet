@@ -1099,6 +1099,14 @@ class BookingStudioDetail(BaseModel):
     cancel_reason: str | None
     cancelled_at: UtcDateTime | None
     created_at: UtcDateTime
+    deposit_payment_link: bool = Field(
+        default=False,
+        description=(
+            "True while the deposit has an open online checkout the customer can "
+            "pay through. False for an accepted request means no pay link could be "
+            "made: the business has to tell the customer how to pay."
+        ),
+    )
     deposit_intent_id: uuid.UUID | None = Field(
         description="The payments intent for the deposit, to record a manual payment."
     )

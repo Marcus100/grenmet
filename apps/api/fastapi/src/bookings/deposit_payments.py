@@ -149,6 +149,14 @@ def awaits_acceptance(booking: Booking) -> bool:
     )
 
 
+def accepted_awaiting_payment(booking: Booking) -> bool:
+    """A request the business accepted that now waits for its payment."""
+    return (
+        booking.pay_after_acceptance
+        and booking.status == BookingStatus.PENDING_PAYMENT.value
+    )
+
+
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
     """What is still to pay at the business once the deposit is paid. Clients show
     it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
@@ -409,6 +417,13 @@ def hold_minutes_for(profile_minutes: int | None, *, online: bool) -> int:
 #: email, not a page they are on), but a hosted checkout link stops working 24
 #: hours after it is made, so the hold never outlives the link.
 ACCEPTED_ONLINE_HOLD_CAP_MINUTES = 23 * 60
+#: How long an accepted request has to pay when the business set no hold of its
+#: own. The customer answers an email, so the 30 minutes of a payment made while
+#: booking (``DEPOSIT_HOLD_MINUTES``) would be far too short.
+ACCEPTED_HOLD_DEFAULT_MINUTES = 24 * 60
+#: A request is not accepted into "pay online" with less than this before its
+#: start: the customer could not reasonably pay in time.
+ACCEPT_MIN_MINUTES_TO_START = 30
 
 
 def accepted_hold_minutes_for(
@@ -416,13 +431,10 @@ def accepted_hold_minutes_for(
 ) -> int:
     """Pure: how many minutes a request holds its slot for payment once the
     business accepts it. The business's ``deposit_hold_minutes`` (null =
-    ``DEPOSIT_HOLD_MINUTES``), capped at ``ACCEPTED_ONLINE_HOLD_CAP_MINUTES`` for a
-    card checkout, and never past the booking's own start (at least one minute)."""
-    base = (
-        bookings_settings.DEPOSIT_HOLD_MINUTES
-        if profile_minutes is None
-        else profile_minutes
-    )
+    ``ACCEPTED_HOLD_DEFAULT_MINUTES``), capped at ``ACCEPTED_ONLINE_HOLD_CAP_MINUTES``
+    for a card checkout, and never past the booking's own start (the accept itself
+    is refused inside ``ACCEPT_MIN_MINUTES_TO_START``; at least one minute)."""
+    base = ACCEPTED_HOLD_DEFAULT_MINUTES if profile_minutes is None else profile_minutes
     if online:
         base = min(base, ACCEPTED_ONLINE_HOLD_CAP_MINUTES)
     return max(min(base, minutes_to_start), 1)
@@ -483,10 +495,15 @@ async def hold_minutes_for_bookings(
     """Minutes held for each booking waiting for a deposit (``pending_payment``).
     The booking's snapshot wins; a booking with no snapshot (made before it existed)
     is computed from the profile now. Bookings in any other state, and
-    business-collected ones, are not in the result."""
-    if collected_by_business(profile):
-        return {}
-    held = [b for b in bookings if b.status == BookingStatus.PENDING_PAYMENT.value]
+    business-collected ones, are not in the result. A request accepted for an
+    online payment is held whatever the profile collects now: the booking decides."""
+    business = collected_by_business(profile)
+    held = [
+        b
+        for b in bookings
+        if b.status == BookingStatus.PENDING_PAYMENT.value
+        and (b.pay_after_acceptance or not business)
+    ]
     unsnapped = [b.id for b in held if b.hold_minutes is None]
     online = await online_held_ids(session, unsnapped)
     return {

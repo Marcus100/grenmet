@@ -20,6 +20,7 @@ from sqlalchemy import (
     func,
     literal,
     literal_column,
+    or_,
     select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -210,9 +211,14 @@ async def expire_unpaid(
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .where(
             Booking.status == BookingStatus.PENDING_PAYMENT.value,
-            # Business-collected deposits are never held (same rule as the read side).
-            BookingProfile.deposit_collection
-            != BookingDepositCollection.BUSINESS.value,
+            # Business-collected deposits are never held (same rule as the read
+            # side). A request accepted for an online payment is, whatever the
+            # profile collects now: the booking decides, not a later setting.
+            or_(
+                Booking.pay_after_acceptance.is_(True),
+                BookingProfile.deposit_collection
+                != BookingDepositCollection.BUSINESS.value,
+            ),
             hold_started + hold * _ONE_MINUTE <= moment,
         )
         .order_by(Booking.created_at)

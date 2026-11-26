@@ -84,6 +84,13 @@ export const bookingStudioDetailSchema = z
     cancel_reason: z.union([z.string(), z.null()]),
     cancelled_at: z.union([z.iso.datetime(), z.null()]),
     created_at: z.iso.datetime(),
+    deposit_payment_link: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "True while the deposit has an open online checkout the customer can pay through. False for an accepted request means no pay link could be made: the business has to tell the customer how to pay."
+      ),
     deposit_intent_id: z
       .union([z.uuid(), z.null()])
       .describe(

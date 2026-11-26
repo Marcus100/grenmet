@@ -7,7 +7,6 @@ import {
   showsBusinessDeposit,
   showsDepositReceived,
 } from "../lib/booking-extras";
-import { acceptedAwaitingPayment } from "../lib/booking-payment";
 import { DepositReceivedNotice, DepositToBusiness } from "./business-deposit";
 import { NewClientsNote } from "./new-clients-note";
 
@@ -56,8 +55,8 @@ export function BookedExtras({
             minor={booking.deposit_to_business_minor ?? 0}
           />
         )}
-      {/* Once the business accepted, "it stays a request" is no longer true. */}
-      {withNewClients && !acceptedAwaitingPayment(booking) && (
+      {/* "It stays a request" is true only until the business answers (#1951). */}
+      {withNewClients && booking.status === "pending" && (
         <NewClientsNote booked service={booking} />
       )}
     </>

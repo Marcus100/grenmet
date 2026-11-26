@@ -1174,6 +1174,9 @@ async def cancel_booking(
     return await full_detail(session, managed, moment)
 
 
+PAY_BEFORE_CHANGING = "Pay first, then you can change the time"
+
+
 async def move_booking(
     session: AsyncSession, booking: Booking, svc: Service, starts_at: datetime
 ) -> None:
@@ -1211,6 +1214,10 @@ async def reschedule_booking(
     managed = await load_by_token(session, token, lock=True)
     booking, svc = managed.booking, managed.service
     _require_active(booking)
+    if deposit_payments.accepted_awaiting_payment(booking):
+        # The business accepted this time and is waiting for the money: a move
+        # now would change what it agreed to before it is paid for.
+        raise BookingConflictError(PAY_BEFORE_CHANGING)
     _require_before_cutoff(managed, moment, "changed")
     starts_at = service.as_naive_utc(new_starts_at)
     if starts_at == booking.starts_at:

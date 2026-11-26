@@ -281,6 +281,35 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   load and again after Confirm, Decline or Change time; it does not update
   while browsing between pages, and there is no polling for now. "Awaiting deposit" is not listed:
   that waits for the customer.
+- **Requests paid after acceptance** (a business that confirms by hand, or a
+  new-clients-only service). The customer pays only once the business accepts.
+  - Studio, request waiting: neutral chip "Deposit EC$50 after you accept" (card)
+    or "Deposit EC$50 to you after you accept" (paid to the business), and on the
+    booking a plain line "Nothing has been paid yet. When you confirm this
+    request, the customer is emailed to pay ...".
+  - Studio, after Confirm with a card payment due: warning badge and chip
+    "Accepted, awaiting payment" (the status badge stays "Awaiting deposit"),
+    with "Expires soon" first when the payment window is closing. The result
+    line reads "Request accepted. The customer was emailed to pay; the booking
+    is confirmed when the payment arrives and released if it does not. To take
+    the acceptance back, use Cancel booking." With no online pay link it reads
+    "Accepted, but the online payment link could not be created. Tell the
+    customer how to pay." A second Confirm, or one inside 30 minutes of the
+    start, shows the API's own sentence, never the generic conflict text.
+  - Customer, before acceptance: service row "Deposit EC$50, paid after your
+    request is accepted"; form "Nothing to pay now. This is a request: if
+    <business> accepts it, we will email you to pay a deposit of EC$50 (the rest
+    is paid at the business)."; confirmation and manage page "Nothing to pay
+    yet. We will email you when <business> accepts. You pay then (EC$50)." No
+    Pay now button and no hold line. A deposit paid to the business reads the
+    same way and shows no payment instructions yet.
+  - Customer, after acceptance: status "Accepted, waiting for your payment",
+    "<business> accepted your request. Pay EC$50 to confirm your booking.", the
+    Pay now button and "Pay by <day, time>. Your time is held until then; after
+    that it is released and the booking is cancelled." Change time is replaced
+    by "Pay first, then you can change the time."; Cancel booking stays.
+  - "The business confirms this booking, so it stays a request until they do"
+    shows only while the booking is still a request.
 - **Customers** is a search box (name, email or phone; a GET form, so it works
   without scripts) above one card of rows. Each row: the name, the phone as a
   `tel:` link (44 px), the email, then Bookings, Last visit and Next booking
