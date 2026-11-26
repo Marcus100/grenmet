@@ -3580,3 +3580,9 @@ Another organisation's records are 404.
   the incident's time from Met Service observations (90 minutes before to 30 after; 404
   when none); with `report` it stores the typed text as `manual`. Incidents return
   `weather` (`station`, `observed_at`, `report`, `source`). Closed incidents refuse (409).
+- Operations log daily summary (#1875): `GET|PUT /opslog/org/logs/{log_id}/summary-subscription`
+  (`subscribed`; needs `opslog.entries.read`). Once a day (10:05 UTC) each subscriber who
+  is still an active member with the read key is told, by bell and email
+  (`opslog.daily_summary`), how many entries were written in the last 24 hours, the
+  busiest categories and the latest lines. Private entries are never included; a log
+  with no new entries sends nothing.

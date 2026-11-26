@@ -24,7 +24,7 @@ from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUN
 from src.organisations import grants
 from src.organisations.dependencies import OrgContext, require_org_permission
 
-from . import attachments, service
+from . import attachments, service, summary
 from .models import OpsLogEntry, OpsLogEntrySource
 from .schemas import (
     OpsLogAttachmentCreate,
@@ -44,6 +44,7 @@ from .schemas import (
     OpsLogList,
     OpsLogPublic,
     OpsLogRecordRef,
+    OpsLogSummarySubscription,
     OpsLogUpdate,
 )
 
@@ -483,3 +484,54 @@ async def create_attachment(
     )
     await session.commit()
     return OpsLogAttachmentPublic.model_validate(attachment, from_attributes=True)
+
+
+@router.get(
+    "/org/logs/{log_id}/summary-subscription",
+    response_model=OpsLogSummarySubscription,
+    summary="Whether I get this log's daily summary",
+    description="The daily summary goes out once a day by bell and email.",
+    operation_id="opslogGetSummarySubscription",
+    responses=READ_ERRORS,
+)
+async def get_summary_subscription(
+    *, session: SessionDep, org: OpsLogReader, log_id: str
+) -> Any:
+    log = await service.get_log(
+        session, organisation_id=org.organisation_id, log_id=log_id
+    )
+    return OpsLogSummarySubscription(
+        subscribed=await summary.is_subscribed(
+            session, log_id=log.id, user_id=org.user.id
+        )
+    )
+
+
+@router.put(
+    "/org/logs/{log_id}/summary-subscription",
+    response_model=OpsLogSummarySubscription,
+    summary="Start or stop my daily summary of this log",
+    description=(
+        "Once a day you are told how many entries were written in the last 24 "
+        "hours, the busiest categories and the latest lines. Private entries are "
+        "never included."
+    ),
+    operation_id="opslogSetSummarySubscription",
+    responses=WRITE_ERRORS,
+)
+async def set_summary_subscription(
+    *,
+    session: SessionDep,
+    org: OpsLogReader,
+    log_id: str,
+    payload: OpsLogSummarySubscription,
+) -> Any:
+    subscribed = await summary.set_subscribed(
+        session,
+        organisation_id=org.organisation_id,
+        log_id=log_id,
+        user_id=org.user.id,
+        subscribed=payload.subscribed,
+    )
+    await session.commit()
+    return OpsLogSummarySubscription(subscribed=subscribed)
