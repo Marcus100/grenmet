@@ -143,4 +143,26 @@ describe("AccountMenu signed in", () => {
     });
     expect(link.className).toContain("min-h-11");
   });
+
+  it("submits sign-out to the app's own route when Sign out is clicked", async () => {
+    const submitted: HTMLFormElement[] = [];
+    const record = (event: Event) => {
+      // Keep jsdom from trying to navigate; record which form was submitted.
+      event.preventDefault();
+      submitted.push(event.target as HTMLFormElement);
+    };
+    document.addEventListener("submit", record);
+    try {
+      render(signedIn());
+      fireEvent.click(trigger());
+      fireEvent.click(
+        await screen.findByRole("menuitem", { name: "Sign out" })
+      );
+      await waitFor(() => expect(submitted).toHaveLength(1));
+      expect(submitted[0]).toHaveAttribute("action", "/auth/logout");
+      expect(submitted[0]).toHaveAttribute("method", "post");
+    } finally {
+      document.removeEventListener("submit", record);
+    }
+  });
 });

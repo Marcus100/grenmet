@@ -1,6 +1,7 @@
 import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
+import { accountAppUrlSchema } from "@/lib/account-app-url";
 
 export const env = createEnv({
   server: {
@@ -15,9 +16,7 @@ export const env = createEnv({
       .default("bookings_session"),
     // The Barrels account app (account.barrels.gd, ADR-0057): the account menu
     // links there. Read on the server only; the menu gets the URL as a prop.
-    ACCOUNT_APP_URL: z
-      .string()
-      .url()
+    ACCOUNT_APP_URL: accountAppUrlSchema
       .optional()
       .default("http://localhost:3018"),
     // Deployment passes "" when the secret isn't set: treat that as off.

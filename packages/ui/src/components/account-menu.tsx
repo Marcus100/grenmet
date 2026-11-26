@@ -118,7 +118,11 @@ export function AccountMenu(props: AccountMenuProps) {
         render={<button type="button" />}
       >
         <Avatar className="size-9">
-          <AvatarImage alt="" src={user.imageUrl || undefined} />
+          <AvatarImage
+            alt=""
+            referrerPolicy="no-referrer"
+            src={user.imageUrl || undefined}
+          />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
             {letter}
           </AvatarFallback>
