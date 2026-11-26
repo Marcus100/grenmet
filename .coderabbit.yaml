@@ -19,7 +19,6 @@ reviews:
       - "^dev$"
     ignore_title_keywords:
       - "Release:"
-      - "Bump"
     ignore_usernames:
       - "dependabot[bot]"
   path_filters:
