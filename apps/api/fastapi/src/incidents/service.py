@@ -63,6 +63,14 @@ def naive_utc(moment: datetime) -> datetime:
     return moment.astimezone(UTC).replace(tzinfo=None)
 
 
+def _text(value: str | None, message: str) -> str:
+    """``value`` without surrounding spaces; 422 when nothing is left."""
+    cleaned = (value or "").strip()
+    if not cleaned:
+        raise AppValidationError(message)
+    return cleaned
+
+
 def _escaped(term: str) -> str:
     return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
@@ -237,7 +245,7 @@ async def add_checklist_item(
     item = IncidentChecklistItem(
         category_id=category.id,
         organisation_id=organisation_id,
-        label=payload.label.strip() or payload.label,
+        label=_text(payload.label, "A checklist item needs a label"),
         required=payload.required,
         position=payload.position,
     )
@@ -263,9 +271,7 @@ async def update_checklist_item(
         raise IncidentChecklistItemNotFoundError()
     sent = payload.model_fields_set
     if "label" in sent:
-        if payload.label is None:
-            raise AppValidationError("A checklist item needs a label")
-        item.label = payload.label
+        item.label = _text(payload.label, "A checklist item needs a label")
     if "required" in sent and payload.required is not None:
         item.required = payload.required
     if "position" in sent and payload.position is not None:
@@ -325,13 +331,20 @@ async def _next_reference(
 
 
 async def get_incident(
-    session: AsyncSession, *, organisation_id: str, incident_id: str
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    incident_id: str,
+    lock: bool = False,
 ) -> Incident:
-    incident = await session.scalar(
-        select(Incident).where(
-            Incident.id == incident_id, Incident.organisation_id == organisation_id
-        )
+    """The organisation's incident; ``lock`` holds its row until the transaction ends,
+    so status changes, checklist ticks and writes to a closing incident queue up."""
+    query = select(Incident).where(
+        Incident.id == incident_id, Incident.organisation_id == organisation_id
     )
+    if lock:
+        query = query.with_for_update()
+    incident = await session.scalar(query)
     if incident is None:
         raise IncidentNotFoundError()
     return incident
@@ -391,7 +404,7 @@ async def create_incident(
             session, organisation_id=organisation_id, year=utc_now().year
         ),
         category_id=category_id,
-        title=payload.title.strip() or payload.title,
+        title=_text(payload.title, "An incident needs a title"),
         summary=payload.summary,
         location=payload.location,
         occurred_at=occurred_at,
@@ -412,14 +425,12 @@ async def update_incident(
     payload: IncidentUpdate,
 ) -> Incident:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     _require_unlocked(incident)
     sent = payload.model_fields_set
     if "title" in sent:
-        if payload.title is None:
-            raise AppValidationError("An incident needs a title")
-        incident.title = payload.title
+        incident.title = _text(payload.title, "An incident needs a title")
     if "occurred_at" in sent:
         if payload.occurred_at is None:
             raise AppValidationError("An incident needs a time")
@@ -474,7 +485,7 @@ async def _post_to_log(
         dedupe_key=f"incidents.timeline:{entry.id}",
         payload={
             "text": f"{prefix}{text}"[:5000],
-            "occurred_at": entry.occurred_at.isoformat() + "Z",
+            "occurred_at": entry.occurred_at.replace(tzinfo=UTC).isoformat(),
             "record": {"kind": RECORD_KIND, "id": incident.id},
         },
     )
@@ -485,7 +496,7 @@ async def open_incident(
 ) -> Incident:
     """Draft to open: copy the category's checklist and post to the log."""
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status != IncidentStatus.DRAFT.value:
         raise IncidentConflictError("Only a draft can be opened")
@@ -526,7 +537,7 @@ async def close_incident(
     session: AsyncSession, *, organisation_id: str, incident_id: str, actor: User
 ) -> Incident:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status != IncidentStatus.OPEN.value:
         raise IncidentConflictError("Only an open incident can be closed")
@@ -574,7 +585,7 @@ async def reopen_incident(
     reason: str,
 ) -> Incident:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status != IncidentStatus.CLOSED.value:
         raise IncidentConflictError("Only a closed incident can be reopened")
@@ -608,7 +619,7 @@ async def add_action(
     occurred_at: datetime | None,
 ) -> IncidentTimelineEntry:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     _require_unlocked(incident)
     return await _timeline(
@@ -631,7 +642,7 @@ async def add_note(
     private: bool,
 ) -> IncidentNote:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     _require_unlocked(incident)
     note = IncidentNote(
@@ -656,7 +667,7 @@ async def set_check(
     done: bool,
 ) -> IncidentCheck:
     incident = await get_incident(
-        session, organisation_id=organisation_id, incident_id=incident_id
+        session, organisation_id=organisation_id, incident_id=incident_id, lock=True
     )
     if incident.status != IncidentStatus.OPEN.value:
         raise IncidentConflictError("Checklists change only while the incident is open")

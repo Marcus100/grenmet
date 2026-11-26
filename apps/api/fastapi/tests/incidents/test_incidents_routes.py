@@ -10,10 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import outbox
 from src.audit.models import AuditEntry
 from src.auth.models import User
+from src.opslog import outbox_handlers as opslog_handlers
+from src.opslog.messages import ENTRY_POST_TOPIC
 from src.opslog.models import OpsLog, OpsLogEntry
-
-# Importing the handler module registers the operations log handler.
-from src.opslog.outbox_handlers import ENTRY_POST_TOPIC
 from src.organisations.models import (
     Membership,
     MembershipGrant,
@@ -231,6 +230,8 @@ async def test_lifecycle_checklist_lock_and_reopen(
 async def test_status_changes_post_to_the_operations_log(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
+    # The operations log's handler registers when its module is imported.
+    assert opslog_handlers.entry_post is not None
     world = await _world(db_async, apps=("incidents", "opslog"))
     log = OpsLog(organisation_id=world.org_id, name="Operations")
     db_async.add(log)
@@ -239,17 +240,28 @@ async def test_status_changes_post_to_the_operations_log(
     await async_client.post(
         f"{API}/incidents/{incident['id']}/open", headers=world.h(world.responder)
     )
-    await outbox.drain(db_async, only_topics=[ENTRY_POST_TOPIC])
-    [entry] = (
+    path = f"{API}/incidents/{incident['id']}"
+    closed = await async_client.post(f"{path}/close", headers=world.h(world.manager))
+    assert closed.status_code == 200
+    reopened = await async_client.post(
+        f"{path}/reopen", headers=world.h(world.manager), json={"reason": "Recheck"}
+    )
+    assert reopened.status_code == 200
+    for _ in range(3):
+        await outbox.drain(db_async, only_topics=[ENTRY_POST_TOPIC])
+    entries = (
         await db_async.scalars(
             select(OpsLogEntry).where(OpsLogEntry.organisation_id == world.org_id)
         )
     ).all()
-    assert (entry.source_kind, entry.source_id) == (
-        "incidents.incident",
-        incident["id"],
-    )
-    assert entry.text.startswith("Exercise: Incident INC-")
+    assert len(entries) == 3
+    assert {(e.source_kind, e.source_id) for e in entries} == {
+        ("incidents.incident", incident["id"])
+    }
+    texts = [e.text for e in entries]
+    assert all(t.startswith("Exercise: Incident INC-") for t in texts)
+    assert any(" closed: " in t for t in texts)
+    assert any("reopened: Recheck" in t for t in texts)
 
 
 async def test_private_notes_and_categories(
@@ -302,6 +314,17 @@ async def test_private_notes_and_categories(
             f"{API}/categories", headers=world.h(world.responder), json={"name": "x"}
         )
     ).status_code == 403
+
+    blank = await async_client.post(
+        f"{API}/incidents", headers=world.h(world.responder), json={"title": "   "}
+    )
+    assert blank.status_code == 422
+    blank_edit = await async_client.patch(
+        f"{API}/incidents/{incident['id']}",
+        headers=world.h(world.responder),
+        json={"title": "  "},
+    )
+    assert blank_edit.status_code == 422
 
     listed = await async_client.get(
         f"{API}/incidents",
