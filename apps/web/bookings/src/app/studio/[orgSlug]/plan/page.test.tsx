@@ -10,8 +10,10 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
-  listAppSubscriptions: vi.fn(),
   startAppSubscriptionCheckout: vi.fn(),
+}));
+vi.mock("./subscription-list", () => ({
+  readAppSubscriptionList: vi.fn(),
 }));
 vi.mock("./actions", () => ({
   startSubscriptionAction: vi.fn(),
@@ -25,11 +27,13 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-import { findOrganisation, listAppSubscriptions } from "@/lib/studio-api";
+import { findOrganisation } from "@/lib/studio-api";
 import PlanPage from "./page";
+import { readAppSubscriptionList } from "./subscription-list";
 
 const SLUG = "sea-salt";
 const params = Promise.resolve({ orgSlug: SLUG });
+const PURCHASABLE = "bookings-monthly:XCD";
 const NO_ACCESS = /Only the business owner or an admin can manage the plan/u;
 const SUPPORT_LINK = "Email support@barrels.gd";
 const USD_NOTE = /about USD 11\.11 a month, for reference/u;
@@ -37,6 +41,9 @@ const FREE_TRIAL_2099 = /Your free trial ends on 23 December 2099/u;
 const ACTIVE_UNTIL = /Active until 23 December 2026/u;
 const CONFIRMS_PAYMENT = /once Stripe confirms the payment/u;
 const NOTHING_CHARGED = /Nothing was charged/u;
+const SOON_TITLE = "Paid plans open soon";
+const START = { name: "Start subscription" };
+const CONTINUE = { name: "Continue checkout" };
 
 function row(
   overrides: Partial<AppSubscriptionPublic> = {}
@@ -55,6 +62,14 @@ function row(
     created_at: "2026-11-22T10:00:00Z",
     ...overrides,
   };
+}
+
+/** The list body the API returns: rows plus the purchasable plan keys. */
+function listing(
+  data: AppSubscriptionPublic[],
+  purchasable: string[] | undefined = [PURCHASABLE]
+) {
+  return { data, purchasable };
 }
 
 function role(value: "member" | "admin") {
@@ -78,7 +93,7 @@ async function renderPage(search: Record<string, string> = {}): Promise<void> {
 beforeEach(() => {
   vi.clearAllMocks();
   role("admin");
-  vi.mocked(listAppSubscriptions).mockResolvedValue([]);
+  vi.mocked(readAppSubscriptionList).mockResolvedValue(listing([]));
 });
 
 describe("/studio/[orgSlug]/plan", () => {
@@ -91,66 +106,99 @@ describe("/studio/[orgSlug]/plan", () => {
     expect(screen.getByText(USD_NOTE)).toBeInTheDocument();
   });
 
-  it("says No subscription yet and offers Start subscription", async () => {
+  it("says No subscription yet and offers Start subscription when the plan is purchasable", async () => {
     await renderPage();
     expect(screen.getByText("No subscription yet")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Start subscription" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", START)).toBeInTheDocument();
+    expect(screen.queryByText(SOON_TITLE)).not.toBeInTheDocument();
+  });
+
+  it("hides Subscribe and says paid plans open soon when purchasable is missing", async () => {
+    // No `purchasable` key at all (an older API body): not purchasable.
+    vi.mocked(readAppSubscriptionList).mockResolvedValue({ data: [] });
+    await renderPage();
+    expect(screen.getByText("No subscription yet")).toBeInTheDocument();
+    expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("hides Subscribe and says paid plans open soon when purchasable is empty", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(listing([], []));
+    await renderPage();
+    expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("does not treat another plan or currency as purchasable", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([], ["bookings-monthly:USD", "events-monthly:XCD"])
+    );
+    await renderPage();
+    expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("hides Continue checkout too when the plan is not purchasable", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "incomplete" })], [])
+    );
+    await renderPage();
+    expect(screen.getByText("Checkout not finished")).toBeInTheDocument();
+    expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
+    expect(screen.queryByRole("button", CONTINUE)).not.toBeInTheDocument();
+  });
+
+  it("offers Continue checkout while a checkout is open and the plan is purchasable", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "incomplete" })])
+    );
+    await renderPage();
+    expect(screen.getByText("Checkout not finished")).toBeInTheDocument();
+    expect(screen.getByRole("button", CONTINUE)).toBeInTheDocument();
+    expect(screen.queryByText(SOON_TITLE)).not.toBeInTheDocument();
   });
 
   it("ignores another app's subscription rows", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ app_key: "events", status: "active" }),
-    ]);
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ app_key: "events", status: "active" })])
+    );
     await renderPage();
     expect(screen.getByText("No subscription yet")).toBeInTheDocument();
   });
 
-  it("offers Continue checkout while a checkout is open", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ status: "incomplete" }),
-    ]);
-    await renderPage();
-    expect(screen.getByText("Checkout not finished")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Continue checkout" })
-    ).toBeInTheDocument();
-  });
-
-  it("shows the free trial end date during a trial", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ trial_end: "2099-12-23T12:00:00Z" }),
-    ]);
+  it("shows the free trial end date during a trial, with no paid-plans note", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ trial_end: "2099-12-23T12:00:00Z" })], [])
+    );
     await renderPage();
     expect(screen.getByText("Free trial")).toBeInTheDocument();
     expect(screen.getByText(FREE_TRIAL_2099)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Start subscription" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(SOON_TITLE)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("shows an active plan with its renewal day and no button", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([row()]);
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(listing([row()]));
     await renderPage();
     expect(screen.getByText("Active")).toBeInTheDocument();
     expect(screen.getByText("Renews on 23 December 2026.")).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByText(SOON_TITLE)).not.toBeInTheDocument();
   });
 
   it("shows an ending plan with the day it stops", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ cancel_at_period_end: true }),
-    ]);
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ cancel_at_period_end: true })])
+    );
     await renderPage();
     expect(screen.getByText("Ending")).toBeInTheDocument();
     expect(screen.getByText(ACTIVE_UNTIL)).toBeInTheDocument();
   });
 
   it("shows payment overdue for past_due, with no button", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ status: "past_due" }),
-    ]);
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "past_due" })])
+    );
     await renderPage();
     expect(screen.getByText("Payment overdue")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: SUPPORT_LINK })).toHaveAttribute(
@@ -161,9 +209,9 @@ describe("/studio/[orgSlug]/plan", () => {
   });
 
   it("shows unpaid with no button", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ status: "unpaid" }),
-    ]);
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "unpaid" })])
+    );
     await renderPage();
     expect(screen.getByText("Unpaid")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: SUPPORT_LINK })).toHaveAttribute(
@@ -173,30 +221,39 @@ describe("/studio/[orgSlug]/plan", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("shows cancelled and offers to start again", async () => {
-    vi.mocked(listAppSubscriptions).mockResolvedValue([
-      row({ status: "canceled" }),
-    ]);
+  it("shows cancelled and offers to start again when purchasable", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "canceled" })])
+    );
     await renderPage();
     expect(screen.getByText("Cancelled")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Start subscription" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", START)).toBeInTheDocument();
+  });
+
+  it("shows cancelled with the paid-plans note and no button when not purchasable", async () => {
+    vi.mocked(readAppSubscriptionList).mockResolvedValue(
+      listing([row({ status: "canceled" })], [])
+    );
+    await renderPage();
+    expect(screen.getByText("Cancelled")).toBeInTheDocument();
+    expect(screen.getByText(SOON_TITLE)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("says billing is not switched on yet when the billing read answers 503", async () => {
-    vi.mocked(listAppSubscriptions).mockRejectedValue(apiError(503));
+    vi.mocked(readAppSubscriptionList).mockRejectedValue(apiError(503));
     await renderPage();
     expect(
       screen.getByText("Billing is not switched on yet.")
     ).toBeInTheDocument();
     expect(screen.queryByText("No subscription yet")).not.toBeInTheDocument();
+    expect(screen.queryByText(SOON_TITLE)).not.toBeInTheDocument();
     expect(reportError).not.toHaveBeenCalled();
   });
 
   it("reports a refused sign-in for billing and says so, without claiming no plan", async () => {
     const error = apiError(401);
-    vi.mocked(listAppSubscriptions).mockRejectedValue(error);
+    vi.mocked(readAppSubscriptionList).mockRejectedValue(error);
     await renderPage();
     expect(
       screen.getByText("We could not check this sign-in for the plan.")
@@ -206,22 +263,21 @@ describe("/studio/[orgSlug]/plan", () => {
   });
 
   it("keeps the price visible when the status read fails", async () => {
-    vi.mocked(listAppSubscriptions).mockRejectedValue(apiError(500));
+    vi.mocked(readAppSubscriptionList).mockRejectedValue(apiError(500));
     await renderPage();
     expect(screen.getByText("XCD 30 a month")).toBeInTheDocument();
     expect(
       screen.getByText("The plan is not available right now.")
     ).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("refuses a member before any billing call, with the plain reason", async () => {
     role("member");
     await renderPage();
     expect(screen.getByRole("alert")).toHaveTextContent(NO_ACCESS);
-    expect(listAppSubscriptions).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole("button", { name: "Start subscription" })
-    ).not.toBeInTheDocument();
+    expect(readAppSubscriptionList).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", START)).not.toBeInTheDocument();
   });
 
   it("shows a success banner when Stripe returns the person from checkout", async () => {
