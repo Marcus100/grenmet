@@ -7,6 +7,7 @@ without ``opslog.entries.private``, so their existence is not revealed.
 
 import base64
 import json
+import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -44,6 +45,8 @@ from .schemas import (
     OpsLogEntryUpdate,
     OpsLogUpdate,
 )
+
+logger = logging.getLogger(__name__)
 
 MAX_PAGE = 100
 
@@ -348,7 +351,7 @@ async def _comment_counts(
         .where(OpsLogComment.entry_id.in_(entry_ids))
         .group_by(OpsLogComment.entry_id)
     )
-    return dict(rows.tuples())
+    return {row[0]: row[1] for row in rows.tuples()}
 
 
 async def _views(
@@ -561,9 +564,13 @@ async def update_entry(
     ):
         raise OpsLogConflictError("The edit window for this entry has closed")
     sent = payload.model_fields_set
-    if "text" in sent and payload.text is not None:
+    if "text" in sent:
+        if payload.text is None:
+            raise AppValidationError("An entry needs text")
         entry.text = payload.text
-    if "occurred_at" in sent and payload.occurred_at is not None:
+    if "occurred_at" in sent:
+        if payload.occurred_at is None:
+            raise AppValidationError("An entry needs a time")
         entry.occurred_at = naive_utc(payload.occurred_at)
     if "category_id" in sent:
         entry.category_id = await _usable_category(
@@ -633,6 +640,18 @@ async def receiving_log(
     return log
 
 
+async def log_exists(
+    session: AsyncSession, *, organisation_id: str, log_id: str
+) -> bool:
+    """Whether ``log_id`` is a log of the organisation, archived or not."""
+    found = await session.scalar(
+        select(OpsLog.id).where(
+            OpsLog.id == log_id, OpsLog.organisation_id == organisation_id
+        )
+    )
+    return found is not None
+
+
 async def entry_for_message(
     session: AsyncSession, message_id: uuid.UUID
 ) -> OpsLogEntry | None:
@@ -659,6 +678,13 @@ async def add_automatic_entry(
     try:
         usable = await _usable_category(session, log=log, category_id=category_id)
     except AppValidationError:
+        logger.warning(
+            "opslog.entry_post category is not usable in the log; entry kept without it",
+            extra={
+                "organisation_id": log.organisation_id,
+                "message_id": str(message_id),
+            },
+        )
         usable = None
     entry = OpsLogEntry(
         log_id=log.id,

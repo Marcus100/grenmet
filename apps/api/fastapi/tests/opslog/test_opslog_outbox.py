@@ -11,6 +11,7 @@ from src import outbox
 from src.opslog.messages import ENTRY_POST_TOPIC
 from src.opslog.models import OpsLog, OpsLogEntry, OpsLogEntrySource
 from src.organisations.models import MembershipRole
+from src.utils.datetime import utc_now
 from tests.factories import make_user
 from tests.organisations.support import make_org
 
@@ -122,3 +123,19 @@ async def test_another_organisations_log_or_a_bad_payload_is_dead_lettered(
 
     key = await _send(db_async, mine, {"text": ""})
     assert await _status(db_async, key) == "dead"
+
+
+async def test_archived_named_log_drops_and_bad_category_is_left_out(
+    db_async: AsyncSession,
+) -> None:
+    org_id = await _org(db_async)
+    archived = await _add_log(db_async, org_id, archived_at=utc_now())
+    key = await _send(db_async, org_id, {"text": "Late", "log_id": archived.id})
+    assert await _status(db_async, key) == "done"
+    assert await _entries(db_async, org_id) == []
+
+    await _add_log(db_async, org_id)
+    key = await _send(db_async, org_id, {"text": "Typo", "category_id": "olc_nope"})
+    assert await _status(db_async, key) == "done"
+    [entry] = await _entries(db_async, org_id)
+    assert entry.category_id is None

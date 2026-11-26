@@ -3,7 +3,10 @@
 Readable by that organisation's admins and owners (the ``platform_organisation``
 read check), who hold every opslog key, private entries included. Entry text is
 kept on purpose: an edited entry must still show what it said before (ADR-0067
-decision 4). Comments are insert-only and tracked so their author and time are
+decision 4). Platform superusers may also read organisation history
+(``src/organisations/audit.py``), so private entry text is visible to them there
+although the opslog routes refuse them; this is the platform's support access,
+not an opslog route. Comments are insert-only and tracked so their author and time are
 on record.
 """
 

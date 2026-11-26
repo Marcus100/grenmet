@@ -410,3 +410,48 @@ async def test_entitlement_is_required(
     world = await _world(db_async, apps=())
     response = await async_client.get(f"{API}/logs", headers=world.h(world.owner))
     assert response.status_code == 403
+
+
+async def test_null_text_is_refused_and_same_time_entries_page_cleanly(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    world = await _world(db_async)
+    log_id = (await _log(async_client, world))["id"]
+    same = "2026-11-25T09:00:00Z"
+    made = [
+        (
+            await _entry(
+                async_client,
+                world,
+                log_id,
+                world.writer,
+                text=f"n{i}",
+                occurred_at=same,
+            )
+        ).json()["id"]
+        for i in range(3)
+    ]
+    nulled = await async_client.patch(
+        f"{API}/entries/{made[0]}", headers=world.h(world.writer), json={"text": None}
+    )
+    assert nulled.status_code == 422
+
+    seen: list[str] = []
+    cursor = None
+    while True:
+        params: dict[str, str | int] = {"limit": 2}
+        if cursor:
+            params["cursor"] = cursor
+        page = (
+            await async_client.get(
+                f"{API}/logs/{log_id}/entries",
+                headers=world.h(world.writer),
+                params=params,
+            )
+        ).json()
+        seen += [e["id"] for e in page["data"]]
+        cursor = page["next_cursor"]
+        if cursor is None:
+            break
+    assert sorted(seen) == sorted(made)
+    assert len(seen) == 3

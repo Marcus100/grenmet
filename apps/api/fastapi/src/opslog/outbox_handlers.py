@@ -5,8 +5,9 @@ The handler only writes to the main database, so its write and the row's
 ``done`` commit together; it also skips a message whose entry already exists, so
 a repeated delivery adds nothing. A payload that cannot be read, or that names a
 log of another organisation, is dead-lettered (``TerminalFailure``) so the
-sender's mistake is visible. An organisation without the entitlement or without
-a receiving log is not an error: the message is dropped and logged.
+sender's mistake is visible. An organisation without the entitlement, without a
+receiving log, or whose named log was archived since is not an error: the message
+is dropped and logged.
 
 Imported by the worker through the manifest's ``worker_modules``.
 """
@@ -50,8 +51,16 @@ async def entry_post(session: AsyncSession, message: outbox.OutboxMessage) -> No
     )
     if log is None:
         if payload.log_id is not None:
-            # Unknown here: another organisation's log, a typo or an archived log.
-            raise outbox.TerminalFailure("opslog.entry_post names no active log")
+            if not await service.log_exists(
+                session, organisation_id=message.organisation_id, log_id=payload.log_id
+            ):
+                # Another organisation's log or a typo: the sender's mistake.
+                raise outbox.TerminalFailure("opslog.entry_post names no log here")
+            logger.info(
+                "opslog.entry_post for an archived log; dropped",
+                extra={"organisation_id": message.organisation_id},
+            )
+            return
         logger.info(
             "opslog.entry_post with no log accepting automatic entries; dropped",
             extra={"organisation_id": message.organisation_id},

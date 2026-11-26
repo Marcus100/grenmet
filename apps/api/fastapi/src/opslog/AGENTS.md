@@ -15,18 +15,25 @@ scoped: the airport authority is one organisation like any other.
   `opslog.entries.private`, never 403, so their existence is not revealed.
 - **Edit rules** (`service.update_entry`): only manual entries, only in an `open` log,
   only by the author, only inside `edit_window_minutes` when set. `append_only` allows
-  comments; `locked` allows neither. Archived logs refuse every write.
+  comments; `locked` allows neither. Archived logs refuse every write. The edit window
+  counts from `created_at` and does not restart after an edit. Sending `null` for
+  `text` or `occurred_at` is 422.
 - **History** (`audit.py`): logs, categories, entries and comments are tracked under
   `platform_organisation`. Entry text is deliberately not excluded: an edited entry
-  must keep its earlier text on record.
+  must keep its earlier text on record. Platform superusers can read organisation
+  history, private entry text included (platform support access).
 - **Automatic entries** (`outbox_handlers.py`, topic `opslog.entry_post`, payload in
   `messages.py`): other modules never import opslog; they enqueue the message and
   reference their record as `(kind, id)`. The handler skips a message whose entry
   exists (`entry.outbox_message_id` is unique), drops a message for an organisation
-  without the entitlement or without a receiving log, and dead-letters
+  without the entitlement, without a receiving log, or naming a log archived since,
+  and dead-letters
   (`TerminalFailure`) a bad payload or a `log_id` that is not the organisation's.
 - **Not built yet** (issue #1875): attachments, category notifications, the daily
   summary email, structured logs and the shift handover report.
+
+Keyword search (`q`) is an unindexed `ILIKE` within one log; fine at airport volumes,
+add a trigram index if a log grows large.
 
 ## Tests
 
