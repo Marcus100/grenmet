@@ -24,6 +24,7 @@ from src.organisations.models import Membership, MembershipStatus
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 
+from . import transitions
 from .exceptions import (
     IncidentCategoryNotFoundError,
     IncidentChecklistItemNotFoundError,
@@ -514,8 +515,7 @@ async def open_incident(
                     position=item.position,
                 )
             )
-    incident.status = IncidentStatus.OPEN.value
-    incident.opened_at = utc_now()
+    transitions.move_incident(incident, IncidentStatus.OPEN, actor_id=actor.id)
     entry = await _timeline(
         session,
         incident,
@@ -554,10 +554,8 @@ async def close_incident(
         raise IncidentConflictError(
             f"{outstanding} required checklist item(s) are not done"
         )
-    now = utc_now()
-    incident.status = IncidentStatus.CLOSED.value
-    incident.closed_at = now
-    incident.closed_by = actor.id
+    transitions.move_incident(incident, IncidentStatus.CLOSED, actor_id=actor.id)
+    now = incident.closed_at
     entry = await _timeline(
         session,
         incident,
@@ -589,9 +587,7 @@ async def reopen_incident(
     )
     if incident.status != IncidentStatus.CLOSED.value:
         raise IncidentConflictError("Only a closed incident can be reopened")
-    incident.status = IncidentStatus.OPEN.value
-    incident.closed_at = None
-    incident.closed_by = None
+    transitions.move_incident(incident, IncidentStatus.OPEN, actor_id=actor.id)
     entry = await _timeline(
         session,
         incident,
