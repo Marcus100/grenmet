@@ -35,6 +35,7 @@ import {
   closureFieldErrors,
   closureWindow,
 } from "@/lib/closures";
+import { depositHoldField } from "@/lib/deposit-hold";
 import { DEPOSIT_INSTRUCTIONS_MAX } from "@/lib/deposit-instructions";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
 import { graceMinutes, lateFeeMinor } from "@/lib/late-fee";
@@ -597,6 +598,14 @@ async function saveDepositSection(
   if (minimum && !minimum.ok) {
     return invalid(minimum.message);
   }
+  // The hold is on the form only for a deposit not paid to the business, and is
+  // named only when changed (see DepositHoldField), so an absent field keeps the stored hold.
+  const hold = formData.has("depositHoldMinutes")
+    ? depositHoldField(field(formData, "depositHoldMinutes"))
+    : null;
+  if (hold && !hold.ok) {
+    return invalid(hold.message);
+  }
   try {
     const current = await currentProfile(auth);
     if (!current) {
@@ -606,6 +615,7 @@ async function saveDepositSection(
       ...storedFields(current),
       ...rule.value,
       ...(minimum?.ok ? { deposit_min_price_minor: minimum.value } : {}),
+      ...(hold?.ok ? { deposit_hold_minutes: hold.value } : {}),
       deposit_non_refundable: formData.get("depositNonRefundable") === "on",
     });
   } catch (error) {

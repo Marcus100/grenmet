@@ -36,6 +36,15 @@ export function StatusBadge({
   );
 }
 
+/** A held booking whose deposit window closes within two hours (text, not colour alone). */
+export function ExpiresSoonBadge() {
+  return (
+    <Badge className={BADGE_SIZE} variant={VARIANT.warning}>
+      Expires soon
+    </Badge>
+  );
+}
+
 /** A cancelled booking's unpaid payment: neutral, and never "due" (#1849). */
 export function PaymentCancelledBadge({ kind }: { kind?: PaymentKind }) {
   return (

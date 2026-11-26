@@ -6,8 +6,9 @@ import type { ManageBookingActions } from "../lib/booking-types";
 import { ManageBooking } from "./manage-booking";
 
 const WILL_EMAIL = /We will email you a confirmation\./u;
+const HOLD_LENGTH = /\(24 hours\) while we wait for your deposit\./u;
 const HOLD_LINE =
-  /Your time is held until .* It is released if the payment has not arrived by then\./u;
+  /Your time is held until .* while we wait for your deposit\./u;
 const POLICY_LINE = /You can cancel or change this booking online/u;
 
 const cancel = vi.fn<ManageBookingActions["cancel"]>();
@@ -331,6 +332,26 @@ describe("ManageBooking", () => {
       hold_ends_at: "2027-01-05T13:00:00Z",
     });
     expect(screen.getByText(HOLD_LINE)).toBeVisible();
+  });
+
+  it("names the hold length beside the release time", () => {
+    renderManage({
+      ...booking,
+      status: "pending_payment",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+      hold_minutes: 1440,
+    });
+    expect(screen.getByText(HOLD_LENGTH)).toBeVisible();
+  });
+
+  it("hides the hold line once the booking is no longer awaiting payment", () => {
+    renderManage({
+      ...booking,
+      status: "confirmed",
+      hold_ends_at: "2027-01-05T13:00:00Z",
+      hold_minutes: 1440,
+    });
+    expect(screen.queryByText(HOLD_LINE)).not.toBeInTheDocument();
   });
 
   it("keeps a cancelled booking read-only", () => {

@@ -13,7 +13,7 @@ import { BookingFlow, type SignedInVisitor } from "./booking-flow";
 
 const DEPOSIT_LASHES = /Deposit lashes/u;
 const HOLD_LINE =
-  /Your time is held until .* It is released if the payment has not arrived by then\./u;
+  /Your time is held until .* while we wait for your deposit\./u;
 
 const loadSlots = vi.fn<BookingFlowActions["loadSlots"]>();
 const submitBooking = vi.fn<BookingFlowActions["submitBooking"]>();

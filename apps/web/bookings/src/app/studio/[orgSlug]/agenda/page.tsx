@@ -8,7 +8,11 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import {
+  DepositBadge,
+  ExpiresSoonBadge,
+  StatusBadge,
+} from "@/components/studio/badges";
 import { BookingAddress } from "@/components/studio/booking-address";
 import { NeedsConfirming } from "@/components/studio/needs-confirming";
 import { ReturningClientTag } from "@/components/studio/returning-client";
@@ -29,14 +33,13 @@ import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
   type AgendaRange,
-  agendaDepositView,
+  agendaChips,
   canManageBookings,
   DEFAULT_TIMEZONE,
   daysIn,
   isUuid,
   parseRange,
   rangeLabel,
-  showsAgendaDeposit,
   stepDay,
   todayIn,
 } from "@/lib/studio-view";
@@ -488,9 +491,13 @@ function BookingRow({
         {booking.returning_client && booking.status === "pending" ? (
           <ReturningClientTag />
         ) : null}
-        {showsAgendaDeposit(booking) ? (
-          <DepositBadge view={agendaDepositView(booking)} />
-        ) : null}
+        {agendaChips(booking).map((chip) =>
+          chip.kind === "expires_soon" ? (
+            <ExpiresSoonBadge key="expires-soon" />
+          ) : (
+            <DepositBadge key="deposit" view={chip.view} />
+          )
+        )}
       </span>
     </Link>
   );

@@ -1110,6 +1110,93 @@ describe("deposit rule", () => {
     });
   });
 
+  it("saves a changed deposit hold in minutes", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 1440 })
+    );
+  });
+
+  it("clears the deposit hold to null when the default is chosen", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 120,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "default" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: null })
+    );
+  });
+
+  it("keeps the stored hold when the field is not sent (unchanged)", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_hold_minutes: 2880,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositMode: "percent", depositPercent: "10" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_hold_minutes: 2880 })
+    );
+  });
+
+  it("refuses a hold outside 1 to 10080 minutes without saving", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    for (const depositHoldMinutes of ["0", "10081", "1.5", "soon"]) {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ section: "deposit", depositHoldMinutes })
+      );
+      expect(result).not.toMatchObject({ status: "success" });
+    }
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's own refusal of the hold as an error, not a success", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            loc: ["body", "deposit_hold_minutes"],
+            msg: "Input should be less than or equal to 10080",
+          },
+        ],
+      })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositHoldMinutes: "1440" })
+    );
+    expect(result).not.toMatchObject({ status: "success" });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
   it("saves a fixed amount in minor units and keeps the payment choice", async () => {
     vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockResolvedValue({} as never);

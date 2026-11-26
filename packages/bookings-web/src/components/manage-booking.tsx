@@ -156,7 +156,13 @@ export function ManageBooking({
         <PaymentStatus bookingId={booking.id} payment={booking.payment} />
       )}
       {booking.status === "pending_payment" && booking.hold_ends_at ? (
-        <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
+        <p>
+          {holdEndsLine(
+            booking.hold_ends_at,
+            booking.timezone,
+            booking.hold_minutes
+          )}
+        </p>
       ) : null}
       <BookedExtras
         booking={booking}
