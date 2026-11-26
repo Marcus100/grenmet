@@ -56,17 +56,16 @@ describe("fetchAppLabel", () => {
     expect(authApiFetch.mock.calls[0]?.[1]).toBe("/auth/apps/bookings");
   });
 
-  it("gives up after the timeout instead of holding the page", async () => {
-    // An API that never answers: only the abort signal ends the wait.
-    authApiFetch.mockImplementationOnce(
-      (_config, _path, _schema, init: { signal?: AbortSignal }) =>
-        new Promise((_resolve, reject) => {
-          init.signal?.addEventListener("abort", () =>
-            reject(init.signal?.reason)
-          );
-        })
-    );
-    expect(await fetchAppLabel("bookings", 20)).toBeNull();
+  it("asks the fetch wrapper for the short timeout through its config", async () => {
+    // The wrapper ignores a caller's abort signal; its timeout is a config
+    // value. The real wait is exercised in app-label-timeout.test.ts.
+    authApiFetch.mockResolvedValue({ label: "Barrels Bookings" });
+    await fetchAppLabel("bookings", 1500);
+    expect(authApiFetch.mock.calls[0]?.[0]).toEqual({ authApiTimeoutMs: 1500 });
+    expect(authApiFetch.mock.calls[0]?.[3]).toBeUndefined();
+
+    await fetchAppLabel("bookings");
+    expect(authApiFetch.mock.calls[1]?.[0]).toEqual({});
   });
 
   it("returns null when the API fails", async () => {

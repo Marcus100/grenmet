@@ -63,17 +63,20 @@ export const APP_LABEL_TIMEOUT_MS = 1500;
  * The registry's name for an app ("Barrels Bookings"); null when it can't be
  * read, or not within `timeoutMs` when one is given. Nothing is reported: the
  * caller falls back to wording that names no app.
+ *
+ * The timeout goes in through the config (`authApiTimeoutMs`): the shared fetch
+ * wrapper sets its own abort signal and ignores one passed by a caller.
  */
 export async function fetchAppLabel(
   app: string,
   timeoutMs?: number
 ): Promise<string | null> {
+  const config = getAuthConfig();
   try {
     const result = await authApiFetch(
-      getAuthConfig(),
+      timeoutMs ? { ...config, authApiTimeoutMs: timeoutMs } : config,
       `/auth/apps/${app}`,
-      appPublicSchema,
-      timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}
+      appPublicSchema
     );
     return result.label;
   } catch {
