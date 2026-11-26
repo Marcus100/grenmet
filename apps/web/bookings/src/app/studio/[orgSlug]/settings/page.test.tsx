@@ -11,10 +11,13 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getCalendarFeedStatus: vi.fn(),
   getSettings: vi.fn(),
+  listClosures: vi.fn(),
   listExceptions: vi.fn(),
 }));
 vi.mock("./actions", () => ({
   createCalendarFeedAction: vi.fn(),
+  reopenClosureAction: vi.fn(),
+  saveClosureAction: vi.fn(),
   removeTimeOffAction: vi.fn(),
   rotateCalendarFeedAction: vi.fn(),
   saveHoursAction: vi.fn(),
@@ -36,6 +39,7 @@ import { reportError } from "@/lib/report-error";
 import {
   findOrganisation,
   getSettings,
+  listClosures,
   listExceptions,
 } from "@/lib/studio-api";
 import SettingsPage from "./page";
@@ -126,6 +130,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   role("admin");
   vi.mocked(listExceptions).mockResolvedValue([]);
+  vi.mocked(listClosures).mockResolvedValue([]);
 });
 
 describe("settings page", () => {
@@ -206,6 +211,7 @@ describe("settings sections", () => {
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "#profile",
       "#hours",
+      "#closed-days",
       "#services",
       "#people",
       "#payments",
@@ -215,6 +221,7 @@ describe("settings sections", () => {
     for (const id of [
       "profile",
       "hours",
+      "closed-days",
       "services",
       "people",
       "payments",
@@ -255,6 +262,71 @@ describe("settings sections", () => {
     expect(
       screen.getAllByRole("link", { name: "Save the business profile first" })
     ).toHaveLength(2);
+  });
+});
+
+describe("closed days", () => {
+  const CLOSURE_ID = "66666666-6666-4666-8666-666666666666";
+  const FUTURE_START = "2099-12-25";
+  const CLOSED_HEADING = { level: 2, name: "Closed days" };
+
+  it("sits after Hours and lists upcoming closures for an owner", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listClosures).mockResolvedValue([
+      {
+        id: CLOSURE_ID,
+        starts_on: FUTURE_START,
+        ends_on: FUTURE_START,
+        reason: "Christmas",
+        created_at: "2099-01-01T00:00:00Z",
+      },
+    ]);
+    render(await SettingsPage({ params }));
+    const section = document.getElementById("closed-days");
+    expect(section).toBeInTheDocument();
+    expect(
+      within(section as HTMLElement).getByRole("heading", CLOSED_HEADING)
+    ).toBeInTheDocument();
+    expect(
+      within(section as HTMLElement).getByText("Christmas")
+    ).toBeInTheDocument();
+    expect(listClosures).toHaveBeenCalledWith("tok", ORG_ID, 1000);
+  });
+
+  it("shows the empty state and the add form when nothing is closed", async () => {
+    role("admin");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    render(await SettingsPage({ params }));
+    expect(screen.getByText("No closed days planned.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Add closed days" })
+    ).toBeInTheDocument();
+  });
+
+  it("says so, and offers no form, when the closures cannot be read", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    const fault = apiError(500);
+    vi.mocked(listClosures).mockRejectedValue(fault);
+    render(await SettingsPage({ params }));
+    expect(
+      screen.getByText("Closed days could not be loaded. Try again later.")
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Add closed days" })
+    ).not.toBeInTheDocument();
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+
+  it("lets a member read the list with no form", async () => {
+    role("member");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    render(await SettingsPage({ params }));
+    expect(screen.getByText("No closed days planned.")).toBeInTheDocument();
+    expect(
+      screen.getByText("An owner or admin can add closed days here.")
+    ).toBeInTheDocument();
   });
 });
 
