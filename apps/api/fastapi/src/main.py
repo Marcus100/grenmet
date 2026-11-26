@@ -183,6 +183,10 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
     {
+        "name": "incidents",
+        "description": "Incidents: draft, open and closed incidents with a shared response timeline, notes and category checklists for an organisation (incidents entitlement, organisation-bound keys).",
+    },
+    {
         "name": "opslog",
         "description": "Operations log: named logbooks, categories, time-stamped entries and comments for an organisation (opslog entitlement, organisation-bound keys).",
     },

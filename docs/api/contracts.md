@@ -3525,3 +3525,27 @@ private entry for a member without `opslog.entries.private`.
   oldest active log with `automatic_entries`; with no such log, or no entitlement,
   the message is dropped. A bad payload or another organisation's `log_id` is
   dead-lettered.
+
+## Incidents (ADR-0067, issue #1876)
+
+Organisation zone only, under `/api/v1/incidents/org/`, acting for `X-Barrels-Organisation`.
+The organisation needs the `incidents` entitlement; each route names one organisation key
+(`incidents.incidents.read`, `.write`, `.private`, `.manage`, `incidents.settings.manage`;
+bundles `incidents-responder` and `incidents-manager`; owners and admins hold all).
+Another organisation's records are 404.
+
+- Categories: `GET|POST /categories`, `PATCH /categories/{category_id}`; checklist
+  templates `POST /categories/{category_id}/checklist-items`,
+  `PATCH /checklist-items/{item_id}`. A category's manager must be an active member (422).
+- Incidents: `GET|POST /incidents` (page and size; filters `status`, `category_id`,
+  `exercise`, `q` on title and reference), `GET|PATCH /incidents/{incident_id}`.
+  References are `INC-<year>-<nnnn>` per organisation. New incidents are drafts.
+- Lifecycle: `POST /incidents/{incident_id}/open` (copies the category's checklist; the
+  category is fixed afterwards), `/close` (`.manage`; 409 while a required check is not
+  done; closing locks every write with 409), `/reopen` (`.manage`, body `reason`).
+- Response: `POST /incidents/{incident_id}/timeline` (time-stamped actions, insert only),
+  `/notes` (insert only; private needs `.private` to write and to see),
+  `PATCH /incidents/{incident_id}/checks/{check_id}` (`done`, open incidents only).
+- Opening, closing and reopening enqueue `opslog.entry_post` with record
+  `incidents.incident`, so the operations log gets an automatic entry when the
+  organisation has it.

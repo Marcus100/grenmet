@@ -306,6 +306,48 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Give organisation members operations log roles you hold yourself",
         binding="organisation",
     ),
+    # Incidents (ADR-0067). Organisation keys; owners and admins hold them all.
+    # API key scopes (ADR-0029) every product has; no incidents route takes an API key yet.
+    PermissionDef(
+        "incidents.read",
+        "API key: read Barrels Incidents data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.write",
+        "API key: change Barrels Incidents data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.read",
+        "Incidents: read incidents, categories and checklists (not private notes)",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.write",
+        "Incidents: report, edit and open incidents, record actions and notes, tick checklists",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.private",
+        "Incidents: see and write private notes",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.manage",
+        "Incidents: close and reopen incidents",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.settings.manage",
+        "Incidents: set up categories, their managers and checklists",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.team.manage",
+        "Give organisation members incidents roles you hold yourself",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
