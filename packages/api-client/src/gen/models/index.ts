@@ -6598,6 +6598,8 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { IncidentAffiliation } from "./IncidentAffiliation.js";
+export { incidentAffiliation } from "./IncidentAffiliation.js";
 export type { IncidentAttachmentCreate } from "./IncidentAttachmentCreate.js";
 export type { IncidentAttachmentPublic } from "./IncidentAttachmentPublic.js";
 export type { IncidentCategoryCreate } from "./IncidentCategoryCreate.js";
@@ -6610,12 +6612,21 @@ export type { IncidentChecklistItemUpdate } from "./IncidentChecklistItemUpdate.
 export type { IncidentCheckPublic } from "./IncidentCheckPublic.js";
 export type { IncidentCheckUpdate } from "./IncidentCheckUpdate.js";
 export type { IncidentCreate } from "./IncidentCreate.js";
+export type { IncidentDamageCreate } from "./IncidentDamageCreate.js";
+export type { IncidentDamagePublic } from "./IncidentDamagePublic.js";
 export type { IncidentDetail } from "./IncidentDetail.js";
 export type { IncidentNoteCreate } from "./IncidentNoteCreate.js";
 export type { IncidentNotePublic } from "./IncidentNotePublic.js";
 export type { IncidentPage } from "./IncidentPage.js";
+export type { IncidentPartyCreate } from "./IncidentPartyCreate.js";
+export type { IncidentPartyKind } from "./IncidentPartyKind.js";
+export { incidentPartyKind } from "./IncidentPartyKind.js";
+export type { IncidentPartyPublic } from "./IncidentPartyPublic.js";
+export type { IncidentPartyUpdate } from "./IncidentPartyUpdate.js";
 export type { IncidentPublic } from "./IncidentPublic.js";
 export type { IncidentReopen } from "./IncidentReopen.js";
+export type { IncidentResourceCreate } from "./IncidentResourceCreate.js";
+export type { IncidentResourcePublic } from "./IncidentResourcePublic.js";
 export type { IncidentStatus } from "./IncidentStatus.js";
 export { incidentStatus } from "./IncidentStatus.js";
 export type {
@@ -6677,6 +6688,21 @@ export type {
   IncidentsCreateChecklistItemStatus422,
 } from "./IncidentsCreateChecklistItem.js";
 export type {
+  IncidentsCreateDamageBody,
+  IncidentsCreateDamageHeaders,
+  IncidentsCreateDamageOptions,
+  IncidentsCreateDamagePath,
+  IncidentsCreateDamageResponse,
+  IncidentsCreateDamageResponses,
+  IncidentsCreateDamageStatus201,
+  IncidentsCreateDamageStatus400,
+  IncidentsCreateDamageStatus401,
+  IncidentsCreateDamageStatus403,
+  IncidentsCreateDamageStatus404,
+  IncidentsCreateDamageStatus409,
+  IncidentsCreateDamageStatus422,
+} from "./IncidentsCreateDamage.js";
+export type {
   IncidentsCreateIncidentBody,
   IncidentsCreateIncidentHeaders,
   IncidentsCreateIncidentOptions,
@@ -6705,6 +6731,36 @@ export type {
   IncidentsCreateNoteStatus409,
   IncidentsCreateNoteStatus422,
 } from "./IncidentsCreateNote.js";
+export type {
+  IncidentsCreatePartyBody,
+  IncidentsCreatePartyHeaders,
+  IncidentsCreatePartyOptions,
+  IncidentsCreatePartyPath,
+  IncidentsCreatePartyResponse,
+  IncidentsCreatePartyResponses,
+  IncidentsCreatePartyStatus201,
+  IncidentsCreatePartyStatus400,
+  IncidentsCreatePartyStatus401,
+  IncidentsCreatePartyStatus403,
+  IncidentsCreatePartyStatus404,
+  IncidentsCreatePartyStatus409,
+  IncidentsCreatePartyStatus422,
+} from "./IncidentsCreateParty.js";
+export type {
+  IncidentsCreateResourceBody,
+  IncidentsCreateResourceHeaders,
+  IncidentsCreateResourceOptions,
+  IncidentsCreateResourcePath,
+  IncidentsCreateResourceResponse,
+  IncidentsCreateResourceResponses,
+  IncidentsCreateResourceStatus201,
+  IncidentsCreateResourceStatus400,
+  IncidentsCreateResourceStatus401,
+  IncidentsCreateResourceStatus403,
+  IncidentsCreateResourceStatus404,
+  IncidentsCreateResourceStatus409,
+  IncidentsCreateResourceStatus422,
+} from "./IncidentsCreateResource.js";
 export type {
   IncidentsCreateTimelineEntryBody,
   IncidentsCreateTimelineEntryHeaders,
@@ -6848,6 +6904,21 @@ export type {
   IncidentsUpdateIncidentStatus409,
   IncidentsUpdateIncidentStatus422,
 } from "./IncidentsUpdateIncident.js";
+export type {
+  IncidentsUpdatePartyBody,
+  IncidentsUpdatePartyHeaders,
+  IncidentsUpdatePartyOptions,
+  IncidentsUpdatePartyPath,
+  IncidentsUpdatePartyResponse,
+  IncidentsUpdatePartyResponses,
+  IncidentsUpdatePartyStatus200,
+  IncidentsUpdatePartyStatus400,
+  IncidentsUpdatePartyStatus401,
+  IncidentsUpdatePartyStatus403,
+  IncidentsUpdatePartyStatus404,
+  IncidentsUpdatePartyStatus409,
+  IncidentsUpdatePartyStatus422,
+} from "./IncidentsUpdateParty.js";
 export type { IncidentTimelineCreate } from "./IncidentTimelineCreate.js";
 export type { IncidentTimelineKind } from "./IncidentTimelineKind.js";
 export { incidentTimelineKind } from "./IncidentTimelineKind.js";

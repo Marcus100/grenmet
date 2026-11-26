@@ -24,12 +24,15 @@ from src.organisations import grants
 from src.organisations.dependencies import OrgContext, require_org_permission
 from src.pagination import PaginationDep
 
-from . import attachments, service
+from . import attachments, details, service
 from .exceptions import IncidentForbiddenError
 from .models import (
     Incident,
+    IncidentAffiliation,
     IncidentCategory,
     IncidentChecklistItem,
+    IncidentParty,
+    IncidentPartyKind,
     IncidentStatus,
     IncidentTimelineEntry,
     IncidentTimelineKind,
@@ -47,12 +50,19 @@ from .schemas import (
     IncidentCheckPublic,
     IncidentCheckUpdate,
     IncidentCreate,
+    IncidentDamageCreate,
+    IncidentDamagePublic,
     IncidentDetail,
     IncidentNoteCreate,
     IncidentNotePublic,
     IncidentPage,
+    IncidentPartyCreate,
+    IncidentPartyPublic,
+    IncidentPartyUpdate,
     IncidentPublic,
     IncidentReopen,
+    IncidentResourceCreate,
+    IncidentResourcePublic,
     IncidentTimelineCreate,
     IncidentTimelinePublic,
     IncidentUpdate,
@@ -158,12 +168,39 @@ def _detail(view: service.IncidentDetailView) -> IncidentDetail:
     )
 
 
-async def _with_attachments(
-    session: SessionDep, detail: IncidentDetail
+def _party(party: IncidentParty, *, private: bool) -> IncidentPartyPublic:
+    """Contact details and injury notes only for holders of the private key."""
+    return IncidentPartyPublic(
+        id=party.id,
+        kind=IncidentPartyKind(party.kind),
+        name=party.name,
+        affiliation=IncidentAffiliation(party.affiliation),
+        company=party.company,
+        contact_phone=party.contact_phone if private else None,
+        contact_email=party.contact_email if private else None,
+        injured=party.injured,
+        injury_notes=party.injury_notes if private else None,
+        statement=party.statement,
+        created_at=party.created_at,
+        updated_at=party.updated_at,
+    )
+
+
+async def _with_extras(
+    session: SessionDep, detail: IncidentDetail, *, private: bool
 ) -> IncidentDetail:
     rows = await attachments.for_incident(session, detail.id)
     detail.attachments = [
         IncidentAttachmentPublic.model_validate(a, from_attributes=True) for a in rows
+    ]
+    parties, damage, resources = await details.for_incident(session, detail.id)
+    detail.parties = [_party(p, private=private) for p in parties]
+    detail.damage = [
+        IncidentDamagePublic.model_validate(d, from_attributes=True) for d in damage
+    ]
+    detail.resources = [
+        IncidentResourcePublic.model_validate(r, from_attributes=True)
+        for r in resources
     ]
     return detail
 
@@ -171,10 +208,9 @@ async def _with_attachments(
 async def _detail_response(
     session: SessionDep, org: OrgContext, incident: Incident
 ) -> IncidentDetail:
-    view = await service.detail_of(
-        session, incident, can_read_private=await _can_private(session, org)
-    )
-    return await _with_attachments(session, _detail(view))
+    private = await _can_private(session, org)
+    view = await service.detail_of(session, incident, can_read_private=private)
+    return await _with_extras(session, _detail(view), private=private)
 
 
 # --- categories -------------------------------------------------------------------
@@ -372,13 +408,14 @@ async def create_incident(
 async def get_incident(
     *, session: SessionDep, org: IncidentsReader, incident_id: str
 ) -> Any:
+    private = await _can_private(session, org)
     view = await service.detail(
         session,
         organisation_id=org.organisation_id,
         incident_id=incident_id,
-        can_read_private=await _can_private(session, org),
+        can_read_private=private,
     )
-    return await _with_attachments(session, _detail(view))
+    return await _with_extras(session, _detail(view), private=private)
 
 
 @router.patch(
@@ -615,3 +652,118 @@ async def create_attachment(
     )
     await session.commit()
     return IncidentAttachmentPublic.model_validate(attachment, from_attributes=True)
+
+
+@router.post(
+    "/org/incidents/{incident_id}/parties",
+    response_model=IncidentPartyPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a person involved or a witness",
+    description=(
+        "Contact details and injury notes are personal data: they are returned "
+        "only to holders of `incidents.incidents.private`. A closed incident "
+        "refuses (409)."
+    ),
+    operation_id="incidentsCreateParty",
+    responses=WRITE_ERRORS,
+)
+async def create_party(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    payload: IncidentPartyCreate,
+) -> Any:
+    party = await details.add_party(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        author=org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return _party(party, private=await _can_private(session, org))
+
+
+@router.patch(
+    "/org/incidents/{incident_id}/parties/{party_id}",
+    response_model=IncidentPartyPublic,
+    summary="Correct a person's details",
+    description="Only the fields sent change; the earlier values stay in the history.",
+    operation_id="incidentsUpdateParty",
+    responses=WRITE_ERRORS,
+)
+async def update_party(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    party_id: str,
+    payload: IncidentPartyUpdate,
+) -> Any:
+    party = await details.update_party(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        party_id=party_id,
+        payload=payload,
+    )
+    await session.commit()
+    return _party(party, private=await _can_private(session, org))
+
+
+@router.post(
+    "/org/incidents/{incident_id}/damage",
+    response_model=IncidentDamagePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record damage",
+    description=(
+        "What was damaged and an optional cost estimate in minor units "
+        "(default currency XCD). Insert only; correct with a note."
+    ),
+    operation_id="incidentsCreateDamage",
+    responses=WRITE_ERRORS,
+)
+async def create_damage(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    payload: IncidentDamageCreate,
+) -> Any:
+    damage = await details.add_damage(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        author=org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return IncidentDamagePublic.model_validate(damage, from_attributes=True)
+
+
+@router.post(
+    "/org/incidents/{incident_id}/resources",
+    response_model=IncidentResourcePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record a resource used in the response",
+    description="A vehicle, team or piece of equipment, with optional times. Insert only.",
+    operation_id="incidentsCreateResource",
+    responses=WRITE_ERRORS,
+)
+async def create_resource(
+    *,
+    session: SessionDep,
+    org: IncidentsWriter,
+    incident_id: str,
+    payload: IncidentResourceCreate,
+) -> Any:
+    resource = await details.add_resource(
+        session,
+        organisation_id=org.organisation_id,
+        incident_id=incident_id,
+        author=org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return IncidentResourcePublic.model_validate(resource, from_attributes=True)

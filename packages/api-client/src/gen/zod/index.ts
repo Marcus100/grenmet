@@ -6571,6 +6571,7 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesT
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
+export { incidentAffiliationSchema } from "./incidentAffiliationSchema.js";
 export { incidentAttachmentCreateSchema } from "./incidentAttachmentCreateSchema.js";
 export { incidentAttachmentPublicSchema } from "./incidentAttachmentPublicSchema.js";
 export { incidentCategoryCreateSchema } from "./incidentCategoryCreateSchema.js";
@@ -6583,12 +6584,20 @@ export { incidentChecklistItemUpdateSchema } from "./incidentChecklistItemUpdate
 export { incidentCheckPublicSchema } from "./incidentCheckPublicSchema.js";
 export { incidentCheckUpdateSchema } from "./incidentCheckUpdateSchema.js";
 export { incidentCreateSchema } from "./incidentCreateSchema.js";
+export { incidentDamageCreateSchema } from "./incidentDamageCreateSchema.js";
+export { incidentDamagePublicSchema } from "./incidentDamagePublicSchema.js";
 export { incidentDetailSchema } from "./incidentDetailSchema.js";
 export { incidentNoteCreateSchema } from "./incidentNoteCreateSchema.js";
 export { incidentNotePublicSchema } from "./incidentNotePublicSchema.js";
 export { incidentPageSchema } from "./incidentPageSchema.js";
+export { incidentPartyCreateSchema } from "./incidentPartyCreateSchema.js";
+export { incidentPartyKindSchema } from "./incidentPartyKindSchema.js";
+export { incidentPartyPublicSchema } from "./incidentPartyPublicSchema.js";
+export { incidentPartyUpdateSchema } from "./incidentPartyUpdateSchema.js";
 export { incidentPublicSchema } from "./incidentPublicSchema.js";
 export { incidentReopenSchema } from "./incidentReopenSchema.js";
+export { incidentResourceCreateSchema } from "./incidentResourceCreateSchema.js";
+export { incidentResourcePublicSchema } from "./incidentResourcePublicSchema.js";
 export { incidentStatusSchema } from "./incidentStatusSchema.js";
 export {
   incidentsCloseIncidentErrorSchema,
@@ -6652,6 +6661,22 @@ export {
   incidentsCreateChecklistItemStatus422Schema,
 } from "./incidentsCreateChecklistItemSchema.js";
 export {
+  incidentsCreateDamageBodySchema,
+  incidentsCreateDamageErrorSchema,
+  incidentsCreateDamageHeadersSchema,
+  incidentsCreateDamageHeaderXBarrelsOrganisationSchema,
+  incidentsCreateDamagePathIncidentIdSchema,
+  incidentsCreateDamagePathSchema,
+  incidentsCreateDamageResponseSchema,
+  incidentsCreateDamageStatus201Schema,
+  incidentsCreateDamageStatus400Schema,
+  incidentsCreateDamageStatus401Schema,
+  incidentsCreateDamageStatus403Schema,
+  incidentsCreateDamageStatus404Schema,
+  incidentsCreateDamageStatus409Schema,
+  incidentsCreateDamageStatus422Schema,
+} from "./incidentsCreateDamageSchema.js";
+export {
   incidentsCreateIncidentBodySchema,
   incidentsCreateIncidentErrorSchema,
   incidentsCreateIncidentHeadersSchema,
@@ -6681,6 +6706,38 @@ export {
   incidentsCreateNoteStatus409Schema,
   incidentsCreateNoteStatus422Schema,
 } from "./incidentsCreateNoteSchema.js";
+export {
+  incidentsCreatePartyBodySchema,
+  incidentsCreatePartyErrorSchema,
+  incidentsCreatePartyHeadersSchema,
+  incidentsCreatePartyHeaderXBarrelsOrganisationSchema,
+  incidentsCreatePartyPathIncidentIdSchema,
+  incidentsCreatePartyPathSchema,
+  incidentsCreatePartyResponseSchema,
+  incidentsCreatePartyStatus201Schema,
+  incidentsCreatePartyStatus400Schema,
+  incidentsCreatePartyStatus401Schema,
+  incidentsCreatePartyStatus403Schema,
+  incidentsCreatePartyStatus404Schema,
+  incidentsCreatePartyStatus409Schema,
+  incidentsCreatePartyStatus422Schema,
+} from "./incidentsCreatePartySchema.js";
+export {
+  incidentsCreateResourceBodySchema,
+  incidentsCreateResourceErrorSchema,
+  incidentsCreateResourceHeadersSchema,
+  incidentsCreateResourceHeaderXBarrelsOrganisationSchema,
+  incidentsCreateResourcePathIncidentIdSchema,
+  incidentsCreateResourcePathSchema,
+  incidentsCreateResourceResponseSchema,
+  incidentsCreateResourceStatus201Schema,
+  incidentsCreateResourceStatus400Schema,
+  incidentsCreateResourceStatus401Schema,
+  incidentsCreateResourceStatus403Schema,
+  incidentsCreateResourceStatus404Schema,
+  incidentsCreateResourceStatus409Schema,
+  incidentsCreateResourceStatus422Schema,
+} from "./incidentsCreateResourceSchema.js";
 export {
   incidentsCreateTimelineEntryBodySchema,
   incidentsCreateTimelineEntryErrorSchema,
@@ -6840,6 +6897,23 @@ export {
   incidentsUpdateIncidentStatus409Schema,
   incidentsUpdateIncidentStatus422Schema,
 } from "./incidentsUpdateIncidentSchema.js";
+export {
+  incidentsUpdatePartyBodySchema,
+  incidentsUpdatePartyErrorSchema,
+  incidentsUpdatePartyHeadersSchema,
+  incidentsUpdatePartyHeaderXBarrelsOrganisationSchema,
+  incidentsUpdatePartyPathIncidentIdSchema,
+  incidentsUpdatePartyPathPartyIdSchema,
+  incidentsUpdatePartyPathSchema,
+  incidentsUpdatePartyResponseSchema,
+  incidentsUpdatePartyStatus200Schema,
+  incidentsUpdatePartyStatus400Schema,
+  incidentsUpdatePartyStatus401Schema,
+  incidentsUpdatePartyStatus403Schema,
+  incidentsUpdatePartyStatus404Schema,
+  incidentsUpdatePartyStatus409Schema,
+  incidentsUpdatePartyStatus422Schema,
+} from "./incidentsUpdatePartySchema.js";
 export { incidentTimelineCreateSchema } from "./incidentTimelineCreateSchema.js";
 export { incidentTimelineKindSchema } from "./incidentTimelineKindSchema.js";
 export { incidentTimelinePublicSchema } from "./incidentTimelinePublicSchema.js";

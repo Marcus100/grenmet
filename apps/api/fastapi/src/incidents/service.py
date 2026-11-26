@@ -20,10 +20,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import outbox
 from src.auth.models import User
 from src.exceptions import AppValidationError
+from src.notifications import service as notification_service
 from src.organisations.models import Membership, MembershipStatus
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 
+from . import notifications as incident_notifications
 from . import transitions
 from .exceptions import (
     IncidentCategoryNotFoundError,
@@ -492,6 +494,46 @@ async def _post_to_log(
     )
 
 
+async def _tell_manager(
+    session: AsyncSession,
+    incident: Incident,
+    *,
+    actor: User,
+    event_key: str,
+    context: dict[str, str],
+) -> None:
+    """Notify the category's manager (bell and email), unless they caused it or
+    are no longer an active member."""
+    if incident.category_id is None:
+        return
+    manager_id = await session.scalar(
+        select(IncidentCategory.manager_user_id).where(
+            IncidentCategory.id == incident.category_id
+        )
+    )
+    if manager_id is None or manager_id == actor.id:
+        return
+    still_member = await session.scalar(
+        select(Membership.id).where(
+            Membership.organisation_id == incident.organisation_id,
+            Membership.user_id == manager_id,
+            Membership.status == MembershipStatus.ACTIVE.value,
+        )
+    )
+    if still_member is None:
+        return
+    await notification_service.notify(
+        session,
+        event_key=event_key,
+        organisation_id=incident.organisation_id,
+        recipients=[manager_id],
+        context=context,
+        entity_type="incident",
+        entity_id=incident.id,
+        exclude=[actor.id],
+    )
+
+
 async def open_incident(
     session: AsyncSession, *, organisation_id: str, incident_id: str, actor: User
 ) -> Incident:
@@ -528,6 +570,17 @@ async def open_incident(
         incident,
         entry,
         f"Incident {incident.reference} opened: {incident.title}",
+    )
+    await _tell_manager(
+        session,
+        incident,
+        actor=actor,
+        event_key=incident_notifications.OPENED,
+        context={
+            "reference": incident.reference,
+            "title": incident.title,
+            "place": f" at {incident.location}" if incident.location else "",
+        },
     )
     await session.flush()
     return incident
@@ -600,6 +653,13 @@ async def reopen_incident(
         incident,
         entry,
         f"Incident {incident.reference} reopened: {reason}",
+    )
+    await _tell_manager(
+        session,
+        incident,
+        actor=actor,
+        event_key=incident_notifications.REOPENED,
+        context={"reference": incident.reference, "reason": reason},
     )
     await session.flush()
     return incident

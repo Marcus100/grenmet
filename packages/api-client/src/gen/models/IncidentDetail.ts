@@ -5,7 +5,10 @@
 
 import type { IncidentAttachmentPublic } from "./IncidentAttachmentPublic.js";
 import type { IncidentCheckPublic } from "./IncidentCheckPublic.js";
+import type { IncidentDamagePublic } from "./IncidentDamagePublic.js";
 import type { IncidentNotePublic } from "./IncidentNotePublic.js";
+import type { IncidentPartyPublic } from "./IncidentPartyPublic.js";
+import type { IncidentResourcePublic } from "./IncidentResourcePublic.js";
 import type { IncidentStatus } from "./IncidentStatus.js";
 import type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
 
@@ -59,4 +62,19 @@ export type IncidentDetail = {
    * @type array | undefined
    */
   attachments?: IncidentAttachmentPublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  parties?: IncidentPartyPublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  damage?: IncidentDamagePublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  resources?: IncidentResourcePublic[];
 };

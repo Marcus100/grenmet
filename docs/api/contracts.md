@@ -3566,3 +3566,11 @@ Another organisation's records are 404.
   log entries return `record.title` and `record.available`; the title is filled only
   for a viewer who may see the record (for `incidents.incident`, a holder of
   `incidents.incidents.read`), otherwise `available` is false.
+
+- Incidents slice 2 (#1876): `POST /incidents/org/incidents/{incident_id}/parties` and
+  `PATCH .../parties/{party_id}` (persons involved and witnesses; `contact_phone`,
+  `contact_email` and `injury_notes` are returned only with `incidents.incidents.private`
+  and are sensitive in the audit), `POST .../damage` (optional cost in minor units,
+  default XCD) and `POST .../resources` (optional start and end times). All refused on a
+  closed incident (409). Opening and reopening an incident alert the category's manager
+  (`incidents.opened`, urgent; `incidents.reopened`), unless they caused it.
