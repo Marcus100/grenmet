@@ -636,6 +636,16 @@ class Booking(Base):
     #: ``pending_payment``: the business's value, capped for an online checkout. Null
     #: for a booking made before the snapshot existed (the sweeper then computes it).
     hold_minutes: Mapped[int | None] = mapped_column(default=None)
+    #: A request paid by card only after the business accepts it (the business
+    #: confirms by hand, or the service is new clients only, with online collection).
+    #: While ``pending`` nothing has been asked or paid; ``deposit_minor`` is what
+    #: becomes due on acceptance.
+    pay_after_acceptance: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: When the business accepted the request. For a ``pay_after_acceptance`` booking
+    #: the payment hold runs from here, not from ``created_at``.
+    accepted_at: Mapped[datetime | None] = mapped_column(default=None)
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)

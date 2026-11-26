@@ -116,6 +116,8 @@ async def _detail(
             else None
         ),
         deposit_received_reference=booking.deposit_received_reference,
+        pay_after_acceptance=booking.pay_after_acceptance,
+        accepted_at=booking.accepted_at,
         deposit_intent_id=intent.id if intent else None,
         deposit_captured_minor=intent.captured_minor if intent else 0,
         deposit_refunded_minor=intent.refunded_minor if intent else 0,
@@ -229,6 +231,8 @@ async def agenda(
                 expires_at=lifecycle.pending_expires_at(booking, profile),
                 hold_expires_at=hold_until,
                 hold_expires_soon=expiring,
+                pay_after_acceptance=booking.pay_after_acceptance,
+                accepted_at=booking.accepted_at,
             )
         )
     return BookingAgenda(
@@ -251,25 +255,100 @@ async def confirm(
     booking_id: uuid.UUID,
     *,
     actor_user_id: uuid.UUID | None,
+    now: datetime | None = None,
 ) -> BookingStudioDetail:
-    """``pending`` becomes ``confirmed``. Nothing is sent to webhooks (the
-    booking was announced when it was made); the customer is emailed."""
+    """The business accepts a ``pending`` request. It becomes ``confirmed``, or,
+    when a card payment is due only after acceptance (``pay_after_acceptance``),
+    ``pending_payment``: the payment hold starts now and the customer is emailed
+    how much to pay and by when. Nothing is sent to webhooks (the booking was
+    announced when it was made); the customer is emailed."""
     managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
     booking = managed.booking
-    if BookingStatus(booking.status) is BookingStatus.PENDING_PAYMENT:
+    status = BookingStatus(booking.status)
+    if status is BookingStatus.PENDING_PAYMENT:
+        if booking.pay_after_acceptance and booking.accepted_at is not None:
+            raise BookingConflictError(
+                "This request is already accepted and is waiting for payment"
+            )
         raise BookingConflictError("This booking is waiting for its deposit")
+    moment = now or utc_now()
+    if status is BookingStatus.PENDING and await _payment_due_on_acceptance(
+        session, booking
+    ):
+        return await _accept_for_payment(
+            session, managed, actor_user_id=actor_user_id, now=moment
+        )
     await public.transition(
         session,
         booking,
         BookingStatus.CONFIRMED,
         actor_user_id=actor_user_id,
         note="Confirmed by the business",
+        now=moment,
     )
+    booking.accepted_at = moment
     await public.queue_customer_email(
         session,
         managed,
         emails.customer_confirmed(public.build_mail(managed)),
         f"booking-confirmed:{booking.id}",
+    )
+    await session.flush()
+    return await _detail(session, managed)
+
+
+async def _payment_due_on_acceptance(session: AsyncSession, booking: Booking) -> bool:
+    """True when accepting this request must ask the customer to pay: it is paid
+    after acceptance, something is due and nothing has been captured for it."""
+    if not booking.pay_after_acceptance or booking.deposit_minor <= 0:
+        return False
+    intent = await deposit_payments.find_deposit(session, booking)
+    return intent is None or intent.captured_minor <= 0
+
+
+async def _accept_for_payment(
+    session: AsyncSession,
+    managed: public.Managed,
+    *,
+    actor_user_id: uuid.UUID | None,
+    now: datetime,
+) -> BookingStudioDetail:
+    """``pending`` becomes ``pending_payment``: the request is accepted and now
+    waits for its payment. The payment and its hold start here, never earlier;
+    paying confirms the booking (``deposits.confirm_paid``) and an unpaid hold is
+    released by the sweeper (``deposits.expire_unpaid``) like any other."""
+    booking, profile = managed.booking, managed.profile
+    await public.transition(
+        session,
+        booking,
+        BookingStatus.PENDING_PAYMENT,
+        actor_user_id=actor_user_id,
+        note="Accepted by the business; waiting for payment",
+        now=now,
+    )
+    booking.accepted_at = now
+    checkout_url = await deposit_payments.start_deposit(
+        session,
+        booking,
+        managed.contact.email,
+        title=deposit_payments.checkout_title(
+            booking, managed.service, profile, booking.deposit_minor
+        ),
+    )
+    hold = await deposit_payments.snapshot_accepted_hold(session, profile, booking, now)
+    mail = public.build_mail(managed)
+    await public.queue_customer_email(
+        session,
+        managed,
+        emails.customer_accepted(
+            mail,
+            amount_minor=booking.deposit_minor,
+            pay_by=now + timedelta(minutes=hold),
+            # The manage page carries the pay button and the way back from the
+            # checkout; the checkout itself is the fallback when there is no page.
+            pay_url=(mail.manage_url or checkout_url) if checkout_url else None,
+        ),
+        f"booking-accepted:{booking.id}",
     )
     await session.flush()
     return await _detail(session, managed)

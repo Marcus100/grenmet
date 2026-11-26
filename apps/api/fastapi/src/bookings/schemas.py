@@ -847,6 +847,21 @@ class BookingAgendaItem(BaseModel):
         default=None,
         description="When staff marked the deposit paid to the business as received.",
     )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending` nothing has been asked or paid and `deposit_minor` "
+            "is what becomes due when the business accepts."
+        ),
+    )
+    accepted_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "When the business accepted the request. With `pay_after_acceptance` and "
+            "`status` `pending_payment`: accepted, waiting for the customer to pay."
+        ),
+    )
     returning_client: bool = Field(
         default=False,
         description=(
@@ -1058,6 +1073,21 @@ class BookingStudioDetail(BaseModel):
         default=None,
         description="When staff marked the deposit paid to the business as received.",
     )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending` nothing has been asked or paid and `deposit_minor` "
+            "is what becomes due when the business accepts."
+        ),
+    )
+    accepted_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "When the business accepted the request. With `pay_after_acceptance` and "
+            "`status` `pending_payment`: accepted, waiting for the customer to pay."
+        ),
+    )
     deposit_received_method: BookingDepositReceivedMethod | None = None
     deposit_received_reference: str | None = None
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
@@ -1107,6 +1137,15 @@ class BookingPublicService(BaseModel):
     new_clients_only: bool = Field(
         default=False,
         description="First-time clients only: every booking of it is a request the business confirms.",
+    )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A booking of this service is a request the business accepts by hand, "
+            "and any payment (`due_at_booking_minor` by card, or "
+            "`deposit_to_business_minor` to the business) is made only after it "
+            "accepts: nothing is asked when the request is made."
+        ),
     )
     first_visit_lead_days: int | None = Field(
         default=None,
@@ -1584,9 +1623,19 @@ class BookingPublicDetail(BaseModel):
         default=None,
         description=(
             "While `status` is `pending_payment`: the length of the hold in minutes "
-            "(the business's setting, capped at 120 for an online card checkout). "
-            "Show it as 'Your time is held for N hours until your deposit is "
-            "received'. Null otherwise."
+            "(the business's setting, capped at 120 for an online card checkout made "
+            "at booking). Show it as 'Your time is held for N hours until your "
+            "deposit is received'. Null otherwise."
+        ),
+    )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending`: nothing to pay yet, `payment` is null and "
+            "`deposit_minor` is what becomes due on acceptance. While `status` is "
+            "`pending_payment`: the business accepted, and the customer pays by "
+            "`hold_ends_at`."
         ),
     )
     add_ons: list[BookingAddOnLine] = Field(
@@ -1610,7 +1659,8 @@ class BookingPublicReceipt(BaseModel):
         description=(
             "True when the booking holds the slot but waits for a payment (a "
             "deposit or the full price; `status` is `pending_payment`). It is "
-            "cancelled and the slot released if it is not paid in time."
+            "cancelled and the slot released if it is not paid in time. False for a "
+            "request paid after the business accepts (`booking.pay_after_acceptance`)."
         ),
     )
     checkout_url: str | None = Field(

@@ -35,6 +35,12 @@ export type BookingPublicService = {
    */
   new_clients_only?: boolean;
   /**
+   * @description A booking of this service is a request, and anything due online (`due_at_booking_minor`) is paid only after the business accepts it: nothing is charged when the request is made.
+   * @default false
+   * @type boolean | undefined
+   */
+  pay_after_acceptance?: boolean;
+  /**
    * @description With `new_clients_only`: book at least this many days before the first appointment in `first_visit_categories`. Informational.
    */
   first_visit_lead_days?: number | null;

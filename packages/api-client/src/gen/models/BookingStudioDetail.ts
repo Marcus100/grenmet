@@ -76,6 +76,16 @@ export type BookingStudioDetail = {
    * @description When staff marked the deposit paid to the business as received.
    */
   deposit_received_at?: string | null;
+  /**
+   * @description A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts.
+   * @default false
+   * @type boolean | undefined
+   */
+  pay_after_acceptance?: boolean;
+  /**
+   * @description When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay.
+   */
+  accepted_at?: string | null;
   deposit_received_method?: BookingDepositReceivedMethod | null;
   deposit_received_reference?: string | null;
   /**

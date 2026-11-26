@@ -6,12 +6,18 @@ from importlib import import_module
 
 import httpx
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
 from src.bookings import deposit_payments, deposits
-from src.bookings.models import Booking, BookingEvent, BookingStatus, Service
+from src.bookings.models import (
+    Booking,
+    BookingEvent,
+    BookingProfile,
+    BookingStatus,
+    Service,
+)
 from src.outbox import Outbox
 from src.payments.models import Intent, IntentStatus, LedgerEntry, LedgerKind
 from src.utils.datetime import utc_now
@@ -98,11 +104,33 @@ async def _drain(db: AsyncSession) -> int:
     return await outbox.drain(db, only_topics={deposit_payments.PAID_TOPIC})
 
 
+async def _book_paying_first(
+    db: AsyncSession, client: httpx.AsyncClient, **profile: object
+) -> tuple[Studio, dict]:
+    """A deposit booking that is paid at booking, still unpaid.
+
+    With ``requires_confirmation`` this is the order used before requests were
+    paid after acceptance: pay first, then wait for the business. It is no longer
+    made, but bookings made before the change are still in it, so the booking is
+    made while the profile confirms on its own and the switch is turned on before
+    the payment lands (``test_pay_after_acceptance.py`` covers the order used now)."""
+    by_hand = profile.pop("requires_confirmation", False)
+    studio = await _deposit_studio(db, client, **profile)
+    receipt = await _book_deposit(client, studio, db=db)
+    if by_hand:
+        await db.execute(
+            update(BookingProfile)
+            .where(BookingProfile.organisation_id == studio.org_id)
+            .values(requires_confirmation=True)
+        )
+        await db.commit()
+    return studio, receipt
+
+
 async def _paid_booking(
     db: AsyncSession, client: httpx.AsyncClient, **profile: object
 ) -> tuple[Studio, str]:
-    studio = await _deposit_studio(db, client, **profile)
-    receipt = await _book_deposit(client, studio, db=db)
+    studio, receipt = await _book_paying_first(db, client, **profile)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db, booking_id)
     assert intent is not None

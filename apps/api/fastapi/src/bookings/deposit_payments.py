@@ -133,6 +133,22 @@ def deposit_to_business(
     return planned_deposit(svc, deposit_rule_of(profile), price_minor)
 
 
+def needs_acceptance(profile: BookingProfile, svc: Service) -> bool:
+    """True when a booking of ``svc`` is a request the business accepts by hand:
+    the profile confirms every booking, or the service is for new clients only."""
+    return bool(profile.requires_confirmation or svc.new_clients_only)
+
+
+def awaits_acceptance(booking: Booking) -> bool:
+    """A request whose payment is asked only after the business accepts it, and
+    which the business has not accepted yet: nothing is due and nothing was paid."""
+    return (
+        booking.pay_after_acceptance
+        and booking.status == BookingStatus.PENDING.value
+        and booking.deposit_minor > 0
+    )
+
+
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
     """What is still to pay at the business once the deposit is paid. Clients show
     it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
@@ -280,6 +296,9 @@ def payment_line(booking: Booking) -> str | None:
     whole price. None for every other booking."""
     if booking.deposit_minor <= 0:
         return None
+    if awaits_acceptance(booking):
+        due = money_text(booking.deposit_minor, booking.currency)
+        return f"Nothing to pay yet. {due} is due once your request is accepted."
     if booking.status not in (
         BookingStatus.PENDING.value,
         BookingStatus.CONFIRMED.value,
@@ -385,6 +404,38 @@ def hold_minutes_for(profile_minutes: int | None, *, online: bool) -> int:
     return min(base, ONLINE_HOLD_CAP_MINUTES) if online else base
 
 
+#: A card checkout started when the business accepts a request holds the slot at
+#: most this long. The 2-hour cap above does not apply (the customer answers an
+#: email, not a page they are on), but a hosted checkout link stops working 24
+#: hours after it is made, so the hold never outlives the link.
+ACCEPTED_ONLINE_HOLD_CAP_MINUTES = 23 * 60
+
+
+def accepted_hold_minutes_for(
+    profile_minutes: int | None, *, online: bool, minutes_to_start: int
+) -> int:
+    """Pure: how many minutes a request holds its slot for payment once the
+    business accepts it. The business's ``deposit_hold_minutes`` (null =
+    ``DEPOSIT_HOLD_MINUTES``), capped at ``ACCEPTED_ONLINE_HOLD_CAP_MINUTES`` for a
+    card checkout, and never past the booking's own start (at least one minute)."""
+    base = (
+        bookings_settings.DEPOSIT_HOLD_MINUTES
+        if profile_minutes is None
+        else profile_minutes
+    )
+    if online:
+        base = min(base, ACCEPTED_ONLINE_HOLD_CAP_MINUTES)
+    return max(min(base, minutes_to_start), 1)
+
+
+def hold_started_at(booking: Booking) -> datetime:
+    """The clock an unpaid hold runs from: the acceptance for a request paid after
+    the business accepts, else the booking's creation. The sweeper uses the same."""
+    if booking.pay_after_acceptance and booking.accepted_at is not None:
+        return booking.accepted_at
+    return booking.created_at
+
+
 async def online_held_ids(
     session: AsyncSession, booking_ids: list[uuid.UUID]
 ) -> set[uuid.UUID]:
@@ -410,6 +461,19 @@ async def snapshot_hold(
     snapshot is not recomputed later."""
     online = booking.id in await online_held_ids(session, [booking.id])
     booking.hold_minutes = hold_minutes_for(profile.deposit_hold_minutes, online=online)
+    return booking.hold_minutes
+
+
+async def snapshot_accepted_hold(
+    session: AsyncSession, profile: BookingProfile, booking: Booking, now: datetime
+) -> int:
+    """Fix the hold of a request the business has just accepted (``accepted_at`` is
+    ``now``): see ``accepted_hold_minutes_for``. Sets ``booking.hold_minutes``."""
+    online = booking.id in await online_held_ids(session, [booking.id])
+    to_start = int((booking.starts_at - now).total_seconds() // 60)
+    booking.hold_minutes = accepted_hold_minutes_for(
+        profile.deposit_hold_minutes, online=online, minutes_to_start=to_start
+    )
     return booking.hold_minutes
 
 
@@ -480,6 +544,9 @@ def _summary(
         return None
     paid = intent.captured_minor if intent else 0
     refunded = intent.refunded_minor if intent else 0
+    if paid <= 0 and awaits_acceptance(booking):
+        # Nothing is asked until the business accepts: there is no payment to show.
+        return None
     held = booking.status == BookingStatus.PENDING_PAYMENT.value
     link: str | None = None
     if paid > 0:
@@ -715,6 +782,13 @@ async def settle_cancellation(
     - ``defer_refund``: a refund is queued on the outbox instead of called here, so no
       payment-provider call runs inside the caller's transaction."""
     if booking.deposit_minor <= 0:
+        return None
+    if (
+        previous is BookingStatus.PENDING
+        and booking.pay_after_acceptance
+        and await find_deposit(session, booking) is None
+    ):
+        # A request the business never accepted: no payment was ever started.
         return None
     noun = payment_noun(booking)
     if previous is BookingStatus.PENDING_PAYMENT:

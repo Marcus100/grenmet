@@ -22,7 +22,7 @@ export const bookingPublicReceiptSchema = z
       .optional()
       .default(false)
       .describe(
-        "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time."
+        "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time. False for a request paid after the business accepts (`booking.pay_after_acceptance`)."
       ),
     checkout_url: z
       .union([z.string(), z.null()])

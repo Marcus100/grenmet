@@ -110,7 +110,14 @@ export const bookingPublicDetailSchema = z
       .union([z.int(), z.null()])
       .optional()
       .describe(
-        "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
+        "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout made at booking). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
+      ),
+    pay_after_acceptance: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "A request paid by card only after the business accepts it. While `status` is `pending`: nothing to pay yet, `payment` is null and `deposit_minor` is what becomes due on acceptance. While `status` is `pending_payment`: the business accepted, and the customer pays by `hold_ends_at`."
       ),
     add_ons: z
       .array(bookingAddOnLineSchema)

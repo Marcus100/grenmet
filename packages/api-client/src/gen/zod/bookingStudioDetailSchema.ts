@@ -54,6 +54,19 @@ export const bookingStudioDetailSchema = z
       .describe(
         "When staff marked the deposit paid to the business as received."
       ),
+    pay_after_acceptance: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts."
+      ),
+    accepted_at: z
+      .union([z.iso.datetime(), z.null()])
+      .optional()
+      .describe(
+        "When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay."
+      ),
     deposit_received_method: z
       .union([bookingDepositReceivedMethodSchema, z.null()])
       .optional(),

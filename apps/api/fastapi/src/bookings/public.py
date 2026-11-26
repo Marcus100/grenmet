@@ -144,12 +144,14 @@ def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
 
 def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     """When an unpaid hold is released: the same clock the expiry sweeper uses
-    (``created_at`` plus this booking's hold). None for a booking not waiting for payment."""
+    (``deposit_payments.hold_started_at`` plus this booking's hold). None for a
+    booking not waiting for payment."""
     if booking.status != BookingStatus.PENDING_PAYMENT.value:
         return None
-    if booking.created_at is None or hold_minutes is None:
+    started = deposit_payments.hold_started_at(booking)
+    if started is None or hold_minutes is None:
         return None
-    return booking.created_at + timedelta(minutes=hold_minutes)
+    return started + timedelta(minutes=hold_minutes)
 
 
 def _single_line(value: str) -> str:
@@ -355,8 +357,8 @@ def detail(
             profile.deposit_instructions
             if booking.deposit_to_business_minor > 0
             and booking.deposit_received_at is None
-            and booking.status
-            in (BookingStatus.PENDING.value, BookingStatus.CONFIRMED.value)
+            # Only once the business accepted: a request is not asked to pay.
+            and booking.status == BookingStatus.CONFIRMED.value
             else None
         ),
         deposit_received=booking.deposit_received_at is not None,
@@ -369,6 +371,7 @@ def detail(
         account_invite_url=account_invite_for(profile, managed.contact),
         hold_ends_at=hold_ends_at(booking, hold_minutes),
         hold_minutes=hold_minutes,
+        pay_after_acceptance=booking.pay_after_acceptance,
         add_ons=[
             BookingAddOnLine(
                 name=line.name,
@@ -479,6 +482,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         accent=profile.brand_color,
         logo=emails.business_logo(profile.display_name, profile.logo_file_id),
         payment_line=deposit_payments.payment_line(managed.booking),
+        pay_after_acceptance=deposit_payments.awaits_acceptance(managed.booking),
     )
 
 
@@ -906,14 +910,17 @@ async def _create_booking(
         minutes=svc.duration_min + sum(a.duration_min for a in chosen)
     )
     price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
-    if deposit > 0:
+    # A new-clients-only service is always a request staff confirm, so every
+    # client gets the same answer whatever their history.
+    request = deposit_payments.needs_acceptance(profile, svc)
+    if request:
+        # A request first: nothing is asked and no payment hold starts until the
+        # business accepts it (``studio.confirm``), whatever is due.
+        initial = BookingStatus.PENDING
+    elif deposit > 0:
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT
-    elif profile.requires_confirmation or svc.new_clients_only:
-        # A new-clients-only service is always a request staff confirm, so every
-        # client gets the same answer whatever their history.
-        initial = BookingStatus.PENDING
     else:
         initial = BookingStatus.CONFIRMED
     booking: Booking | None = None
@@ -934,6 +941,7 @@ async def _create_booking(
             deposit_minor=deposit,
             deposit_to_business_minor=to_business,
             deposit_non_refundable=profile.deposit_non_refundable,
+            pay_after_acceptance=request and deposit > 0,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
