@@ -26,6 +26,7 @@ describe("studioNavigation", () => {
       "/studio/sea-salt/bookings/new",
       "/studio/sea-salt/services",
       "/studio/sea-salt/people",
+      "/studio/sea-salt/customers",
       "/studio/sea-salt/settings",
       "/studio/sea-salt/plan",
       "/sea-salt-spa",
@@ -38,6 +39,7 @@ describe("studioNavigation", () => {
       "/studio/sea-salt/agenda",
       "/studio/sea-salt/services",
       "/studio/sea-salt/people",
+      "/studio/sea-salt/customers",
       "/studio/sea-salt/settings",
       "/sea-salt-spa",
     ]);
@@ -95,6 +97,7 @@ describe("studioNavigation", () => {
     ["/studio/sea-salt/bookings/new", "new-booking"],
     ["/studio/sea-salt/services", "services"],
     ["/studio/sea-salt/people", "people"],
+    ["/studio/sea-salt/customers", "customers"],
     ["/studio/sea-salt/plan", "plan"],
     ["/studio/sea-salt/settings", "settings"],
   ])("marks one item current on %s", (path, id) => {

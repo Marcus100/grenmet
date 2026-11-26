@@ -15,6 +15,7 @@ import {
   type BookingClosureCreate,
   type BookingClosureCreated,
   type BookingClosurePublic,
+  type BookingCustomerList,
   type BookingDepositReceivedMethod,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
@@ -53,6 +54,7 @@ import {
   bookingsGetSettings,
   bookingsGetStudioBooking,
   bookingsListClosures,
+  bookingsListCustomers,
   bookingsListExceptions,
   bookingsListMyOrganisations,
   bookingsListProviders,
@@ -77,7 +79,7 @@ import {
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
-import { redactRequest } from "@/lib/redact-request";
+import { redactRequest, redactRequestAndQuery } from "@/lib/redact-request";
 import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 /** Used only when the business has no profile yet; matches the Settings page. */
@@ -188,6 +190,37 @@ export function getAgenda(
   })
     .unwrap()
     .catch(redactRequest);
+}
+
+/** Customers shown on one page of the studio's list. */
+export const CUSTOMERS_PAGE_SIZE = 50;
+
+interface CustomersQuery {
+  offset?: number;
+  /** Part of a name, email or phone; blank lists everyone. */
+  search?: string;
+}
+
+/**
+ * One page of the business's customers (who has a booking coming up first).
+ * The search is personal data, so a failure drops the query string from the
+ * error before it travels anywhere.
+ */
+export function listCustomers(
+  accessToken: string,
+  organisationId: string,
+  query: CustomersQuery = {}
+): Promise<BookingCustomerList> {
+  return bookingsListCustomers({
+    client: studioClient(accessToken, organisationId),
+    query: {
+      limit: CUSTOMERS_PAGE_SIZE,
+      offset: query.offset ?? 0,
+      ...(query.search ? { q: query.search } : {}),
+    },
+  })
+    .unwrap()
+    .catch(redactRequestAndQuery);
 }
 
 /** The business's providers, for the agenda filter and names. */

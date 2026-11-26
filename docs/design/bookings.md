@@ -240,7 +240,7 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   (`@barrelsgd/admin-kit`, ADR-0068, `docs/web/admin-kit.md`): the Met Service
   portal layout in the Bookings colours. Laptops: an inset collapsible sidebar
   with the business name and a navy "B" mark on top, grouped navigation
-  (Bookings: Agenda, New booking; Business: Services, People, Settings, Plan &
+  (Bookings: Agenda, New booking; Business: Services, People, Customers, Settings, Plan &
   billing; Your page: View my page, which opens in a new tab), and the signed-in person with Sign out at
   the bottom; a slim top bar with the sidebar toggle, search (command palette
   fed by the same navigation) and, for owners and admins, New booking. Phones:
@@ -281,6 +281,12 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   load and again after Confirm, Decline or Change time; it does not update
   while browsing between pages, and there is no polling for now. "Awaiting deposit" is not listed:
   that waits for the customer.
+- **Customers** is a search box (name, email or phone; a GET form, so it works
+  without scripts) above one card of rows. Each row: the name, the phone as a
+  `tel:` link (44 px), the email, then Bookings, Last visit and Next booking
+  with their labels. Rows stack on a phone and sit in three columns from `md`.
+  Empty: "No customers yet. They appear here after their first booking."
+  Fifty a page, with "Previous customers" and "More customers".
 - **Booking detail** has Call (`tel:`) and WhatsApp (`https://wa.me/<digits>`,
   new tab). WhatsApp appears only when the number normalises
   (`lib/phone.ts`): a leading `+` is kept, a 7-digit number is taken as Grenada
