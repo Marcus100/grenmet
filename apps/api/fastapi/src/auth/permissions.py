@@ -270,6 +270,17 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         binding="organisation",
     ),
     # Operations log (ADR-0067). Organisation keys; owners and admins hold them all.
+    # API key scopes (ADR-0029) every product has; no opslog route takes an API key yet.
+    PermissionDef(
+        "opslog.read",
+        "API key: read Barrels Operations Log data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.write",
+        "API key: change Barrels Operations Log data",
+        binding="organisation",
+    ),
     PermissionDef(
         "opslog.entries.read",
         "Operations log: read logs, categories and entries (not private ones)",

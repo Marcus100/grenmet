@@ -6,10 +6,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.opslog.outbox_handlers  # noqa: F401  registers the handler
 from src import outbox
-from src.opslog.messages import ENTRY_POST_TOPIC
 from src.opslog.models import OpsLog, OpsLogEntry, OpsLogEntrySource
+
+# Importing the handler module registers the handler.
+from src.opslog.outbox_handlers import ENTRY_POST_TOPIC
 from src.organisations.models import MembershipRole
 from src.utils.datetime import utc_now
 from tests.factories import make_user
