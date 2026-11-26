@@ -11,6 +11,7 @@ import Link from "next/link";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
 import { BookingAddress } from "@/components/studio/booking-address";
 import { NeedsConfirming } from "@/components/studio/needs-confirming";
+import { ReturningClientTag } from "@/components/studio/returning-client";
 import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { CARD, CARD_LINK, FOCUS } from "@/components/studio/studio-ui";
@@ -483,6 +484,7 @@ function BookingRow({
       </span>
       <span className="flex flex-wrap gap-2">
         <StatusBadge kind={booking.payment_kind} status={booking.status} />
+        {booking.returning_client ? <ReturningClientTag /> : null}
         {booking.deposit_minor > 0 ? (
           <DepositBadge view={agendaDepositView(booking)} />
         ) : null}

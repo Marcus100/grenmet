@@ -748,6 +748,9 @@ describe("services", () => {
       is_add_on: false,
       also_add_on: false,
       add_on_categories: null,
+      new_clients_only: false,
+      first_visit_lead_days: null,
+      first_visit_categories: null,
     });
   });
 
@@ -2026,5 +2029,117 @@ describe("also offer as an add-on", () => {
       SERVICE_ID,
       expect.objectContaining({ also_add_on: false, is_add_on: false })
     );
+  });
+});
+
+describe("new clients only (services)", () => {
+  const NEW_CLIENTS = { newClientsOnly: "on" };
+
+  it("sends the lead time and categories when the switch is on", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        ...NEW_CLIENTS,
+        firstVisitLeadDays: "2",
+        firstVisitCategory: ["Lashes", " Brows "],
+      })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        new_clients_only: true,
+        first_visit_lead_days: 2,
+        first_visit_categories: ["Lashes", "Brows"],
+      })
+    );
+  });
+
+  it("sends null for a blank lead time and no categories", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        serviceId: SERVICE_ID,
+        ...NEW_CLIENTS,
+        firstVisitLeadDays: " ",
+      })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({
+        new_clients_only: true,
+        first_visit_lead_days: null,
+        first_visit_categories: null,
+      })
+    );
+  });
+
+  it("sends the switch off with null lead time and categories, even if fields were sent", async () => {
+    vi.mocked(updateService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({
+        ...SERVICE,
+        serviceId: SERVICE_ID,
+        firstVisitLeadDays: "5",
+        firstVisitCategory: ["Lashes"],
+      })
+    );
+    expect(updateService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      SERVICE_ID,
+      expect.objectContaining({
+        new_clients_only: false,
+        first_visit_lead_days: null,
+        first_visit_categories: null,
+      })
+    );
+  });
+
+  it("refuses a lead time outside 0 to 60 without calling the API", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, firstVisitLeadDays: "61" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Book-ahead days are a whole number from 0 to 60.",
+    });
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it("refuses a fractional lead time", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, firstVisitLeadDays: "2.5" })
+    );
+    expect(result).toMatchObject({ status: "error" });
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it("refuses new-clients-only together with an add-on, without calling the API", async () => {
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, ...NEW_CLIENTS, isAddOn: "on" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message:
+        "A service for new clients only cannot also be an add-on. Turn one of them off.",
+    });
+    expect(createService).not.toHaveBeenCalled();
   });
 });

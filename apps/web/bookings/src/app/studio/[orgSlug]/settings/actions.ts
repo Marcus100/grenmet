@@ -901,6 +901,61 @@ function addOnFields(formData: FormData): {
   };
 }
 
+interface NewClientFields {
+  first_visit_categories: string[] | null;
+  first_visit_lead_days: number | null;
+  new_clients_only: boolean;
+}
+
+/**
+ * "New clients only" and its lead time. The lead time and categories go only
+ * while the switch is on; with it off both are null, so a service that was
+ * new-clients-only goes back to an ordinary one.
+ */
+function newClientFields(
+  formData: FormData
+): { ok: true; value: NewClientFields } | { message: string; ok: false } {
+  if (formData.get("newClientsOnly") !== "on") {
+    return {
+      ok: true,
+      value: {
+        first_visit_categories: null,
+        first_visit_lead_days: null,
+        new_clients_only: false,
+      },
+    };
+  }
+  const raw = field(formData, "firstVisitLeadDays").trim();
+  let leadDays: number | null = null;
+  if (raw !== "") {
+    const value = WHOLE.test(raw) ? Number(raw) : Number.NaN;
+    if (!(value >= 0 && value <= 60)) {
+      return {
+        message: "Book-ahead days are a whole number from 0 to 60.",
+        ok: false,
+      };
+    }
+    leadDays = value;
+  }
+  const categories = [
+    ...new Set(
+      formData
+        .getAll("firstVisitCategory")
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ),
+  ];
+  return {
+    ok: true,
+    value: {
+      first_visit_categories: categories.length > 0 ? categories : null,
+      first_visit_lead_days: leadDays,
+      new_clients_only: true,
+    },
+  };
+}
+
 export async function saveServiceAction(
   orgSlug: string,
   _previous: ActionState,
@@ -939,6 +994,20 @@ export async function saveServiceAction(
   if (deposit > price) {
     return invalid("The deposit cannot exceed the price.");
   }
+  const newClients = newClientFields(formData);
+  if (!newClients.ok) {
+    return invalid(newClients.message);
+  }
+  const addOn = addOnFields(formData);
+  if (
+    newClients.value.new_clients_only &&
+    (addOn.is_add_on || addOn.also_add_on)
+  ) {
+    // The form never sends both; a hand-made request gets a plain refusal, not a silent pick.
+    return invalid(
+      "A service for new clients only cannot also be an add-on. Turn one of them off."
+    );
+  }
   const body = {
     name: input.name,
     category: input.category || null,
@@ -949,7 +1018,8 @@ export async function saveServiceAction(
     price_minor: price,
     deposit_minor: deposit,
     active: formData.get("active") === "on",
-    ...addOnFields(formData),
+    ...addOn,
+    ...newClients.value,
   };
   try {
     if (input.serviceId === "") {

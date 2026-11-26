@@ -14,6 +14,7 @@ import {
   formatHours,
   formatMoney,
 } from "@barrelsgd/bookings-web/lib/booking-format";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import {
   Empty,
   EmptyContent,
@@ -177,6 +178,7 @@ export function ServicesSection({
   const addOnsEnabled = profile?.add_ons_enabled ?? false;
   const depositCollection = profile?.deposit_collection ?? "online";
   const addOnCategories = mainCategories(services);
+  const serviceCategories = allCategories(services);
   return (
     <Section
       description="Each service has a price and, when you take one, a deposit. Customers see services on your booking page."
@@ -201,7 +203,14 @@ export function ServicesSection({
             <li className="border-border rounded-lg border p-3" key={item.id}>
               <details>
                 <summary className={SUMMARY}>
-                  <span>{item.name}</span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {item.name}
+                    {item.new_clients_only ? (
+                      <Badge className="h-6 px-2.5 text-xs" variant="outline">
+                        New clients
+                      </Badge>
+                    ) : null}
+                  </span>
                   <span className="text-muted-foreground text-sm">
                     {serviceLine(item, currency)}
                   </span>
@@ -216,6 +225,7 @@ export function ServicesSection({
                       depositsAvailable={depositsAvailable}
                       orgSlug={orgSlug}
                       service={item}
+                      serviceCategories={serviceCategories}
                     />
                   ) : (
                     <p className="text-muted-foreground text-sm">
@@ -238,6 +248,7 @@ export function ServicesSection({
             depositCollection={depositCollection}
             depositsAvailable={depositsAvailable}
             orgSlug={orgSlug}
+            serviceCategories={serviceCategories}
           />
         </div>
       ) : null}
@@ -537,6 +548,18 @@ function mainCategories(services: BookingServicePublic[]): string[] {
   for (const item of services) {
     const category = item.category?.trim();
     if (!item.is_add_on && category) {
+      seen.add(category);
+    }
+  }
+  return [...seen];
+}
+
+/** Every category the services use, in list order: the new-client lead time picks from these. */
+function allCategories(services: BookingServicePublic[]): string[] {
+  const seen = new Set<string>();
+  for (const item of services) {
+    const category = item.category?.trim();
+    if (category) {
       seen.add(category);
     }
   }

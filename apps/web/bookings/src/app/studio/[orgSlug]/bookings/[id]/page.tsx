@@ -6,10 +6,11 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import { PaymentBadge, StatusBadge } from "@/components/studio/badges";
 import { BookingActions } from "@/components/studio/booking-actions";
 import { ContactButtons } from "@/components/studio/contact-buttons";
 import { RecordDeposit } from "@/components/studio/record-deposit";
+import { ReturningClientNoticeFor } from "@/components/studio/returning-client";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import { telHref } from "@/lib/phone";
@@ -93,9 +94,15 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         />
         <div className="flex flex-wrap gap-2">
           <StatusBadge kind={kind} status={booking.status} />
-          <DepositBadge kind={kind} state={deposit} />
+          <PaymentBadge kind={kind} state={deposit} status={booking.status} />
         </div>
       </div>
+
+      <ReturningClientNoticeFor
+        manages={canManageBookings(org.value.role)}
+        returningClient={booking.returning_client}
+        status={booking.status}
+      />
 
       {canManageBookings(org.value.role) ? (
         <BookingActions
@@ -118,7 +125,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         <RecordDeposit
           amountLabel={formatMoney(booking.deposit_minor, booking.currency)}
           bookingId={booking.id}
-          due={deposit === "due"}
+          due={deposit === "due" && booking.status !== "cancelled"}
           kind={kind}
           orgSlug={orgSlug}
           takesDeposit={takesDeposit(booking)}

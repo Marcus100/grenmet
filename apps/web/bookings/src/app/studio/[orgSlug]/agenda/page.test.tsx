@@ -505,6 +505,35 @@ describe("studio agenda", () => {
   });
 });
 
+describe("returning client", () => {
+  it("tags a returning client's booking on the agenda, in words", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({ returning_client: true }),
+            item({
+              id: "77777777-7777-4777-8777-777777777777",
+              customer_name: "Grace Hopper",
+            }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const flagged = screen.getByRole("link", { name: ADA });
+    expect(within(flagged).getByText("Returning client")).toBeVisible();
+    const plain = screen.getByRole("link", { name: GRACE });
+    expect(within(plain).queryByText("Returning client")).toBeNull();
+  });
+});
+
 describe("needs confirming", () => {
   const pendingItem = item({
     id: "99999999-9999-4999-8999-999999999999",
@@ -567,5 +596,35 @@ describe("needs confirming", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Agenda"
     );
+  });
+});
+
+describe("cancelled booking with an unpaid payment (#1849)", () => {
+  it("shows Payment cancelled, never Payment due, on the agenda card", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({
+              status: "cancelled",
+              payment_kind: "payment",
+              deposit_minor: 2500,
+            }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const row = screen.getByRole("link", { name: ADA });
+    expect(within(row).getByText("Cancelled")).toBeVisible();
+    expect(within(row).getByText("Payment cancelled")).toBeVisible();
+    expect(row).not.toHaveTextContent("Payment due");
+    expect(row).not.toHaveTextContent("Deposit due");
   });
 });

@@ -258,6 +258,10 @@ export function agendaDepositView(booking: {
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
+  // A cancelled booking owes nothing, so an unpaid payment is cancelled, not due.
+  if (booking.status === "cancelled") {
+    return { label: "Payment cancelled", tone: "neutral" };
+  }
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }

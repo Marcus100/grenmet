@@ -35,6 +35,31 @@ export function StatusBadge({
   );
 }
 
+/** A cancelled booking's unpaid payment: neutral, and never "due" (#1849). */
+export function PaymentCancelledBadge() {
+  return (
+    <Badge className={BADGE_SIZE} variant="outline">
+      Payment cancelled
+    </Badge>
+  );
+}
+
+/** The detail page's payment badge: a cancelled booking owes nothing. */
+export function PaymentBadge({
+  kind,
+  state,
+  status,
+}: {
+  kind?: PaymentKind;
+  state: DepositState;
+  status: BookingStatus;
+}) {
+  if (status === "cancelled" && state === "due") {
+    return <PaymentCancelledBadge />;
+  }
+  return <DepositBadge kind={kind} state={state} />;
+}
+
 export function DepositBadge({
   kind,
   state,
