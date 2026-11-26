@@ -5,7 +5,6 @@ import {
   businessDepositDueView,
 } from "./studio-view";
 
-const DUE = /due/u;
 const ROW = {
   currency: "XCD",
   deposit_minor: 0,
@@ -74,19 +73,57 @@ describe("agendaChips", () => {
     ]);
   });
 
-  it("falls back to the existing deposit chip for a cancelled business deposit", () => {
-    const booking = {
+  it("shows no payment chip on a cancelled booking when nothing was paid", () => {
+    const online = {
       ...ROW,
-      deposit_minor: 5000,
+      deposit_minor: 4500,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(online)).toEqual([]);
+    const business = {
+      ...ROW,
+      deposit_minor: 0,
       deposit_to_business_minor: 5000,
       status: "cancelled" as const,
     };
-    const chips = agendaChips(booking);
-    expect(chips).toEqual([
+    expect(agendaChips(business)).toEqual([]);
+    const pay = {
+      ...ROW,
+      deposit_minor: 4500,
+      payment_kind: "payment" as const,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(pay)).toEqual([]);
+  });
+
+  it("keeps the received chip on a cancelled booking where money was received", () => {
+    const booking = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_received_at: "2026-11-26T10:00:00Z",
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(booking)).toEqual([
+      {
+        kind: "deposit",
+        view: { label: "Deposit received", tone: "success" },
+      },
+    ]);
+  });
+
+  it("keeps an active booking's amount chip unchanged", () => {
+    const booking = {
+      ...ROW,
+      deposit_minor: 4500,
+      status: "confirmed" as const,
+    };
+    expect(agendaChips(booking)).toEqual([
       { kind: "deposit", view: agendaDepositView(booking) },
     ]);
-    const [chip] = chips;
-    expect(chip?.kind === "deposit" && chip.view.label).not.toMatch(DUE);
+    expect(agendaChips(booking)[0]).toEqual({
+      kind: "deposit",
+      view: { label: "Deposit EC$45", tone: "neutral" },
+    });
   });
 
   it("leaves an online deposit as it was", () => {

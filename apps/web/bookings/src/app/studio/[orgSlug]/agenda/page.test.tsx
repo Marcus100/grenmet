@@ -600,7 +600,7 @@ describe("needs confirming", () => {
 });
 
 describe("cancelled booking with an unpaid payment (#1849)", () => {
-  it("keeps the amount label, never Payment due, on a cancelled agenda card", async () => {
+  it("shows no payment chip on a cancelled agenda card when nothing was paid", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -623,13 +623,13 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
     );
     const row = screen.getByRole("link", { name: ADA });
     expect(within(row).getByText("Cancelled")).toBeVisible();
-    expect(within(row).getByText("Payment EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Payment EC$25");
     expect(row).not.toHaveTextContent("Payment due");
     expect(row).not.toHaveTextContent("Deposit due");
     expect(row).not.toHaveTextContent("Payment cancelled");
   });
 
-  it("does not say due for a cancelled deposit that was kept or refunded", async () => {
+  it("shows no deposit chip on a cancelled card when nothing was received", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -645,7 +645,7 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
       })
     );
     const row = screen.getByRole("link", { name: ADA });
-    expect(within(row).getByText("Deposit EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Deposit EC$25");
     expect(row).not.toHaveTextContent("Deposit due");
     expect(row).not.toHaveTextContent("Payment due");
   });

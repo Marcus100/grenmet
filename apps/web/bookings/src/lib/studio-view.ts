@@ -259,13 +259,12 @@ export function agendaDepositView(booking: {
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
-  // Only a deposit paid to the business is ever marked received (#1869), so a
-  // received mark is always a paid one. A cancelled booking is never shown as paid.
-  if (booking.deposit_received_at && booking.status !== "cancelled") {
+  // Only money the business actually received is marked received, so a received
+  // mark is always a paid one, even on a cancelled booking (the refund, if any,
+  // is on the detail page).
+  if (booking.deposit_received_at) {
     return { label: "Deposit received", tone: "success" };
   }
-  // The agenda item has no captured or refunded amount, so a cancelled booking
-  // keeps the neutral amount label (never "due"); the detail page says what was paid.
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
@@ -341,18 +340,20 @@ export function takesDeposit(booking: {
 }
 
 /**
- * Whether the agenda row shows a deposit badge. A deposit paid to the business
- * carries no amount on the agenda item, so it shows only once it is received.
+ * Whether the agenda row shows a deposit badge. A cancelled booking shows one
+ * only when money was received: the agenda item carries no captured or refunded
+ * amount, so it cannot tell a refund apart, and an unpaid amount is never shown.
+ * Any other booking shows its deposit amount, or the received mark.
  */
 export function showsAgendaDeposit(booking: {
   deposit_minor: number;
   deposit_received_at?: string | null;
   status: BookingStatus;
 }): boolean {
-  return (
-    booking.deposit_minor > 0 ||
-    (Boolean(booking.deposit_received_at) && booking.status !== "cancelled")
-  );
+  if (booking.status === "cancelled") {
+    return Boolean(booking.deposit_received_at);
+  }
+  return booking.deposit_minor > 0 || Boolean(booking.deposit_received_at);
 }
 
 /**
