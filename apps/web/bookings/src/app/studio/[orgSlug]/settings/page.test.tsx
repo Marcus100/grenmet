@@ -265,6 +265,8 @@ describe("settings sections", () => {
   });
 });
 
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
+
 describe("closed days", () => {
   const CLOSURE_ID = "66666666-6666-4666-8666-666666666666";
   const FUTURE_START = "2099-12-25";
@@ -291,7 +293,12 @@ describe("closed days", () => {
     expect(
       within(section as HTMLElement).getByText("Christmas")
     ).toBeInTheDocument();
-    expect(listClosures).toHaveBeenCalledWith("tok", ORG_ID, 1000);
+    expect(listClosures).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      1000,
+      expect.stringMatching(ISO_DAY)
+    );
   });
 
   it("shows the empty state and the add form when nothing is closed", async () => {

@@ -671,11 +671,13 @@ export function replaceHours(
 export function listClosures(
   accessToken: string,
   organisationId: string,
-  size: number
+  size: number,
+  endsOnFrom?: string
 ): Promise<BookingClosurePublic[]> {
   return bookingsListClosures({
     client: studioClient(accessToken, organisationId),
-    query: { size },
+    query:
+      endsOnFrom === undefined ? { size } : { size, ends_on_from: endsOnFrom },
   })
     .unwrap()
     .catch(redactRequest);

@@ -1719,6 +1719,7 @@ export {
   bookingsListClosuresErrorSchema,
   bookingsListClosuresHeadersSchema,
   bookingsListClosuresHeaderXBarrelsOrganisationSchema,
+  bookingsListClosuresQueryEndsOnFromSchema,
   bookingsListClosuresQueryPageSchema,
   bookingsListClosuresQuerySchema,
   bookingsListClosuresQuerySizeSchema,

@@ -691,12 +691,20 @@ async def create_closure(
 
 
 async def list_closures(
-    session: AsyncSession, organisation_id: str, *, skip: int, limit: int
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    skip: int,
+    limit: int,
+    ends_on_from: date | None = None,
 ) -> list[BusinessClosure]:
+    query = select(BusinessClosure).where(
+        BusinessClosure.organisation_id == organisation_id
+    )
+    if ends_on_from is not None:
+        query = query.where(BusinessClosure.ends_on >= ends_on_from)
     query = (
-        select(BusinessClosure)
-        .where(BusinessClosure.organisation_id == organisation_id)
-        .order_by(BusinessClosure.starts_on, BusinessClosure.id)
+        query.order_by(BusinessClosure.starts_on, BusinessClosure.id)
         .offset(skip)
         .limit(limit)
     )
