@@ -122,8 +122,16 @@ investigator read occupational health cases, and the other way round.
    - **The ADR-0044 amendment** covers every place in `grants.py` that assumes
      owners and admins hold all keys: `effective_keys`, `_supported_grant_ids`
      (whether a grant survives a revoke), `_expiry_ceiling` and
-     `end_issued_transitively`. For each, confidential keys count as held only
-     through a live grant.
+     `end_issued_transitively`:
+     - for holding the key, confidential keys count only through a live grant;
+     - `_require_may_change` skips the held-keys check for the
+       `<programme>-confidential` bundle, for owners only;
+     - a `<programme>-confidential` grant is supported while its grantor is
+       an active owner, so a revoke cascade elsewhere never ends it;
+     - when that owner leaves or is demoted, every confidential grant they
+       issued ends (`end_issued_transitively` covers demotion for this
+       bundle).
+     - The two-step check reuses `src/auth/privileged_mfa.py`.
 3. **Case lifecycle**, as a transition table in `transitions.py`:
    - `reported`, then `assessing`, then `investigating`, then `actions`, then
      `monitoring`, then `closed`;
@@ -153,7 +161,10 @@ investigator read occupational health cases, and the other way round.
      - a `tolerable` residual risk needs a recorded acceptance by a holder of
        the approve key;
      - an `intolerable` risk can never be accepted.
-   - A case closes only when its latest residual assessment is `acceptable`,
+   - A report that turns out to have no hazard, or is not substantiated,
+     closes as `closed, no risk found`. That needs the approve key and a
+     reason, and it is audited.
+   - Any other case closes only when its latest residual assessment is `acceptable`,
      or `tolerable` with a recorded acceptance. A case with no residual
      assessment, or with an intolerable one, cannot close: the activity stops
      or is mitigated, and the risk is assessed again.
