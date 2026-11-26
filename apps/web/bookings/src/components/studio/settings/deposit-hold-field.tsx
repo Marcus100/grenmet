@@ -19,7 +19,7 @@ export function DepositHoldField({ saved }: { saved: number | null }) {
   const [value, setValue] = useState(stored);
   return (
     <SettingsField
-      hint="How long the time is kept for a customer to pay a deposit by payment link or bank transfer before the booking is released. Card payments online are kept at most 2 hours. This does not apply when customers pay you directly."
+      hint="How long the time is kept for a customer to pay a deposit by payment link or bank transfer before the booking is released. Card payments online are kept at most 2 hours. This does not apply when customers pay you directly. Changes apply to new bookings only; bookings already waiting keep their time."
       id="deposit-hold"
       label="Hold a booking for its deposit"
     >

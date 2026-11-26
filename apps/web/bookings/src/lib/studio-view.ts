@@ -384,6 +384,35 @@ export function businessDepositDueView(booking: {
   return { label: `Deposit due ${amount} to you`, tone: "warning" };
 }
 
+/** A chip on an agenda row: the hold warning, or the deposit line. */
+export type AgendaChip =
+  | { kind: "expires_soon" }
+  | { kind: "deposit"; view: StatusView };
+
+/**
+ * The chips for one agenda row, in order. A business deposit still owed replaces
+ * the generic deposit chip; otherwise the generic chip shows as before. The
+ * business-due rule is evaluated once per row.
+ */
+export function agendaChips(
+  booking: Parameters<typeof agendaDepositView>[0] & {
+    deposit_to_business_minor?: number;
+    hold_expires_soon?: boolean;
+  }
+): AgendaChip[] {
+  const chips: AgendaChip[] = [];
+  if (booking.hold_expires_soon) {
+    chips.push({ kind: "expires_soon" });
+  }
+  const businessDue = businessDepositDue(booking);
+  if (businessDue) {
+    chips.push({ kind: "deposit", view: businessDepositDueView(booking) });
+  } else if (showsAgendaDeposit(booking)) {
+    chips.push({ kind: "deposit", view: agendaDepositView(booking) });
+  }
+  return chips;
+}
+
 export type DepositMethod = "cash" | "bank_transfer" | "paypal" | "other";
 
 export const DEPOSIT_METHODS = [

@@ -33,16 +33,13 @@ import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
   type AgendaRange,
-  agendaDepositView,
-  businessDepositDue,
-  businessDepositDueView,
+  agendaChips,
   canManageBookings,
   DEFAULT_TIMEZONE,
   daysIn,
   isUuid,
   parseRange,
   rangeLabel,
-  showsAgendaDeposit,
   stepDay,
   todayIn,
 } from "@/lib/studio-view";
@@ -494,13 +491,13 @@ function BookingRow({
         {booking.returning_client && booking.status === "pending" ? (
           <ReturningClientTag />
         ) : null}
-        {booking.hold_expires_soon ? <ExpiresSoonBadge /> : null}
-        {businessDepositDue(booking) ? (
-          <DepositBadge view={businessDepositDueView(booking)} />
-        ) : null}
-        {!businessDepositDue(booking) && showsAgendaDeposit(booking) ? (
-          <DepositBadge view={agendaDepositView(booking)} />
-        ) : null}
+        {agendaChips(booking).map((chip) =>
+          chip.kind === "expires_soon" ? (
+            <ExpiresSoonBadge key="expires-soon" />
+          ) : (
+            <DepositBadge key="deposit" view={chip.view} />
+          )
+        )}
       </span>
     </Link>
   );
