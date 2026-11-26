@@ -20,21 +20,6 @@ SCHEMA = "incidents"
 _ORG = "org.organisation.id"
 
 
-def _org_fk(table: str) -> sa.ForeignKeyConstraint:
-    return sa.ForeignKeyConstraint(
-        ["organisation_id"],
-        [_ORG],
-        name=op.f(f"{table}_organisation_id_fkey"),
-        ondelete="CASCADE",
-    )
-
-
-def _index(table: str, column: str) -> None:
-    op.create_index(
-        op.f(f"{SCHEMA}_{table}_{column}_idx"), table, [column], schema=SCHEMA
-    )
-
-
 def upgrade() -> None:
     op.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
     op.create_table(
@@ -47,7 +32,12 @@ def upgrade() -> None:
         sa.Column("archived_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        _org_fk("category"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("category_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.UniqueConstraint(
             "organisation_id", "name", name="category_organisation_name"
         ),
@@ -56,7 +46,12 @@ def upgrade() -> None:
         ),
         schema=SCHEMA,
     )
-    _index("category", "organisation_id")
+    op.create_index(
+        op.f("incidents_category_organisation_id_idx"),
+        "category",
+        ["organisation_id"],
+        schema=SCHEMA,
+    )
 
     op.create_table(
         "checklist_item",
@@ -74,15 +69,30 @@ def upgrade() -> None:
             name=op.f("checklist_item_category_id_fkey"),
             ondelete="CASCADE",
         ),
-        _org_fk("checklist_item"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("checklist_item_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.CheckConstraint(
             "char_length(label) BETWEEN 1 AND 200",
             name=op.f("checklist_item_label_check"),
         ),
         schema=SCHEMA,
     )
-    _index("checklist_item", "category_id")
-    _index("checklist_item", "organisation_id")
+    op.create_index(
+        op.f("incidents_checklist_item_category_id_idx"),
+        "checklist_item",
+        ["category_id"],
+        schema=SCHEMA,
+    )
+    op.create_index(
+        op.f("incidents_checklist_item_organisation_id_idx"),
+        "checklist_item",
+        ["organisation_id"],
+        schema=SCHEMA,
+    )
 
     op.create_table(
         "counter",
@@ -90,7 +100,12 @@ def upgrade() -> None:
         sa.Column("year", sa.Integer(), nullable=False, autoincrement=False),
         sa.Column("last_number", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("organisation_id", "year", name=op.f("counter_pkey")),
-        _org_fk("counter"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("counter_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         schema=SCHEMA,
     )
 
@@ -112,7 +127,12 @@ def upgrade() -> None:
         sa.Column("closed_by", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        _org_fk("incident"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("incident_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.ForeignKeyConstraint(
             ["category_id"],
             [f"{SCHEMA}.category.id"],
@@ -140,7 +160,12 @@ def upgrade() -> None:
         ["organisation_id", "created_at"],
         schema=SCHEMA,
     )
-    _index("incident", "category_id")
+    op.create_index(
+        op.f("incidents_incident_category_id_idx"),
+        "incident",
+        ["category_id"],
+        schema=SCHEMA,
+    )
 
     op.create_table(
         "incident_check",
@@ -159,7 +184,12 @@ def upgrade() -> None:
             name=op.f("incident_check_incident_id_fkey"),
             ondelete="CASCADE",
         ),
-        _org_fk("incident_check"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("incident_check_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.CheckConstraint(
             "char_length(label) BETWEEN 1 AND 200",
             name=op.f("incident_check_label_check"),
@@ -170,8 +200,18 @@ def upgrade() -> None:
         ),
         schema=SCHEMA,
     )
-    _index("incident_check", "incident_id")
-    _index("incident_check", "organisation_id")
+    op.create_index(
+        op.f("incidents_incident_check_incident_id_idx"),
+        "incident_check",
+        ["incident_id"],
+        schema=SCHEMA,
+    )
+    op.create_index(
+        op.f("incidents_incident_check_organisation_id_idx"),
+        "incident_check",
+        ["organisation_id"],
+        schema=SCHEMA,
+    )
 
     op.create_table(
         "timeline_entry",
@@ -189,7 +229,12 @@ def upgrade() -> None:
             name=op.f("timeline_entry_incident_id_fkey"),
             ondelete="CASCADE",
         ),
-        _org_fk("timeline_entry"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("timeline_entry_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.CheckConstraint(
             "kind IN ('action', 'opened', 'closed', 'reopened')",
             name=op.f("timeline_entry_kind_check"),
@@ -206,7 +251,12 @@ def upgrade() -> None:
         ["incident_id", "occurred_at"],
         schema=SCHEMA,
     )
-    _index("timeline_entry", "organisation_id")
+    op.create_index(
+        op.f("incidents_timeline_entry_organisation_id_idx"),
+        "timeline_entry",
+        ["organisation_id"],
+        schema=SCHEMA,
+    )
 
     op.create_table(
         "note",
@@ -223,7 +273,12 @@ def upgrade() -> None:
             name=op.f("note_incident_id_fkey"),
             ondelete="CASCADE",
         ),
-        _org_fk("note"),
+        sa.ForeignKeyConstraint(
+            ["organisation_id"],
+            [_ORG],
+            name=op.f("note_organisation_id_fkey"),
+            ondelete="CASCADE",
+        ),
         sa.CheckConstraint(
             "char_length(text) BETWEEN 1 AND 5000", name=op.f("note_text_check")
         ),
@@ -235,7 +290,12 @@ def upgrade() -> None:
         ["incident_id", "created_at"],
         schema=SCHEMA,
     )
-    _index("note", "organisation_id")
+    op.create_index(
+        op.f("incidents_note_organisation_id_idx"),
+        "note",
+        ["organisation_id"],
+        schema=SCHEMA,
+    )
 
 
 def downgrade() -> None:
