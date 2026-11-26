@@ -471,7 +471,7 @@ describe("BusinessListing", () => {
       ).toBe("/?category=Hair&type=hair&page=2");
     });
 
-    it("says there are no types yet, instead of hiding the section", () => {
+    it("leaves the whole block out when no listed business has a type", () => {
       render(
         <BusinessListing
           listing={page({ types_available: [] })}
@@ -479,12 +479,19 @@ describe("BusinessListing", () => {
         />
       );
 
-      const section = screen.getByRole("region", { name: "Types of business" });
-      expect(within(section).getByText("No business types yet.")).toBeTruthy();
-      expect(within(section).queryByRole("link")).toBeNull();
+      expect(
+        screen.queryByRole("region", { name: "Types of business" })
+      ).toBeNull();
+      expect(screen.queryByText("No business types yet.")).toBeNull();
+      expect(
+        screen.queryByRole("navigation", { name: "Browse by type" })
+      ).toBeNull();
       expect(
         screen.queryByRole("navigation", { name: "Business types" })
       ).toBeNull();
+      expect(
+        screen.getByRole("region", { name: "Businesses to book" })
+      ).toBeTruthy();
     });
 
     it("treats a missing types_available as none", () => {
@@ -495,7 +502,9 @@ describe("BusinessListing", () => {
         />
       );
 
-      expect(screen.getByText("No business types yet.")).toBeTruthy();
+      expect(
+        screen.queryByRole("region", { name: "Types of business" })
+      ).toBeNull();
     });
 
     it("uses the no-match message when a type is chosen and nothing is listed", () => {
