@@ -3499,3 +3499,29 @@ Four route zones, all under `/api/v1/printix/`.
   live scanning is unaffected.
 
 Adding an outcome code or an optional field is additive; removing one is breaking.
+
+## Operations log (ADR-0067, issue #1874)
+
+Organisation zone only, under `/api/v1/opslog/org/`, acting for `X-Barrels-Organisation`.
+The organisation needs the `opslog` entitlement; each route names one organisation key
+(`opslog.entries.read`, `opslog.entries.write`, `opslog.entries.private`,
+`opslog.settings.manage`; bundles `opslog-writer` and `opslog-supervisor`; owners and
+admins hold all). Another organisation's log, category or entry is 404, and so is a
+private entry for a member without `opslog.entries.private`.
+
+- Logs: `GET|POST /logs`, `PATCH /logs/{log_id}`. Edit rule `open` (the author edits,
+  within `edit_window_minutes` when set), `append_only` (comments only) or `locked`.
+  Archived logs refuse new entries, edits and comments with 409.
+- Categories: `GET|POST /logs/{log_id}/categories`, `PATCH /categories/{category_id}`.
+  At most three levels (422 deeper); names unique among siblings, ignoring case (409).
+- Entries: `GET|POST /logs/{log_id}/entries` (keyset, newest `occurred_at` first,
+  `next_cursor`; filters `occurred_from` inclusive, `occurred_to` exclusive,
+  `category_id` with its subcategories, `author_id`, `source`, `q`),
+  `GET|PATCH /entries/{entry_id}`. Automatic entries cannot be edited. Every change
+  is audited with the earlier text under the organisation's history.
+- Comments: `POST /entries/{entry_id}/comments`; never changed or removed.
+- Automatic entries: other modules enqueue outbox topic `opslog.entry_post`
+  (payload in `src/opslog/messages.py`). Without `log_id` the entry goes to the
+  oldest active log with `automatic_entries`; with no such log, or no entitlement,
+  the message is dropped. A bad payload or another organisation's `log_id` is
+  dead-lettered.

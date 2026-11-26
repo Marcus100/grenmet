@@ -577,6 +577,17 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { opslogCreateCategory } from "./opslogCreateCategory.js";
+export { opslogCreateComment } from "./opslogCreateComment.js";
+export { opslogCreateEntry } from "./opslogCreateEntry.js";
+export { opslogCreateLog } from "./opslogCreateLog.js";
+export { opslogGetEntry } from "./opslogGetEntry.js";
+export { opslogListCategories } from "./opslogListCategories.js";
+export { opslogListEntries } from "./opslogListEntries.js";
+export { opslogListLogs } from "./opslogListLogs.js";
+export { opslogUpdateCategory } from "./opslogUpdateCategory.js";
+export { opslogUpdateEntry } from "./opslogUpdateEntry.js";
+export { opslogUpdateLog } from "./opslogUpdateLog.js";
 export { organisationsAcceptInvitation } from "./organisationsAcceptInvitation.js";
 export { organisationsAddMemberAdmin } from "./organisationsAddMemberAdmin.js";
 export { organisationsCreateAdminSite } from "./organisationsCreateAdminSite.js";

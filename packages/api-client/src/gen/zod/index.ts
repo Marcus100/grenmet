@@ -7218,6 +7218,201 @@ export { observationSendPropertiesStatusEnumSchema } from "./observationSendProp
 export { observationSendPropertiesTargetEnumSchema } from "./observationSendPropertiesTargetEnumSchema.js";
 export { observationSendSchema } from "./observationSendSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
+export { opsLogCategoryCreateSchema } from "./opsLogCategoryCreateSchema.js";
+export { opsLogCategoryListSchema } from "./opsLogCategoryListSchema.js";
+export { opsLogCategoryPublicSchema } from "./opsLogCategoryPublicSchema.js";
+export { opsLogCategoryUpdateSchema } from "./opsLogCategoryUpdateSchema.js";
+export { opsLogCommentCreateSchema } from "./opsLogCommentCreateSchema.js";
+export { opsLogCommentPublicSchema } from "./opsLogCommentPublicSchema.js";
+export { opsLogCreateSchema } from "./opsLogCreateSchema.js";
+export { opsLogEditRuleSchema } from "./opsLogEditRuleSchema.js";
+export { opsLogEntryCreateSchema } from "./opsLogEntryCreateSchema.js";
+export { opsLogEntryDetailSchema } from "./opsLogEntryDetailSchema.js";
+export { opsLogEntryPageSchema } from "./opsLogEntryPageSchema.js";
+export { opsLogEntryPublicSchema } from "./opsLogEntryPublicSchema.js";
+export { opsLogEntrySourceSchema } from "./opsLogEntrySourceSchema.js";
+export { opsLogEntryUpdateSchema } from "./opsLogEntryUpdateSchema.js";
+export { opsLogListSchema } from "./opsLogListSchema.js";
+export { opsLogPublicSchema } from "./opsLogPublicSchema.js";
+export { opsLogRecordRefSchema } from "./opsLogRecordRefSchema.js";
+export { opsLogUpdateSchema } from "./opsLogUpdateSchema.js";
+export {
+  opslogCreateCategoryBodySchema,
+  opslogCreateCategoryErrorSchema,
+  opslogCreateCategoryHeadersSchema,
+  opslogCreateCategoryHeaderXBarrelsOrganisationSchema,
+  opslogCreateCategoryPathLogIdSchema,
+  opslogCreateCategoryPathSchema,
+  opslogCreateCategoryResponseSchema,
+  opslogCreateCategoryStatus201Schema,
+  opslogCreateCategoryStatus400Schema,
+  opslogCreateCategoryStatus401Schema,
+  opslogCreateCategoryStatus403Schema,
+  opslogCreateCategoryStatus404Schema,
+  opslogCreateCategoryStatus409Schema,
+  opslogCreateCategoryStatus422Schema,
+} from "./opslogCreateCategorySchema.js";
+export {
+  opslogCreateCommentBodySchema,
+  opslogCreateCommentErrorSchema,
+  opslogCreateCommentHeadersSchema,
+  opslogCreateCommentHeaderXBarrelsOrganisationSchema,
+  opslogCreateCommentPathEntryIdSchema,
+  opslogCreateCommentPathSchema,
+  opslogCreateCommentResponseSchema,
+  opslogCreateCommentStatus201Schema,
+  opslogCreateCommentStatus400Schema,
+  opslogCreateCommentStatus401Schema,
+  opslogCreateCommentStatus403Schema,
+  opslogCreateCommentStatus404Schema,
+  opslogCreateCommentStatus409Schema,
+  opslogCreateCommentStatus422Schema,
+} from "./opslogCreateCommentSchema.js";
+export {
+  opslogCreateEntryBodySchema,
+  opslogCreateEntryErrorSchema,
+  opslogCreateEntryHeadersSchema,
+  opslogCreateEntryHeaderXBarrelsOrganisationSchema,
+  opslogCreateEntryPathLogIdSchema,
+  opslogCreateEntryPathSchema,
+  opslogCreateEntryResponseSchema,
+  opslogCreateEntryStatus201Schema,
+  opslogCreateEntryStatus400Schema,
+  opslogCreateEntryStatus401Schema,
+  opslogCreateEntryStatus403Schema,
+  opslogCreateEntryStatus404Schema,
+  opslogCreateEntryStatus409Schema,
+  opslogCreateEntryStatus422Schema,
+} from "./opslogCreateEntrySchema.js";
+export {
+  opslogCreateLogBodySchema,
+  opslogCreateLogErrorSchema,
+  opslogCreateLogHeadersSchema,
+  opslogCreateLogHeaderXBarrelsOrganisationSchema,
+  opslogCreateLogResponseSchema,
+  opslogCreateLogStatus201Schema,
+  opslogCreateLogStatus400Schema,
+  opslogCreateLogStatus401Schema,
+  opslogCreateLogStatus403Schema,
+  opslogCreateLogStatus404Schema,
+  opslogCreateLogStatus409Schema,
+  opslogCreateLogStatus422Schema,
+} from "./opslogCreateLogSchema.js";
+export {
+  opslogGetEntryErrorSchema,
+  opslogGetEntryHeadersSchema,
+  opslogGetEntryHeaderXBarrelsOrganisationSchema,
+  opslogGetEntryPathEntryIdSchema,
+  opslogGetEntryPathSchema,
+  opslogGetEntryResponseSchema,
+  opslogGetEntryStatus200Schema,
+  opslogGetEntryStatus400Schema,
+  opslogGetEntryStatus401Schema,
+  opslogGetEntryStatus403Schema,
+  opslogGetEntryStatus404Schema,
+  opslogGetEntryStatus422Schema,
+} from "./opslogGetEntrySchema.js";
+export {
+  opslogListCategoriesErrorSchema,
+  opslogListCategoriesHeadersSchema,
+  opslogListCategoriesHeaderXBarrelsOrganisationSchema,
+  opslogListCategoriesPathLogIdSchema,
+  opslogListCategoriesPathSchema,
+  opslogListCategoriesQueryIncludeArchivedSchema,
+  opslogListCategoriesQuerySchema,
+  opslogListCategoriesResponseSchema,
+  opslogListCategoriesStatus200Schema,
+  opslogListCategoriesStatus400Schema,
+  opslogListCategoriesStatus401Schema,
+  opslogListCategoriesStatus403Schema,
+  opslogListCategoriesStatus404Schema,
+  opslogListCategoriesStatus422Schema,
+} from "./opslogListCategoriesSchema.js";
+export {
+  opslogListEntriesErrorSchema,
+  opslogListEntriesHeadersSchema,
+  opslogListEntriesHeaderXBarrelsOrganisationSchema,
+  opslogListEntriesPathLogIdSchema,
+  opslogListEntriesPathSchema,
+  opslogListEntriesQueryAuthorIdSchema,
+  opslogListEntriesQueryCategoryIdSchema,
+  opslogListEntriesQueryCursorSchema,
+  opslogListEntriesQueryLimitSchema,
+  opslogListEntriesQueryOccurredFromSchema,
+  opslogListEntriesQueryOccurredToSchema,
+  opslogListEntriesQueryQSchema,
+  opslogListEntriesQuerySchema,
+  opslogListEntriesQuerySourceSchema,
+  opslogListEntriesResponseSchema,
+  opslogListEntriesStatus200Schema,
+  opslogListEntriesStatus400Schema,
+  opslogListEntriesStatus401Schema,
+  opslogListEntriesStatus403Schema,
+  opslogListEntriesStatus404Schema,
+  opslogListEntriesStatus422Schema,
+} from "./opslogListEntriesSchema.js";
+export {
+  opslogListLogsErrorSchema,
+  opslogListLogsHeadersSchema,
+  opslogListLogsHeaderXBarrelsOrganisationSchema,
+  opslogListLogsQueryIncludeArchivedSchema,
+  opslogListLogsQuerySchema,
+  opslogListLogsResponseSchema,
+  opslogListLogsStatus200Schema,
+  opslogListLogsStatus400Schema,
+  opslogListLogsStatus401Schema,
+  opslogListLogsStatus403Schema,
+  opslogListLogsStatus404Schema,
+  opslogListLogsStatus422Schema,
+} from "./opslogListLogsSchema.js";
+export {
+  opslogUpdateCategoryBodySchema,
+  opslogUpdateCategoryErrorSchema,
+  opslogUpdateCategoryHeadersSchema,
+  opslogUpdateCategoryHeaderXBarrelsOrganisationSchema,
+  opslogUpdateCategoryPathCategoryIdSchema,
+  opslogUpdateCategoryPathSchema,
+  opslogUpdateCategoryResponseSchema,
+  opslogUpdateCategoryStatus200Schema,
+  opslogUpdateCategoryStatus400Schema,
+  opslogUpdateCategoryStatus401Schema,
+  opslogUpdateCategoryStatus403Schema,
+  opslogUpdateCategoryStatus404Schema,
+  opslogUpdateCategoryStatus409Schema,
+  opslogUpdateCategoryStatus422Schema,
+} from "./opslogUpdateCategorySchema.js";
+export {
+  opslogUpdateEntryBodySchema,
+  opslogUpdateEntryErrorSchema,
+  opslogUpdateEntryHeadersSchema,
+  opslogUpdateEntryHeaderXBarrelsOrganisationSchema,
+  opslogUpdateEntryPathEntryIdSchema,
+  opslogUpdateEntryPathSchema,
+  opslogUpdateEntryResponseSchema,
+  opslogUpdateEntryStatus200Schema,
+  opslogUpdateEntryStatus400Schema,
+  opslogUpdateEntryStatus401Schema,
+  opslogUpdateEntryStatus403Schema,
+  opslogUpdateEntryStatus404Schema,
+  opslogUpdateEntryStatus409Schema,
+  opslogUpdateEntryStatus422Schema,
+} from "./opslogUpdateEntrySchema.js";
+export {
+  opslogUpdateLogBodySchema,
+  opslogUpdateLogErrorSchema,
+  opslogUpdateLogHeadersSchema,
+  opslogUpdateLogHeaderXBarrelsOrganisationSchema,
+  opslogUpdateLogPathLogIdSchema,
+  opslogUpdateLogPathSchema,
+  opslogUpdateLogResponseSchema,
+  opslogUpdateLogStatus200Schema,
+  opslogUpdateLogStatus400Schema,
+  opslogUpdateLogStatus401Schema,
+  opslogUpdateLogStatus403Schema,
+  opslogUpdateLogStatus404Schema,
+  opslogUpdateLogStatus409Schema,
+  opslogUpdateLogStatus422Schema,
+} from "./opslogUpdateLogSchema.js";
 export { orderCreateSchema } from "./orderCreateSchema.js";
 export { orderItemInputSchema } from "./orderItemInputSchema.js";
 export { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";

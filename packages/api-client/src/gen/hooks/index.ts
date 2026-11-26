@@ -2894,6 +2894,61 @@ export {
   useNotificationsUpdateNotificationSetting,
 } from "./useNotificationsUpdateNotificationSetting.js";
 export {
+  opslogCreateCategoryMutationKey,
+  opslogCreateCategoryMutationOptions,
+  useOpslogCreateCategory,
+} from "./useOpslogCreateCategory.js";
+export {
+  opslogCreateCommentMutationKey,
+  opslogCreateCommentMutationOptions,
+  useOpslogCreateComment,
+} from "./useOpslogCreateComment.js";
+export {
+  opslogCreateEntryMutationKey,
+  opslogCreateEntryMutationOptions,
+  useOpslogCreateEntry,
+} from "./useOpslogCreateEntry.js";
+export {
+  opslogCreateLogMutationKey,
+  opslogCreateLogMutationOptions,
+  useOpslogCreateLog,
+} from "./useOpslogCreateLog.js";
+export {
+  opslogGetEntryQueryKey,
+  opslogGetEntryQueryOptions,
+  useOpslogGetEntry,
+} from "./useOpslogGetEntry.js";
+export {
+  opslogListCategoriesQueryKey,
+  opslogListCategoriesQueryOptions,
+  useOpslogListCategories,
+} from "./useOpslogListCategories.js";
+export {
+  opslogListEntriesQueryKey,
+  opslogListEntriesQueryOptions,
+  useOpslogListEntries,
+} from "./useOpslogListEntries.js";
+export {
+  opslogListLogsQueryKey,
+  opslogListLogsQueryOptions,
+  useOpslogListLogs,
+} from "./useOpslogListLogs.js";
+export {
+  opslogUpdateCategoryMutationKey,
+  opslogUpdateCategoryMutationOptions,
+  useOpslogUpdateCategory,
+} from "./useOpslogUpdateCategory.js";
+export {
+  opslogUpdateEntryMutationKey,
+  opslogUpdateEntryMutationOptions,
+  useOpslogUpdateEntry,
+} from "./useOpslogUpdateEntry.js";
+export {
+  opslogUpdateLogMutationKey,
+  opslogUpdateLogMutationOptions,
+  useOpslogUpdateLog,
+} from "./useOpslogUpdateLog.js";
+export {
   organisationsAcceptInvitationMutationKey,
   organisationsAcceptInvitationMutationOptions,
   useOrganisationsAcceptInvitation,

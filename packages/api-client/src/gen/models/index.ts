@@ -7293,6 +7293,184 @@ export { observationSendPropertiesStatusEnum } from "./ObservationSendProperties
 export type { ObservationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export { observationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
+export type { OpsLogCategoryCreate } from "./OpsLogCategoryCreate.js";
+export type { OpsLogCategoryList } from "./OpsLogCategoryList.js";
+export type { OpsLogCategoryPublic } from "./OpsLogCategoryPublic.js";
+export type { OpsLogCategoryUpdate } from "./OpsLogCategoryUpdate.js";
+export type { OpsLogCommentCreate } from "./OpsLogCommentCreate.js";
+export type { OpsLogCommentPublic } from "./OpsLogCommentPublic.js";
+export type { OpsLogCreate } from "./OpsLogCreate.js";
+export type { OpsLogEditRule } from "./OpsLogEditRule.js";
+export { opsLogEditRule } from "./OpsLogEditRule.js";
+export type { OpsLogEntryCreate } from "./OpsLogEntryCreate.js";
+export type { OpsLogEntryDetail } from "./OpsLogEntryDetail.js";
+export type { OpsLogEntryPage } from "./OpsLogEntryPage.js";
+export type { OpsLogEntryPublic } from "./OpsLogEntryPublic.js";
+export type { OpsLogEntrySource } from "./OpsLogEntrySource.js";
+export { opsLogEntrySource } from "./OpsLogEntrySource.js";
+export type { OpsLogEntryUpdate } from "./OpsLogEntryUpdate.js";
+export type { OpsLogList } from "./OpsLogList.js";
+export type { OpsLogPublic } from "./OpsLogPublic.js";
+export type { OpsLogRecordRef } from "./OpsLogRecordRef.js";
+export type { OpsLogUpdate } from "./OpsLogUpdate.js";
+export type {
+  OpslogCreateCategoryBody,
+  OpslogCreateCategoryHeaders,
+  OpslogCreateCategoryOptions,
+  OpslogCreateCategoryPath,
+  OpslogCreateCategoryResponse,
+  OpslogCreateCategoryResponses,
+  OpslogCreateCategoryStatus201,
+  OpslogCreateCategoryStatus400,
+  OpslogCreateCategoryStatus401,
+  OpslogCreateCategoryStatus403,
+  OpslogCreateCategoryStatus404,
+  OpslogCreateCategoryStatus409,
+  OpslogCreateCategoryStatus422,
+} from "./OpslogCreateCategory.js";
+export type {
+  OpslogCreateCommentBody,
+  OpslogCreateCommentHeaders,
+  OpslogCreateCommentOptions,
+  OpslogCreateCommentPath,
+  OpslogCreateCommentResponse,
+  OpslogCreateCommentResponses,
+  OpslogCreateCommentStatus201,
+  OpslogCreateCommentStatus400,
+  OpslogCreateCommentStatus401,
+  OpslogCreateCommentStatus403,
+  OpslogCreateCommentStatus404,
+  OpslogCreateCommentStatus409,
+  OpslogCreateCommentStatus422,
+} from "./OpslogCreateComment.js";
+export type {
+  OpslogCreateEntryBody,
+  OpslogCreateEntryHeaders,
+  OpslogCreateEntryOptions,
+  OpslogCreateEntryPath,
+  OpslogCreateEntryResponse,
+  OpslogCreateEntryResponses,
+  OpslogCreateEntryStatus201,
+  OpslogCreateEntryStatus400,
+  OpslogCreateEntryStatus401,
+  OpslogCreateEntryStatus403,
+  OpslogCreateEntryStatus404,
+  OpslogCreateEntryStatus409,
+  OpslogCreateEntryStatus422,
+} from "./OpslogCreateEntry.js";
+export type {
+  OpslogCreateLogBody,
+  OpslogCreateLogHeaders,
+  OpslogCreateLogOptions,
+  OpslogCreateLogResponse,
+  OpslogCreateLogResponses,
+  OpslogCreateLogStatus201,
+  OpslogCreateLogStatus400,
+  OpslogCreateLogStatus401,
+  OpslogCreateLogStatus403,
+  OpslogCreateLogStatus404,
+  OpslogCreateLogStatus409,
+  OpslogCreateLogStatus422,
+} from "./OpslogCreateLog.js";
+export type {
+  OpslogGetEntryHeaders,
+  OpslogGetEntryOptions,
+  OpslogGetEntryPath,
+  OpslogGetEntryResponse,
+  OpslogGetEntryResponses,
+  OpslogGetEntryStatus200,
+  OpslogGetEntryStatus400,
+  OpslogGetEntryStatus401,
+  OpslogGetEntryStatus403,
+  OpslogGetEntryStatus404,
+  OpslogGetEntryStatus422,
+} from "./OpslogGetEntry.js";
+export type {
+  OpslogListCategoriesHeaders,
+  OpslogListCategoriesOptions,
+  OpslogListCategoriesPath,
+  OpslogListCategoriesQuery,
+  OpslogListCategoriesResponse,
+  OpslogListCategoriesResponses,
+  OpslogListCategoriesStatus200,
+  OpslogListCategoriesStatus400,
+  OpslogListCategoriesStatus401,
+  OpslogListCategoriesStatus403,
+  OpslogListCategoriesStatus404,
+  OpslogListCategoriesStatus422,
+} from "./OpslogListCategories.js";
+export type {
+  OpslogListEntriesHeaders,
+  OpslogListEntriesOptions,
+  OpslogListEntriesPath,
+  OpslogListEntriesQuery,
+  OpslogListEntriesResponse,
+  OpslogListEntriesResponses,
+  OpslogListEntriesStatus200,
+  OpslogListEntriesStatus400,
+  OpslogListEntriesStatus401,
+  OpslogListEntriesStatus403,
+  OpslogListEntriesStatus404,
+  OpslogListEntriesStatus422,
+} from "./OpslogListEntries.js";
+export type {
+  OpslogListLogsHeaders,
+  OpslogListLogsOptions,
+  OpslogListLogsQuery,
+  OpslogListLogsResponse,
+  OpslogListLogsResponses,
+  OpslogListLogsStatus200,
+  OpslogListLogsStatus400,
+  OpslogListLogsStatus401,
+  OpslogListLogsStatus403,
+  OpslogListLogsStatus404,
+  OpslogListLogsStatus422,
+} from "./OpslogListLogs.js";
+export type {
+  OpslogUpdateCategoryBody,
+  OpslogUpdateCategoryHeaders,
+  OpslogUpdateCategoryOptions,
+  OpslogUpdateCategoryPath,
+  OpslogUpdateCategoryResponse,
+  OpslogUpdateCategoryResponses,
+  OpslogUpdateCategoryStatus200,
+  OpslogUpdateCategoryStatus400,
+  OpslogUpdateCategoryStatus401,
+  OpslogUpdateCategoryStatus403,
+  OpslogUpdateCategoryStatus404,
+  OpslogUpdateCategoryStatus409,
+  OpslogUpdateCategoryStatus422,
+} from "./OpslogUpdateCategory.js";
+export type {
+  OpslogUpdateEntryBody,
+  OpslogUpdateEntryHeaders,
+  OpslogUpdateEntryOptions,
+  OpslogUpdateEntryPath,
+  OpslogUpdateEntryResponse,
+  OpslogUpdateEntryResponses,
+  OpslogUpdateEntryStatus200,
+  OpslogUpdateEntryStatus400,
+  OpslogUpdateEntryStatus401,
+  OpslogUpdateEntryStatus403,
+  OpslogUpdateEntryStatus404,
+  OpslogUpdateEntryStatus409,
+  OpslogUpdateEntryStatus422,
+} from "./OpslogUpdateEntry.js";
+export type {
+  OpslogUpdateLogBody,
+  OpslogUpdateLogHeaders,
+  OpslogUpdateLogOptions,
+  OpslogUpdateLogPath,
+  OpslogUpdateLogResponse,
+  OpslogUpdateLogResponses,
+  OpslogUpdateLogStatus200,
+  OpslogUpdateLogStatus400,
+  OpslogUpdateLogStatus401,
+  OpslogUpdateLogStatus403,
+  OpslogUpdateLogStatus404,
+  OpslogUpdateLogStatus409,
+  OpslogUpdateLogStatus422,
+} from "./OpslogUpdateLog.js";
 export type { OrderCreate } from "./OrderCreate.js";
 export type { OrderItemInput } from "./OrderItemInput.js";
 export type { OrderPublic } from "./OrderPublic.js";
