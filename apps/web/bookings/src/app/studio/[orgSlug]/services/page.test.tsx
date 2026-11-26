@@ -29,6 +29,8 @@ import ServicesPage from "./page";
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 const NO_SERVICES = /No services yet/u;
 const SETTINGS_LINK = "Business settings";
+const NOBODY_DOES =
+  /No one is set to do this service, so customers see no times/u;
 
 const SETTINGS: BookingSettings = {
   profile: null,
@@ -66,6 +68,37 @@ beforeEach(() => {
 });
 
 describe("/studio/[orgSlug]/services", () => {
+  it("warns on an active service no person is set to do, with a link to People", async () => {
+    vi.mocked(getSettings).mockResolvedValue(SETTINGS);
+    render(await ServicesPage({ params }));
+    expect(screen.getByText("No one does this")).toBeInTheDocument();
+    expect(screen.getByText(NOBODY_DOES)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "People" })).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/people"
+    );
+  });
+
+  it("does not warn once an active person does the service", async () => {
+    vi.mocked(getSettings).mockResolvedValue({
+      ...SETTINGS,
+      providers: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "Maya",
+          user_id: null,
+          active: true,
+          sort_order: 0,
+          service_ids: ["44444444-4444-4444-8444-444444444444"],
+          working_hours: [],
+        },
+      ],
+    });
+    render(await ServicesPage({ params }));
+    expect(screen.queryByText("No one does this")).toBeNull();
+    expect(screen.queryByText(NOBODY_DOES)).toBeNull();
+  });
+
   it("lists the services with a way back to Settings", async () => {
     vi.mocked(getSettings).mockResolvedValue(SETTINGS);
     render(await ServicesPage({ params }));

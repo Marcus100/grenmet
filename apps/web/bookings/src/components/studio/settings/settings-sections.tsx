@@ -6,6 +6,7 @@
 import type {
   BookingExceptionPublic,
   BookingProfilePublic,
+  BookingProviderPublic,
   BookingProviderSettings,
   BookingServicePublic,
 } from "@barrelsgd/api-client";
@@ -41,6 +42,7 @@ import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
 import { lateFeeSentence } from "@/lib/late-fee";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
+import { servicesNobodyDoes } from "@/lib/setup-checklist";
 
 /** The jump menu's targets, in the order the sections appear. */
 export const SETTINGS_SECTIONS = [
@@ -171,6 +173,7 @@ export function ServicesSection({
   editable,
   orgSlug,
   profile = null,
+  providers,
   services,
 }: {
   currency: string;
@@ -178,8 +181,13 @@ export function ServicesSection({
   editable: boolean;
   orgSlug: string;
   profile?: BookingProfilePublic | null;
+  /** The people of the business; given, a service no one does is flagged. */
+  providers?: BookingProviderPublic[];
   services: BookingServicePublic[];
 }) {
+  const nobodyDoes = providers
+    ? servicesNobodyDoes(services, providers)
+    : new Set<string>();
   const addOnsEnabled = profile?.add_ons_enabled ?? false;
   const depositCollection = profile?.deposit_collection ?? "online";
   const addOnCategories = mainCategories(services);
@@ -215,11 +223,32 @@ export function ServicesSection({
                         New clients
                       </Badge>
                     ) : null}
+                    {nobodyDoes.has(item.id) ? (
+                      <Badge
+                        className="h-6 px-2.5 text-xs"
+                        variant="light-warning"
+                      >
+                        No one does this
+                      </Badge>
+                    ) : null}
                   </span>
                   <span className="text-muted-foreground text-sm">
                     {serviceLine(item, currency)}
                   </span>
                 </summary>
+                {nobodyDoes.has(item.id) ? (
+                  <p className="pt-2 text-sm">
+                    No one is set to do this service, so customers see no times.
+                    Add it to a person under{" "}
+                    <Link
+                      className="font-medium underline underline-offset-4"
+                      href={{ pathname: `/studio/${orgSlug}/people` }}
+                    >
+                      People
+                    </Link>
+                    .
+                  </p>
+                ) : null}
                 <div className="pt-4">
                   {editable ? (
                     <ServiceForm

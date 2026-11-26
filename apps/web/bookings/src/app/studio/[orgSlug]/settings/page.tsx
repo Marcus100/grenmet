@@ -126,6 +126,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           editable={editable}
           orgSlug={orgSlug}
           profile={data.profile}
+          providers={data.providers}
           services={data.services}
         />
         <PeopleSection
