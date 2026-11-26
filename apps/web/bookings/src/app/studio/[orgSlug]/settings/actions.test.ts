@@ -2311,12 +2311,23 @@ describe("closed days", () => {
     expect(deleteClosure).toHaveBeenCalledWith("tok", ORG_ID, CLOSURE_ID);
   });
 
-  it("says a closure that is already gone no longer exists", async () => {
+  it("treats a closure already gone (404) as reopened, revalidates and reports nothing", async () => {
     org("admin");
     vi.mocked(deleteClosure).mockRejectedValue(apiError(404, { detail: "x" }));
+    expect(await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))).toEqual(
+      { status: "success", message: "Closed days reopened." }
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("still reports a server fault from the reopen", async () => {
+    org("admin");
+    const fault = apiError(500);
+    vi.mocked(deleteClosure).mockRejectedValue(fault);
     expect(
       await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
-    ).toMatchObject({ status: "error", kind: "not_found" });
-    expect(reportError).not.toHaveBeenCalled();
+    ).toMatchObject({ status: "error", kind: "unavailable" });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
   });
 });

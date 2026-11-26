@@ -1238,7 +1238,7 @@ export async function removeTimeOffAction(
   return saved(orgSlug, "Time off removed.");
 }
 
-// --- closed days (whole-business closures, Settings > Hours) ------------------------------
+// --- closed days (whole-business closures, Settings > Closed days) ------------------------------
 // Owners and admins close and reopen the business for whole local days. The days
 // are sent as typed (already on the business clock), so no timezone is read here.
 // A save reports the bookings inside the new closure: they are not cancelled.
@@ -1332,7 +1332,11 @@ export async function reopenClosureAction(
   try {
     await deleteClosure(auth.accessToken, auth.organisationId, closureId);
   } catch (error) {
-    return failed(orgSlug, error);
+    // The DELETE is idempotent in intent: a closure already gone (404, for
+    // example removed in another tab) is the result the person asked for.
+    if (!(ResponseError.is(error) && error.status === 404)) {
+      return failed(orgSlug, error);
+    }
   }
   return saved(orgSlug, "Closed days reopened.");
 }

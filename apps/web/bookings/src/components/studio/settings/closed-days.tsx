@@ -262,6 +262,9 @@ function ClosureForm({ orgSlug, zone }: { orgSlug: string; zone: string }) {
   const [endFollows, setEndFollows] = useState(true);
   const [reason, setReason] = useState("");
   const [checked, setChecked] = useState<ClosureFieldErrors>({});
+  // The result a person has edited past (its "added" line and its bookings)
+  // stands no longer. Keyed to the result object, so the next save's result is shown.
+  const [editedResult, setEditedResult] = useState<ClosureState | null>(null);
   const prefix = useId();
   // Save waits for hydration: before it, a native submit would send the form
   // to a GET URL with the typed values in it.
@@ -276,7 +279,14 @@ function ClosureForm({ orgSlug, zone }: { orgSlug: string; zone: string }) {
     }
   }, [state]);
 
+  /** Any edit retires the last result and any day check that named a field. */
+  function edited() {
+    setEditedResult(state);
+    setChecked({});
+  }
+
   function changeStart(value: string) {
+    edited();
     setStartsOn(value);
     if (endFollows) {
       setEndsOn(value);
@@ -284,6 +294,7 @@ function ClosureForm({ orgSlug, zone }: { orgSlug: string; zone: string }) {
   }
 
   function changeEnd(value: string) {
+    edited();
     setEndsOn(value);
     setEndFollows(false);
   }
@@ -300,9 +311,10 @@ function ClosureForm({ orgSlug, zone }: { orgSlug: string; zone: string }) {
   }
 
   const clientRefused = Object.keys(checked).length > 0;
-  const shown: ClosureState = clientRefused ? CHECK_FIELDS : state;
+  const result: ClosureState = editedResult === state ? IDLE : state;
+  const shown: ClosureState = clientRefused ? CHECK_FIELDS : result;
   const serverFields: ClosureFieldErrors =
-    state.status === "error" ? (state.fields ?? {}) : {};
+    result.status === "error" ? (result.fields ?? {}) : {};
   const fields = clientRefused ? checked : serverFields;
 
   return (
@@ -341,16 +353,19 @@ function ClosureForm({ orgSlug, zone }: { orgSlug: string; zone: string }) {
           id={`${prefix}-reason`}
           maxLength={CLOSURE_REASON_MAX}
           name="reason"
-          onChange={(event) => setReason(event.target.value)}
+          onChange={(event) => {
+            edited();
+            setReason(event.target.value);
+          }}
           placeholder="For example: Christmas"
           value={reason}
         />
         <FieldError id={`${prefix}-reason-error`} message={fields.reason} />
       </div>
       <SettingsResult pending={pending} state={shown} />
-      {state.status === "success" && state.affected?.length ? (
+      {result.status === "success" && result.affected?.length ? (
         <AffectedBookings
-          bookings={state.affected}
+          bookings={result.affected}
           orgSlug={orgSlug}
           zone={zone}
         />
@@ -444,6 +459,8 @@ function DayField({
         id={id}
         name={name}
         onChange={(event) => onChange(event.target.value)}
+        // "required" names the field for assistive tech; noValidate on the form
+        // stops the browser's bubble, so our own day messages show instead.
         required
         type="date"
         value={value}

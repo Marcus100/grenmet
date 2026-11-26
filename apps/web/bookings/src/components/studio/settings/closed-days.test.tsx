@@ -30,6 +30,7 @@ const END_BEFORE_START = "The end date can't be before the start date.";
 const NOT_CANCELLED = /They are not cancelled/u;
 const REOPEN = /^Reopen/u;
 const CUSTOMER_LINK = /^Customer, /u;
+const ANA_LINK = /^Ana,/u;
 
 const christmas: BookingClosurePublic = {
   id: CHRISTMAS_ID,
@@ -314,6 +315,39 @@ describe("bookings inside a new closure", () => {
         name: "1 booking falls on these closed days",
       })
     ).toBeInTheDocument();
+  });
+
+  it("clears the last save's result once the person edits the form again", async () => {
+    actions.saveClosureAction.mockResolvedValue({
+      status: "success",
+      message: "Closed days added.",
+      affected: [
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          startsAt: "2026-12-25T13:00:00Z",
+          customerFirstName: "Ana",
+        },
+      ],
+    });
+    section();
+    fill(START, "2026-12-25");
+    fireEvent.click(screen.getByRole("button", { name: ADD }));
+    expect(
+      await screen.findByRole("heading", {
+        name: "1 booking falls on these closed days",
+      })
+    ).toBeInTheDocument();
+
+    fill(START, "2026-12-30");
+    expect(screen.queryByText("Closed days added.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", {
+        name: "1 booking falls on these closed days",
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: ANA_LINK })
+    ).not.toBeInTheDocument();
   });
 
   it("shows no notice when no booking falls inside the closure", async () => {
