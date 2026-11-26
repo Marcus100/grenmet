@@ -114,20 +114,23 @@ async function loadTimeOff(
 }
 
 /**
- * The business's closed days (every provider), earliest first, or null when they
- * cannot be read. The API lists every closure the business has had, so the page
- * asks for the largest page it allows; the section drops the past ones.
+ * The business's closed days that have not ended yet (every provider), earliest
+ * first, or null when they cannot be read. The API filters by `today` (the
+ * business's own date), so a long history cannot push upcoming closures off the
+ * page; the largest page it allows is requested as a safety margin.
  */
 export async function loadClosures(
   session: StudioSession,
   organisationId: string,
-  returnTo: string
+  returnTo: string,
+  today: string
 ): Promise<BookingClosurePublic[] | null> {
   try {
     return await listClosures(
       session.accessToken,
       organisationId,
-      CLOSURES_PAGE_SIZE
+      CLOSURES_PAGE_SIZE,
+      today
     );
   } catch (error) {
     readFailed(error, returnTo);

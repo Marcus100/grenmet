@@ -22,6 +22,7 @@ import {
   getBooking,
   getBusinessProfile,
   getBusinessTimezone,
+  listClosures,
   listMyOrganisations,
   markCompleted,
   markNoShow,
@@ -80,6 +81,23 @@ describe("studio API reads", () => {
     ]);
     expect((await findOrganisation("tok-find", "sea-salt-spa"))?.id).toBe(ORG);
     expect(await findOrganisation("tok-find", "someone-else")).toBeNull();
+  });
+
+  it("asks for closures that have not ended yet from the business's today", async () => {
+    const seen = stubFetch(200, []);
+    await listClosures("tok", ORG, 1000, "2026-11-26");
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.pathname).toBe("/api/v1/bookings/org/closures");
+    expect(url.searchParams.get("ends_on_from")).toBe("2026-11-26");
+    expect(url.searchParams.get("size")).toBe("1000");
+  });
+
+  it("omits the date filter when no day is given", async () => {
+    const seen = stubFetch(200, []);
+    await listClosures("tok", ORG, 50);
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.searchParams.has("ends_on_from")).toBe(false);
+    expect(url.searchParams.get("size")).toBe("50");
   });
 
   it("sends the bearer token, organisation header and range on the agenda", async () => {

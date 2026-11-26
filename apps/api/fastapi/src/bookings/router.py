@@ -721,18 +721,34 @@ BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
     "/org/closures",
     response_model=list[BookingClosurePublic],
     summary="List whole-business closures",
-    description="Days the business is closed for every provider, earliest first.",
+    description=(
+        "Days the business is closed for every provider, earliest first. Pass "
+        "`ends_on_from` to list only closures that have not yet ended."
+    ),
     operation_id="bookingsListClosures",
     responses=READ_ERRORS,
 )
 async def list_closures(
-    *, session: SessionDep, org: BookingsOrgRead, pagination: PaginationDep
+    *,
+    session: SessionDep,
+    org: BookingsOrgRead,
+    pagination: PaginationDep,
+    ends_on_from: Annotated[
+        date | None,
+        Query(
+            description=(
+                "Only closures that end on or after this date (the business's today "
+                "for upcoming closures). Omit: every closure."
+            )
+        ),
+    ] = None,
 ) -> Any:
     return await service.list_closures(
         session,
         org.organisation_id,
         skip=pagination.skip,
         limit=pagination.limit,
+        ends_on_from=ends_on_from,
     )
 
 
