@@ -18,12 +18,19 @@ type Loaded =
   | { state: "ready"; list: SlotList };
 
 interface SlotPickerProps {
+  /**
+   * The day a visitor had chosen (remembered in the page's link): the first
+   * window starts there, and that day is shown, when it is not in the past.
+   */
+  initialDay?: string | null;
   /** Fetches the open slots for the 14 days from `firstDay`. */
   load: (firstDay: string) => Promise<Outcome<SlotList>>;
   /** Called with true while times are loading, false once they have arrived. */
   onBusyChange?: (busy: boolean) => void;
   /** Called with the chosen start (UTC ISO) or null when the choice is cleared. */
   onChange: (startsAt: string | null) => void;
+  /** Called with the day the visitor picks (YYYY-MM-DD), or null when it is cleared, so the flow can remember it. */
+  onDayChange?: (day: string | null) => void;
   /** Called when the chosen time is gone from a fresh list (taken, or no longer fits). */
   onUnavailable?: () => void;
   /** Bump to reload the same window (after a slot was taken). */
@@ -38,9 +45,11 @@ const NETWORK_MESSAGE =
 
 /** Day then time picker over the availability endpoint, 14 days at a time. */
 export function SlotPicker({
+  initialDay = null,
   load,
   onBusyChange,
   onChange,
+  onDayChange,
   onUnavailable,
   reloadKey = 0,
   timeZone,
@@ -51,7 +60,10 @@ export function SlotPicker({
   // A fresh object per request: setting it again reloads the same window.
   const [request, setRequest] = useState<{ start: string } | null>(null);
   const [loaded, setLoaded] = useState<Loaded>({ state: "loading" });
-  const [day, setDay] = useState<string | null>(null);
+  const [day, setDay] = useState<string | null>(initialDay);
+  const onDayChangeRef = useRef(onDayChange);
+  onDayChangeRef.current = onDayChange;
+  const initialDayRef = useRef(initialDay);
   const loadRef = useRef(load);
   loadRef.current = load;
   const onChangeRef = useRef(onChange);
@@ -67,8 +79,13 @@ export function SlotPicker({
   // "Today" is the studio's, and only known in the browser.
   useEffect(() => {
     const now = localDay(new Date(), timeZone);
+    const remembered = initialDayRef.current;
     setToday(now);
-    setRequest({ start: now });
+    // A remembered day that is still ahead starts the first window, so its
+    // times are in it; otherwise the window starts today.
+    setRequest({
+      start: remembered && remembered > now ? remembered : now,
+    });
   }, [timeZone]);
 
   // The parent bumps reloadKey after a slot was taken: refetch this window.
@@ -134,6 +151,7 @@ export function SlotPicker({
   const move = (by: number) => {
     if (windowStart) {
       setDay(null);
+      onDayChangeRef.current?.(null);
       onChange(null);
       setRequest({ start: addDays(windowStart, by * WINDOW_DAYS) });
     }
@@ -213,6 +231,7 @@ export function SlotPicker({
                   name={`${id}-day`}
                   onChange={() => {
                     setDay(entry.day);
+                    onDayChangeRef.current?.(entry.day);
                     onChange(null);
                   }}
                   type="radio"
