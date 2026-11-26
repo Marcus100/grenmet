@@ -17,7 +17,7 @@ import { serviceIdFromQuery } from "@/lib/service-link";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
-import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
+import { brandStyle, safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
 import { businessTransitionStyle } from "@/lib/view-transition";
 import {
@@ -48,13 +48,33 @@ export async function generateMetadata({
   if (!storefront) {
     return { title: "Booking page not found", robots: { index: false } };
   }
-  const title = `Book at ${storefront.display_name}`;
-  const description = `Book an appointment online with ${storefront.display_name}. Choose a service and a time.`;
+  const name = storefront.display_name;
+  const title = `Book at ${name}`;
+  const description = `Book an appointment online with ${name}. Choose a service and a time.`;
+  // The share preview: the cover photo, else the logo, else the app default.
+  const image =
+    safeCoverUrl(storefront.cover_url) ?? safeLogoUrl(storefront.logo_url);
   return {
     title,
     description,
     alternates: { canonical: `/${slug}` },
-    openGraph: { title, description, url: `/${slug}`, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url: `/${slug}`,
+      type: "website",
+      ...(image ? { images: [{ url: image, alt: name }] } : {}),
+    },
+    ...(image
+      ? {
+          twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [image],
+          },
+        }
+      : {}),
     robots: { index: true, follow: true },
   };
 }
