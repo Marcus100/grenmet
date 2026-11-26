@@ -7,6 +7,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
+import { CoverPhoto } from "@/components/cover-photo";
 import { pageAccent } from "@/lib/brand-colour";
 import type { ListingQuery } from "@/lib/business-listing-query";
 import { INK, TYPE_FILL } from "@/lib/business-type-colours";
@@ -101,66 +102,69 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
       href={{ pathname: `/${card.slug}` }}
       style={{ backgroundColor: fill }}
     >
-      <span className="flex flex-1 flex-col items-center justify-center gap-2 px-3 text-center">
-        {logo ? (
-          <span
-            aria-hidden="true"
-            className="bg-background flex size-[52px] items-center justify-center overflow-hidden rounded-full"
-          >
-            <Image
-              alt=""
-              className="size-9 object-contain"
-              height={36}
-              referrerPolicy="no-referrer"
-              src={logo}
-              unoptimized
-              width={36}
-            />
-          </span>
+      {/* The top area: the cover photo (when safe) sits behind the logo, name
+          and "kind · city" line, under a scrim. The bottom keeps its panel.
+          Without a cover this is the same plain flex column as before. */}
+      <span
+        className={cn(
+          "relative flex flex-1 flex-col",
+          cover ? "mb-3" : undefined
+        )}
+      >
+        {cover ? (
+          <CoverPhoto
+            className="absolute inset-0 rounded-[26px]"
+            scrim
+            src={cover}
+          />
         ) : null}
-        <h3
+        <span
           className={cn(
-            transition ? "vt-biz" : undefined,
-            "text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]"
+            "flex flex-1 flex-col items-center justify-center gap-2 px-3 text-center",
+            cover ? "relative" : undefined
           )}
-          style={transition}
         >
-          {card.name}
-        </h3>
-        {where && <span className="text-sm font-medium">{where}</span>}
+          {logo ? (
+            <span
+              aria-hidden="true"
+              className="bg-background flex size-[52px] items-center justify-center overflow-hidden rounded-full"
+            >
+              <Image
+                alt=""
+                className="size-9 object-contain"
+                height={36}
+                referrerPolicy="no-referrer"
+                src={logo}
+                unoptimized
+                width={36}
+              />
+            </span>
+          ) : null}
+          <h3
+            className={cn(
+              transition ? "vt-biz" : undefined,
+              "text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]"
+            )}
+            style={transition}
+          >
+            {card.name}
+          </h3>
+          {where && <span className="text-sm font-medium">{where}</span>}
+        </span>
       </span>
       {services.length > 0 ? (
         <ServiceTiles services={services} />
       ) : (
-        <BottomPanel cover={cover} description={card.short_description} />
+        <BottomPanel description={card.short_description} />
       )}
     </Link>
   );
 }
 
-/** The photo panel when there is a safe cover, else a white panel with the blurb and a Book pill. */
+/** White panel with the blurb and a Book pill (decoration: the card is the link). */
 function BottomPanel({
-  cover,
   description,
-}: Readonly<{ cover: string | null; description: string | null | undefined }>) {
-  if (cover) {
-    return (
-      <span
-        aria-hidden="true"
-        className="bg-ground relative block h-[150px] overflow-hidden rounded-[26px]"
-      >
-        <Image
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          height={300}
-          referrerPolicy="no-referrer"
-          src={cover}
-          unoptimized
-          width={600}
-        />
-      </span>
-    );
-  }
+}: Readonly<{ description: string | null | undefined }>) {
   return (
     <span className="bg-background text-foreground flex h-[150px] flex-col justify-between rounded-[26px] p-4">
       <span className="line-clamp-3 text-sm">{description}</span>
