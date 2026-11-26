@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ScrollText,
   ShieldCheck,
+  Store,
   Users,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ export const CONSOLE_NAV: readonly ConsoleNavGroup[] = [
       { href: "/", icon: LayoutDashboard, title: "Overview" },
       { href: "/organisations", icon: Building2, title: "Organisations" },
       { href: "/moderation", icon: BadgeCheck, title: "Moderation" },
+      { href: "/bookings/listings", icon: Store, title: "Bookings listings" },
       { href: "/audit", icon: ScrollText, title: "Audit" },
     ],
   },

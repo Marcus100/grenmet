@@ -631,6 +631,8 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
+      # Listing review links each business to its public booking page.
+      BOOKINGS_APP_URL: https://bookings.${BASE_DOMAIN}
       BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
     labels:
       - "traefik.enable=true"
