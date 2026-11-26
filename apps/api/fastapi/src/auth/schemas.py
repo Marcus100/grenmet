@@ -100,7 +100,7 @@ class AccountProfilePublic(BaseModel):
     #: True while the name is the stand-in a nameless sign-up stores (the part of
     #: the email before the @, with no last name), or blank.
     name_is_placeholder: bool
-    #: E.164, or null. Never says whether the number was verified.
+    #: The contact number (E.164), or null. Not the sign-in number.
     phone: str | None = None
 
 

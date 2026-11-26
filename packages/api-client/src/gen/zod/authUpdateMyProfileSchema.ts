@@ -23,10 +23,6 @@ export const authUpdateMyProfileStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const authUpdateMyProfileStatus409Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
-
 export const authUpdateMyProfileStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -43,7 +39,6 @@ export const authUpdateMyProfileResponseSchema =
 export const authUpdateMyProfileErrorSchema = z.union([
   authUpdateMyProfileStatus401Schema,
   authUpdateMyProfileStatus403Schema,
-  authUpdateMyProfileStatus409Schema,
   authUpdateMyProfileStatus422Schema,
   authUpdateMyProfileStatus429Schema,
 ]);

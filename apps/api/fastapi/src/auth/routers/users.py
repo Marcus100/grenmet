@@ -194,7 +194,7 @@ def _account_profile(user: User) -> AccountProfilePublic:
         first_name=user.first_name,
         last_name=user.last_name,
         name_is_placeholder=service.name_is_placeholder(user),
-        phone=user.phone_e164,
+        phone=user.contact_phone,
     )
 
 
@@ -222,24 +222,20 @@ async def read_my_profile(*, current_user: OwnAccountUser) -> Any:
     summary="Update my profile",
     description=(
         "Save the signed-in person's own first name, last name and phone number. A "
-        "field left out is not changed. The phone number is normalised to E.164 and "
-        "stored unverified (nothing is sent); a blank or null phone removes it. "
+        "field left out is not changed. The phone number is a contact detail: it is "
+        "normalised to E.164, nothing is sent, and it is not a sign-in factor; a "
+        "blank or null phone removes it. "
         "Accepts an account token or the account app's session."
     ),
     responses={
         **AUTHENTICATED,
         status.HTTP_200_OK: {"description": "Profile saved"},
-        status.HTTP_409_CONFLICT: {
-            "model": ApiError,
-            "description": "Another account already holds that phone number",
-        },
         status.HTTP_429_TOO_MANY_REQUESTS: {
             "model": RateLimitedBody,
             "description": "Too many changes; try again later",
         },
     },
 )
-# A taken number answers 409, so the limit bounds guessing which numbers are held.
 @limiter.limit("10/minute", key_func=account_address)
 async def update_my_profile(
     *,

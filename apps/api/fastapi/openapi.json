@@ -969,7 +969,7 @@
           "users"
         ],
         "summary": "Update my profile",
-        "description": "Save the signed-in person's own first name, last name and phone number. A field left out is not changed. The phone number is normalised to E.164 and stored unverified (nothing is sent); a blank or null phone removes it. Accepts an account token or the account app's session.",
+        "description": "Save the signed-in person's own first name, last name and phone number. A field left out is not changed. The phone number is a contact detail: it is normalised to E.164, nothing is sent, and it is not a sign-in factor; a blank or null phone removes it. Accepts an account token or the account app's session.",
         "operationId": "authUpdateMyProfile",
         "requestBody": {
           "content": {
@@ -1014,16 +1014,6 @@
           },
           "403": {
             "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Another account already holds that phone number",
             "content": {
               "application/json": {
                 "schema": {

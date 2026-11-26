@@ -15,7 +15,6 @@ from src.utils.datetime import utc_now
 from tests.factories import make_user
 
 URL = "/api/v1/auth/users/me/profile"
-EVENTS = "/api/v1/auth/apps/events"
 
 
 def _headers(user: User, *, app: str | None = None) -> dict[str, str]:
@@ -130,14 +129,14 @@ async def test_a_bad_name_or_phone_is_refused_and_nothing_is_saved(
     async_client: httpx.AsyncClient, db_async: AsyncSession, body: dict[str, object]
 ) -> None:
     user = await make_user(db_async)
-    before = (user.first_name, user.last_name, user.phone_e164)
+    before = (user.first_name, user.last_name, user.contact_phone)
     refused = await async_client.patch(URL, headers=_headers(user), json=body)
     assert refused.status_code == 422, refused.text
     await db_async.refresh(user)
-    assert (user.first_name, user.last_name, user.phone_e164) == before
+    assert (user.first_name, user.last_name, user.contact_phone) == before
 
 
-async def test_a_phone_is_saved_in_e164_unverified_and_blank_removes_it(
+async def test_a_phone_is_saved_in_e164_and_blank_removes_it(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     user = await make_user(db_async)
@@ -149,7 +148,8 @@ async def test_a_phone_is_saved_in_e164_unverified_and_blank_removes_it(
     assert saved.status_code == 200, saved.text
     assert saved.json()["phone"] == "+14734401234"
     await db_async.refresh(user)
-    assert user.phone_e164 == "+14734401234"
+    assert user.contact_phone == "+14734401234"
+    assert user.phone_e164 is None
     assert user.phone_verified_at is None
 
     # A name-only save leaves the number alone.
@@ -162,56 +162,55 @@ async def test_a_phone_is_saved_in_e164_unverified_and_blank_removes_it(
     assert cleared.status_code == 200, cleared.text
     assert cleared.json()["phone"] is None
     await db_async.refresh(user)
-    assert user.phone_e164 is None
+    assert user.contact_phone is None
 
 
-async def test_changing_a_verified_number_clears_the_verification(
+async def test_the_sign_in_number_is_never_read_or_written(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     user = await make_user(db_async)
     user.phone_e164 = "+14734401234"
-    user.phone_verified_at = utc_now()
+    verified_at = utc_now()
+    user.phone_verified_at = verified_at
     await db_async.commit()
     headers = _headers(user)
 
-    same = await async_client.patch(
-        URL, headers=headers, json={"phone": "+1 473 440 1234"}
-    )
-    assert same.status_code == 200, same.text
-    await db_async.refresh(user)
-    assert user.phone_verified_at is not None
-
-    changed = await async_client.patch(
+    assert (await async_client.get(URL, headers=headers)).json()["phone"] is None
+    saved = await async_client.patch(
         URL, headers=headers, json={"phone": "+14734405678"}
     )
-    assert changed.status_code == 200, changed.text
+    assert saved.status_code == 200, saved.text
+    cleared = await async_client.patch(URL, headers=headers, json={"phone": None})
+    assert cleared.status_code == 200, cleared.text
     await db_async.refresh(user)
-    assert user.phone_e164 == "+14734405678"
-    assert user.phone_verified_at is None
+    assert user.contact_phone is None
+    assert user.phone_e164 == "+14734401234"
+    assert user.phone_verified_at == verified_at
 
 
-async def test_another_account_s_number_is_refused_and_their_row_is_untouched(
+async def test_two_accounts_may_hold_the_same_contact_number(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
+    """No conflict and nothing revealed: a number another account uses, as a contact
+    number or as its sign-in number, is saved like any other."""
     holder = await make_user(db_async)
     holder.phone_e164 = "+14734401234"
+    holder.contact_phone = "+14734401234"
     holder_name = (holder.first_name, holder.last_name)
     await db_async.commit()
     user = await make_user(db_async)
 
-    refused = await async_client.patch(
-        URL,
-        headers=_headers(user),
-        json={"first_name": "Kezia", "last_name": "Mitchell", "phone": "+14734401234"},
+    saved = await async_client.patch(
+        URL, headers=_headers(user), json={"phone": "+14734401234"}
     )
-    assert refused.status_code == 409, refused.text
-    assert "+1473" not in refused.text
+    assert saved.status_code == 200, saved.text
     await db_async.refresh(holder)
     await db_async.refresh(user)
+    assert user.contact_phone == "+14734401234"
+    assert user.phone_e164 is None
+    assert holder.contact_phone == "+14734401234"
     assert holder.phone_e164 == "+14734401234"
     assert (holder.first_name, holder.last_name) == holder_name
-    assert user.phone_e164 is None
-    assert user.first_name != "Kezia"
 
 
 async def test_only_the_named_fields_can_be_changed(
@@ -264,59 +263,3 @@ async def test_the_service_keeps_fields_that_were_not_sent(
         profile_in=AccountProfileUpdate(last_name="Mitchell"),
     )
     assert (updated.first_name, updated.last_name) == (first, "Mitchell")
-
-
-async def test_a_typed_number_gives_way_to_the_person_who_proves_it(
-    async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A number saved in a profile is unverified: it cannot be used to sign in, and
-    it does not block the person who can receive the code from linking it."""
-    from src.auth import app_service
-    from src.auth.permissions import seed_permissions_and_roles_async
-
-    await seed_permissions_and_roles_async(db_async)
-    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
-    monkeypatch.setattr(app_service, "send_email", lambda **_: None)
-    monkeypatch.setattr(auth_settings, "PHONE_OTP_PROVIDER", "console")
-    phone = "+14734401234"
-
-    typed = await make_user(db_async)
-    saved = await async_client.patch(
-        URL, headers=_headers(typed), json={"phone": phone}
-    )
-    assert saved.status_code == 200, saved.text
-
-    # The unverified number is no sign-in factor.
-    started = await async_client.post(
-        f"{EVENTS}/phone-code/start", json={"phone": phone}
-    )
-    assert started.status_code == 200
-    refused = await async_client.post(
-        f"{EVENTS}/phone-code/verify", json={"phone": phone, "code": "123456"}
-    )
-    assert refused.status_code == 400
-
-    start = await async_client.post(
-        f"{EVENTS}/email-code/start", json={"email": "resident@example.com"}
-    )
-    assert start.status_code == 200, start.text
-    member = await async_client.post(
-        f"{EVENTS}/email-code/verify",
-        json={"email": "resident@example.com", "code": "123456"},
-    )
-    headers = {"Authorization": f"Bearer {member.json()['access_token']}"}
-    body = {"phone": phone, "channel": "sms"}
-    link = await async_client.post(
-        f"{EVENTS}/phone/link/start", json=body, headers=headers
-    )
-    assert link.status_code == 200
-    linked = await async_client.post(
-        f"{EVENTS}/phone/link/verify",
-        json={"phone": phone, "code": "123456"},
-        headers=headers,
-    )
-    assert linked.status_code == 200, linked.text
-    await db_async.refresh(typed)
-    assert typed.phone_e164 is None

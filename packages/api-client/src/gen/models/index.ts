@@ -988,7 +988,6 @@ export type {
   AuthUpdateMyProfileStatus200,
   AuthUpdateMyProfileStatus401,
   AuthUpdateMyProfileStatus403,
-  AuthUpdateMyProfileStatus409,
   AuthUpdateMyProfileStatus422,
   AuthUpdateMyProfileStatus429,
 } from "./AuthUpdateMyProfile.js";

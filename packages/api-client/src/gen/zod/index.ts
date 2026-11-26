@@ -950,7 +950,6 @@ export {
   authUpdateMyProfileStatus200Schema,
   authUpdateMyProfileStatus401Schema,
   authUpdateMyProfileStatus403Schema,
-  authUpdateMyProfileStatus409Schema,
   authUpdateMyProfileStatus422Schema,
   authUpdateMyProfileStatus429Schema,
 } from "./authUpdateMyProfileSchema.js";

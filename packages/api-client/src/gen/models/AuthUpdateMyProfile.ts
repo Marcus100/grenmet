@@ -28,12 +28,6 @@ export type AuthUpdateMyProfileStatus401 = ApiError;
 export type AuthUpdateMyProfileStatus403 = ApiError;
 
 /**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type AuthUpdateMyProfileStatus409 = ApiError;
-
-/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -59,7 +53,6 @@ export type AuthUpdateMyProfileResponses = {
   "200": AuthUpdateMyProfileStatus200;
   "401": AuthUpdateMyProfileStatus401;
   "403": AuthUpdateMyProfileStatus403;
-  "409": AuthUpdateMyProfileStatus409;
   "422": AuthUpdateMyProfileStatus422;
   "429": AuthUpdateMyProfileStatus429;
 };

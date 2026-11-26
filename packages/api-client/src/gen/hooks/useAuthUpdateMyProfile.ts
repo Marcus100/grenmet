@@ -16,7 +16,6 @@ import type {
   AuthUpdateMyProfileStatus200,
   AuthUpdateMyProfileStatus401,
   AuthUpdateMyProfileStatus403,
-  AuthUpdateMyProfileStatus409,
   AuthUpdateMyProfileStatus422,
   AuthUpdateMyProfileStatus429,
 } from "../models/AuthUpdateMyProfile.js";
@@ -35,7 +34,6 @@ export function authUpdateMyProfileMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | AuthUpdateMyProfileStatus401
       | AuthUpdateMyProfileStatus403
-      | AuthUpdateMyProfileStatus409
       | AuthUpdateMyProfileStatus422
       | AuthUpdateMyProfileStatus429
     >,
@@ -54,7 +52,7 @@ export function authUpdateMyProfileMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Save the signed-in person's own first name, last name and phone number. A field left out is not changed. The phone number is normalised to E.164 and stored unverified (nothing is sent); a blank or null phone removes it. Accepts an account token or the account app's session.
+ * @description Save the signed-in person's own first name, last name and phone number. A field left out is not changed. The phone number is a contact detail: it is normalised to E.164, nothing is sent, and it is not a sign-in factor; a blank or null phone removes it. Accepts an account token or the account app's session.
  * @summary Update my profile
  * {@link /api/v1/auth/users/me/profile}
  */
@@ -65,7 +63,6 @@ export function useAuthUpdateMyProfile<TContext>(
       ResponseErrorConfig<
         | AuthUpdateMyProfileStatus401
         | AuthUpdateMyProfileStatus403
-        | AuthUpdateMyProfileStatus409
         | AuthUpdateMyProfileStatus422
         | AuthUpdateMyProfileStatus429
       >,
@@ -89,7 +86,6 @@ export function useAuthUpdateMyProfile<TContext>(
     ResponseErrorConfig<
       | AuthUpdateMyProfileStatus401
       | AuthUpdateMyProfileStatus403
-      | AuthUpdateMyProfileStatus409
       | AuthUpdateMyProfileStatus422
       | AuthUpdateMyProfileStatus429
     >,
@@ -102,7 +98,6 @@ export function useAuthUpdateMyProfile<TContext>(
     ResponseErrorConfig<
       | AuthUpdateMyProfileStatus401
       | AuthUpdateMyProfileStatus403
-      | AuthUpdateMyProfileStatus409
       | AuthUpdateMyProfileStatus422
       | AuthUpdateMyProfileStatus429
     >,
@@ -120,7 +115,6 @@ export function useAuthUpdateMyProfile<TContext>(
     ResponseErrorConfig<
       | AuthUpdateMyProfileStatus401
       | AuthUpdateMyProfileStatus403
-      | AuthUpdateMyProfileStatus409
       | AuthUpdateMyProfileStatus422
       | AuthUpdateMyProfileStatus429
     >,

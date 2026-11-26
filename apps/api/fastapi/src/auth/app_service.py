@@ -17,7 +17,7 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import ColumnElement, and_, delete, select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
@@ -717,18 +717,15 @@ async def google_finish(
 # --- Phone and WhatsApp (linked accounts only; off until a provider is chosen) --
 
 
-def _verified_holder(phone: str) -> ColumnElement[bool]:
-    """The account that proved it holds ``phone``. A number saved in a profile
-    without a code (``service.update_account_profile``) is not a holder: it must
-    not block, or be revealed to, the person who can receive the code."""
-    return and_(User.phone_e164 == phone, User.phone_verified_at.is_not(None))
-
-
 async def phone_code_start(
     *, session: AsyncSession, app: AppDefinition, body: AppPhoneCodeStart
 ) -> Message:
     require_method(app, "phone")
-    user = await session.scalar(select(User).where(_verified_holder(body.phone)))
+    user = await session.scalar(
+        select(User).where(
+            User.phone_e164 == body.phone, User.phone_verified_at.is_not(None)
+        )
+    )
     if user is None or not user.is_active:
         return Message(message=GENERIC_PHONE_SENT)
     code = await _issue_code(
@@ -747,7 +744,7 @@ async def phone_code_verify(
     body: AppPhoneCodeVerify,
 ) -> SessionLoginResponse:
     require_method(app, "phone")
-    user = await session.scalar(select(User).where(_verified_holder(body.phone)))
+    user = await session.scalar(select(User).where(User.phone_e164 == body.phone))
     if user is None or not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
     challenge = await _verify_code(
@@ -775,7 +772,7 @@ async def phone_link_start(
     *, session: AsyncSession, app: AppDefinition, user: User, body: AppPhoneCodeStart
 ) -> Message:
     require_method(app, "phone")
-    owner = await session.scalar(select(User.id).where(_verified_holder(body.phone)))
+    owner = await session.scalar(select(User.id).where(User.phone_e164 == body.phone))
     if owner is not None and owner != user.id:
         # Don't reveal which numbers are registered.
         return Message(message="We've sent a 6-digit code to that number.")
@@ -801,16 +798,9 @@ async def phone_link_verify(
         target=f"{user.id}:{body.phone}",
         code=body.code,
     )
-    owner = await session.scalar(select(User.id).where(_verified_holder(body.phone)))
+    owner = await session.scalar(select(User.id).where(User.phone_e164 == body.phone))
     if owner is not None and owner != user.id:
         raise AppException("That number is linked to another account.", 409)
-    # A number someone only typed into their profile gives way to the person who
-    # proved they hold it. Cleared first: the column is unique.
-    await session.execute(
-        update(User)
-        .where(User.phone_e164 == body.phone, User.id != user.id)
-        .values(phone_e164=None)
-    )
     user.phone_e164 = body.phone
     user.phone_verified_at = utc_now()
     session.add(user)

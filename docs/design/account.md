@@ -133,8 +133,7 @@ person can still change a value.
 - **Refused field:** the reason sits under its field as `role="alert"` in
   `negative`, the field is marked invalid and what was typed stays. The API
   writes the phone sentence ("Enter the phone number with its country code, for
-  example +1 473 440 1234"); a number another account holds reads "That phone
-  number is already on another account. Use another number."
+  example +1 473 440 1234").
 - **Failed save:** one sentence under the fields ("Your name could not be
   saved. Try again."), and the failure is reported without the typed value.
 - **Saved:** the profile page opens with a polite status line: "Name saved.",

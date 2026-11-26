@@ -105,16 +105,6 @@ export async function savePhoneAction(
     if (Object.keys(fieldErrors).length > 0) {
       return { fieldErrors, formError: null, values };
     }
-    if (isAuthApiError(error) && error.status === 409) {
-      return {
-        fieldErrors: {
-          phone:
-            "That phone number is already on another account. Use another number.",
-        },
-        formError: null,
-        values,
-      };
-    }
     if (isAuthApiError(error) && error.status === 429) {
       return {
         fieldErrors: {},

@@ -216,20 +216,6 @@ describe("savePhoneAction", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
-  it("says a number held by another account is taken, beside the field", async () => {
-    authApiFetch.mockRejectedValue(new AuthApiError(409, "taken"));
-
-    const state = await savePhoneAction(
-      PHONE_START,
-      form({ phone: "+14734401234" })
-    );
-
-    expect(state.fieldErrors.phone).toBe(
-      "That phone number is already on another account. Use another number."
-    );
-    expect(reportError).not.toHaveBeenCalled();
-  });
-
   it("reports an API failure with no phone number in the report", async () => {
     const failure = new AuthApiError(503, "Service unavailable");
     authApiFetch.mockRejectedValue(failure);

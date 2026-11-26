@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import delete, or_, select, update
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
@@ -29,7 +28,7 @@ from src.auth.eligibility import (
     request_staff_access,
     require_approved_account,
 )
-from src.auth.exceptions import AccountLockedError, PhoneNumberTakenError
+from src.auth.exceptions import AccountLockedError
 from src.auth.lockout import factor_lockout, login_lockout
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
@@ -287,35 +286,21 @@ def name_is_placeholder(user: User) -> bool:
 async def update_account_profile(
     *, session: AsyncSession, user: User, profile_in: AccountProfileUpdate
 ) -> User:
-    """Save the person's own name and phone number (the account app's checklist).
+    """Save the person's own name and contact phone (the account app's checklist).
 
-    The number is stored unverified: nothing is sent, and a number that differs from
-    the stored one clears ``phone_verified_at``, so it cannot be used to sign in
-    until it is linked with a code (``app_service.phone_link_verify``).
+    The number goes in ``contact_phone``: a contact detail, not unique and never
+    verified. The sign-in number (``phone_e164``, ``phone_verified_at``) is not
+    read or written here.
     """
     fields = profile_in.model_fields_set
     if "first_name" in fields and profile_in.first_name is not None:
         user.first_name = profile_in.first_name
     if "last_name" in fields and profile_in.last_name is not None:
         user.last_name = profile_in.last_name
-    if "phone" in fields and profile_in.phone != user.phone_e164:
-        if profile_in.phone is not None:
-            holder = await session.scalar(
-                select(User.id).where(
-                    User.phone_e164 == profile_in.phone, User.id != user.id
-                )
-            )
-            if holder is not None:
-                raise PhoneNumberTakenError()
-        user.phone_e164 = profile_in.phone
-        user.phone_verified_at = None
+    if "phone" in fields:
+        user.contact_phone = profile_in.phone
     session.add(user)
-    try:
-        await session.commit()
-    except IntegrityError as error:
-        # Two accounts saving the same number at once: the unique index decides.
-        await session.rollback()
-        raise PhoneNumberTakenError() from error
+    await session.commit()
     await session.refresh(user)
     return user
 
@@ -546,6 +531,7 @@ def _anonymise_fields(user: User, token: str, now: datetime) -> None:
     user.title = None
     user.phone_e164 = None
     user.phone_verified_at = None
+    user.contact_phone = None
     user.email_verified_at = None
     user.email_verification_required = False
     user.password_setup_pending = False

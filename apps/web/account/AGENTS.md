@@ -63,7 +63,7 @@ src/app/
 
 ## Finish your profile
 
-`ProfileChecklist` (email, name, phone, photo; `src/lib/profile-checklist.ts`) reads `GET /auth/users/me/profile`; the API decides `name_is_placeholder`. The phone is stored unverified and the UI says nothing about verification. Actions report failures with no typed value. States and copy: `docs/design/account.md`.
+`ProfileChecklist` (email, name, phone, photo; `src/lib/profile-checklist.ts`) reads `GET /auth/users/me/profile`; the API decides `name_is_placeholder`. The phone is a contact number (`user.contact_phone`), not the sign-in number; the UI says nothing about verification. Actions report failures with no typed value. States and copy: `docs/design/account.md`.
 
 ## My bookings (ADR-0058, slice 1)
 
