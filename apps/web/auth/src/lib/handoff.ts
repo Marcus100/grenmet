@@ -56,13 +56,24 @@ export function handoffRequestFromReturnTo(
 /** FastAPI's reply once a staff-app access request is waiting. */
 const STAFF_REQUEST_PENDING = "Your request is waiting for an administrator";
 
-/** The registry's name for an app ("Barrels Bookings"); null when it can't be read. */
-export async function fetchAppLabel(app: string): Promise<string | null> {
+/** How long the sign-in page waits for an app's name before going without it. */
+export const APP_LABEL_TIMEOUT_MS = 1500;
+
+/**
+ * The registry's name for an app ("Barrels Bookings"); null when it can't be
+ * read, or not within `timeoutMs` when one is given. Nothing is reported: the
+ * caller falls back to wording that names no app.
+ */
+export async function fetchAppLabel(
+  app: string,
+  timeoutMs?: number
+): Promise<string | null> {
   try {
     const result = await authApiFetch(
       getAuthConfig(),
       `/auth/apps/${app}`,
-      appPublicSchema
+      appPublicSchema,
+      timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}
     );
     return result.label;
   } catch {

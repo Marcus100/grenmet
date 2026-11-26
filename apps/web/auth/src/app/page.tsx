@@ -20,7 +20,11 @@ import {
 import { StaffAccess } from "@/components/staff-access";
 import { getAppHrefs } from "@/lib/app-links";
 import { getAuthConfig } from "@/lib/auth-config";
-import { fetchAppLabel, handoffRequestFromReturnTo } from "@/lib/handoff";
+import {
+  APP_LABEL_TIMEOUT_MS,
+  fetchAppLabel,
+  handoffRequestFromReturnTo,
+} from "@/lib/handoff";
 import { formatDate, getInitials } from "@/lib/profile";
 import { reportError } from "@/lib/report-error";
 import {
@@ -203,14 +207,16 @@ function signedOutNotice(
 
 /**
  * "Sign in or create an account", for the app when one is named. An app the
- * sign-in page has no name for (Bookings) is named from the app registry.
+ * sign-in page has no name for (Bookings) is named from the app registry, and
+ * the plain heading is used if the registry is slow or down.
  */
 async function codeFirstHeading(
   directoryLabel: string | null,
   handoffApp: string | null
 ): Promise<string> {
   const label =
-    directoryLabel ?? (handoffApp ? await fetchAppLabel(handoffApp) : null);
+    directoryLabel ??
+    (handoffApp ? await fetchAppLabel(handoffApp, APP_LABEL_TIMEOUT_MS) : null);
   return label
     ? `Sign in or create an account for ${label}`
     : "Sign in or create an account";

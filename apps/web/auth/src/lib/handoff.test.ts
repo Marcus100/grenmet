@@ -8,6 +8,7 @@ vi.mock("./auth-config", () => ({ getAuthConfig: () => ({}) }));
 import { AuthApiError } from "@barrelsgd/auth";
 import {
   continuePath,
+  fetchAppLabel,
   handoffRequestFromReturnTo,
   parseHandoffRequest,
   startHandoff,
@@ -45,6 +46,32 @@ describe("handoffRequestFromReturnTo", () => {
     expect(
       handoffRequestFromReturnTo(`/continued?app=events&state=${STATE}`)
     ).toBeNull();
+  });
+});
+
+describe("fetchAppLabel", () => {
+  it("returns the registry's name", async () => {
+    authApiFetch.mockResolvedValueOnce({ label: "Barrels Bookings" });
+    expect(await fetchAppLabel("bookings", 1500)).toBe("Barrels Bookings");
+    expect(authApiFetch.mock.calls[0]?.[1]).toBe("/auth/apps/bookings");
+  });
+
+  it("gives up after the timeout instead of holding the page", async () => {
+    // An API that never answers: only the abort signal ends the wait.
+    authApiFetch.mockImplementationOnce(
+      (_config, _path, _schema, init: { signal?: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener("abort", () =>
+            reject(init.signal?.reason)
+          );
+        })
+    );
+    expect(await fetchAppLabel("bookings", 20)).toBeNull();
+  });
+
+  it("returns null when the API fails", async () => {
+    authApiFetch.mockRejectedValueOnce(new AuthApiError(404, "Unknown app"));
+    expect(await fetchAppLabel("nope")).toBeNull();
   });
 });
 

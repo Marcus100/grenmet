@@ -16,13 +16,19 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/components/SignInForm", () => ({
   SignInForm: ({
+    appName,
     codeHref,
     returnTo,
   }: {
+    appName: string | null;
     codeHref: string | null;
     returnTo: string | null;
   }) => (
-    <div data-code-href={codeHref ?? ""} data-testid="fresh-sign-in">
+    <div
+      data-app-name={appName ?? ""}
+      data-code-href={codeHref ?? ""}
+      data-testid="fresh-sign-in"
+    >
       {returnTo}
     </div>
   ),
@@ -37,6 +43,7 @@ const directoryName = vi.hoisted(() =>
 );
 const fetchAppLabel = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/handoff", () => ({
+  APP_LABEL_TIMEOUT_MS: 1500,
   fetchAppLabel,
   handoffRequestFromReturnTo: (returnTo: string | null) => {
     if (!returnTo?.startsWith("/continue?")) return null;
@@ -157,7 +164,7 @@ it("names the app a handoff is for, from the registry and not from ?app=", async
     })
   );
   expect(directoryName).toHaveBeenLastCalledWith("bookings");
-  expect(fetchAppLabel).toHaveBeenCalledWith("bookings");
+  expect(fetchAppLabel).toHaveBeenCalledWith("bookings", 1500);
   expect(
     screen.getByRole("heading", {
       name: "Sign in or create an account for Barrels Bookings",
@@ -226,6 +233,51 @@ it("shows nothing for an unknown notice code and never echoes it", async () => {
   expect(screen.queryByRole("status")).toBeNull();
   expect(document.body.textContent).not.toContain("alert(1)");
 });
+
+it("falls back to the plain heading when the registry is slow or down", async () => {
+  directoryName.mockReturnValueOnce(null);
+  // fetchAppLabel answers null on a timeout or an error (lib/handoff.test.ts).
+  fetchAppLabel.mockResolvedValueOnce(null);
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        returnTo: `/continue?app=bookings&state=${"s".repeat(32)}`,
+      }),
+    })
+  );
+  expect(
+    screen.getByRole("heading", { name: "Sign in or create an account" })
+  ).toBeInTheDocument();
+  expect(screen.getByTestId("code-first-sign-in")).toBeInTheDocument();
+});
+
+it.each([
+  ["password", { method: "password" }],
+  ["reauthentication", { reauth: "1" }],
+])(
+  "names the app from returnTo, not ?app=, on the %s screen too",
+  async (_name, mode) => {
+    render(
+      await Home({
+        searchParams: Promise.resolve({
+          ...mode,
+          app: "events",
+          returnTo: `/continue?app=gaa-admin&state=${"s".repeat(32)}`,
+        }),
+      })
+    );
+    expect(directoryName).toHaveBeenLastCalledWith("gaa-admin");
+    expect(screen.getByTestId("fresh-sign-in")).toHaveAttribute(
+      "data-app-name",
+      "gaa-admin"
+    );
+    expect(
+      screen.getByRole("heading", { name: "Sign in to GAA Admin" })
+    ).toBeInTheDocument();
+    // These screens use the sign-in page's own names only, never the registry.
+    expect(fetchAppLabel).not.toHaveBeenCalled();
+  }
+);
 
 describe("sign-in page title", () => {
   it("is 'Sign in to <app>' for a signed-out visitor, the same wording as the heading", async () => {
