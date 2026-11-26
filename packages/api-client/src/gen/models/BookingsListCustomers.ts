@@ -5,6 +5,7 @@
 
 import type { ApiError } from "./ApiError.js";
 import type { BookingCustomerList } from "./BookingCustomerList.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListCustomersQuery = {
@@ -30,7 +31,7 @@ export type BookingsListCustomersQuery = {
 
 export type BookingsListCustomersHeaders = {
   /**
-   * @description Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.
+   * @description Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.
    */
   "X-Barrels-Organisation"?: string | null;
 };
@@ -72,6 +73,8 @@ export type BookingsListCustomersStatus404 = ApiError;
  */
 export type BookingsListCustomersStatus422 = ValidationErrorResponse;
 
+export type BookingsListCustomersStatus429 = ApiError | ErrorMessage;
+
 export type BookingsListCustomersOptions = {
   body?: never;
   path?: never;
@@ -86,6 +89,7 @@ export type BookingsListCustomersResponses = {
   "403": BookingsListCustomersStatus403;
   "404": BookingsListCustomersStatus404;
   "422": BookingsListCustomersStatus422;
+  "429": BookingsListCustomersStatus429;
 };
 
 /**

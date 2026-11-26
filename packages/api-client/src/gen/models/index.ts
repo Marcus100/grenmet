@@ -1771,6 +1771,7 @@ export type {
   BookingsListCustomersStatus403,
   BookingsListCustomersStatus404,
   BookingsListCustomersStatus422,
+  BookingsListCustomersStatus429,
 } from "./BookingsListCustomers.js";
 export type {
   BookingsListExceptionsHeaders,

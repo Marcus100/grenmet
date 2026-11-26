@@ -269,21 +269,20 @@ async def test_non_member_and_anonymous_are_refused(
     assert (await async_client.get(URL)).status_code == 401
 
 
-async def test_api_key_needs_the_read_scope_of_its_own_organisation(
+async def test_api_key_with_the_read_scope_is_refused(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
-    other = await _studio(db_async, async_client)
     await _booking(async_client, studio, name="Ada Lovelace", email=_email("ada"))
-    reader = await _key(async_client, studio, ["bookings.read"])
-    other_reader = await _key(async_client, other, ["bookings.read"])
+    reader = await _key(async_client, studio, ["bookings.read", "bookings.write"])
 
+    # The key is good: it reads the organisation's settings.
+    settings = await async_client.get(f"{API}/org/settings", headers=reader)
+    assert settings.status_code == 200, settings.text
     response = await async_client.get(URL, headers=reader)
-    assert response.status_code == 200, response.text
-    assert [row["name"] for row in response.json()["customers"]] == ["Ada Lovelace"]
-    theirs = await async_client.get(URL, headers=other_reader)
-    assert theirs.status_code == 200
-    assert theirs.json()["customers"] == []
+    assert response.status_code == 401, response.text
+    assert "customers" not in response.json()
+    assert "Ada" not in response.text
 
 
 async def test_erased_contact_is_left_out(

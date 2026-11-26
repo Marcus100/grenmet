@@ -22,6 +22,7 @@ import {
   getBooking,
   getBusinessProfile,
   getBusinessTimezone,
+  listClosures,
   listCustomers,
   listMyOrganisations,
   markCompleted,
@@ -83,6 +84,23 @@ describe("studio API reads", () => {
     expect(await findOrganisation("tok-find", "someone-else")).toBeNull();
   });
 
+  it("asks for closures that have not ended yet from the business's today", async () => {
+    const seen = stubFetch(200, []);
+    await listClosures("tok", ORG, 1000, "2026-11-26");
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.pathname).toBe("/api/v1/bookings/org/closures");
+    expect(url.searchParams.get("ends_on_from")).toBe("2026-11-26");
+    expect(url.searchParams.get("size")).toBe("1000");
+  });
+
+  it("omits the date filter when no day is given", async () => {
+    const seen = stubFetch(200, []);
+    await listClosures("tok", ORG, 50);
+    const url = new URL(seen[0]?.url ?? "");
+    expect(url.searchParams.has("ends_on_from")).toBe(false);
+    expect(url.searchParams.get("size")).toBe("50");
+  });
+
   it("sends the bearer token, organisation header and range on the agenda", async () => {
     const seen = stubFetch(200, {
       timezone: "America/Grenada",
@@ -122,6 +140,25 @@ describe("studio API reads", () => {
     expect(url.searchParams.get("offset")).toBe("50");
   });
 
+  it("sends the visitor's address with a customers read, for the rate limit", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: Request | string | URL) => {
+        const request = input instanceof Request ? input : new Request(input);
+        expect(request.headers.get("x-visitor-ip")).toBe("203.0.113.9");
+        expect(request.headers.get("x-visitor-secret")).toBe("hush");
+        expect(request.headers.get("authorization")).toBe("Bearer tok");
+        return Promise.resolve(
+          Response.json({ total: 0, limit: 50, offset: 0, customers: [] })
+        );
+      })
+    );
+    await listCustomers("tok", ORG, {
+      visitor: { "X-Visitor-IP": "203.0.113.9", "X-Visitor-Secret": "hush" },
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("lists every customer from the start when nothing is searched", async () => {
     const seen = stubFetch(200, {
       total: 0,
@@ -139,6 +176,7 @@ describe("studio API reads", () => {
     stubFetch(500, { detail: "Server fault" });
     const error = await listCustomers("tok-secret", ORG, {
       search: "Ada Lovelace",
+      visitor: { "X-Visitor-IP": "203.0.113.9", "X-Visitor-Secret": "hush" },
     }).catch((caught: unknown) => caught);
     expect(ResponseError.is(error)).toBe(true);
     if (!ResponseError.is(error)) {
@@ -155,6 +193,7 @@ describe("studio API reads", () => {
     const printed = inspect(error, { depth: 6 });
     expect(printed).not.toContain("Lovelace");
     expect(printed).not.toContain("tok-secret");
+    expect(printed).not.toContain("hush");
   });
 
   it("returns null for an unknown booking", async () => {

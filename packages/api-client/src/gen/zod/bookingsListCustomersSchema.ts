@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingCustomerListSchema } from "./bookingCustomerListSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const bookingsListCustomersQueryQSchema = z
@@ -31,7 +32,7 @@ export const bookingsListCustomersHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
   );
 
 export const bookingsListCustomersStatus200Schema =
@@ -60,6 +61,11 @@ export const bookingsListCustomersStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
+export const bookingsListCustomersStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
 export const bookingsListCustomersResponseSchema =
   bookingsListCustomersStatus200Schema;
 
@@ -69,6 +75,7 @@ export const bookingsListCustomersErrorSchema = z.union([
   bookingsListCustomersStatus403Schema,
   bookingsListCustomersStatus404Schema,
   bookingsListCustomersStatus422Schema,
+  bookingsListCustomersStatus429Schema,
 ]);
 
 export const bookingsListCustomersQuerySchema = z.object({
@@ -85,6 +92,6 @@ export const bookingsListCustomersHeadersSchema = z.object({
     .union([z.string(), z.null()])
     .optional()
     .describe(
-      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
     ),
 });

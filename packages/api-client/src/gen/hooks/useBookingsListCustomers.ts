@@ -20,6 +20,7 @@ import type {
   BookingsListCustomersStatus403,
   BookingsListCustomersStatus404,
   BookingsListCustomersStatus422,
+  BookingsListCustomersStatus429,
 } from "../models/BookingsListCustomers.js";
 
 export const bookingsListCustomersQueryKey = ({
@@ -49,6 +50,7 @@ export function bookingsListCustomersQueryOptions(
       | BookingsListCustomersStatus403
       | BookingsListCustomersStatus404
       | BookingsListCustomersStatus422
+      | BookingsListCustomersStatus429
     >,
     BookingsListCustomersStatus200,
     typeof queryKey
@@ -67,7 +69,7 @@ export function bookingsListCustomersQueryOptions(
 }
 
 /**
- * @description One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`.
+ * @description One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`. For a signed-in member of the organisation only: an API key is refused. At most 30 requests a minute.
  * @summary List the business's customers
  * {@link /api/v1/bookings/org/customers}
  */
@@ -97,6 +99,7 @@ export function useBookingsListCustomers<
           | BookingsListCustomersStatus403
           | BookingsListCustomersStatus404
           | BookingsListCustomersStatus422
+          | BookingsListCustomersStatus429
         >,
         TData,
         TQueryData,
@@ -132,6 +135,7 @@ export function useBookingsListCustomers<
       | BookingsListCustomersStatus403
       | BookingsListCustomersStatus404
       | BookingsListCustomersStatus422
+      | BookingsListCustomersStatus429
     >
   > & { queryKey: TQueryKey };
 

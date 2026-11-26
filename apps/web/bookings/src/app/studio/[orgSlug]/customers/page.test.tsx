@@ -21,6 +21,14 @@ vi.mock("@/lib/studio-pending", () => ({
   loadBusinessProfile: (token: string, organisationId: string) =>
     getBusinessProfile(token, organisationId),
 }));
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() =>
+    Promise.resolve(new Headers({ "x-forwarded-for": "203.0.113.9" }))
+  ),
+}));
+vi.mock("@/env", () => ({
+  env: { TRUSTED_WEB_SECRET: "s".repeat(32), VISITOR_IP_PROXY_HOPS: 1 },
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -39,6 +47,11 @@ import {
 import CustomersPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
+/** The person's own address travels with the call, for the API's rate limit. */
+const visitor = {
+  "X-Visitor-IP": "203.0.113.9",
+  "X-Visitor-Secret": "s".repeat(32),
+};
 const search = (query: Record<string, string | string[]> = {}) =>
   Promise.resolve(query);
 const HERE = "/studio/sea-salt/customers";
@@ -132,6 +145,7 @@ describe("studio customers page", () => {
     expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
       offset: 0,
       search: undefined,
+      visitor,
     });
   });
 
@@ -185,6 +199,7 @@ describe("studio customers page", () => {
     expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
       offset: 0,
       search: "grace",
+      visitor,
     });
     const box = screen.getByRole("searchbox", {
       name: "Search by name, email or phone",
@@ -206,6 +221,7 @@ describe("studio customers page", () => {
     expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
       offset: 0,
       search: "x".repeat(100),
+      visitor,
     });
   });
 
@@ -218,6 +234,7 @@ describe("studio customers page", () => {
     expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
       offset: 50,
       search: "ada",
+      visitor,
     });
     expect(screen.getByRole("status").textContent).toBe(
       "Showing 51 to 51 of 120 customers"
@@ -237,11 +254,37 @@ describe("studio customers page", () => {
     expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
       offset: 0,
       search: undefined,
+      visitor,
     });
     expect(screen.queryByRole("link", { name: "More customers" })).toBeNull();
     expect(
       screen.queryByRole("link", { name: "Previous customers" })
     ).toBeNull();
+  });
+
+  it.each(["100001", "-5", "1.5", "1e9"])(
+    "starts from the first page for an offset the API would refuse (%s)",
+    async (value) => {
+      vi.mocked(listCustomers).mockResolvedValue(page([customer()]));
+      await show({ offset: value });
+      expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
+        offset: 0,
+        search: undefined,
+        visitor,
+      });
+    }
+  );
+
+  it("accepts the largest offset the API takes", async () => {
+    vi.mocked(listCustomers).mockResolvedValue(
+      page([], { total: 3, offset: 100_000 })
+    );
+    await show({ offset: "100000" });
+    expect(listCustomers).toHaveBeenCalledWith("tok", ORG_ID, {
+      offset: 100_000,
+      search: undefined,
+      visitor,
+    });
   });
 
   it("offers the way back from a page past the end", async () => {

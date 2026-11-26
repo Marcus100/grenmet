@@ -12612,7 +12612,7 @@
           "bookings"
         ],
         "summary": "List whole-business closures",
-        "description": "Days the business is closed for every provider, earliest first.",
+        "description": "Days the business is closed for every provider, earliest first. Pass `ends_on_from` to list only closures that have not yet ended.",
         "operationId": "bookingsListClosures",
         "security": [
           {
@@ -12623,6 +12623,25 @@
           }
         ],
         "parameters": [
+          {
+            "name": "ends_on_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only closures that end on or after this date (the business's today for upcoming closures). Omit: every closure.",
+              "title": "Ends On From"
+            },
+            "description": "Only closures that end on or after this date (the business's today for upcoming closures). Omit: every closure."
+          },
           {
             "name": "page",
             "in": "query",
@@ -13458,12 +13477,9 @@
           "bookings"
         ],
         "summary": "List the business's customers",
-        "description": "One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`.",
+        "description": "One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`. For a signed-in member of the organisation only: an API key is refused. At most 30 requests a minute.",
         "operationId": "bookingsListCustomers",
         "security": [
-          {
-            "OrganisationApiKey": []
-          },
           {
             "OAuth2PasswordBearer": []
           }
@@ -13525,10 +13541,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "responses": {
@@ -13588,6 +13604,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingslistcustomers"
                 }
               }
             }

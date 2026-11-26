@@ -9,6 +9,7 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import {
@@ -18,12 +19,14 @@ import {
   PRIMARY_ACTION,
   SECONDARY_ACTION,
 } from "@/components/studio/studio-ui";
+import { env } from "@/env";
 import { telHref } from "@/lib/phone";
 import { requireSession } from "@/lib/session";
 import { listCustomers } from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { loadBusinessProfile } from "@/lib/studio-pending";
+import { visitorHeaders } from "@/lib/visitor-headers";
 
 export const metadata: Metadata = {
   title: "Customers",
@@ -31,6 +34,8 @@ export const metadata: Metadata = {
 
 /** The API's own limit for a search. */
 const MAX_SEARCH = 100;
+/** The API's own limit for `offset`. */
+const MAX_OFFSET = 100_000;
 
 interface CustomersPageProps {
   params: Promise<{ orgSlug: string }>;
@@ -76,8 +81,13 @@ export default async function CustomersPage({
 
   const search = first(query.q)?.slice(0, MAX_SEARCH);
   const offsetParam = Number(first(query.offset));
+  // Outside what the API accepts starts again from the first page.
   const offset =
-    Number.isInteger(offsetParam) && offsetParam > 0 ? offsetParam : 0;
+    Number.isInteger(offsetParam) &&
+    offsetParam > 0 &&
+    offsetParam <= MAX_OFFSET
+      ? offsetParam
+      : 0;
 
   const org = await loadOrganisation(session, orgSlug, here);
   if (!org.ok) {
@@ -85,6 +95,13 @@ export default async function CustomersPage({
   }
   const organisationId = org.value.id;
 
+  // The API limits this list per person; without these it would count every
+  // business's staff as this one server.
+  const visitor = visitorHeaders(
+    await headers(),
+    env.TRUSTED_WEB_SECRET,
+    env.VISITOR_IP_PROXY_HOPS
+  );
   const [profile, customers] = await Promise.all([
     guarded(
       () => loadBusinessProfile(session.accessToken, organisationId),
@@ -92,7 +109,11 @@ export default async function CustomersPage({
     ),
     guarded(
       () =>
-        listCustomers(session.accessToken, organisationId, { offset, search }),
+        listCustomers(session.accessToken, organisationId, {
+          offset,
+          search,
+          visitor,
+        }),
       here
     ),
   ]);

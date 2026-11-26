@@ -89,12 +89,17 @@ const COVER_PURPOSE = "booking-cover";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
-function studioClient(accessToken: string, organisationId?: string) {
+function studioClient(
+  accessToken: string,
+  organisationId?: string,
+  extraHeaders: Record<string, string> = {}
+) {
   const config = getAuthConfig();
   // An isolated instance keeps one user's bearer token out of shared server state.
   const client = createClient({
     baseURL: config.authApiBaseUrl,
     headers: {
+      ...extraHeaders,
       Authorization: `Bearer ${accessToken}`,
       ...(organisationId ? { "X-Barrels-Organisation": organisationId } : {}),
     },
@@ -199,6 +204,11 @@ interface CustomersQuery {
   offset?: number;
   /** Part of a name, email or phone; blank lists everyone. */
   search?: string;
+  /**
+   * The visitor headers (`visitorHeaders`), so the API's rate limit (30 a
+   * minute) counts the person, not this server.
+   */
+  visitor?: Record<string, string>;
 }
 
 /**
@@ -212,7 +222,7 @@ export function listCustomers(
   query: CustomersQuery = {}
 ): Promise<BookingCustomerList> {
   return bookingsListCustomers({
-    client: studioClient(accessToken, organisationId),
+    client: studioClient(accessToken, organisationId, query.visitor),
     query: {
       limit: CUSTOMERS_PAGE_SIZE,
       offset: query.offset ?? 0,
@@ -704,11 +714,13 @@ export function replaceHours(
 export function listClosures(
   accessToken: string,
   organisationId: string,
-  size: number
+  size: number,
+  endsOnFrom?: string
 ): Promise<BookingClosurePublic[]> {
   return bookingsListClosures({
     client: studioClient(accessToken, organisationId),
-    query: { size },
+    query:
+      endsOnFrom === undefined ? { size } : { size, ends_on_from: endsOnFrom },
   })
     .unwrap()
     .catch(redactRequest);

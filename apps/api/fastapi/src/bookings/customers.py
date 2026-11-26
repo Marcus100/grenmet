@@ -27,8 +27,10 @@ _MIN_PHONE_DIGITS = 3
 
 
 def _search(q: str | None) -> list[ColumnElement[bool]]:
-    """Case-insensitive match on name, email or phone. A phone also matches on
-    its digits alone, so "4735550100" finds "+1 473 555 0100"."""
+    """Case-insensitive match on name, email or phone. A search made of digits
+    (three or more, with no letter or ``@``) also matches phone numbers on
+    their digits alone, so "4735550100" finds "+1 473 555 0100"; the same
+    digits still match a name or an email that contains them."""
     term = (q or "").strip()
     if not term:
         return []

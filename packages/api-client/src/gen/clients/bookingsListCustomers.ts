@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsListCustomers.js";
 
 /**
- * @description One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`.
+ * @description One row per customer with a booking that was not cancelled: name, email, phone, how many bookings, the last visit and the next booking. `q` matches name, email or phone, any case. Whoever has a booking coming up is first (soonest first), then the most recent visit. Page with `limit` and `offset`. For a signed-in member of the organisation only: an API key is refused. At most 30 requests a minute.
  * @summary List the business's customers
  * {@link /api/v1/bookings/org/customers}
  */
@@ -24,7 +24,7 @@ export function bookingsListCustomers<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/v1/bookings/org/customers",
-      security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
+      security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BookingsListCustomersResponses, ThrowOnError>>
