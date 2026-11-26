@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const accountProfileUpdateSchema = z
-  .object({
+  .strictObject({
     first_name: z.union([z.string().max(100), z.null()]).optional(),
     last_name: z.union([z.string().max(100), z.null()]).optional(),
     phone: z
@@ -17,5 +17,5 @@ export const accountProfileUpdateSchema = z
       ),
   })
   .describe(
-    "The fields a person fills in after a quick sign-up. A field left out is not\nchanged; a blank or null ``phone`` removes the number."
+    "The fields a person fills in after a quick sign-up. A field left out is not\nchanged; a blank or null ``phone`` removes the number. A one-word name is\nallowed: the first name is required, the last name may be blank."
   );

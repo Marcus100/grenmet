@@ -49,7 +49,7 @@ export function NameForm({ firstName, lastName }: NameFormProps) {
         ) : null}
       </Field>
       <Field data-invalid={lastError ? true : undefined}>
-        <FieldLabel htmlFor={lastId}>Last name</FieldLabel>
+        <FieldLabel htmlFor={lastId}>Last name (optional)</FieldLabel>
         <Input
           aria-describedby={lastError ? `${lastId}-error` : undefined}
           aria-invalid={lastError ? true : undefined}
@@ -58,7 +58,6 @@ export function NameForm({ firstName, lastName }: NameFormProps) {
           id={lastId}
           maxLength={100}
           name="last_name"
-          required
         />
         {lastError ? (
           <FieldError id={`${lastId}-error`}>{lastError}</FieldError>

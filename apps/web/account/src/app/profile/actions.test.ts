@@ -80,15 +80,46 @@ describe("saveNameAction", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
-  it("names the empty field and does not call the API", async () => {
+  it("names the empty first name and does not call the API", async () => {
     const state = await saveNameAction(
       NAME_START,
-      form({ first_name: "Kezia", last_name: "  " })
+      form({ first_name: "  ", last_name: "Mitchell" })
     );
 
-    expect(state.fieldErrors).toEqual({ last_name: "Enter your last name." });
-    expect(state.values).toEqual({ first_name: "Kezia", last_name: "" });
+    expect(state.fieldErrors).toEqual({ first_name: "Enter your first name." });
+    expect(state.values).toEqual({ first_name: "", last_name: "Mitchell" });
     expect(authApiFetch).not.toHaveBeenCalled();
+  });
+
+  it("saves a one-word name with a blank last name", async () => {
+    authApiFetch.mockResolvedValue({});
+
+    await expect(
+      saveNameAction(NAME_START, form({ first_name: "Kezia", last_name: " " }))
+    ).rejects.toThrow("REDIRECT /?saved=name");
+
+    expect(authApiFetch).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ body: { first_name: "Kezia", last_name: "" } })
+    );
+  });
+
+  it("says to wait on a rate limit, without reporting", async () => {
+    authApiFetch.mockRejectedValue(new AuthApiError(429, "Too many requests"));
+
+    const state = await saveNameAction(
+      NAME_START,
+      form({ first_name: "Kezia", last_name: "Mitchell" })
+    );
+
+    expect(state.formError).toBe(
+      "Too many changes. Wait a minute, then try again."
+    );
+    expect(state.fieldErrors).toEqual({});
+    expect(reportError).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
   });
 
   it("puts the API's reason beside the field it is about", async () => {
@@ -213,6 +244,20 @@ describe("savePhoneAction", () => {
 
     expect(state.fieldErrors).toEqual({ phone: PHONE_SENTENCE });
     expect(state.values).toEqual({ phone: "440 1234" });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says to wait on a rate limit, without reporting", async () => {
+    authApiFetch.mockRejectedValue(new AuthApiError(429, "Too many requests"));
+
+    const state = await savePhoneAction(
+      PHONE_START,
+      form({ phone: "+14734401234" })
+    );
+
+    expect(state.formError).toBe(
+      "Too many changes. Wait a minute, then try again."
+    );
     expect(reportError).not.toHaveBeenCalled();
   });
 

@@ -1,11 +1,11 @@
 "use server";
 
-import { isAuthApiError } from "@barrelsgd/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { updateMyProfile } from "@/lib/account-profile-api";
 import {
   apiFieldErrors,
+  isRateLimited,
   isSignedOut,
   NAME_FIELDS,
   type NameFormState,
@@ -14,6 +14,7 @@ import {
   type PhoneFormState,
   readField,
   SIGN_IN_AGAIN,
+  TOO_MANY_CHANGES,
 } from "@/lib/profile-form";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -22,10 +23,11 @@ const NAME_LIMIT = 100;
 const PHONE_LIMIT = 40;
 const HAS_DIGIT = /\d/u;
 
+/** A one-word name is allowed: only the first name is required. */
 function nameProblem(value: string, which: "first" | "last"): string | null {
-  if (!value) return `Enter your ${which} name.`;
+  if (!value && which === "first") return "Enter your first name.";
   if (value.length > NAME_LIMIT) {
-    return `Use ${NAME_LIMIT} characters or fewer.`;
+    return "Use  characters or fewer.";
   }
   return null;
 }
@@ -63,6 +65,9 @@ export async function saveNameAction(
     const fieldErrors = apiFieldErrors(error, NAME_FIELDS);
     if (Object.keys(fieldErrors).length > 0) {
       return { fieldErrors, formError: null, values };
+    }
+    if (isRateLimited(error)) {
+      return { fieldErrors: {}, formError: TOO_MANY_CHANGES, values };
     }
     if (isSignedOut(error)) {
       return { fieldErrors: {}, formError: SIGN_IN_AGAIN, values };
@@ -105,12 +110,8 @@ export async function savePhoneAction(
     if (Object.keys(fieldErrors).length > 0) {
       return { fieldErrors, formError: null, values };
     }
-    if (isAuthApiError(error) && error.status === 429) {
-      return {
-        fieldErrors: {},
-        formError: "Too many changes. Wait a minute, then try again.",
-        values,
-      };
+    if (isRateLimited(error)) {
+      return { fieldErrors: {}, formError: TOO_MANY_CHANGES, values };
     }
     if (isSignedOut(error)) {
       return { fieldErrors: {}, formError: SIGN_IN_AGAIN, values };

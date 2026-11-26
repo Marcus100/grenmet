@@ -117,12 +117,15 @@ async def test_a_nameless_sign_up_reads_as_a_placeholder_until_a_name_is_saved(
     [
         {"first_name": "", "last_name": "Mitchell"},
         {"first_name": "   ", "last_name": "Mitchell"},
-        {"first_name": "Kezia", "last_name": None},
         {"first_name": "​", "last_name": "Mitchell"},
         {"first_name": "K" * 101, "last_name": "Mitchell"},
         {"phone": "440 1234"},
         {"phone": "+0 473 440 1234"},
         {"phone": "call me"},
+        {"phone": 123},
+        {"phone": ["+14734401234"]},
+        {"first_name": 7},
+        {"last_name": 7},
     ],
 )
 async def test_a_bad_name_or_phone_is_refused_and_nothing_is_saved(
@@ -213,27 +216,51 @@ async def test_two_accounts_may_hold_the_same_contact_number(
     assert (holder.first_name, holder.last_name) == holder_name
 
 
-async def test_only_the_named_fields_can_be_changed(
-    async_client: httpx.AsyncClient, db_async: AsyncSession
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"email": "someone-else@example.com"},
+        {"is_superuser": True},
+        {"phone_verified_at": "2026-01-01T00:00:00Z"},
+        {"phone_e164": "+14734401234"},
+    ],
+)
+async def test_an_unknown_field_is_refused_and_nothing_is_saved(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, extra: dict[str, object]
 ) -> None:
     user = await make_user(db_async)
     email = user.email
-    saved = await async_client.patch(
+    refused = await async_client.patch(
         URL,
         headers=_headers(user),
-        json={
-            "first_name": "Kezia",
-            "last_name": "Mitchell",
-            "email": "someone-else@example.com",
-            "is_superuser": True,
-            "phone_verified_at": "2026-01-01T00:00:00Z",
-        },
+        json={"first_name": "Kezia", "last_name": "Mitchell", **extra},
     )
-    assert saved.status_code == 200, saved.text
+    assert refused.status_code == 422, refused.text
     await db_async.refresh(user)
     assert user.email == email
+    assert user.first_name != "Kezia"
     assert user.is_superuser is False
+    assert user.phone_e164 is None
     assert user.phone_verified_at is None
+
+
+async def test_a_one_word_name_is_saved_and_counts_as_a_name(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user = await make_user(db_async, email="km@example.com")
+    user.first_name, user.last_name = "km", ""
+    await db_async.commit()
+    headers = _headers(user)
+
+    for last in ("", "  ", None):
+        saved = await async_client.patch(
+            URL, headers=headers, json={"first_name": "Kezia", "last_name": last}
+        )
+        assert saved.status_code == 200, saved.text
+        assert saved.json()["last_name"] == ""
+        assert saved.json()["name_is_placeholder"] is False
+    await db_async.refresh(user)
+    assert (user.first_name, user.last_name) == ("Kezia", "")
 
 
 async def test_no_token_and_other_apps_tokens_are_refused(

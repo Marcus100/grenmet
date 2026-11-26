@@ -45,5 +45,5 @@ export const authUpdateMyProfileErrorSchema = z.union([
 
 export const authUpdateMyProfileBodySchema =
   accountProfileUpdateSchema.describe(
-    "The fields a person fills in after a quick sign-up. A field left out is not\nchanged; a blank or null ``phone`` removes the number."
+    "The fields a person fills in after a quick sign-up. A field left out is not\nchanged; a blank or null ``phone`` removes the number. A one-word name is\nallowed: the first name is required, the last name may be blank."
   );

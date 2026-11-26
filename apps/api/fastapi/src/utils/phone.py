@@ -16,7 +16,8 @@ def blank_to_none(value: object) -> str | None:
     if value is None:
         return None
     if not isinstance(value, str):
-        raise TypeError("Enter text")
+        # ValueError, not TypeError: Pydantic turns only the former into a 422.
+        raise ValueError("Enter text")
     stripped = value.strip()
     return stripped or None
 

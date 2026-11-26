@@ -40,7 +40,9 @@ describe("NameForm", () => {
     render(<NameForm firstName="Kezia" lastName="Mitchell" />);
 
     expect(screen.getByLabelText("First name")).toHaveValue("Kezia");
-    expect(screen.getByLabelText("Last name")).toHaveValue("Mitchell");
+    expect(screen.getByLabelText("Last name (optional)")).toHaveValue(
+      "Mitchell"
+    );
     expect(screen.getByRole("link", { name: "Cancel" })).toHaveAttribute(
       "href",
       "/"
@@ -49,7 +51,7 @@ describe("NameForm", () => {
 
   it("shows a refused field's reason beside it and keeps what was typed", async () => {
     saveNameAction.mockResolvedValue({
-      fieldErrors: { last_name: "Enter your last name." },
+      fieldErrors: { last_name: "Use 100 characters or fewer." },
       formError: null,
       values: { first_name: "Kezia", last_name: "" },
     });
@@ -58,8 +60,8 @@ describe("NameForm", () => {
     submit("Save name");
 
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("Enter your last name.");
-    const last = screen.getByLabelText("Last name");
+    expect(alert).toHaveTextContent("Use 100 characters or fewer.");
+    const last = screen.getByLabelText("Last name (optional)");
     expect(last).toHaveAttribute("aria-invalid", "true");
     expect(last).toHaveAttribute("aria-describedby", alert.id);
     expect(screen.getByLabelText("First name")).not.toHaveAttribute(

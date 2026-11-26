@@ -37,7 +37,8 @@ export type AuthUpdateMyProfileStatus429 = ApiError | ErrorMessage;
 
 /**
  * @description The fields a person fills in after a quick sign-up. A field left out is not
- * changed; a blank or null ``phone`` removes the number.
+ * changed; a blank or null ``phone`` removes the number. A one-word name is
+ * allowed: the first name is required, the last name may be blank.
  * @type object
  */
 export type AuthUpdateMyProfileBody = AccountProfileUpdate;

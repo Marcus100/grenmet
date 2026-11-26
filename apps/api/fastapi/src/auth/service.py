@@ -272,15 +272,15 @@ def name_is_placeholder(user: User) -> bool:
 
     A sign-up with no name (``app_service._create_member``) stores the part of the
     email before the @ as the first name and an empty last name. A blank first name
-    counts too. A first name with no last name that differs from the email (a Google
-    given name, say) is a real name.
+    counts too. Any first name that differs from that part of the email is a real
+    name, with or without a last name (one-word names are allowed).
     """
     first = (user.first_name or "").strip()
     if not first:
         return True
-    if (user.last_name or "").strip():
+    if first.lower() != user.email.split("@", 1)[0][:100].lower():
         return False
-    return first.lower() == user.email.split("@", 1)[0][:100].lower()
+    return not (user.last_name or "").strip()
 
 
 async def update_account_profile(

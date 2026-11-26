@@ -297,3 +297,19 @@ async def test_the_seed_keeps_contacts_set_in_studio(
     await db_async.commit()
     stored = await async_client.get(f"{API}/public/{studio.slug}")
     assert stored.json()["contact"] == STORED
+
+
+@pytest.mark.parametrize(
+    "normalise",
+    [
+        contact.normalise_phone,
+        contact.normalise_whatsapp,
+        contact.normalise_instagram,
+        contact.normalise_email,
+    ],
+)
+@pytest.mark.parametrize("raw", [123, 4.5, ["+14734401234"], {"phone": "x"}, True])
+def test_a_value_that_is_not_text_is_a_validation_error(normalise, raw) -> None:
+    """ValueError, which Pydantic answers with a 422; a TypeError would be a 500."""
+    with pytest.raises(ValueError, match="Enter text"):
+        normalise(raw)

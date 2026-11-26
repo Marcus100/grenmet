@@ -110,9 +110,10 @@ person can still change a value.
     screen readers.
   - **Email** is always done and shows the address. It has no action: the
     sign-in address is changed on `auth.barrels.gd`.
-  - **Your name** is not done while the name is the one a quick sign-up made up
-    (the part of the email before the @ and no last name) or blank; the API
-    decides (`name_is_placeholder`). A made-up name is never shown as the
+  - **Your name** is not done while the first name is blank or is the one a
+    quick sign-up made up (the part of the email before the @, with no last
+    name); the API decides (`name_is_placeholder`). A one-word name counts:
+    only the first name is required. A made-up name is never shown as the
     person's name: the row shows guidance and the page heading shows the email.
     Action: "Add your name", then "Edit name". It opens `/profile/name`.
   - **Phone number** is done when a number is stored and shows it in
@@ -126,7 +127,8 @@ person can still change a value.
   the right.
 - **Editors** (`/profile/name`, `/profile/phone`): one small form each, at most
   `max-w-sm`, with a primary Save button and a Cancel link back to the profile.
-  The name form has First name and Last name, both required. The phone form has
+  The name form has First name (required) and "Last name (optional)"; a
+  made-up name is never offered back, so the fields start empty. The phone form has
   one field with the placeholder "+1 473 440 1234" and the hint "Start with the
   country code. Grenada numbers start with +1 473."; when a number is stored the
   hint adds "Leave this blank to remove your number."

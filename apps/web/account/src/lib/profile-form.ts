@@ -46,6 +46,14 @@ export function isSignedOut(error: unknown): boolean {
   );
 }
 
+/** True when the API's per-account limit on profile saves was reached. */
+export function isRateLimited(error: unknown): boolean {
+  return isAuthApiError(error) && error.status === 429;
+}
+
+export const TOO_MANY_CHANGES =
+  "Too many changes. Wait a minute, then try again.";
+
 export const SIGN_IN_AGAIN =
   "Your sign-in has ended. Sign in again, then save.";
 
