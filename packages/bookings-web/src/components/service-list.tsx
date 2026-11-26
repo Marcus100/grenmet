@@ -4,7 +4,7 @@ import type {
   BookingPublicService,
   BookingStorefront,
 } from "@barrelsgd/api-client";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { businessDepositLabel, businessDepositOf } from "../lib/booking-extras";
 import { formatDuration, formatMoney } from "../lib/booking-format";
 import { dueAtBooking } from "../lib/booking-payment";
@@ -13,17 +13,19 @@ import {
   groupServicesByCategory,
   serviceCountLabel,
 } from "../lib/service-categories";
+import { describedBy, ServiceDetails } from "./service-details";
 
 export interface ServiceListProps {
+  /** Add-ons are ticked, so the chosen service's details leave out the amount. */
+  addOnsChosen?: boolean;
   /** Services shown as "Book again" shortcuts; the first one's category opens by default. */
   bookAgainIds: string[];
-  currency: string;
-  /** `business`: deposits are paid to the business by hand and shown per service. */
-  depositCollection?: BookingStorefront["deposit_collection"];
   /** Chooses a service (the flow clears the time and loads the new times). */
   onPick: (serviceId: string) => void;
   selectedId: string | null;
   services: BookingPublicService[];
+  /** The business's page: currency, deposits, policy and add-ons for the details. */
+  storefront: BookingStorefront;
 }
 
 /**
@@ -47,73 +49,92 @@ function dueLabel(
 }
 
 function ServiceOption({
-  currency,
-  depositCollection,
+  addOnsChosen,
   item,
   onPick,
   selectedId,
+  storefront,
 }: {
-  currency: string;
-  depositCollection: ServiceListProps["depositCollection"];
+  addOnsChosen: boolean;
   item: BookingPublicService;
   onPick: (serviceId: string) => void;
   selectedId: string | null;
+  storefront: BookingStorefront;
 }) {
-  const due = dueAtBooking(item);
+  const detailsId = useId();
+  const chosen = item.id === selectedId;
+  const currency = storefront.currency;
   const toBusiness =
-    depositCollection === "business" ? businessDepositOf(item) : 0;
+    storefront.deposit_collection === "business" ? businessDepositOf(item) : 0;
+  const due = dueAtBooking(item);
   return (
-    <label className="service-option">
-      <input
-        checked={item.id === selectedId}
-        name="service"
-        onChange={() => onPick(item.id)}
-        type="radio"
-        value={item.id}
-      />
-      <span className="service-text">
-        <span className="service-name">
-          {item.name}
-          {item.new_clients_only ? (
-            <>
-              {" "}
-              <span className="service-badge">New clients</span>
-            </>
-          ) : null}
-        </span>
-        <span className="muted">
-          {formatDuration(item.duration_min)}
-          {item.description ? ` · ${item.description}` : ""}
-        </span>
-        {toBusiness > 0 && (
-          <span className="muted">
-            {businessDepositLabel(toBusiness, currency)}
+    <div className="service-option" data-chosen={chosen ? "true" : undefined}>
+      <label className="service-row">
+        <input
+          aria-describedby={
+            chosen ? describedBy(detailsId, item.description) : undefined
+          }
+          checked={chosen}
+          name="service"
+          onChange={() => onPick(item.id)}
+          type="radio"
+          value={item.id}
+        />
+        <span className="service-text">
+          <span className="service-name">
+            {item.name}
+            {item.new_clients_only ? (
+              <>
+                {" "}
+                <span className="service-badge">New clients</span>
+              </>
+            ) : null}
+            {chosen ? (
+              <span aria-hidden="true" className="service-chosen-mark">
+                Chosen
+              </span>
+            ) : null}
           </span>
-        )}
-        {due > 0 && (
-          <span className="muted">{dueLabel(due, item, currency)}</span>
-        )}
-      </span>
-      <span className="service-price">
-        {formatMoney(item.price_minor, currency)}
-      </span>
-    </label>
+          <span className="muted">{formatDuration(item.duration_min)}</span>
+          {toBusiness > 0 && (
+            <span className="muted">
+              {businessDepositLabel(toBusiness, currency)}
+            </span>
+          )}
+          {due > 0 && (
+            <span className="muted">{dueLabel(due, item, currency)}</span>
+          )}
+        </span>
+        <span className="service-price">
+          {formatMoney(item.price_minor, currency)}
+        </span>
+      </label>
+      {chosen ? (
+        <ServiceDetails
+          addOnsChosen={addOnsChosen}
+          id={detailsId}
+          service={item}
+          storefront={storefront}
+        />
+      ) : null}
+    </div>
   );
 }
 
 /**
- * The service radios. One category (or none) is a flat list under its heading,
+ * The service choices. One category (or none) is a flat list under its heading,
  * as before. Two or more categories are disclosures: one is open at first (the
  * chosen or "Book again" service's, else the first), and the chosen service is
  * always visible, either in its open category or named on its closed summary.
+ * The chosen service's row also shows its details; only one row does.
  */
 export function ServiceList({
+  addOnsChosen = false,
   bookAgainIds,
-  currency,
-  depositCollection,
   onPick,
   selectedId,
   services,
+  storefront,
 }: ServiceListProps) {
   const groups = groupServicesByCategory(services);
   // The user's own open/closed choices per category key. A category with no
@@ -146,12 +167,12 @@ export function ServiceList({
         <h3>{group.label}</h3>
         {group.services.map((item) => (
           <ServiceOption
-            currency={currency}
-            depositCollection={depositCollection}
+            addOnsChosen={addOnsChosen}
             item={item}
             key={item.id}
             onPick={onPick}
             selectedId={selectedId}
+            storefront={storefront}
           />
         ))}
       </div>
@@ -189,12 +210,12 @@ export function ServiceList({
             <div className="service-category-body">
               {group.services.map((item) => (
                 <ServiceOption
-                  currency={currency}
-                  depositCollection={depositCollection}
+                  addOnsChosen={addOnsChosen}
                   item={item}
                   key={item.id}
                   onPick={onPick}
                   selectedId={selectedId}
+                  storefront={storefront}
                 />
               ))}
             </div>

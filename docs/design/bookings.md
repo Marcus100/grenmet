@@ -123,26 +123,45 @@ service list three screens long.
 
 - **Steps:** 1 Service (and add-ons, when the chosen service has them), 2 Time
   (the day and time picker), 3 Details (the form, emailed-code step, rules and
-  the Book button). Choosing a service moves to step 2, except when add-ons are
-  offered: then the person stays until they press Continue.
+  the Book button). Choosing a service, a day or a time never moves the step:
+  only Continue and Back do. Continue is `aria-disabled` with the reason until
+  the step's choice is made.
+- **Service details:** the chosen service's row expands in place (one at a
+  time) with its description (three lines, then a "Read more" button that says
+  `aria-expanded`), duration, price, the payment line (`bookingRulesLine`), the
+  new-clients note, its add-ons (names and prices, read only) and a "Full
+  policy" disclosure when the business wrote one. The radio is described by the
+  panel (`aria-describedby`). The panel sits beside the radio's label, never in
+  it.
+- **Remembered choices:** the service, day and time live in the page's own link
+  (`?service=`, `?day=`, `?time=`, written with `replaceState`, so a reload or a
+  shared link keeps them). Typed details (name, email, phone, notes, marketing)
+  live in sessionStorage per business, for this tab only; the emailed code never
+  does. A remembered time the business no longer offers is cleared and the
+  step says so.
 - **Header:** "Step 2 of 3: Time" as a heading (focus moves to it on each step
   change, and the page scrolls to it), three bars below it with
   `aria-current="step"` on the current one (the finished ones and the current
   one use the business accent), and a Back button of 44 px on steps 2 and 3.
   Back keeps every choice and everything typed.
-- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with one
-  line of what is chosen so far (service, day and time, price, and "due now"
-  when the amount is known) and Continue. Continue stays `aria-disabled` with a
-  line saying what to choose first. Step 3 has no bar (the keyboard would
-  cover a field): the form's own Book button is the only Book button, and the
-  same one-line summary sits above the details.
+- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with the
+  chosen service on two lines (its name, truncated; then "45 min · EC$100",
+  plus "due now" when known) and Continue beside them. Continue stays
+  `aria-disabled` with a line saying what to choose first. Step 3 has no bar
+  (the keyboard would cover a field): the form's own Book button is the only
+  Book button.
+- **Chosen-so-far line (steps 2 and 3):** one line above the step's content,
+  "service · day and time", with an "Edit" link. On step 2 it goes back to
+  step 1; on step 3 it goes back to step 2. On a phone the link walks the
+  history this flow pushed, so the phone's Back stays in step.
 - **Errors:** a taken time or removed add-ons return the person to step 2 with
   the message shown at the top as before.
 - **No script:** before JavaScript runs, every section shows (the steps apply
   only once the script has run). Hidden steps are `display: none`.
-- **Deep link:** `/{business}?service=<service id>` preselects that service and
-  starts on step 2 (Back returns to step 1). An id that is malformed, or that
-  the business does not offer, is ignored.
+- **Deep link:** `/{business}?service=<service id>` preselects that service,
+  expands its details and starts on step 1 (nothing moves on by itself). A
+  `day` and `time` in the link are restored with it. An id that is malformed, or
+  that the business does not offer, is ignored.
 - **Motion** (CSS only; transform and opacity; curves `--ease-out` and
   `--ease-in-out` in `booking.css`): the new step fades in and slides 24 px over
   220 ms from the right going forward and from the left going Back (also after an

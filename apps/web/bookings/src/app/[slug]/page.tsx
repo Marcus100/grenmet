@@ -1,6 +1,7 @@
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import { PausedNotice } from "@barrelsgd/bookings-web/components/paused-notice";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
+import { dayParam, timeParam } from "@barrelsgd/bookings-web/lib/booking-link";
 import { AccountMenu } from "@barrelsgd/ui/components/account-menu";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
@@ -89,7 +90,12 @@ export default async function BusinessBookingPage({
   const { slug } = await params;
   // `?service=<id>` preselects a service; anything malformed is ignored, and
   // the flow ignores an id the business does not offer.
-  const initialServiceId = serviceIdFromQuery((await searchParams).service);
+  // `?day=` and `?time=` remember the day and time chosen with that service;
+  // the flow checks them against the live times and clears any that are gone.
+  const query = await searchParams;
+  const initialServiceId = serviceIdFromQuery(query.service);
+  const initialDay = dayParam(query.day);
+  const initialStartsAt = timeParam(query.time);
   const storefront = await loadStorefront(slug);
   if (!storefront) {
     notFound();
@@ -238,7 +244,9 @@ export default async function BusinessBookingPage({
               submitBooking: submitBooking.bind(null, slug),
             }}
             bookAgain={visitor?.bookAgain}
+            initialDay={initialDay}
             initialServiceId={initialServiceId}
+            initialStartsAt={initialStartsAt}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}

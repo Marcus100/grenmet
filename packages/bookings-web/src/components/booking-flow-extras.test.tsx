@@ -323,14 +323,15 @@ describe("new clients only", () => {
     expect(screen.queryByText(RX_10)).toBeNull();
   });
 
-  it("marks the confirm-step note phone-only so one page shows it once", async () => {
+  it("shows the new-clients note once on each layout: in the chosen service's details, and on the confirm step only on phones", async () => {
     const user = userEvent.setup();
     const { container } = renderFlow(shop({}, newClients));
     await user.click(screen.getByRole("radio", { name: HYBRID }));
+    const panel = container.querySelector(".service-details");
+    expect(panel).toHaveTextContent("For first-time clients.");
     const notes = container.querySelectorAll(".new-clients-note");
-    expect(notes).toHaveLength(2);
-    expect(notes[0]?.classList.contains("book-phone-only")).toBe(false);
-    expect(notes[1]?.classList.contains("book-phone-only")).toBe(true);
+    expect(notes).toHaveLength(1);
+    expect(notes[0]?.classList.contains("book-phone-only")).toBe(true);
   });
 
   it("puts no stray space after an ordinary service name", () => {
