@@ -368,6 +368,14 @@ scanner exclusions. SQLite and the other Perl findings remain under review.
 
 Superusers may approve identity in person and deliver a single-use activation link directly. This establishes a password without claiming ownership of a mailbox. See [staff onboarding](operations/staff-onboarding.md) and [modular access decision](adr/0018-modular-access-and-onboarding.md). Links are hashed in storage, expire after 30 minutes, bind to the current account credentials/email and issuing administrator, and are revocable. Redemption revokes existing sessions and retains MFA. Existing approved staff exempt from email verification may enter CMS with explicit access; public accounts retain the verified-email gate.
 
+## Sign-in code in the email subject
+
+Owner decision, 26 Nov 2026: the subject of the emailed sign-in code starts with the code (`574554 is your Barrels code`), so mail apps can offer "Copy code". Commit `e2fa3cfc3` took the code out of the subject on 31 Oct 2026 without a recorded reason; this restores it deliberately.
+
+- Accepted exposure: the code shows in lock-screen and notification previews. It lasts 10 minutes, works once, and five wrong guesses lock it.
+- The subject is never logged, and this email never goes through the outbox or the delivery log: it is sent straight from memory (`app_service._deliver_code_email`). `send_email` must never log a subject. Test: `tests/auth/test_email_code_send_limit.py`.
+- Email-change and superuser-invitation codes keep generic subjects.
+
 ## Privileged two-step verification
 
 Privileged access has a separately activated MFA gate with encrypted authenticator storage, live session evidence, saved recovery codes and an operator readiness command. The API's own default is `enforce` outside local development: a superuser or privileged-permission holder with no enrolled authenticator is refused with 403 `mfa_enrolment_required` and sent to account security to enrol (issue #501). The deployment renderer still passes `disabled` unless the environment variable is set, so production enforcement is switched on operationally. Known residual: a stolen password alone still lets an attacker enrol their own authenticator on an unenrolled account. Enrolment emails the account owner (detection only), and the first authenticator of a privileged account also needs a code emailed to the account (#625). That emailed code is skipped only when the setup's own session was opened by an emailed code less than 10 minutes earlier (ADR-0059 rule 2); the setup then also marks that session two-step verified once the authenticator code is checked (rule 4). Password, Google and older sessions keep the emailed code and are never upgraded. Residual risk: a session token stolen within that 10-minute window can enrol an authenticator without a second emailed code. See [rollout and recovery](operations/privileged-mfa.md).

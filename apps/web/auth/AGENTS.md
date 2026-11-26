@@ -15,13 +15,13 @@ This IS the auth app — it does not delegate to itself. It integrates directly 
 
 ```text
 src/app/
-  page.tsx                        ← sign-in: emailed code first; `?method=password` (or a reauth step) shows the password form
-  signup/page.tsx
+  page.tsx                        ← "Sign in or create an account": email, Continue, Google; `?method=password` (or a reauth step) shows the password form
+  signup/page.tsx                 ← redirects to `/`, keeping `app` and `returnTo`
   forgot-password/page.tsx
   reset-password/page.tsx
   code/page.tsx                   ← sign in with an emailed one-time code (account session)
   superuser-invite/page.tsx       ← accept a Barrels superuser invitation: token read from the #fragment in the browser, POST body only, no-referrer (ADR-0059)
-  continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
+  continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"; an instant-join app is joined without the question only with the mark a code sign-in for that app leaves (`lib/join-intent.ts`), never on the GET alone
   organisations/page.tsx          ← account tab: my memberships (`GET /organisations/mine`)
   organisations/accept/page.tsx   ← emailed invitation link (`?token=`); a form posts the token in the body (ADR-0022)
   tickets/page.tsx                ← account tab: my Events tickets (`GET /rewards/me/tickets`, read-only)
@@ -41,8 +41,8 @@ src/app/
 
 ## Passwordless sign-up and sign-in
 
-- `/signup` and the "Continue with email" form share `EmailCodeForm`: one email, then the 6-digit code. The code creates the account on first use, verifies the email and signs the person in, then returns to `returnTo`. There is no password at sign-up and no confirm field anywhere in sign-up, activation or verify-email.
-- Sign-in leads with the emailed code at `/` ("Email me a code"), with "Use password instead" right below it. The password form is `/?method=password`, which links back with "Email me a code instead". The code step offers "Send a new code" (after `EMAIL_CODE_RESEND_SECONDS`, 60 s, mirroring the API's per-mailbox cooldown in `lockout.py`; the API's reply carries no retry time) and "Use a different email". Existing password accounts are unchanged.
+- One first screen for a new and a returning person (owner decision 26 Nov 2026): `EmailCodeForm` asks for one email, then the 6-digit code. The code creates the account on first use, verifies the email and signs the person in, then returns to `returnTo`. Nothing on it (wording, steps, button names) may depend on whether the address has an account. There is no password at sign-up and no confirm field anywhere in sign-up, activation or verify-email.
+- Under the form: "Continue with Google", then the "More ways to sign in" disclosure (`MoreWaysToSignIn`) holding the password link. The password form is `/?method=password`, which links back with "Email me a code instead". It has no "create an account" link, and on every sign-in screen the app name follows a `/continue` `returnTo` before `?app=`. The code field (`CodeField`) strips spaces and dashes from a pasted code and, with `submitOnComplete`, submits on the sixth digit. The code step offers "Send a new code" (after `EMAIL_CODE_RESEND_SECONDS`, 60 s, mirroring the API's per-mailbox cooldown in `lockout.py`; the API's reply carries no retry time) and "Use a different email". Existing password accounts are unchanged.
 - The optional name is asked on the account page after sign-in (`NamePrompt`, `saveNameAction`), never at sign-up. The unverified-email banner (`VerifyBanner`) is non-blocking.
 - Security shows a Password row; "Add a password" opens `/verify-email`, which sends the password-setup link (`/auth/password/setup`).
 - Verification: a code sign-in confirms the email, so passwordless sign-in IS the verification. Password accounts can still send a confirmation link.

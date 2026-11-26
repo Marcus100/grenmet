@@ -503,7 +503,14 @@ async def email_code_start(
     await session.commit()
     if email_settings.EMAILS_ENABLED:
         # Sent in the background so the reply never waits on the mail provider.
-        _schedule_code_email(email=email, app_label=app.label, code=code)
+        # The subject starts with the code so a mail app can offer "Copy code"
+        # (owner decision, 26 Nov 2026). It is never logged: see send_email.
+        _schedule_code_email(
+            email=email,
+            app_label=app.label,
+            code=code,
+            subject=f"{code} is your Barrels code",
+        )
     elif auth_settings.ENVIRONMENT == "local":
         logger.warning("Email code for %s (%s): %s", email, app.key, code)
     return Message(message=GENERIC_SENT)

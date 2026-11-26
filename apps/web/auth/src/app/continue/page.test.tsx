@@ -11,7 +11,9 @@ const startHandoff = vi.hoisted(() => vi.fn());
 const readSessionCookie = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("next/cache", () => ({ unstable_noStore: () => undefined }));
+const hasJoinIntent = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/session", () => ({ readSessionCookie }));
+vi.mock("@/lib/join-intent", () => ({ hasJoinIntent }));
 vi.mock("@/lib/handoff", () => ({
   continuePath: ({ app, state }: { app: string; state: string }) =>
     `/continue?app=${app}&state=${state}`,
@@ -60,7 +62,108 @@ async function redirectedTo(params: Record<string, string>) {
   return null;
 }
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => vi.resetAllMocks());
+
+describe("/continue joining an instant-join app without the question", () => {
+  const request = { app: "bookings", state: STATE };
+  const APP_URL = "https://bookings.barrels.gd/auth/callback?code=c&state=s";
+
+  it("joins and lands on the app when this session just signed in for it", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    hasJoinIntent.mockResolvedValue(true);
+    startHandoff
+      .mockResolvedValueOnce({
+        kind: "join",
+        label: "Barrels Bookings",
+        request: false,
+      })
+      .mockResolvedValueOnce({ kind: "redirect", url: APP_URL });
+
+    expect(await redirectedTo(request)).toBe(APP_URL);
+    expect(hasJoinIntent).toHaveBeenCalledWith(request, "account-session");
+    expect(startHandoff).toHaveBeenCalledTimes(2);
+    expect(startHandoff).toHaveBeenNthCalledWith(1, request, "account-session");
+    expect(startHandoff).toHaveBeenNthCalledWith(
+      2,
+      request,
+      "account-session",
+      true
+    );
+  });
+
+  it("does not join on a bare link: no mark for this session, app and state", async () => {
+    // Covers a missing, forged, expired or other-request mark (lib/join-intent).
+    readSessionCookie.mockResolvedValue("account-session");
+    hasJoinIntent.mockResolvedValue(false);
+    startHandoff.mockResolvedValue({
+      kind: "join",
+      label: "Barrels Bookings",
+      request: false,
+    });
+
+    render(await page(request));
+    expect(
+      screen.getByRole("heading", { name: "Join Barrels Bookings?" })
+    ).toBeTruthy();
+    expect(startHandoff).toHaveBeenCalledTimes(1);
+    expect(startHandoff).toHaveBeenCalledWith(request, "account-session");
+  });
+
+  it("keeps the request screen for an app an administrator approves, even with a mark", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    hasJoinIntent.mockResolvedValue(true);
+    startHandoff.mockResolvedValue({
+      kind: "join",
+      label: "GAA Admin",
+      request: true,
+    });
+
+    render(await page({ app: "gaa-admin", state: STATE }));
+    expect(
+      screen.getByRole("heading", { name: "Join GAA Admin?" })
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Join GAA Admin" })).toBeTruthy();
+    expect(startHandoff).toHaveBeenCalledTimes(1);
+    expect(hasJoinIntent).not.toHaveBeenCalled();
+  });
+
+  it("never joins for a malformed state or a signed-out visitor", async () => {
+    hasJoinIntent.mockResolvedValue(true);
+    readSessionCookie.mockResolvedValue("account-session");
+    render(await page({ app: "bookings", state: "short" }));
+    expect(
+      screen.getByRole("heading", { name: "That link didn't work" })
+    ).toBeTruthy();
+
+    readSessionCookie.mockResolvedValue(null);
+    await redirectedTo(request);
+    expect(startHandoff).not.toHaveBeenCalled();
+    expect(hasJoinIntent).not.toHaveBeenCalled();
+  });
+
+  it("shows what the join answered when it is refused", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    hasJoinIntent.mockResolvedValue(true);
+    startHandoff
+      .mockResolvedValueOnce({
+        kind: "join",
+        label: "Barrels Bookings",
+        request: false,
+      })
+      .mockResolvedValueOnce({
+        kind: "denied",
+        label: "Barrels Bookings",
+        detail: "This account can't sign in to this app.",
+      });
+
+    render(await page(request));
+    expect(
+      screen.getByRole("heading", {
+        name: "You don't have access to Barrels Bookings",
+      })
+    ).toBeTruthy();
+  });
+});
 
 describe("/continue", () => {
   it("sends signed-out visitors to sign in, then back here", async () => {
