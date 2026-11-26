@@ -1,6 +1,7 @@
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import { PausedNotice } from "@barrelsgd/bookings-web/components/paused-notice";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
+import { AccountMenu } from "@barrelsgd/ui/components/account-menu";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { cn } from "@barrelsgd/ui/lib/utils";
@@ -127,6 +128,18 @@ export default async function BusinessBookingPage({
         )}
       />
       <header className="space-y-2">
+        {visitor ? (
+          <div className="flex justify-end">
+            <AccountMenu
+              accountUrl={env.ACCOUNT_APP_URL}
+              signOut={{ href: visitor.signedIn.signOutAction }}
+              user={{
+                email: visitor.signedIn.email,
+                name: visitor.signedIn.name || null,
+              }}
+            />
+          </div>
+        ) : null}
         {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
         <h1
           className={cn(

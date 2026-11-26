@@ -7,6 +7,11 @@ import BusinessLayout from "./[slug]/layout";
 import HomePage from "./page";
 
 vi.mock("@/lib/public-businesses", () => ({ getPublicBusinesses: vi.fn() }));
+// The home page's account control is an async server component that reads the
+// session; this test is about the support mailbox, so it stands in a link.
+vi.mock("@/components/account-control", () => ({
+  AccountControl: () => <a href="/signin?returnTo=%2F">Sign in</a>,
+}));
 
 vi.mock("next/link", () => ({
   default: ({
