@@ -12,6 +12,11 @@ vi.mock("@/env", () => ({
   env: { NEXT_PUBLIC_SITE_URL: "https://bookings.example.test" },
 }));
 vi.mock("@/lib/public-businesses", () => ({ getPublicBusinesses: vi.fn() }));
+// The account control reads the session (an async server component); it has
+// its own test, so the home page test stands in a signed-out link.
+vi.mock("@/components/account-control", () => ({
+  AccountControl: () => <a href="/signin?returnTo=%2F">Sign in</a>,
+}));
 
 const EMPTY: BookingPublicBusinessPage = {
   items: [],
