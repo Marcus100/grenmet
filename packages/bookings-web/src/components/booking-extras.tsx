@@ -1,8 +1,11 @@
 "use client";
 
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
-import { showsBusinessDeposit } from "../lib/booking-extras";
-import { DepositToBusiness } from "./business-deposit";
+import {
+  showsBusinessDeposit,
+  showsDepositReceived,
+} from "../lib/booking-extras";
+import { DepositReceivedNotice, DepositToBusiness } from "./business-deposit";
 import { NewClientsNote } from "./new-clients-note";
 
 /**
@@ -22,7 +25,14 @@ export function BookedExtras({
 }) {
   return (
     <>
-      {showsBusinessDeposit(booking) && (
+      {showsDepositReceived(booking) && (
+        <DepositReceivedNotice
+          businessName={booking.business_name ?? ""}
+          currency={currency}
+          minor={booking.deposit_to_business_minor ?? 0}
+        />
+      )}
+      {showsBusinessDeposit(booking) && !booking.deposit_received && (
         <DepositToBusiness
           businessName={booking.business_name ?? ""}
           contact={booking.contact}

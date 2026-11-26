@@ -529,6 +529,16 @@ describe("business deposit, late fee and new clients on the manage page", () => 
     expect(screen.getByText(LATE)).toBeVisible();
   });
 
+  it("shows received in place of the amount due and the instructions", () => {
+    renderManage({ ...WITH_DEPOSIT, deposit_received: true });
+    expect(screen.getByText("Deposit received: EC$53")).toBeVisible();
+    expect(screen.queryByText(DEPOSIT_AMOUNT)).toBeNull();
+    expect(screen.queryByText(RX_3)).toBeNull();
+    expect(screen.queryByText(RX_2)).toBeNull();
+    // The late-fee rule still applies while the booking is open.
+    expect(screen.getByText(LATE)).toBeVisible();
+  });
+
   it("shows no instructions or fee once cancelled", () => {
     renderManage({
       ...WITH_DEPOSIT,

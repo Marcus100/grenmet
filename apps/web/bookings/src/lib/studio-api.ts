@@ -15,6 +15,7 @@ import {
   type BookingClosureCreate,
   type BookingClosureCreated,
   type BookingClosurePublic,
+  type BookingDepositReceivedMethod,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
   type BookingMyOrganisation,
@@ -56,11 +57,13 @@ import {
   bookingsListMyOrganisations,
   bookingsListProviders,
   bookingsListServices,
+  bookingsMarkDepositReceived,
   bookingsNoShowStudioBooking,
   bookingsRecordManualDeposit,
   bookingsReplaceWorkingHours,
   bookingsRescheduleStudioBooking,
   bookingsRotateCalendarFeed,
+  bookingsUndoDepositReceived,
   bookingsUpdateProvider,
   bookingsUpdateService,
   bookingsUpsertProfile,
@@ -434,6 +437,46 @@ export function recordManualDeposit(
       ...(input.reference ? { reference: input.reference } : {}),
     },
   })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/**
+ * Marks a deposit paid to the business as received (#1869). The amount is the
+ * booking's own; no money moves through Barrels. `receivedAt` (UTC ISO) is left
+ * out for "now".
+ */
+export function markDepositReceived(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  input: {
+    method: BookingDepositReceivedMethod;
+    receivedAt?: string;
+    reference?: string;
+  }
+): Promise<BookingStudioDetail> {
+  return bookingsMarkDepositReceived({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    body: {
+      method: input.method,
+      ...(input.reference ? { reference: input.reference } : {}),
+      ...(input.receivedAt ? { received_at: input.receivedAt } : {}),
+    },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Takes back a deposit receipt recorded in error (audited by the API). */
+export function undoDepositReceived(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+): Promise<BookingStudioDetail> {
+  return bookingsUndoDepositReceived(
+    actionTarget(accessToken, organisationId, bookingId)
+  )
     .unwrap()
     .catch(redactRequest);
 }

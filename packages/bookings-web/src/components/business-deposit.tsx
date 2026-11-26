@@ -1,7 +1,11 @@
 "use client";
 
 import type { BookingBusinessContact } from "@barrelsgd/api-client";
-import { depositToPayLine, splitLinks } from "../lib/booking-extras";
+import {
+  depositReceivedLine,
+  depositToPayLine,
+  splitLinks,
+} from "../lib/booking-extras";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
 
@@ -92,6 +96,33 @@ export function DepositToBusiness({
           <ContactLinks contact={contact} />
         </>
       )}
+    </section>
+  );
+}
+
+/**
+ * A business deposit the business has confirmed as received. Calm and short: no
+ * method, no reference, no instructions and no amount to pay.
+ */
+export function DepositReceivedNotice({
+  businessName,
+  currency,
+  minor,
+}: {
+  businessName: string;
+  currency: string;
+  minor: number;
+}) {
+  const who = businessName.trim() || "The business";
+  return (
+    <section
+      aria-labelledby="deposit-received-title"
+      className="notice deposit-business"
+    >
+      <h3 className="deposit-title" id="deposit-received-title">
+        {depositReceivedLine(minor, currency)}
+      </h3>
+      <p className="muted">{who} has your deposit. Thank you.</p>
     </section>
   );
 }
