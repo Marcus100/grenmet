@@ -1,4 +1,5 @@
 import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
+import type { BookingStudioDetail } from "@barrelsgd/api-client";
 import {
   formatDateTime,
   formatMoney,
@@ -6,9 +7,14 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PaymentBadge, StatusBadge } from "@/components/studio/badges";
+import {
+  DepositBadge,
+  PaymentBadge,
+  StatusBadge,
+} from "@/components/studio/badges";
 import { BookingActions } from "@/components/studio/booking-actions";
 import { ContactButtons } from "@/components/studio/contact-buttons";
+import { DepositReceived } from "@/components/studio/deposit-received";
 import { RecordDeposit } from "@/components/studio/record-deposit";
 import { ReturningClientNoticeFor } from "@/components/studio/returning-client";
 import { StudioAlert } from "@/components/studio/studio-alert";
@@ -18,10 +24,15 @@ import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import {
+  businessDepositView,
   canManageBookings,
+  canMarkDepositReceived,
+  type DepositState,
   depositState,
   eventLabel,
   isUuid,
+  localWhenNow,
+  type PaymentKind,
   paymentWord,
   takesDeposit,
 } from "@/lib/studio-view";
@@ -81,6 +92,8 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
   const kind = booking.payment_kind;
   const word = paymentWord(kind);
   const zone = booking.timezone;
+  // A deposit the customer pays the business by hand (#1869): no Barrels amount.
+  const toBusiness = booking.deposit_to_business_minor ?? 0;
 
   return (
     <article className="space-y-6">
@@ -94,7 +107,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         />
         <div className="flex flex-wrap gap-2">
           <StatusBadge kind={kind} status={booking.status} />
-          <PaymentBadge kind={kind} state={deposit} status={booking.status} />
+          <HeaderDepositBadge booking={booking} kind={kind} state={deposit} />
         </div>
       </div>
 
@@ -121,7 +134,22 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         />
       ) : null}
 
-      {canManageBookings(org.value.role) ? (
+      {canManageBookings(org.value.role) && toBusiness > 0 ? (
+        <DepositReceived
+          amountLabel={formatMoney(toBusiness, booking.currency)}
+          bookingId={booking.id}
+          canMark={canMarkDepositReceived(booking)}
+          latest={localWhenNow(zone)}
+          orgSlug={orgSlug}
+          receivedAt={booking.deposit_received_at}
+          receivedMethod={booking.deposit_received_method}
+          receivedReference={booking.deposit_received_reference}
+          status={booking.status}
+          timezone={zone}
+        />
+      ) : null}
+
+      {canManageBookings(org.value.role) && toBusiness <= 0 ? (
         <RecordDeposit
           amountLabel={formatMoney(booking.deposit_minor, booking.currency)}
           bookingId={booking.id}
@@ -189,38 +217,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           >
             {kind === "payment" ? "Price and payment" : "Price and deposit"}
           </h2>
-          <dl className="space-y-1">
-            <Row
-              label="Price"
-              value={formatMoney(booking.price_minor, booking.currency)}
-            />
-            <Row
-              label={`${word} asked`}
-              value={
-                booking.deposit_minor > 0
-                  ? formatMoney(booking.deposit_minor, booking.currency)
-                  : "None"
-              }
-            />
-            {booking.deposit_captured_minor > 0 ? (
-              <Row
-                label={`${word} received`}
-                value={formatMoney(
-                  booking.deposit_captured_minor,
-                  booking.currency
-                )}
-              />
-            ) : null}
-            {booking.deposit_refunded_minor > 0 ? (
-              <Row
-                label={`${word} refunded`}
-                value={formatMoney(
-                  booking.deposit_refunded_minor,
-                  booking.currency
-                )}
-              />
-            ) : null}
-          </dl>
+          <PriceRows booking={booking} toBusiness={toBusiness} word={word} />
         </section>
       </div>
 
@@ -274,6 +271,67 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         )}
       </section>
     </article>
+  );
+}
+
+function HeaderDepositBadge({
+  booking,
+  kind,
+  state,
+}: {
+  booking: BookingStudioDetail;
+  kind: PaymentKind;
+  state: DepositState;
+}) {
+  if ((booking.deposit_to_business_minor ?? 0) > 0) {
+    return <DepositBadge view={businessDepositView(booking)} />;
+  }
+  return <PaymentBadge kind={kind} state={state} status={booking.status} />;
+}
+
+function PriceRows({
+  booking,
+  toBusiness,
+  word,
+}: {
+  booking: BookingStudioDetail;
+  toBusiness: number;
+  word: string;
+}) {
+  return (
+    <dl className="space-y-1">
+      <Row
+        label="Price"
+        value={formatMoney(booking.price_minor, booking.currency)}
+      />
+      {toBusiness > 0 ? (
+        <Row
+          label="To the business"
+          value={formatMoney(toBusiness, booking.currency)}
+        />
+      ) : (
+        <Row
+          label={`${word} asked`}
+          value={
+            booking.deposit_minor > 0
+              ? formatMoney(booking.deposit_minor, booking.currency)
+              : "None"
+          }
+        />
+      )}
+      {booking.deposit_captured_minor > 0 ? (
+        <Row
+          label={`${word} received`}
+          value={formatMoney(booking.deposit_captured_minor, booking.currency)}
+        />
+      ) : null}
+      {booking.deposit_refunded_minor > 0 ? (
+        <Row
+          label={`${word} refunded`}
+          value={formatMoney(booking.deposit_refunded_minor, booking.currency)}
+        />
+      ) : null}
+    </dl>
   );
 }
 
