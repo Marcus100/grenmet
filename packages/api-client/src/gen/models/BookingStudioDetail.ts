@@ -4,6 +4,7 @@
  */
 
 import type { BookingAddOnLine } from "./BookingAddOnLine.js";
+import type { BookingDepositReceivedMethod } from "./BookingDepositReceivedMethod.js";
 import type { BookingPaymentKind } from "./BookingPaymentKind.js";
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -54,11 +55,29 @@ export type BookingStudioDetail = {
   price_minor: number;
   deposit_minor: number;
   /**
+   * @description The deposit the customer was told to pay the business by hand, outside Barrels (0 = none).
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
    * @description This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.
    * @default false
    * @type boolean | undefined
    */
   deposit_non_refundable?: boolean;
+  /**
+   * @description A returning client (a confirmed or completed booking with the business) requested a new-clients-only service. Staff only; never shown to the customer.
+   * @default false
+   * @type boolean | undefined
+   */
+  returning_client?: boolean;
+  /**
+   * @description When staff marked the deposit paid to the business as received.
+   */
+  deposit_received_at?: string | null;
+  deposit_received_method?: BookingDepositReceivedMethod | null;
+  deposit_received_reference?: string | null;
   /**
    * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
    * @type string

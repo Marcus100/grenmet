@@ -63,6 +63,18 @@ const TURNSTILE = "https://challenges.cloudflare.com";
 const CLOUDFLARE_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
 const CLOUDFLARE_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
 
+// Uploaded images (logos, covers, event pictures, profile photos): pages link
+// the API's public file route, which redirects to the object store. Both
+// environments' buckets are DigitalOcean Spaces in nyc3, addressed path-style
+// (https://nyc3.digitaloceanspaces.com/<bucket>/...), and the browser uploads to
+// the same host with a presigned PUT. Sentry CSP reports of 24 Nov 2026 (#1622).
+const API_ORIGINS = [
+  "https://api.barrels.gd",
+  "https://api.staging.barrels.gd",
+] as const;
+const OBJECT_STORE = "https://nyc3.digitaloceanspaces.com";
+const UPLOADED_IMAGES = [...API_ORIGINS, OBJECT_STORE] as const;
+
 interface AppSources {
   connect: readonly string[];
   frame: readonly string[];
@@ -89,25 +101,21 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     img: GA_IMG,
     frame: [TURNSTILE],
   },
-  // TODO(#1622): the business logo (storefront `logo_url`) and the studio logo
-  // preview are presigned storage URLs. Add that storage origin to img (and the
-  // browser PUT origin to connect) before this policy is enforced; the origin is
-  // deployment config, as for apps/web/events, so no constant exists yet.
+  // Logos, covers and the studio upload: UPLOADED_IMAGES and OBJECT_STORE.
   // Cookieless funnel events to PostHog (connect only; no script loads).
   bookings: {
     script: [TURNSTILE],
-    connect: [TURNSTILE, ...POSTHOG_INGEST_HOSTS],
-    img: [],
+    connect: [TURNSTILE, ...POSTHOG_INGEST_HOSTS, OBJECT_STORE],
+    img: [...UPLOADED_IMAGES],
     frame: [TURNSTILE],
   },
   // Cookieless funnel events to PostHog (connect only). Profile photos are
-  // served through the same-origin proxy and redirect to presigned object
-  // storage; that storage origin must be added to img-src before this policy
-  // is enforced (follow-up, see apps/web/account).
+  // served through the same-origin proxy and redirect to the object store
+  // (UPLOADED_IMAGES); the photo upload is a presigned PUT to OBJECT_STORE.
   account: {
     script: [],
-    connect: [...POSTHOG_INGEST_HOSTS],
-    img: [],
+    connect: [...POSTHOG_INGEST_HOSTS, OBJECT_STORE],
+    img: [...UPLOADED_IMAGES],
     frame: [],
   },
   // Staff HR app (hr.barrels.gd): server-rendered, no third-party scripts.
@@ -178,13 +186,13 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   },
   // GA4 in production (service-catalogue `events`); no consent-gated PostHog and no
   // Turnstile widget. Event images and avatars are same-origin /files/<id>
-  // links that redirect to object storage. That storage origin is deployment
-  // config, so it is not listed here (follow-up, as for apps/web/account).
+  // links that redirect to the object store (UPLOADED_IMAGES); organiser
+  // uploads are presigned PUTs to OBJECT_STORE.
   // Cookieless funnel events to PostHog (connect only; no script loads).
   events: {
     script: [...GA_SCRIPT],
-    connect: [...GA_CONNECT, ...POSTHOG_INGEST_HOSTS],
-    img: GA_IMG,
+    connect: [...GA_CONNECT, ...POSTHOG_INGEST_HOSTS, OBJECT_STORE],
+    img: [...GA_IMG, ...UPLOADED_IMAGES],
     frame: [],
   },
   // Operational console. Browser API calls use the same-origin proxy
@@ -193,7 +201,8 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   "gaa-admin": {
     script: [],
     connect: [],
-    img: [],
+    // Staff profile photos: same-origin proxy that redirects to the object store.
+    img: [OBJECT_STORE],
     frame: ["'self'", "blob:"],
   },
   // GA4 in production (service-catalogue `gms`). Turnstile guards the

@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   description:
     "Lash extensions, sculpted brows and custom facials in St. George's, Grenada. By appointment only.",
   openGraph: {
+    url: "/",
     siteName: BUSINESS.name,
     type: "website",
     images: [{ url: "/logo.jpg", width: 400, height: 400 }],

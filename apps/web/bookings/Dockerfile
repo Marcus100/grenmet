@@ -38,6 +38,7 @@ COPY apps/web/gmsdash/package.json apps/web/gmsdash/
 COPY apps/web/hr/package.json apps/web/hr/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
+COPY packages/admin-kit/package.json packages/admin-kit/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
 COPY packages/bookings-web/package.json packages/bookings-web/
@@ -65,6 +66,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Explicit application sources and workspace dependency closure.
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
+COPY packages/theme/ packages/theme/
+COPY packages/admin-kit/ packages/admin-kit/
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/bookings-web/ packages/bookings-web/

@@ -178,7 +178,7 @@ record pointing at Pages, overriding the DigitalOcean wildcard.
 | --- | --- |
 | Barrels company homepage (`apps/web/barrels`) | `barrels.gd` (`www.barrels.gd` redirects) |
 | elections (`apps/web/elections`, dev port 3007) | `elections.barrels.gd` |
-| babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard) |
+| babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydollbeautybar.com` (client domain, its own Cloudflare zone) and `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard); one Pages project |
 | commit (`apps/web/commit`, dev port 3019; Barrels engineering blog) | `commit.barrels.gd` |
 
 The Printix scanner (`apps/pwa/printix`, dev port 3064) is also on Cloudflare Pages, as the `printix-scanner` project, at the address given in `apps/pwa/printix/AGENTS.md`.

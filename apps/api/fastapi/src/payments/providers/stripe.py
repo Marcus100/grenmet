@@ -489,12 +489,15 @@ class StripeProvider:
         self, intent: Intent, *, stop: Callable[[], bool] | None = None
     ) -> RefundListing:
         """Every refund Stripe holds for the payment, newest first, following
-        ``has_more`` page by page. A refund object that cannot be read is skipped.
-        Stops after ``REFUND_MAX_PAGES`` pages, or when ``stop()`` is true before a
-        further page (a caller's time budget), and reports the listing incomplete."""
+        ``has_more`` page by page. A refund of this payment that cannot be read (no
+        amount or status) marks the listing incomplete: it may be ours, so a caller must
+        not conclude that it is absent. Stops after ``REFUND_MAX_PAGES`` pages, or when
+        ``stop()`` is true before a further page (a caller's time budget), and reports
+        the listing incomplete."""
         if not intent.provider_payment_ref:
             return RefundListing(refunds=())
         refunds: list[ProviderRefund] = []
+        complete = True
         params = {
             "payment_intent": intent.provider_payment_ref,
             "limit": str(REFUND_PAGE_SIZE),
@@ -509,15 +512,20 @@ class StripeProvider:
             data = body.get("data")
             if not isinstance(data, list):
                 raise ProviderRequestError()
-            refunds.extend(
-                refund
-                for refund in (
-                    _refund_object(item) for item in data if _echoes(intent, item)
-                )
-                if refund is not None
-            )
+            for item in data:
+                if not _echoes(intent, item):
+                    continue
+                refund = _refund_object(item)
+                if refund is None:
+                    complete = False
+                    logger.error(
+                        "Stripe listed an unreadable refund of this payment",
+                        extra={"intent_id": str(intent.id)},
+                    )
+                else:
+                    refunds.append(refund)
             if body.get("has_more") is not True:
-                return RefundListing(refunds=tuple(refunds))
+                return RefundListing(refunds=tuple(refunds), complete=complete)
             last = data[-1] if data else None
             cursor = _str(last.get("id")) if isinstance(last, dict) else None
             if cursor is None:

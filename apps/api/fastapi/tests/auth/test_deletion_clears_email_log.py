@@ -25,6 +25,7 @@ from src.notifications import address_log, dispatch, outbox_handlers
 from src.notifications import service as notification_service
 from src.notifications.models import (
     EmailSuppression,
+    Notification,
     OutboundEmail,
     OutboundEmailStatus,
     SuppressionReason,
@@ -76,7 +77,17 @@ async def _leaks(db: AsyncSession, needle: str) -> int:
             | Outbox.dedupe_key.contains(needle)
         )
     )
-    return int(log or 0) + int(queue or 0)
+    audit = await db.scalar(
+        select(func.count())
+        .select_from(AuditEntry)
+        .where(cast(AuditEntry.changes, String).contains(needle))
+    )
+    notices = await db.scalar(
+        select(func.count())
+        .select_from(Notification)
+        .where(Notification.title.contains(needle) | Notification.body.contains(needle))
+    )
+    return int(log or 0) + int(queue or 0) + int(audit or 0) + int(notices or 0)
 
 
 async def _queue_person_mail(
@@ -209,6 +220,49 @@ async def test_deletion_clears_the_address_and_content_from_the_delivery_log(
     assert rows["retrying"].attempts == 1
     # The queued mail is never sent to the placeholder.
     assert rows["queued"].status == OutboundEmailStatus.SKIPPED.value
+
+
+@pytest.mark.usefixtures("mail_configured")
+async def test_a_queued_mail_is_never_sent_after_deletion(
+    db_async: AsyncSession, outbound_email_calls: list[dict[str, str]]
+) -> None:
+    """Deletion leaves nothing for the outbox drain to send. The real drain runs both
+    email topics after the deletion, with every queued mail due, and the provider is
+    never called for the deleted person's address or its placeholder."""
+    local, first_name = _names()
+    address = f"{local}@example.com"
+    user = await make_user(db_async, email=address)
+    await db_async.commit()
+    ids = await _queue_person_mail(db_async, address, first_name)
+
+    await service.delete_user(session=db_async, user=user)
+    await outbox.drain(
+        db_async,
+        only_topics={outbox_handlers.EMAIL_SEND, notification_service.EMAIL_DELIVER},
+        now=utc_now() + timedelta(days=1),
+    )
+
+    assert outbound_email_calls == []
+    queued = await db_async.get(OutboundEmail, ids["queued"], populate_existing=True)
+    assert queued is not None
+    assert queued.status == OutboundEmailStatus.SKIPPED.value
+    assert queued.sent_at is None
+    retrying = await db_async.get(
+        OutboundEmail, ids["retrying"], populate_existing=True
+    )
+    assert retrying is not None
+    assert retrying.status == OutboundEmailStatus.SKIPPED.value
+    pending = await db_async.scalar(
+        select(func.count())
+        .select_from(Outbox)
+        .where(
+            Outbox.status == OutboxStatus.PENDING.value,
+            Outbox.topic.in_(
+                [outbox_handlers.EMAIL_SEND, notification_service.EMAIL_DELIVER]
+            ),
+        )
+    )
+    assert pending == 0
 
 
 @pytest.mark.usefixtures("db_async")

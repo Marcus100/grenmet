@@ -16,6 +16,7 @@ import type {
   BookingsRequestEmailCodeStatus200,
   BookingsRequestEmailCodeStatus400,
   BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus409,
   BookingsRequestEmailCodeStatus422,
   BookingsRequestEmailCodeStatus429,
   BookingsRequestEmailCodeStatus503,
@@ -35,6 +36,7 @@ export function bookingsRequestEmailCodeMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | BookingsRequestEmailCodeStatus400
       | BookingsRequestEmailCodeStatus404
+      | BookingsRequestEmailCodeStatus409
       | BookingsRequestEmailCodeStatus422
       | BookingsRequestEmailCodeStatus429
       | BookingsRequestEmailCodeStatus503
@@ -66,6 +68,7 @@ export function useBookingsRequestEmailCode<TContext>(
       ResponseErrorConfig<
         | BookingsRequestEmailCodeStatus400
         | BookingsRequestEmailCodeStatus404
+        | BookingsRequestEmailCodeStatus409
         | BookingsRequestEmailCodeStatus422
         | BookingsRequestEmailCodeStatus429
         | BookingsRequestEmailCodeStatus503
@@ -90,6 +93,7 @@ export function useBookingsRequestEmailCode<TContext>(
     ResponseErrorConfig<
       | BookingsRequestEmailCodeStatus400
       | BookingsRequestEmailCodeStatus404
+      | BookingsRequestEmailCodeStatus409
       | BookingsRequestEmailCodeStatus422
       | BookingsRequestEmailCodeStatus429
       | BookingsRequestEmailCodeStatus503
@@ -103,6 +107,7 @@ export function useBookingsRequestEmailCode<TContext>(
     ResponseErrorConfig<
       | BookingsRequestEmailCodeStatus400
       | BookingsRequestEmailCodeStatus404
+      | BookingsRequestEmailCodeStatus409
       | BookingsRequestEmailCodeStatus422
       | BookingsRequestEmailCodeStatus429
       | BookingsRequestEmailCodeStatus503
@@ -121,6 +126,7 @@ export function useBookingsRequestEmailCode<TContext>(
     ResponseErrorConfig<
       | BookingsRequestEmailCodeStatus400
       | BookingsRequestEmailCodeStatus404
+      | BookingsRequestEmailCodeStatus409
       | BookingsRequestEmailCodeStatus422
       | BookingsRequestEmailCodeStatus429
       | BookingsRequestEmailCodeStatus503

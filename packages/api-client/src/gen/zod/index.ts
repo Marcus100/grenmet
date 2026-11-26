@@ -1223,7 +1223,10 @@ export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js"
 export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
 export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
 export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
+export { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
 export { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
+export { bookingDepositReceivedCreateSchema } from "./bookingDepositReceivedCreateSchema.js";
+export { bookingDepositReceivedMethodSchema } from "./bookingDepositReceivedMethodSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";
@@ -1232,6 +1235,10 @@ export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js"
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
 export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
+export { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
+export { bookingListingQueueSchema } from "./bookingListingQueueSchema.js";
+export { bookingListingReviewListSchema } from "./bookingListingReviewListSchema.js";
+export { bookingListingReviewSchema } from "./bookingListingReviewSchema.js";
 export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
 export { bookingMyBookingSchema } from "./bookingMyBookingSchema.js";
@@ -1264,8 +1271,16 @@ export { bookingServiceCreateSchema } from "./bookingServiceCreateSchema.js";
 export { bookingServicePublicSchema } from "./bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./bookingServiceUpdateSchema.js";
 export { bookingSettingsSchema } from "./bookingSettingsSchema.js";
+export { bookingSetupChecklistSchema } from "./bookingSetupChecklistSchema.js";
+export { bookingSetupItemKeySchema } from "./bookingSetupItemKeySchema.js";
+export { bookingSetupItemSchema } from "./bookingSetupItemSchema.js";
+export { bookingSignupCreatePropertiesTemplateAnyOfEnumSchema } from "./bookingSignupCreatePropertiesTemplateAnyOfEnumSchema.js";
+export { bookingSignupCreateSchema } from "./bookingSignupCreateSchema.js";
+export { bookingSignupReceiptSchema } from "./bookingSignupReceiptSchema.js";
 export { bookingSlotSchema } from "./bookingSlotSchema.js";
 export { bookingSourceSchema } from "./bookingSourceSchema.js";
+export { bookingStarterTemplateSchema } from "./bookingStarterTemplateSchema.js";
+export { bookingStarterTemplateServiceSchema } from "./bookingStarterTemplateServiceSchema.js";
 export { bookingStatusSchema } from "./bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./bookingStudioCancelSchema.js";
@@ -1275,6 +1290,18 @@ export { bookingStudioDeclineSchema } from "./bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
 export { bookingStudioEventSchema } from "./bookingStudioEventSchema.js";
 export { bookingStudioRescheduleSchema } from "./bookingStudioRescheduleSchema.js";
+export {
+  bookingsApproveListingErrorSchema,
+  bookingsApproveListingPathOrganisationIdSchema,
+  bookingsApproveListingPathSchema,
+  bookingsApproveListingResponseSchema,
+  bookingsApproveListingStatus200Schema,
+  bookingsApproveListingStatus401Schema,
+  bookingsApproveListingStatus403Schema,
+  bookingsApproveListingStatus404Schema,
+  bookingsApproveListingStatus409Schema,
+  bookingsApproveListingStatus422Schema,
+} from "./bookingsApproveListingSchema.js";
 export {
   bookingsCancelPublicBookingBodySchema,
   bookingsCancelPublicBookingErrorSchema,
@@ -1388,6 +1415,21 @@ export {
   bookingsCreateExceptionStatus409Schema,
   bookingsCreateExceptionStatus422Schema,
 } from "./bookingsCreateExceptionSchema.js";
+export {
+  bookingsCreateMyOrganisationBodySchema,
+  bookingsCreateMyOrganisationErrorSchema,
+  bookingsCreateMyOrganisationHeaderIdempotencyKeySchema,
+  bookingsCreateMyOrganisationHeadersSchema,
+  bookingsCreateMyOrganisationResponseSchema,
+  bookingsCreateMyOrganisationStatus201Schema,
+  bookingsCreateMyOrganisationStatus400Schema,
+  bookingsCreateMyOrganisationStatus401Schema,
+  bookingsCreateMyOrganisationStatus403Schema,
+  bookingsCreateMyOrganisationStatus404Schema,
+  bookingsCreateMyOrganisationStatus409Schema,
+  bookingsCreateMyOrganisationStatus422Schema,
+  bookingsCreateMyOrganisationStatus429Schema,
+} from "./bookingsCreateMyOrganisationSchema.js";
 export {
   bookingsCreateProviderBodySchema,
   bookingsCreateProviderErrorSchema,
@@ -1525,6 +1567,7 @@ export {
   bookingsGetAvailabilityStatus200Schema,
   bookingsGetAvailabilityStatus400Schema,
   bookingsGetAvailabilityStatus404Schema,
+  bookingsGetAvailabilityStatus409Schema,
   bookingsGetAvailabilityStatus422Schema,
 } from "./bookingsGetAvailabilitySchema.js";
 export {
@@ -1539,6 +1582,18 @@ export {
   bookingsGetCalendarFeedStatusStatus404Schema,
   bookingsGetCalendarFeedStatusStatus422Schema,
 } from "./bookingsGetCalendarFeedStatusSchema.js";
+export {
+  bookingsGetListingReviewErrorSchema,
+  bookingsGetListingReviewPathOrganisationIdSchema,
+  bookingsGetListingReviewPathSchema,
+  bookingsGetListingReviewResponseSchema,
+  bookingsGetListingReviewStatus200Schema,
+  bookingsGetListingReviewStatus401Schema,
+  bookingsGetListingReviewStatus403Schema,
+  bookingsGetListingReviewStatus404Schema,
+  bookingsGetListingReviewStatus409Schema,
+  bookingsGetListingReviewStatus422Schema,
+} from "./bookingsGetListingReviewSchema.js";
 export {
   bookingsGetMyChoicesErrorSchema,
   bookingsGetMyChoicesPathSchema,
@@ -1604,6 +1659,18 @@ export {
   bookingsGetSettingsStatus422Schema,
 } from "./bookingsGetSettingsSchema.js";
 export {
+  bookingsGetSetupChecklistErrorSchema,
+  bookingsGetSetupChecklistHeadersSchema,
+  bookingsGetSetupChecklistHeaderXBarrelsOrganisationSchema,
+  bookingsGetSetupChecklistResponseSchema,
+  bookingsGetSetupChecklistStatus200Schema,
+  bookingsGetSetupChecklistStatus400Schema,
+  bookingsGetSetupChecklistStatus401Schema,
+  bookingsGetSetupChecklistStatus403Schema,
+  bookingsGetSetupChecklistStatus404Schema,
+  bookingsGetSetupChecklistStatus422Schema,
+} from "./bookingsGetSetupChecklistSchema.js";
+export {
   bookingsGetStorefrontErrorSchema,
   bookingsGetStorefrontPathSchema,
   bookingsGetStorefrontPathSlugSchema,
@@ -1641,6 +1708,14 @@ export {
   bookingsGetWorkingHoursStatus422Schema,
 } from "./bookingsGetWorkingHoursSchema.js";
 export {
+  bookingsListBusinessTemplatesErrorSchema,
+  bookingsListBusinessTemplatesResponseSchema,
+  bookingsListBusinessTemplatesStatus200Schema,
+  bookingsListBusinessTemplatesStatus401Schema,
+  bookingsListBusinessTemplatesStatus403Schema,
+  bookingsListBusinessTemplatesStatus422Schema,
+} from "./bookingsListBusinessTemplatesSchema.js";
+export {
   bookingsListClosuresErrorSchema,
   bookingsListClosuresHeadersSchema,
   bookingsListClosuresHeaderXBarrelsOrganisationSchema,
@@ -1672,6 +1747,18 @@ export {
   bookingsListExceptionsStatus404Schema,
   bookingsListExceptionsStatus422Schema,
 } from "./bookingsListExceptionsSchema.js";
+export {
+  bookingsListListingReviewsErrorSchema,
+  bookingsListListingReviewsQueryPageSchema,
+  bookingsListListingReviewsQueryQueueSchema,
+  bookingsListListingReviewsQuerySchema,
+  bookingsListListingReviewsQuerySizeSchema,
+  bookingsListListingReviewsResponseSchema,
+  bookingsListListingReviewsStatus200Schema,
+  bookingsListListingReviewsStatus401Schema,
+  bookingsListListingReviewsStatus403Schema,
+  bookingsListListingReviewsStatus422Schema,
+} from "./bookingsListListingReviewsSchema.js";
 export {
   bookingsListMyBookingsErrorSchema,
   bookingsListMyBookingsQueryCancelledSchema,
@@ -1745,6 +1832,22 @@ export {
   bookingsListStudioBookingsStatus404Schema,
   bookingsListStudioBookingsStatus422Schema,
 } from "./bookingsListStudioBookingsSchema.js";
+export {
+  bookingsMarkDepositReceivedBodySchema,
+  bookingsMarkDepositReceivedErrorSchema,
+  bookingsMarkDepositReceivedHeadersSchema,
+  bookingsMarkDepositReceivedHeaderXBarrelsOrganisationSchema,
+  bookingsMarkDepositReceivedPathBookingIdSchema,
+  bookingsMarkDepositReceivedPathSchema,
+  bookingsMarkDepositReceivedResponseSchema,
+  bookingsMarkDepositReceivedStatus200Schema,
+  bookingsMarkDepositReceivedStatus400Schema,
+  bookingsMarkDepositReceivedStatus401Schema,
+  bookingsMarkDepositReceivedStatus403Schema,
+  bookingsMarkDepositReceivedStatus404Schema,
+  bookingsMarkDepositReceivedStatus409Schema,
+  bookingsMarkDepositReceivedStatus422Schema,
+} from "./bookingsMarkDepositReceivedSchema.js";
 export {
   bookingsNoShowStudioBookingErrorSchema,
   bookingsNoShowStudioBookingHeadersSchema,
@@ -1830,6 +1933,7 @@ export {
   bookingsRequestEmailCodeStatus200Schema,
   bookingsRequestEmailCodeStatus400Schema,
   bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus409Schema,
   bookingsRequestEmailCodeStatus422Schema,
   bookingsRequestEmailCodeStatus429Schema,
   bookingsRequestEmailCodeStatus503Schema,
@@ -1874,6 +1978,21 @@ export {
   bookingsRotateCalendarFeedStatus409Schema,
   bookingsRotateCalendarFeedStatus422Schema,
 } from "./bookingsRotateCalendarFeedSchema.js";
+export {
+  bookingsUndoDepositReceivedErrorSchema,
+  bookingsUndoDepositReceivedHeadersSchema,
+  bookingsUndoDepositReceivedHeaderXBarrelsOrganisationSchema,
+  bookingsUndoDepositReceivedPathBookingIdSchema,
+  bookingsUndoDepositReceivedPathSchema,
+  bookingsUndoDepositReceivedResponseSchema,
+  bookingsUndoDepositReceivedStatus200Schema,
+  bookingsUndoDepositReceivedStatus400Schema,
+  bookingsUndoDepositReceivedStatus401Schema,
+  bookingsUndoDepositReceivedStatus403Schema,
+  bookingsUndoDepositReceivedStatus404Schema,
+  bookingsUndoDepositReceivedStatus409Schema,
+  bookingsUndoDepositReceivedStatus422Schema,
+} from "./bookingsUndoDepositReceivedSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,
@@ -1920,6 +2039,18 @@ export {
   bookingsUpsertProfileStatus409Schema,
   bookingsUpsertProfileStatus422Schema,
 } from "./bookingsUpsertProfileSchema.js";
+export {
+  bookingsWithdrawListingErrorSchema,
+  bookingsWithdrawListingPathOrganisationIdSchema,
+  bookingsWithdrawListingPathSchema,
+  bookingsWithdrawListingResponseSchema,
+  bookingsWithdrawListingStatus200Schema,
+  bookingsWithdrawListingStatus401Schema,
+  bookingsWithdrawListingStatus403Schema,
+  bookingsWithdrawListingStatus404Schema,
+  bookingsWithdrawListingStatus409Schema,
+  bookingsWithdrawListingStatus422Schema,
+} from "./bookingsWithdrawListingSchema.js";
 export { bookingWorkingHoursUpdateSchema } from "./bookingWorkingHoursUpdateSchema.js";
 export { bookingWorkingPeriodInSchema } from "./bookingWorkingPeriodInSchema.js";
 export { bookingWorkingPeriodPublicSchema } from "./bookingWorkingPeriodPublicSchema.js";
@@ -6473,6 +6604,279 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesT
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
+export { incidentAttachmentCreateSchema } from "./incidentAttachmentCreateSchema.js";
+export { incidentAttachmentPublicSchema } from "./incidentAttachmentPublicSchema.js";
+export { incidentCategoryCreateSchema } from "./incidentCategoryCreateSchema.js";
+export { incidentCategoryListSchema } from "./incidentCategoryListSchema.js";
+export { incidentCategoryPublicSchema } from "./incidentCategoryPublicSchema.js";
+export { incidentCategoryUpdateSchema } from "./incidentCategoryUpdateSchema.js";
+export { incidentChecklistItemCreateSchema } from "./incidentChecklistItemCreateSchema.js";
+export { incidentChecklistItemPublicSchema } from "./incidentChecklistItemPublicSchema.js";
+export { incidentChecklistItemUpdateSchema } from "./incidentChecklistItemUpdateSchema.js";
+export { incidentCheckPublicSchema } from "./incidentCheckPublicSchema.js";
+export { incidentCheckUpdateSchema } from "./incidentCheckUpdateSchema.js";
+export { incidentCreateSchema } from "./incidentCreateSchema.js";
+export { incidentDetailSchema } from "./incidentDetailSchema.js";
+export { incidentNoteCreateSchema } from "./incidentNoteCreateSchema.js";
+export { incidentNotePublicSchema } from "./incidentNotePublicSchema.js";
+export { incidentPageSchema } from "./incidentPageSchema.js";
+export { incidentPublicSchema } from "./incidentPublicSchema.js";
+export { incidentReopenSchema } from "./incidentReopenSchema.js";
+export { incidentStatusSchema } from "./incidentStatusSchema.js";
+export {
+  incidentsCloseIncidentErrorSchema,
+  incidentsCloseIncidentHeadersSchema,
+  incidentsCloseIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsCloseIncidentPathIncidentIdSchema,
+  incidentsCloseIncidentPathSchema,
+  incidentsCloseIncidentResponseSchema,
+  incidentsCloseIncidentStatus200Schema,
+  incidentsCloseIncidentStatus400Schema,
+  incidentsCloseIncidentStatus401Schema,
+  incidentsCloseIncidentStatus403Schema,
+  incidentsCloseIncidentStatus404Schema,
+  incidentsCloseIncidentStatus409Schema,
+  incidentsCloseIncidentStatus422Schema,
+} from "./incidentsCloseIncidentSchema.js";
+export {
+  incidentsCreateAttachmentBodySchema,
+  incidentsCreateAttachmentErrorSchema,
+  incidentsCreateAttachmentHeadersSchema,
+  incidentsCreateAttachmentHeaderXBarrelsOrganisationSchema,
+  incidentsCreateAttachmentPathIncidentIdSchema,
+  incidentsCreateAttachmentPathSchema,
+  incidentsCreateAttachmentResponseSchema,
+  incidentsCreateAttachmentStatus201Schema,
+  incidentsCreateAttachmentStatus400Schema,
+  incidentsCreateAttachmentStatus401Schema,
+  incidentsCreateAttachmentStatus403Schema,
+  incidentsCreateAttachmentStatus404Schema,
+  incidentsCreateAttachmentStatus409Schema,
+  incidentsCreateAttachmentStatus422Schema,
+} from "./incidentsCreateAttachmentSchema.js";
+export {
+  incidentsCreateCategoryBodySchema,
+  incidentsCreateCategoryErrorSchema,
+  incidentsCreateCategoryHeadersSchema,
+  incidentsCreateCategoryHeaderXBarrelsOrganisationSchema,
+  incidentsCreateCategoryResponseSchema,
+  incidentsCreateCategoryStatus201Schema,
+  incidentsCreateCategoryStatus400Schema,
+  incidentsCreateCategoryStatus401Schema,
+  incidentsCreateCategoryStatus403Schema,
+  incidentsCreateCategoryStatus404Schema,
+  incidentsCreateCategoryStatus409Schema,
+  incidentsCreateCategoryStatus422Schema,
+} from "./incidentsCreateCategorySchema.js";
+export {
+  incidentsCreateChecklistItemBodySchema,
+  incidentsCreateChecklistItemErrorSchema,
+  incidentsCreateChecklistItemHeadersSchema,
+  incidentsCreateChecklistItemHeaderXBarrelsOrganisationSchema,
+  incidentsCreateChecklistItemPathCategoryIdSchema,
+  incidentsCreateChecklistItemPathSchema,
+  incidentsCreateChecklistItemResponseSchema,
+  incidentsCreateChecklistItemStatus201Schema,
+  incidentsCreateChecklistItemStatus400Schema,
+  incidentsCreateChecklistItemStatus401Schema,
+  incidentsCreateChecklistItemStatus403Schema,
+  incidentsCreateChecklistItemStatus404Schema,
+  incidentsCreateChecklistItemStatus409Schema,
+  incidentsCreateChecklistItemStatus422Schema,
+} from "./incidentsCreateChecklistItemSchema.js";
+export {
+  incidentsCreateIncidentBodySchema,
+  incidentsCreateIncidentErrorSchema,
+  incidentsCreateIncidentHeadersSchema,
+  incidentsCreateIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsCreateIncidentResponseSchema,
+  incidentsCreateIncidentStatus201Schema,
+  incidentsCreateIncidentStatus400Schema,
+  incidentsCreateIncidentStatus401Schema,
+  incidentsCreateIncidentStatus403Schema,
+  incidentsCreateIncidentStatus404Schema,
+  incidentsCreateIncidentStatus409Schema,
+  incidentsCreateIncidentStatus422Schema,
+} from "./incidentsCreateIncidentSchema.js";
+export {
+  incidentsCreateNoteBodySchema,
+  incidentsCreateNoteErrorSchema,
+  incidentsCreateNoteHeadersSchema,
+  incidentsCreateNoteHeaderXBarrelsOrganisationSchema,
+  incidentsCreateNotePathIncidentIdSchema,
+  incidentsCreateNotePathSchema,
+  incidentsCreateNoteResponseSchema,
+  incidentsCreateNoteStatus201Schema,
+  incidentsCreateNoteStatus400Schema,
+  incidentsCreateNoteStatus401Schema,
+  incidentsCreateNoteStatus403Schema,
+  incidentsCreateNoteStatus404Schema,
+  incidentsCreateNoteStatus409Schema,
+  incidentsCreateNoteStatus422Schema,
+} from "./incidentsCreateNoteSchema.js";
+export {
+  incidentsCreateTimelineEntryBodySchema,
+  incidentsCreateTimelineEntryErrorSchema,
+  incidentsCreateTimelineEntryHeadersSchema,
+  incidentsCreateTimelineEntryHeaderXBarrelsOrganisationSchema,
+  incidentsCreateTimelineEntryPathIncidentIdSchema,
+  incidentsCreateTimelineEntryPathSchema,
+  incidentsCreateTimelineEntryResponseSchema,
+  incidentsCreateTimelineEntryStatus201Schema,
+  incidentsCreateTimelineEntryStatus400Schema,
+  incidentsCreateTimelineEntryStatus401Schema,
+  incidentsCreateTimelineEntryStatus403Schema,
+  incidentsCreateTimelineEntryStatus404Schema,
+  incidentsCreateTimelineEntryStatus409Schema,
+  incidentsCreateTimelineEntryStatus422Schema,
+} from "./incidentsCreateTimelineEntrySchema.js";
+export {
+  incidentsGetIncidentErrorSchema,
+  incidentsGetIncidentHeadersSchema,
+  incidentsGetIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsGetIncidentPathIncidentIdSchema,
+  incidentsGetIncidentPathSchema,
+  incidentsGetIncidentResponseSchema,
+  incidentsGetIncidentStatus200Schema,
+  incidentsGetIncidentStatus400Schema,
+  incidentsGetIncidentStatus401Schema,
+  incidentsGetIncidentStatus403Schema,
+  incidentsGetIncidentStatus404Schema,
+  incidentsGetIncidentStatus422Schema,
+} from "./incidentsGetIncidentSchema.js";
+export {
+  incidentsListCategoriesErrorSchema,
+  incidentsListCategoriesHeadersSchema,
+  incidentsListCategoriesHeaderXBarrelsOrganisationSchema,
+  incidentsListCategoriesQueryIncludeArchivedSchema,
+  incidentsListCategoriesQuerySchema,
+  incidentsListCategoriesResponseSchema,
+  incidentsListCategoriesStatus200Schema,
+  incidentsListCategoriesStatus400Schema,
+  incidentsListCategoriesStatus401Schema,
+  incidentsListCategoriesStatus403Schema,
+  incidentsListCategoriesStatus404Schema,
+  incidentsListCategoriesStatus422Schema,
+} from "./incidentsListCategoriesSchema.js";
+export {
+  incidentsListIncidentsErrorSchema,
+  incidentsListIncidentsHeadersSchema,
+  incidentsListIncidentsHeaderXBarrelsOrganisationSchema,
+  incidentsListIncidentsQueryCategoryIdSchema,
+  incidentsListIncidentsQueryExerciseSchema,
+  incidentsListIncidentsQueryPageSchema,
+  incidentsListIncidentsQueryQSchema,
+  incidentsListIncidentsQuerySchema,
+  incidentsListIncidentsQuerySizeSchema,
+  incidentsListIncidentsQueryStatusSchema,
+  incidentsListIncidentsResponseSchema,
+  incidentsListIncidentsStatus200Schema,
+  incidentsListIncidentsStatus400Schema,
+  incidentsListIncidentsStatus401Schema,
+  incidentsListIncidentsStatus403Schema,
+  incidentsListIncidentsStatus404Schema,
+  incidentsListIncidentsStatus422Schema,
+} from "./incidentsListIncidentsSchema.js";
+export {
+  incidentsOpenIncidentErrorSchema,
+  incidentsOpenIncidentHeadersSchema,
+  incidentsOpenIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsOpenIncidentPathIncidentIdSchema,
+  incidentsOpenIncidentPathSchema,
+  incidentsOpenIncidentResponseSchema,
+  incidentsOpenIncidentStatus200Schema,
+  incidentsOpenIncidentStatus400Schema,
+  incidentsOpenIncidentStatus401Schema,
+  incidentsOpenIncidentStatus403Schema,
+  incidentsOpenIncidentStatus404Schema,
+  incidentsOpenIncidentStatus409Schema,
+  incidentsOpenIncidentStatus422Schema,
+} from "./incidentsOpenIncidentSchema.js";
+export {
+  incidentsReopenIncidentBodySchema,
+  incidentsReopenIncidentErrorSchema,
+  incidentsReopenIncidentHeadersSchema,
+  incidentsReopenIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsReopenIncidentPathIncidentIdSchema,
+  incidentsReopenIncidentPathSchema,
+  incidentsReopenIncidentResponseSchema,
+  incidentsReopenIncidentStatus200Schema,
+  incidentsReopenIncidentStatus400Schema,
+  incidentsReopenIncidentStatus401Schema,
+  incidentsReopenIncidentStatus403Schema,
+  incidentsReopenIncidentStatus404Schema,
+  incidentsReopenIncidentStatus409Schema,
+  incidentsReopenIncidentStatus422Schema,
+} from "./incidentsReopenIncidentSchema.js";
+export {
+  incidentsUpdateCategoryBodySchema,
+  incidentsUpdateCategoryErrorSchema,
+  incidentsUpdateCategoryHeadersSchema,
+  incidentsUpdateCategoryHeaderXBarrelsOrganisationSchema,
+  incidentsUpdateCategoryPathCategoryIdSchema,
+  incidentsUpdateCategoryPathSchema,
+  incidentsUpdateCategoryResponseSchema,
+  incidentsUpdateCategoryStatus200Schema,
+  incidentsUpdateCategoryStatus400Schema,
+  incidentsUpdateCategoryStatus401Schema,
+  incidentsUpdateCategoryStatus403Schema,
+  incidentsUpdateCategoryStatus404Schema,
+  incidentsUpdateCategoryStatus409Schema,
+  incidentsUpdateCategoryStatus422Schema,
+} from "./incidentsUpdateCategorySchema.js";
+export {
+  incidentsUpdateChecklistItemBodySchema,
+  incidentsUpdateChecklistItemErrorSchema,
+  incidentsUpdateChecklistItemHeadersSchema,
+  incidentsUpdateChecklistItemHeaderXBarrelsOrganisationSchema,
+  incidentsUpdateChecklistItemPathItemIdSchema,
+  incidentsUpdateChecklistItemPathSchema,
+  incidentsUpdateChecklistItemResponseSchema,
+  incidentsUpdateChecklistItemStatus200Schema,
+  incidentsUpdateChecklistItemStatus400Schema,
+  incidentsUpdateChecklistItemStatus401Schema,
+  incidentsUpdateChecklistItemStatus403Schema,
+  incidentsUpdateChecklistItemStatus404Schema,
+  incidentsUpdateChecklistItemStatus409Schema,
+  incidentsUpdateChecklistItemStatus422Schema,
+} from "./incidentsUpdateChecklistItemSchema.js";
+export {
+  incidentsUpdateCheckBodySchema,
+  incidentsUpdateCheckErrorSchema,
+  incidentsUpdateCheckHeadersSchema,
+  incidentsUpdateCheckHeaderXBarrelsOrganisationSchema,
+  incidentsUpdateCheckPathCheckIdSchema,
+  incidentsUpdateCheckPathIncidentIdSchema,
+  incidentsUpdateCheckPathSchema,
+  incidentsUpdateCheckResponseSchema,
+  incidentsUpdateCheckStatus200Schema,
+  incidentsUpdateCheckStatus400Schema,
+  incidentsUpdateCheckStatus401Schema,
+  incidentsUpdateCheckStatus403Schema,
+  incidentsUpdateCheckStatus404Schema,
+  incidentsUpdateCheckStatus409Schema,
+  incidentsUpdateCheckStatus422Schema,
+} from "./incidentsUpdateCheckSchema.js";
+export {
+  incidentsUpdateIncidentBodySchema,
+  incidentsUpdateIncidentErrorSchema,
+  incidentsUpdateIncidentHeadersSchema,
+  incidentsUpdateIncidentHeaderXBarrelsOrganisationSchema,
+  incidentsUpdateIncidentPathIncidentIdSchema,
+  incidentsUpdateIncidentPathSchema,
+  incidentsUpdateIncidentResponseSchema,
+  incidentsUpdateIncidentStatus200Schema,
+  incidentsUpdateIncidentStatus400Schema,
+  incidentsUpdateIncidentStatus401Schema,
+  incidentsUpdateIncidentStatus403Schema,
+  incidentsUpdateIncidentStatus404Schema,
+  incidentsUpdateIncidentStatus409Schema,
+  incidentsUpdateIncidentStatus422Schema,
+} from "./incidentsUpdateIncidentSchema.js";
+export { incidentTimelineCreateSchema } from "./incidentTimelineCreateSchema.js";
+export { incidentTimelineKindSchema } from "./incidentTimelineKindSchema.js";
+export { incidentTimelinePublicSchema } from "./incidentTimelinePublicSchema.js";
+export { incidentUpdateSchema } from "./incidentUpdateSchema.js";
 export { intendedUseSchema } from "./intendedUseSchema.js";
 export { intentStatusSchema } from "./intentStatusSchema.js";
 export { invitationAcceptSchema } from "./invitationAcceptSchema.js";
@@ -7120,6 +7524,219 @@ export { observationSendPropertiesStatusEnumSchema } from "./observationSendProp
 export { observationSendPropertiesTargetEnumSchema } from "./observationSendPropertiesTargetEnumSchema.js";
 export { observationSendSchema } from "./observationSendSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
+export { opsLogAttachmentCreateSchema } from "./opsLogAttachmentCreateSchema.js";
+export { opsLogAttachmentPublicSchema } from "./opsLogAttachmentPublicSchema.js";
+export { opsLogCategoryCreateSchema } from "./opsLogCategoryCreateSchema.js";
+export { opsLogCategoryListSchema } from "./opsLogCategoryListSchema.js";
+export { opsLogCategoryPublicSchema } from "./opsLogCategoryPublicSchema.js";
+export { opsLogCategoryUpdateSchema } from "./opsLogCategoryUpdateSchema.js";
+export { opsLogCommentCreateSchema } from "./opsLogCommentCreateSchema.js";
+export { opsLogCommentPublicSchema } from "./opsLogCommentPublicSchema.js";
+export { opsLogCreateSchema } from "./opsLogCreateSchema.js";
+export { opsLogEditRuleSchema } from "./opsLogEditRuleSchema.js";
+export { opsLogEntryCreateSchema } from "./opsLogEntryCreateSchema.js";
+export { opsLogEntryDetailSchema } from "./opsLogEntryDetailSchema.js";
+export { opsLogEntryPageSchema } from "./opsLogEntryPageSchema.js";
+export { opsLogEntryPublicSchema } from "./opsLogEntryPublicSchema.js";
+export { opsLogEntrySourceSchema } from "./opsLogEntrySourceSchema.js";
+export { opsLogEntryUpdateSchema } from "./opsLogEntryUpdateSchema.js";
+export { opsLogListSchema } from "./opsLogListSchema.js";
+export { opsLogPublicSchema } from "./opsLogPublicSchema.js";
+export { opsLogRecordRefSchema } from "./opsLogRecordRefSchema.js";
+export { opsLogUpdateSchema } from "./opsLogUpdateSchema.js";
+export {
+  opslogCreateAttachmentBodySchema,
+  opslogCreateAttachmentErrorSchema,
+  opslogCreateAttachmentHeadersSchema,
+  opslogCreateAttachmentHeaderXBarrelsOrganisationSchema,
+  opslogCreateAttachmentPathEntryIdSchema,
+  opslogCreateAttachmentPathSchema,
+  opslogCreateAttachmentResponseSchema,
+  opslogCreateAttachmentStatus201Schema,
+  opslogCreateAttachmentStatus400Schema,
+  opslogCreateAttachmentStatus401Schema,
+  opslogCreateAttachmentStatus403Schema,
+  opslogCreateAttachmentStatus404Schema,
+  opslogCreateAttachmentStatus409Schema,
+  opslogCreateAttachmentStatus422Schema,
+} from "./opslogCreateAttachmentSchema.js";
+export {
+  opslogCreateCategoryBodySchema,
+  opslogCreateCategoryErrorSchema,
+  opslogCreateCategoryHeadersSchema,
+  opslogCreateCategoryHeaderXBarrelsOrganisationSchema,
+  opslogCreateCategoryPathLogIdSchema,
+  opslogCreateCategoryPathSchema,
+  opslogCreateCategoryResponseSchema,
+  opslogCreateCategoryStatus201Schema,
+  opslogCreateCategoryStatus400Schema,
+  opslogCreateCategoryStatus401Schema,
+  opslogCreateCategoryStatus403Schema,
+  opslogCreateCategoryStatus404Schema,
+  opslogCreateCategoryStatus409Schema,
+  opslogCreateCategoryStatus422Schema,
+} from "./opslogCreateCategorySchema.js";
+export {
+  opslogCreateCommentBodySchema,
+  opslogCreateCommentErrorSchema,
+  opslogCreateCommentHeadersSchema,
+  opslogCreateCommentHeaderXBarrelsOrganisationSchema,
+  opslogCreateCommentPathEntryIdSchema,
+  opslogCreateCommentPathSchema,
+  opslogCreateCommentResponseSchema,
+  opslogCreateCommentStatus201Schema,
+  opslogCreateCommentStatus400Schema,
+  opslogCreateCommentStatus401Schema,
+  opslogCreateCommentStatus403Schema,
+  opslogCreateCommentStatus404Schema,
+  opslogCreateCommentStatus409Schema,
+  opslogCreateCommentStatus422Schema,
+} from "./opslogCreateCommentSchema.js";
+export {
+  opslogCreateEntryBodySchema,
+  opslogCreateEntryErrorSchema,
+  opslogCreateEntryHeadersSchema,
+  opslogCreateEntryHeaderXBarrelsOrganisationSchema,
+  opslogCreateEntryPathLogIdSchema,
+  opslogCreateEntryPathSchema,
+  opslogCreateEntryResponseSchema,
+  opslogCreateEntryStatus201Schema,
+  opslogCreateEntryStatus400Schema,
+  opslogCreateEntryStatus401Schema,
+  opslogCreateEntryStatus403Schema,
+  opslogCreateEntryStatus404Schema,
+  opslogCreateEntryStatus409Schema,
+  opslogCreateEntryStatus422Schema,
+} from "./opslogCreateEntrySchema.js";
+export {
+  opslogCreateLogBodySchema,
+  opslogCreateLogErrorSchema,
+  opslogCreateLogHeadersSchema,
+  opslogCreateLogHeaderXBarrelsOrganisationSchema,
+  opslogCreateLogResponseSchema,
+  opslogCreateLogStatus201Schema,
+  opslogCreateLogStatus400Schema,
+  opslogCreateLogStatus401Schema,
+  opslogCreateLogStatus403Schema,
+  opslogCreateLogStatus404Schema,
+  opslogCreateLogStatus409Schema,
+  opslogCreateLogStatus422Schema,
+} from "./opslogCreateLogSchema.js";
+export {
+  opslogGetEntryErrorSchema,
+  opslogGetEntryHeadersSchema,
+  opslogGetEntryHeaderXBarrelsOrganisationSchema,
+  opslogGetEntryPathEntryIdSchema,
+  opslogGetEntryPathSchema,
+  opslogGetEntryResponseSchema,
+  opslogGetEntryStatus200Schema,
+  opslogGetEntryStatus400Schema,
+  opslogGetEntryStatus401Schema,
+  opslogGetEntryStatus403Schema,
+  opslogGetEntryStatus404Schema,
+  opslogGetEntryStatus422Schema,
+} from "./opslogGetEntrySchema.js";
+export {
+  opslogListCategoriesErrorSchema,
+  opslogListCategoriesHeadersSchema,
+  opslogListCategoriesHeaderXBarrelsOrganisationSchema,
+  opslogListCategoriesPathLogIdSchema,
+  opslogListCategoriesPathSchema,
+  opslogListCategoriesQueryIncludeArchivedSchema,
+  opslogListCategoriesQuerySchema,
+  opslogListCategoriesResponseSchema,
+  opslogListCategoriesStatus200Schema,
+  opslogListCategoriesStatus400Schema,
+  opslogListCategoriesStatus401Schema,
+  opslogListCategoriesStatus403Schema,
+  opslogListCategoriesStatus404Schema,
+  opslogListCategoriesStatus422Schema,
+} from "./opslogListCategoriesSchema.js";
+export {
+  opslogListEntriesErrorSchema,
+  opslogListEntriesHeadersSchema,
+  opslogListEntriesHeaderXBarrelsOrganisationSchema,
+  opslogListEntriesPathLogIdSchema,
+  opslogListEntriesPathSchema,
+  opslogListEntriesQueryAuthorIdSchema,
+  opslogListEntriesQueryCategoryIdSchema,
+  opslogListEntriesQueryCursorSchema,
+  opslogListEntriesQueryLimitSchema,
+  opslogListEntriesQueryOccurredFromSchema,
+  opslogListEntriesQueryOccurredToSchema,
+  opslogListEntriesQueryQSchema,
+  opslogListEntriesQuerySchema,
+  opslogListEntriesQuerySourceSchema,
+  opslogListEntriesResponseSchema,
+  opslogListEntriesStatus200Schema,
+  opslogListEntriesStatus400Schema,
+  opslogListEntriesStatus401Schema,
+  opslogListEntriesStatus403Schema,
+  opslogListEntriesStatus404Schema,
+  opslogListEntriesStatus422Schema,
+} from "./opslogListEntriesSchema.js";
+export {
+  opslogListLogsErrorSchema,
+  opslogListLogsHeadersSchema,
+  opslogListLogsHeaderXBarrelsOrganisationSchema,
+  opslogListLogsQueryIncludeArchivedSchema,
+  opslogListLogsQuerySchema,
+  opslogListLogsResponseSchema,
+  opslogListLogsStatus200Schema,
+  opslogListLogsStatus400Schema,
+  opslogListLogsStatus401Schema,
+  opslogListLogsStatus403Schema,
+  opslogListLogsStatus404Schema,
+  opslogListLogsStatus422Schema,
+} from "./opslogListLogsSchema.js";
+export {
+  opslogUpdateCategoryBodySchema,
+  opslogUpdateCategoryErrorSchema,
+  opslogUpdateCategoryHeadersSchema,
+  opslogUpdateCategoryHeaderXBarrelsOrganisationSchema,
+  opslogUpdateCategoryPathCategoryIdSchema,
+  opslogUpdateCategoryPathSchema,
+  opslogUpdateCategoryResponseSchema,
+  opslogUpdateCategoryStatus200Schema,
+  opslogUpdateCategoryStatus400Schema,
+  opslogUpdateCategoryStatus401Schema,
+  opslogUpdateCategoryStatus403Schema,
+  opslogUpdateCategoryStatus404Schema,
+  opslogUpdateCategoryStatus409Schema,
+  opslogUpdateCategoryStatus422Schema,
+} from "./opslogUpdateCategorySchema.js";
+export {
+  opslogUpdateEntryBodySchema,
+  opslogUpdateEntryErrorSchema,
+  opslogUpdateEntryHeadersSchema,
+  opslogUpdateEntryHeaderXBarrelsOrganisationSchema,
+  opslogUpdateEntryPathEntryIdSchema,
+  opslogUpdateEntryPathSchema,
+  opslogUpdateEntryResponseSchema,
+  opslogUpdateEntryStatus200Schema,
+  opslogUpdateEntryStatus400Schema,
+  opslogUpdateEntryStatus401Schema,
+  opslogUpdateEntryStatus403Schema,
+  opslogUpdateEntryStatus404Schema,
+  opslogUpdateEntryStatus409Schema,
+  opslogUpdateEntryStatus422Schema,
+} from "./opslogUpdateEntrySchema.js";
+export {
+  opslogUpdateLogBodySchema,
+  opslogUpdateLogErrorSchema,
+  opslogUpdateLogHeadersSchema,
+  opslogUpdateLogHeaderXBarrelsOrganisationSchema,
+  opslogUpdateLogPathLogIdSchema,
+  opslogUpdateLogPathSchema,
+  opslogUpdateLogResponseSchema,
+  opslogUpdateLogStatus200Schema,
+  opslogUpdateLogStatus400Schema,
+  opslogUpdateLogStatus401Schema,
+  opslogUpdateLogStatus403Schema,
+  opslogUpdateLogStatus404Schema,
+  opslogUpdateLogStatus409Schema,
+  opslogUpdateLogStatus422Schema,
+} from "./opslogUpdateLogSchema.js";
 export { orderCreateSchema } from "./orderCreateSchema.js";
 export { orderItemInputSchema } from "./orderItemInputSchema.js";
 export { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";

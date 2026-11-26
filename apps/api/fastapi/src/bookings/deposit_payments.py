@@ -31,17 +31,20 @@ from urllib.parse import urlencode
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.exceptions import AppException
 from src.organisations import service as organisation_service
 from src.payments import return_urls
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.config import payments_settings
+from src.payments.exceptions import PaymentsValidationError, RefundFailedAtProvider
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
 from .config import bookings_settings
 from .models import (
     Booking,
+    BookingDepositCollection,
     BookingDepositMode,
     BookingPaymentMode,
     BookingProfile,
@@ -54,6 +57,9 @@ logger = logging.getLogger(__name__)
 
 SOURCE_TYPE = "bookings.deposit"
 PAID_TOPIC = "bookings.deposit_paid"
+#: A refund that must not call the payment provider inside the caller's transaction (the
+#: last owner leaving an account). The worker runs ``refund_deposit`` afterwards.
+REFUND_TOPIC = "bookings.deposit_refund"
 _TEST_KEY_PREFIX = "sk_test_"
 
 
@@ -111,6 +117,22 @@ def planned_deposit(
     return rule_deposit(svc.price_minor if price_minor is None else price_minor, rule)
 
 
+def collected_by_business(profile: BookingProfile) -> bool:
+    """True when the customer pays the deposit to the business by hand (display
+    only): nothing is charged online and no payments entitlement is needed."""
+    return profile.deposit_collection == BookingDepositCollection.BUSINESS.value
+
+
+def deposit_to_business(
+    profile: BookingProfile, svc: Service, price_minor: int | None = None
+) -> int:
+    """The deposit shown to the customer in ``business`` collection: the service's
+    own deposit, else the business rule (with its minimum price). 0 in ``online``."""
+    if not collected_by_business(profile):
+        return 0
+    return planned_deposit(svc, deposit_rule_of(profile), price_minor)
+
+
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
     """What is still to pay at the business once the deposit is paid. Clients show
     it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
@@ -132,6 +154,8 @@ async def effective_deposit(
 ) -> int:
     """The deposit to collect for ``svc``: zero unless the organisation is
     entitled to ``payments`` (logged once per booking, never an error)."""
+    if collected_by_business(profile):
+        return 0
     amount = planned_deposit(svc, deposit_rule_of(profile), price_minor)
     if amount <= 0:
         return 0
@@ -157,6 +181,7 @@ def charges_full_price(profile: BookingProfile) -> bool:
     return (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
         and stripe_available()
+        and not collected_by_business(profile)
     )
 
 
@@ -191,6 +216,8 @@ async def amount_due(
     ``full_price`` charges the price only while Stripe is available and the
     organisation holds ``payments``; otherwise the service deposit or the business
     deposit rule applies. ``price_minor`` is the combined price with add-ons."""
+    if collected_by_business(profile):
+        return 0
     price = svc.price_minor if price_minor is None else price_minor
     full_price = charges_full_price(profile)
     if (
@@ -219,6 +246,8 @@ async def due_by_service(
     session: AsyncSession, profile: BookingProfile, services: list[Service]
 ) -> dict[object, int]:
     """``amount_due`` for a whole storefront, with one entitlement query."""
+    if collected_by_business(profile):
+        return {svc.id: 0 for svc in services}
     entitled = await organisation_service.is_app_enabled(
         session, organisation_id=profile.organisation_id, app_key="payments"
     )
@@ -337,6 +366,73 @@ async def cancel_unpaid_deposit(session: AsyncSession, booking: Booking) -> bool
         source_id=str(booking.id),
         idempotency_key=intent_key(booking.id),
     )
+
+
+#: An online card checkout holds the slot at most this long (minutes), whatever
+#: the business set. Payment-link and manual deposits use the business's own hold.
+ONLINE_HOLD_CAP_MINUTES = 120
+
+
+def hold_minutes_for(profile_minutes: int | None, *, online: bool) -> int:
+    """Pure: how many minutes an unpaid deposit holds the slot. ``profile_minutes``
+    is the business's ``deposit_hold_minutes`` (null = ``DEPOSIT_HOLD_MINUTES``).
+    An online (Stripe) checkout is capped at ``ONLINE_HOLD_CAP_MINUTES``."""
+    base = (
+        bookings_settings.DEPOSIT_HOLD_MINUTES
+        if profile_minutes is None
+        else profile_minutes
+    )
+    return min(base, ONLINE_HOLD_CAP_MINUTES) if online else base
+
+
+async def online_held_ids(
+    session: AsyncSession, booking_ids: list[uuid.UUID]
+) -> set[uuid.UUID]:
+    """The bookings whose deposit intent is an online (Stripe) checkout, in one query."""
+    if not booking_ids:
+        return set()
+    rows = await session.scalars(
+        select(Intent.source_id).where(
+            Intent.source_type == SOURCE_TYPE,
+            Intent.provider == ProviderKey.STRIPE.value,
+            Intent.source_id.in_([str(booking_id) for booking_id in booking_ids]),
+        )
+    )
+    return {uuid.UUID(source_id) for source_id in rows if source_id}
+
+
+async def snapshot_hold(
+    session: AsyncSession, profile: BookingProfile, booking: Booking
+) -> int:
+    """Fix the booking's hold when it enters ``pending_payment``: the business's
+    value, capped when its deposit is an online checkout. Sets ``booking.hold_minutes``
+    and returns it. The route is decided once, at creation (``start_deposit``), so the
+    snapshot is not recomputed later."""
+    online = booking.id in await online_held_ids(session, [booking.id])
+    booking.hold_minutes = hold_minutes_for(profile.deposit_hold_minutes, online=online)
+    return booking.hold_minutes
+
+
+async def hold_minutes_for_bookings(
+    session: AsyncSession, profile: BookingProfile, bookings: list[Booking]
+) -> dict[uuid.UUID, int]:
+    """Minutes held for each booking waiting for a deposit (``pending_payment``).
+    The booking's snapshot wins; a booking with no snapshot (made before it existed)
+    is computed from the profile now. Bookings in any other state, and
+    business-collected ones, are not in the result."""
+    if collected_by_business(profile):
+        return {}
+    held = [b for b in bookings if b.status == BookingStatus.PENDING_PAYMENT.value]
+    unsnapped = [b.id for b in held if b.hold_minutes is None]
+    online = await online_held_ids(session, unsnapped)
+    return {
+        b.id: (
+            b.hold_minutes
+            if b.hold_minutes is not None
+            else hold_minutes_for(profile.deposit_hold_minutes, online=b.id in online)
+        )
+        for b in held
+    }
 
 
 async def start_deposit(
@@ -502,17 +598,29 @@ def refund_by_policy(
     return booking.starts_at - now >= timedelta(hours=profile.cancel_cutoff_hours)
 
 
+#: Attempts at one refund. A provider that marks each attempt failed ends the loop.
+REFUND_MAX_ATTEMPTS = 5
+
+
 def refund_id_for(
-    booking_id: uuid.UUID, intent_id: uuid.UUID, amount_minor: int, occasion: str
+    booking_id: uuid.UUID,
+    intent_id: uuid.UUID,
+    amount_minor: int,
+    occasion: str,
+    attempt: int = 1,
 ) -> uuid.UUID:
     """The refund id of one deposit refund, derived from the booking, the intent,
-    the amount and the occasion (the reason). A retry after a lost commit derives the
-    same id, so the provider sees the same idempotency key and refunds once. A partial
-    refund (another amount) gets its own id."""
-    return uuid.uuid5(
-        uuid.NAMESPACE_URL,
-        f"bookings.deposit-refund:{booking_id}:{intent_id}:{amount_minor}:{occasion}",
-    )
+    the amount, the occasion (the reason) and the attempt. A retry after a lost commit
+    derives the same id, so the provider sees the same idempotency key and refunds
+    once. A partial refund (another amount) gets its own id. After the provider marks
+    an attempt failed, the next attempt (2, 3, ...) gets its own id; attempt 1 keeps
+    the id it always had, so refunds already in flight still match."""
+    if attempt < 1:
+        raise ValueError("a refund attempt starts at 1")
+    name = f"bookings.deposit-refund:{booking_id}:{intent_id}:{amount_minor}:{occasion}"
+    if attempt > 1:
+        name += f":attempt:{attempt}"
+    return uuid.uuid5(uuid.NAMESPACE_URL, name)
 
 
 async def refund_deposit(
@@ -524,30 +632,68 @@ async def refund_deposit(
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return True
     remaining = intent.captured_minor - intent.refunded_minor
-    try:
-        async with session.begin_nested():
-            await payments_service.refund_intent(
-                session,
-                organisation_id=booking.organisation_id,
-                intent_id=intent.id,
-                actor=None,
-                payload=payment_schemas.PaymentRefundCreate(reason=reason),
-                refund_id=refund_id_for(booking.id, intent.id, remaining, reason),
+    for attempt in range(1, REFUND_MAX_ATTEMPTS + 1):
+        try:
+            async with session.begin_nested():
+                await payments_service.refund_intent(
+                    session,
+                    organisation_id=booking.organisation_id,
+                    intent_id=intent.id,
+                    actor=None,
+                    payload=payment_schemas.PaymentRefundCreate(reason=reason),
+                    refund_id=refund_id_for(
+                        booking.id, intent.id, remaining, reason, attempt
+                    ),
+                )
+        except RefundFailedAtProvider:
+            # The provider marked an earlier attempt failed, so the money is due
+            # again: the next attempt has its own id.
+            continue
+        except PaymentsValidationError as error:
+            # The amount is no longer refundable. A concurrent refund may have
+            # covered it: then there is nothing left to do, which is not an error.
+            current = await find_deposit(session, booking)
+            if current is None or current.captured_minor - current.refunded_minor <= 0:
+                logger.info(
+                    "booking deposit already refunded",
+                    extra={"booking_id": str(booking.id), "intent_id": str(intent.id)},
+                )
+                return True
+            logger.error(
+                "booking deposit refund failed; refund it by hand",
+                extra={
+                    "booking_id": str(booking.id),
+                    "intent_id": str(intent.id),
+                    "amount_minor": remaining,
+                    "status_code": error.status_code,
+                },
             )
-    except AppException as error:
-        # Error level so Sentry alerts: the money is still held and needs a refund by
-        # hand. Only ids, amounts and the status code are logged (no provider text).
-        logger.error(
-            "booking deposit refund failed; refund it by hand",
-            extra={
-                "booking_id": str(booking.id),
-                "intent_id": str(intent.id),
-                "amount_minor": intent.captured_minor - intent.refunded_minor,
-                "status_code": error.status_code,
-            },
-        )
-        return False
-    return True
+            return False
+        except AppException as error:
+            # Error level so Sentry alerts: the money is still held and needs a refund
+            # by hand. Only ids, amounts and the status code are logged (no provider
+            # text).
+            logger.error(
+                "booking deposit refund failed; refund it by hand",
+                extra={
+                    "booking_id": str(booking.id),
+                    "intent_id": str(intent.id),
+                    "amount_minor": remaining,
+                    "status_code": error.status_code,
+                },
+            )
+            return False
+        return True
+    logger.error(
+        "booking deposit refund failed every attempt; refund it by hand",
+        extra={
+            "booking_id": str(booking.id),
+            "intent_id": str(intent.id),
+            "amount_minor": remaining,
+            "attempts": REFUND_MAX_ATTEMPTS,
+        },
+    )
+    return False
 
 
 async def settle_cancellation(
@@ -558,13 +704,16 @@ async def settle_cancellation(
     previous: BookingStatus,
     refund: bool | None,
     now: datetime,
+    defer_refund: bool = False,
 ) -> str | None:
     """Money side of a cancelled booking. Returns a note for the booking's history,
     or None when no deposit was involved.
 
     - Was ``pending_payment``: the open intent is cancelled; if the payment had
       just succeeded it is refunded in full.
-    - Otherwise ``refund`` decides (``None`` = the cutoff policy)."""
+    - Otherwise ``refund`` decides (``None`` = the cutoff policy).
+    - ``defer_refund``: a refund is queued on the outbox instead of called here, so no
+      payment-provider call runs inside the caller's transaction."""
     if booking.deposit_minor <= 0:
         return None
     noun = payment_noun(booking)
@@ -577,5 +726,14 @@ async def settle_cancellation(
         refund = refund_by_policy(booking, profile, now, previous=previous)
     if not refund:
         return f"{noun} kept"
+    if defer_refund:
+        await outbox.enqueue(
+            session,
+            topic=REFUND_TOPIC,
+            payload={"booking_id": str(booking.id)},
+            dedupe_key=f"bookings.deposit-refund:{booking.id}",
+            organisation_id=booking.organisation_id,
+        )
+        return f"{noun} refund queued"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
     return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"

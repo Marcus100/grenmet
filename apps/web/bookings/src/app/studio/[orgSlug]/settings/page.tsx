@@ -1,7 +1,9 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { BookingCalendarFeedStatus } from "@barrelsgd/api-client";
 import type { Metadata } from "next";
 import { CalendarFeedSection } from "@/components/studio/settings/calendar-feed-section";
 import {
+  ClosedDaysSection,
   ContactSection,
   HoursSection,
   PaymentsSection,
@@ -11,13 +13,21 @@ import {
   SettingsJumpMenu,
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import { CARD, StudioPageHeader } from "@/components/studio/studio-ui";
+import { CARD } from "@/components/studio/studio-ui";
 import { exampleServiceFor } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
-import { loadSettings, loadTimeOffByProvider } from "@/lib/settings-load";
+import {
+  loadClosures,
+  loadSettings,
+  loadTimeOffByProvider,
+} from "@/lib/settings-load";
 import { getCalendarFeedStatus } from "@/lib/studio-api";
-import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
+import {
+  canManageBookings,
+  DEFAULT_TIMEZONE,
+  todayIn,
+} from "@/lib/studio-view";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -69,6 +79,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     data.providers,
     here
   );
+  const closures = await loadClosures(session, org.id, here);
   // Only owners and admins may read the feed status; members never call it.
   const calendarStatus = editable
     ? await loadCalendarStatus(session.accessToken, org.id)
@@ -76,7 +87,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
   return (
     <div className="space-y-6">
-      <StudioPageHeader
+      <PageHeader
         description={
           editable
             ? "How customers book: your page, services, people and hours. Each section has its own Save button."
@@ -100,6 +111,13 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           orgSlug={orgSlug}
           providers={data.providers}
           timeOff={timeOff}
+          zone={zone}
+        />
+        <ClosedDaysSection
+          closures={closures}
+          editable={editable}
+          orgSlug={orgSlug}
+          today={todayIn(zone)}
           zone={zone}
         />
         <ServicesSection

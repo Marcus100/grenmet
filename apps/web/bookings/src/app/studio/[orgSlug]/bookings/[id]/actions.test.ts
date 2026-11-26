@@ -19,9 +19,11 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getBusinessTimezone: vi.fn(),
   markCompleted: vi.fn(),
+  markDepositReceived: vi.fn(),
   markNoShow: vi.fn(),
   recordManualDeposit: vi.fn(),
   rescheduleBooking: vi.fn(),
+  undoDepositReceived: vi.fn(),
 }));
 
 import { getSession } from "@/lib/session";
@@ -32,18 +34,22 @@ import {
   findOrganisation,
   getBusinessTimezone,
   markCompleted,
+  markDepositReceived,
   markNoShow,
   recordManualDeposit,
   rescheduleBooking,
+  undoDepositReceived,
 } from "@/lib/studio-api";
 import {
   cancelBookingAction,
   completeBookingAction,
   confirmBookingAction,
   declineBookingAction,
+  markDepositReceivedAction,
   noShowBookingAction,
   recordDepositAction,
   rescheduleBookingAction,
+  undoDepositReceivedAction,
 } from "./actions";
 
 const OK = { events: [] } as never;
@@ -561,6 +567,161 @@ describe("rescheduleBookingAction", () => {
       )
     ).rejects.toMatchObject({
       message: expect.stringContaining("NEXT_REDIRECT /signin?returnTo="),
+    });
+  });
+});
+
+describe("deposit paid to the business, marked received (#1869)", () => {
+  beforeEach(() => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+  });
+
+  const mark = (values: Record<string, string> = {}) =>
+    markDepositReceivedAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ method: "cash", reference: "", receivedAt: "", ...values })
+    );
+
+  it("sends the method and reference, and leaves the time out for now", async () => {
+    vi.mocked(markDepositReceived).mockResolvedValue(OK);
+    expect(
+      await mark({ method: "bank_transfer", reference: " TX-9 " })
+    ).toEqual({
+      status: "success",
+      message: "Deposit received.",
+    });
+    expect(markDepositReceived).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      BOOKING_ID,
+      { method: "bank_transfer", reference: "TX-9" }
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/agenda`);
+  });
+
+  it("reads a time on the business's clock and sends it in UTC", async () => {
+    vi.mocked(markDepositReceived).mockResolvedValue(OK);
+    await mark({ receivedAt: "2027-01-05T09:30" });
+    // 09:30 in Grenada (UTC-4) is 13:30 UTC.
+    expect(markDepositReceived).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      BOOKING_ID,
+      { method: "cash", receivedAt: "2027-01-05T13:30:00.000Z" }
+    );
+  });
+
+  it("refuses a member before any call", async () => {
+    org("member");
+    expect(await mark()).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(markDepositReceived).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown method, a bad time or a long reference before any call", async () => {
+    expect(await mark({ method: "cheque" })).toMatchObject({
+      status: "error",
+      kind: "invalid",
+    });
+    expect(await mark({ receivedAt: "tomorrow" })).toMatchObject({
+      status: "error",
+      kind: "invalid",
+    });
+    expect(await mark({ reference: "x".repeat(101) })).toMatchObject({
+      status: "error",
+      kind: "invalid",
+    });
+    expect(markDepositReceived).not.toHaveBeenCalled();
+  });
+
+  it("says a time in the future is not accepted, with the API's code", async () => {
+    vi.mocked(markDepositReceived).mockRejectedValue(
+      apiError(422, { code: "DEPOSIT_RECEIVED_IN_FUTURE" })
+    );
+    expect(await mark({ receivedAt: "2099-01-05T09:30" })).toEqual({
+      status: "error",
+      kind: "invalid",
+      message: "The time the deposit arrived cannot be in the future.",
+      nextStep: "Choose an earlier time, or leave it empty to use now.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "NO_BUSINESS_DEPOSIT",
+      "This booking has no deposit paid to the business.",
+    ],
+    [
+      "BOOKING_NOT_OPEN",
+      "This booking is cancelled, declined or marked no-show, so its deposit cannot be marked received.",
+    ],
+    ["DEPOSIT_ALREADY_RECEIVED", "This deposit is already marked received."],
+  ])(
+    "maps %s to plain words and refreshes the screens",
+    async (code, message) => {
+      vi.mocked(markDepositReceived).mockRejectedValue(apiError(409, { code }));
+      expect(await mark()).toMatchObject({
+        status: "error",
+        kind: "conflict",
+        message,
+      });
+      expect(revalidatePath).toHaveBeenCalledWith(
+        `/studio/${SLUG}/bookings/${BOOKING_ID}`
+      );
+      expect(reportError).not.toHaveBeenCalled();
+    }
+  );
+
+  it("falls back to the shared wording for a 409 without a known code", async () => {
+    vi.mocked(markDepositReceived).mockRejectedValue(apiError(409, {}));
+    expect(await mark()).toMatchObject({
+      status: "error",
+      kind: "conflict",
+      message:
+        "This booking has already changed (it may already be cancelled or finished).",
+    });
+  });
+
+  it("reports a server fault and says it could not be saved", async () => {
+    vi.mocked(markDepositReceived).mockRejectedValue(apiError(500));
+    expect(await mark()).toMatchObject({
+      status: "error",
+      kind: "unavailable",
+      message: "We could not save that change.",
+    });
+    expect(reportError).toHaveBeenCalledTimes(1);
+  });
+
+  it("undoes a receipt for an admin and says the deposit is due again", async () => {
+    vi.mocked(undoDepositReceived).mockResolvedValue(OK);
+    expect(await undoDepositReceivedAction(SLUG, BOOKING_ID, IDLE)).toEqual({
+      status: "success",
+      message: "Deposit receipt undone. The deposit is due again.",
+    });
+    expect(undoDepositReceived).toHaveBeenCalledWith("tok", ORG_ID, BOOKING_ID);
+  });
+
+  it("refuses an undo by a member before any call", async () => {
+    org("member");
+    expect(
+      await undoDepositReceivedAction(SLUG, BOOKING_ID, IDLE)
+    ).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(undoDepositReceived).not.toHaveBeenCalled();
+  });
+
+  it("says there is nothing to undo when no receipt is marked", async () => {
+    vi.mocked(undoDepositReceived).mockRejectedValue(
+      apiError(409, { code: "DEPOSIT_NOT_RECEIVED" })
+    );
+    expect(
+      await undoDepositReceivedAction(SLUG, BOOKING_ID, IDLE)
+    ).toMatchObject({
+      status: "error",
+      kind: "conflict",
+      message:
+        "This deposit is not marked received, so there is nothing to undo.",
     });
   });
 });

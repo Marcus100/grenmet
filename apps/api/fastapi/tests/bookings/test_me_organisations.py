@@ -53,7 +53,8 @@ async def test_lists_entitled_active_memberships_with_role(
     assert other.id not in body
     assert body[owned.id]["role"] == "owner"
     assert body[staff.id]["role"] == "member"
-    assert set(body[owned.id]) == {"id", "name", "slug", "role"}
+    assert set(body[owned.id]) == {"id", "name", "slug", "role", "paused_at"}
+    assert body[owned.id]["paused_at"] is None
     assert body[owned.id]["slug"] == owned.slug
 
 

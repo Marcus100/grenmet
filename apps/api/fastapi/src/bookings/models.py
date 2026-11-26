@@ -49,6 +49,16 @@ class BookingPaymentMode(str, Enum):
     FULL_PRICE = "full_price"
 
 
+class BookingDepositCollection(str, Enum):
+    """Who collects the deposit. ``online``: Barrels does, through payments (today's
+    behaviour). ``business``: the customer pays the business by hand (PayPal, bank
+    transfer, cash), outside Barrels; the booking only shows the amount and the
+    business's instructions."""
+
+    ONLINE = "online"
+    BUSINESS = "business"
+
+
 class BookingDepositMode(str, Enum):
     """The business-wide deposit rule (owner request 23 Nov 2026), used for a
     service only when its own ``deposit_minor`` is 0.
@@ -60,6 +70,16 @@ class BookingDepositMode(str, Enum):
     NONE = "none"
     PERCENT = "percent"
     FIXED = "fixed"
+
+
+class BookingDepositReceivedMethod(str, Enum):
+    """How a deposit paid to the business by hand arrived (staff record it; no money
+    moves through Barrels)."""
+
+    CASH = "cash"
+    BANK_TRANSFER = "bank_transfer"
+    PAYPAL = "paypal"
+    OTHER = "other"
 
 
 class BookingSource(str, Enum):
@@ -134,6 +154,26 @@ class BookingProfile(Base):
             name="booking_policy",
         ),
         sa.CheckConstraint(
+            f"deposit_collection IN ({_values(BookingDepositCollection)})",
+            name="deposit_collection",
+        ),
+        sa.CheckConstraint(
+            "deposit_instructions IS NULL"
+            " OR char_length(deposit_instructions) BETWEEN 1 AND 500",
+            name="deposit_instructions",
+        ),
+        sa.CheckConstraint(
+            "late_fee_minor IS NULL OR late_fee_minor > 0", name="late_fee"
+        ),
+        sa.CheckConstraint(
+            "late_grace_min IS NULL OR late_grace_min BETWEEN 0 AND 240",
+            name="late_grace",
+        ),
+        sa.CheckConstraint(
+            "deposit_hold_minutes IS NULL OR deposit_hold_minutes BETWEEN 1 AND 10080",
+            name="deposit_hold_minutes",
+        ),
+        sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
             name="brand_color",
         ),
@@ -195,6 +235,28 @@ class BookingProfile(Base):
     #: Opt-in to the Barrels Bookings home page listing (off by default). The
     #: listing shows only enabled, entitled, active businesses with a service.
     listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: Listing approval (ADR-0066): Barrels staff approve a listed business under
+    #: ``bookings.listing.approve`` before it shows on the home page. Null means not
+    #: approved. The migration approved every profile that existed before it.
+    listing_approved_at: Mapped[datetime | None] = mapped_column(default=None)
+    listing_approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), default=None
+    )
+    #: Set when the last owner of a self-created business deleted their account. Staff
+    #: review the business; nothing is deleted (ADR-0066 item 7).
+    owner_left_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: Set when a self sign-up's name is refused by the sender-name guard: the business
+    #: exists, its mail falls back to the default sender, and staff review it (ADR-0066).
+    sender_name_flagged_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: Paused (ADR-0066 item 6): set by ``paused.py`` while the subscription switch is on
+    #: and a trial or subscription business has no trial, no active or past-due
+    #: subscription and an expired grace. Public booking is refused; nothing is deleted.
+    paused_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: The provider named after the owner when a self-created business signs up; renamed
+    #: "Staff" when that owner leaves. Null for every other business.
+    owner_provider_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("bookings.provider.id", ondelete="SET NULL"), default=None
+    )
     #: Listing text: a short category (chips on the home page), a one-line
     #: description and a city. Blank means not shown.
     category: Mapped[str | None] = mapped_column(String(80))
@@ -228,6 +290,22 @@ class BookingProfile(Base):
     #: Plain-text booking policy (late fees and so on), shown before booking and in
     #: the confirmation. Never HTML: every surface renders it as text.
     booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
+    #: ``BookingDepositCollection``: ``online`` (default) or ``business`` (display only).
+    deposit_collection: Mapped[str] = mapped_column(
+        String(20),
+        default=BookingDepositCollection.ONLINE.value,
+        server_default=BookingDepositCollection.ONLINE.value,
+    )
+    #: Plain text: how to pay the deposit to the business. Never HTML.
+    deposit_instructions: Mapped[str | None] = mapped_column(String(500), default=None)
+    #: The late-arrival fee (minor units) and the minutes of grace before it applies.
+    late_fee_minor: Mapped[int | None] = mapped_column(default=None)
+    late_grace_min: Mapped[int | None] = mapped_column(default=None)
+    #: Minutes an unpaid deposit holds the slot before the sweeper cancels it (1 to
+    #: 10080 = 7 days). Null means ``DEPOSIT_HOLD_MINUTES`` (30). An online checkout
+    #: is capped at 120 whatever is stored (``deposit_payments.hold_minutes_for``). Business
+    #: collected deposits are never held, so it has no effect there.
+    deposit_hold_minutes: Mapped[int | None] = mapped_column(default=None)
     #: Hours a booking request waits for the business to confirm it before it
     #: expires (1 to 168). Null: it expires only at its start time. A request whose
     #: start has passed always expires (``lifecycle.expire_stale_requests``).
@@ -252,6 +330,10 @@ class Service(Base):
             "price_minor >= 0 AND deposit_minor >= 0 AND deposit_minor <= price_minor",
             name="money",
         ),
+        sa.CheckConstraint(
+            "first_visit_lead_days IS NULL OR first_visit_lead_days BETWEEN 0 AND 60",
+            name="first_visit_lead_days",
+        ),
         SCHEMA,
     )
 
@@ -271,9 +353,24 @@ class Service(Base):
     sort_order: Mapped[int] = mapped_column(default=0)
     #: An add-on is booked with a main service, never alone (``add_ons.py``).
     is_add_on: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
-    #: For an add-on: the main-service categories it is offered with. Null or
-    #: empty means any main service.
+    #: A main service that is also offered as an add-on (booked alone it is a main
+    #: service; attached it is an add-on). Always false when ``is_add_on`` is true.
+    also_add_on: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: For an add-on (``is_add_on`` or ``also_add_on``): the main-service categories
+    #: it is offered with. Null or empty means any main service.
     add_on_categories: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(80)), default=None
+    )
+    #: Public bookings of this service are always requests staff confirm, and one
+    #: from a returning client (a confirmed or completed booking) is flagged for
+    #: staff. Never refused, so nothing reveals a client's history.
+    new_clients_only: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: Informational: this service is ideally booked at least this many days before
+    #: the client's first appointment in ``first_visit_categories``. Not enforced.
+    first_visit_lead_days: Mapped[int | None] = mapped_column(default=None)
+    first_visit_categories: Mapped[list[str] | None] = mapped_column(
         ARRAY(String(80)), default=None
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
@@ -462,6 +559,27 @@ class Booking(Base):
         sa.CheckConstraint(f"source IN ({_values(BookingSource)})", name="source"),
         sa.CheckConstraint("ends_at > starts_at", name="period"),
         sa.CheckConstraint(
+            "deposit_to_business_minor >= 0", name="deposit_to_business"
+        ),
+        sa.CheckConstraint(
+            f"deposit_received_method IS NULL OR deposit_received_method IN "
+            f"({_values(BookingDepositReceivedMethod)})",
+            name="deposit_received_method",
+        ),
+        sa.CheckConstraint(
+            "(deposit_received_at IS NULL) = (deposit_received_method IS NULL)",
+            name="deposit_received_pair",
+        ),
+        sa.CheckConstraint(
+            "deposit_received_reference IS NULL"
+            " OR char_length(deposit_received_reference) BETWEEN 1 AND 100",
+            name="deposit_received_reference",
+        ),
+        sa.CheckConstraint(
+            "hold_minutes IS NULL OR hold_minutes BETWEEN 1 AND 10080",
+            name="hold_minutes",
+        ),
+        sa.CheckConstraint(
             "blocked_from <= starts_at AND blocked_until >= ends_at", name="blocked"
         ),
         sa.UniqueConstraint(
@@ -495,17 +613,38 @@ class Booking(Base):
     source: Mapped[str] = mapped_column(String(20), default=BookingSource.ONLINE.value)
     price_minor: Mapped[int] = mapped_column(default=0)
     deposit_minor: Mapped[int] = mapped_column(default=0)
+    #: Display only: the deposit the customer was told to pay the business by hand
+    #: (profile ``deposit_collection`` ``business``). Nothing moves through Barrels.
+    deposit_to_business_minor: Mapped[int] = mapped_column(
+        default=0, server_default="0"
+    )
     #: The deposit terms this booking was made on, copied from the profile at
     #: creation. A later profile change never changes a booking already made.
     deposit_non_refundable: Mapped[bool] = mapped_column(
         default=False, server_default=sa.false()
     )
+    #: Staff marked the business-held deposit (``deposit_to_business_minor``) as
+    #: received. Null until then; the method and reference are staff only.
+    deposit_received_at: Mapped[datetime | None] = mapped_column(default=None)
+    deposit_received_method: Mapped[str | None] = mapped_column(
+        String(20), default=None
+    )
+    deposit_received_reference: Mapped[str | None] = mapped_column(
+        String(100), default=None
+    )
+    #: The unpaid-deposit hold (minutes) fixed when the booking entered
+    #: ``pending_payment``: the business's value, capped for an online checkout. Null
+    #: for a booking made before the snapshot existed (the sweeper then computes it).
+    hold_minutes: Mapped[int | None] = mapped_column(default=None)
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(100))
     cancel_reason: Mapped[str | None] = mapped_column(String(300))
     cancelled_at: Mapped[datetime | None]
+    #: Staff only, never public: set when a returning client requested a
+    #: new-clients-only service (so the request is held for staff to decide).
+    returning_client_flagged_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
@@ -525,6 +664,9 @@ class BookingEvent(Base):
     to_status: Mapped[str] = mapped_column(String(20))
     actor_user_id: Mapped[uuid.UUID | None]
     note: Mapped[str | None] = mapped_column(String(300))
+    #: A staff-only note that changes no status. Customer calendar feeds count
+    #: only the other rows (their ICS SEQUENCE), so this never sends an update.
+    staff_note: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 

@@ -52,11 +52,8 @@ class PaymentExceedsBalanceError(AppException):
 class BillingLiveModeRefusedError(AppException):
     """A live Stripe key is configured; app subscriptions run in test mode only (ADR-0027)."""
 
-    def __init__(self) -> None:
-        super().__init__(
-            "Only Stripe test mode is permitted",
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
+    def __init__(self, message: str = "Only Stripe test mode is permitted") -> None:
+        super().__init__(message, status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 class AppSubscriptionPlanNotFoundError(AppException):

@@ -8,10 +8,14 @@ import "server-only";
 
 import {
   type AppSubscriptionCheckoutPublic,
-  type AppSubscriptionPublic,
+  type AppSubscriptionListPublic,
   type BookingAgenda,
   type BookingCalendarFeedLink,
   type BookingCalendarFeedStatus,
+  type BookingClosureCreate,
+  type BookingClosureCreated,
+  type BookingClosurePublic,
+  type BookingDepositReceivedMethod,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
   type BookingMyOrganisation,
@@ -35,26 +39,31 @@ import {
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
   bookingsCreateCalendarFeed,
+  bookingsCreateClosure,
   bookingsCreateException,
   bookingsCreateProvider,
   bookingsCreateService,
   bookingsCreateStudioBooking,
   bookingsDeclineStudioBooking,
+  bookingsDeleteClosure,
   bookingsDeleteException,
   bookingsGetAgenda,
   bookingsGetCalendarFeedStatus,
   bookingsGetProfile,
   bookingsGetSettings,
   bookingsGetStudioBooking,
+  bookingsListClosures,
   bookingsListExceptions,
   bookingsListMyOrganisations,
   bookingsListProviders,
   bookingsListServices,
+  bookingsMarkDepositReceived,
   bookingsNoShowStudioBooking,
   bookingsRecordManualDeposit,
   bookingsReplaceWorkingHours,
   bookingsRescheduleStudioBooking,
   bookingsRotateCalendarFeed,
+  bookingsUndoDepositReceived,
   bookingsUpdateProvider,
   bookingsUpdateService,
   bookingsUpsertProfile,
@@ -119,19 +128,20 @@ export async function findOrganisation(
 
 /**
  * The organisation's Barrels app subscriptions (ADR-0065), newest first. The list
- * also holds other apps' rows, so callers pick their own app. Organisation admins
- * and owners only (FastAPI decides).
+ * also holds other apps' rows, so callers pick their own app. The whole body is
+ * returned: `purchasable` lists the `plan_key:currency` pairs a checkout can start
+ * now (empty until billing is configured). Organisation admins and owners only
+ * (FastAPI decides).
  */
-export async function listAppSubscriptions(
+export function listAppSubscriptions(
   accessToken: string,
   organisationId: string
-): Promise<AppSubscriptionPublic[]> {
-  const result = await billingListAppSubscriptions({
+): Promise<AppSubscriptionListPublic> {
+  return billingListAppSubscriptions({
     client: studioClient(accessToken, organisationId),
   })
     .unwrap()
     .catch(redactRequest);
-  return result.data;
 }
 
 /**
@@ -431,6 +441,46 @@ export function recordManualDeposit(
     .catch(redactRequest);
 }
 
+/**
+ * Marks a deposit paid to the business as received (#1869). The amount is the
+ * booking's own; no money moves through Barrels. `receivedAt` (UTC ISO) is left
+ * out for "now".
+ */
+export function markDepositReceived(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  input: {
+    method: BookingDepositReceivedMethod;
+    receivedAt?: string;
+    reference?: string;
+  }
+): Promise<BookingStudioDetail> {
+  return bookingsMarkDepositReceived({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    body: {
+      method: input.method,
+      ...(input.reference ? { reference: input.reference } : {}),
+      ...(input.receivedAt ? { received_at: input.receivedAt } : {}),
+    },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Takes back a deposit receipt recorded in error (audited by the API). */
+export function undoDepositReceived(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+): Promise<BookingStudioDetail> {
+  return bookingsUndoDepositReceived(
+    actionTarget(accessToken, organisationId, bookingId)
+  )
+    .unwrap()
+    .catch(redactRequest);
+}
+
 // --- settings ----------------------------------------------------------------
 // Owners and admins change them; FastAPI answers 403 to anyone else.
 
@@ -610,6 +660,51 @@ export function replaceHours(
     body: { periods },
   })
     .unwrap()
+    .catch(redactRequest);
+}
+
+// --- closed days (whole-business closures, BK-20) ----------------------------------
+// Every provider is closed on these local days. Existing bookings inside a new
+// closure are reported back, never cancelled.
+
+/** The business's closures, earliest first. `size` is the API's page limit (1000 at most). */
+export function listClosures(
+  accessToken: string,
+  organisationId: string,
+  size: number
+): Promise<BookingClosurePublic[]> {
+  return bookingsListClosures({
+    client: studioClient(accessToken, organisationId),
+    query: { size },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function createClosure(
+  accessToken: string,
+  organisationId: string,
+  body: BookingClosureCreate
+): Promise<BookingClosureCreated> {
+  return bookingsCreateClosure({
+    client: studioClient(accessToken, organisationId),
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function deleteClosure(
+  accessToken: string,
+  organisationId: string,
+  closureId: string
+): Promise<void> {
+  return bookingsDeleteClosure({
+    client: studioClient(accessToken, organisationId),
+    path: { closure_id: closureId },
+  })
+    .unwrap()
+    .then(() => undefined)
     .catch(redactRequest);
 }
 

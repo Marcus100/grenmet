@@ -38,6 +38,7 @@ COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/hr/package.json apps/web/hr/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
+COPY packages/admin-kit/package.json packages/admin-kit/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
 COPY packages/bookings-web/package.json packages/bookings-web/

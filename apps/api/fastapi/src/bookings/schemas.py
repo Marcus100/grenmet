@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, time
 from enum import Enum
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
@@ -16,7 +16,9 @@ from . import contact
 from .availability import MAX_CLOSURE_DAYS
 from .models import (
     BookingBusinessType,
+    BookingDepositCollection,
     BookingDepositMode,
+    BookingDepositReceivedMethod,
     BookingExceptionKind,
     BookingPaymentMode,
     BookingSource,
@@ -32,6 +34,7 @@ AddOnCategories = Annotated[
     list[Annotated[str, Field(min_length=1, max_length=80)]] | None,
     Field(max_length=20),
 ]
+FirstVisitLeadDays = Annotated[int, Field(ge=0, le=60)] | None
 #: Path words of this domain's public routes that a business may not take as its
 #: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
 LISTING_PATH_WORDS = frozenset({"businesses"})
@@ -47,6 +50,65 @@ class BookingMyOrganisation(BaseModel):
     name: str
     slug: str
     role: MembershipRole
+    paused_at: UtcDateTime | None = Field(
+        default=None, description="Set while the business is paused (ADR-0066)."
+    )
+
+
+#: The starter template keys (``templates.STARTER_TEMPLATES``; a test keeps them equal).
+BookingSignupTemplate = Literal[
+    "hair-salon",
+    "barber",
+    "nails",
+    "lashes-brows",
+    "massage-spa",
+    "fitness-coach",
+    "tutor",
+    "tour-operator",
+    "photographer",
+    "blank",
+]
+
+
+class BookingSignupCreate(BaseModel):
+    """A business signs itself up (ADR-0066): it starts closed and unlisted, on a trial."""
+
+    name: Name = Field(description="The business name, as its customers know it.")
+    business_type: BookingBusinessType
+    town: Annotated[str, Field(min_length=1, max_length=80)] | None = Field(
+        default=None, description="Town or city for the home page card."
+    )
+    template: BookingSignupTemplate | None = Field(
+        default=None,
+        description="Starter services for the business type; null starts with none.",
+    )
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
+class BookingSignupReceipt(BaseModel):
+    """What a sign-up created. ``name_flagged`` means staff will review the name."""
+
+    organisation_id: str
+    slug: str
+    public_slug: str
+    display_name: str
+    business_type: BookingBusinessType
+    template: BookingSignupTemplate | None
+    trial_ends_at: UtcDateTime
+    name_flagged: bool
+
+
+class BookingStarterTemplateService(BaseModel):
+    name: str
+    duration_min: int
+    price_minor: int = Field(description="Suggested price in XCD minor units (cents).")
+
+
+class BookingStarterTemplate(BaseModel):
+    key: BookingSignupTemplate
+    label: str
+    business_type: BookingBusinessType
+    services: list[BookingStarterTemplateService]
 
 
 # --- the signed-in person's bookings ----------------------------------------------
@@ -282,6 +344,51 @@ class BookingProfileUpdate(BaseModel):
             "the stored value is kept."
         ),
     )
+    deposit_collection: BookingDepositCollection = Field(
+        default=BookingDepositCollection.ONLINE,
+        description=(
+            "Who collects the deposit. `online` (the default): Barrels, through "
+            "payments, as before. `business`: the customer pays the business by hand "
+            "(PayPal, bank transfer, cash), outside Barrels. Booking then shows the "
+            "amount and `deposit_instructions`, takes no online payment and needs no "
+            "payments entitlement. The amount follows the usual deposit rules. Left "
+            "out, the stored value is kept."
+        ),
+    )
+    deposit_hold_minutes: Annotated[int, Field(ge=1, le=10080)] | None = Field(
+        default=None,
+        description=(
+            "How long an unpaid deposit holds the slot, in minutes (1 to 10080, seven "
+            "days), for payment-link and manual deposits such as a bank transfer. An "
+            "online card checkout is held at most 120 minutes whatever is set. Null "
+            "means 30 minutes. Business-collected deposits are never held, so it has "
+            "no effect there. Left out, the stored value is kept."
+        ),
+    )
+    deposit_instructions: Annotated[str, Field(max_length=500)] | None = Field(
+        default=None,
+        description=(
+            "Plain text, up to 500 characters: how the customer pays the deposit to "
+            "the business (a payment link, bank details, cash). Shown on the booking "
+            "page, the confirmation and the request and confirmation emails when a "
+            "deposit is due to the business. Never HTML; line breaks are kept. Blank "
+            "clears it. Left out, the stored value is kept."
+        ),
+    )
+    late_fee_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
+        default=None,
+        description=(
+            "The fee in minor units for arriving late, paid at the appointment. Null "
+            "means no late fee. Left out, the stored value is kept."
+        ),
+    )
+    late_grace_min: Annotated[int, Field(ge=0, le=240)] | None = Field(
+        default=None,
+        description=(
+            "Minutes of lateness allowed before `late_fee_minor` applies (0 to 240). "
+            "Null counts as 0. Left out, the stored value is kept."
+        ),
+    )
     brand_color: str | None = Field(
         default=None,
         max_length=7,
@@ -362,7 +469,7 @@ class BookingProfileUpdate(BaseModel):
             return value.strip() or None
         return value
 
-    @field_validator("booking_policy", mode="before")
+    @field_validator("booking_policy", "deposit_instructions", mode="before")
     @classmethod
     def _policy_text(cls, value: object) -> object:
         return normalise_policy(value)
@@ -421,6 +528,14 @@ class BookingProfileUpdate(BaseModel):
 class BookingProfilePublic(BookingProfileUpdate):
     id: uuid.UUID
     organisation_id: str
+    paused_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Set while the business is paused (ADR-0066): public booking is refused "
+            "until its subscription is in order; Studio writes stay allowed in this "
+            "slice."
+        ),
+    )
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
@@ -443,12 +558,43 @@ class BookingServiceCreate(BaseModel):
         default=False,
         description="An add-on is booked with a main service, never alone.",
     )
+    also_add_on: bool = Field(
+        default=False,
+        description=(
+            "A main service that is also offered as an add-on: bookable alone, and "
+            "attachable to other services (see `add_on_categories`). Ignored when "
+            "`is_add_on` is true."
+        ),
+    )
     add_on_categories: AddOnCategories = Field(
         default=None,
         description=(
-            "For an add-on: offer it only with main services in these categories. "
-            "Null or empty means any main service. Ignored for a main service."
+            "For an add-on or an `also_add_on` service: offer it only with main "
+            "services in these categories. Null or empty means any main service. "
+            "Ignored for any other main service."
         ),
+    )
+    new_clients_only: bool = Field(
+        default=False,
+        description=(
+            "Every public booking of this service is a request the business "
+            "confirms (`pending`); one from a returning client (a confirmed or "
+            "completed booking with the business) is flagged for staff only. Cannot "
+            "be combined with `is_add_on` or `also_add_on`. Staff bookings are "
+            "never held or flagged."
+        ),
+    )
+    first_visit_lead_days: FirstVisitLeadDays = Field(
+        default=None,
+        description=(
+            "Only with `new_clients_only`: book at least this many days before the "
+            "first appointment in `first_visit_categories` (0 to 60). Shown to "
+            "customers; not enforced."
+        ),
+    )
+    first_visit_categories: AddOnCategories = Field(
+        default=None,
+        description="Categories the lead time refers to. Only with `new_clients_only`.",
     )
 
     @model_validator(mode="after")
@@ -470,7 +616,20 @@ class BookingServiceUpdate(BaseModel):
     active: bool | None = None
     sort_order: Annotated[int, Field(ge=0, le=10_000)] | None = None
     is_add_on: bool | None = None
+    also_add_on: bool | None = None
     add_on_categories: AddOnCategories = None
+    new_clients_only: bool | None = None
+    first_visit_lead_days: FirstVisitLeadDays = None
+    first_visit_categories: AddOnCategories = None
+
+    @field_validator("active", "is_add_on", "also_add_on", "new_clients_only")
+    @classmethod
+    def _not_null(cls, value: bool | None) -> bool | None:
+        # Leaving a flag out keeps it; an explicit null would write NULL to a
+        # NOT NULL column.
+        if value is None:
+            raise ValueError("Leave the field out to keep it; null is not allowed")
+        return value
 
 
 class BookingServicePublic(BaseModel):
@@ -486,7 +645,11 @@ class BookingServicePublic(BaseModel):
     active: bool
     sort_order: int
     is_add_on: bool = False
+    also_add_on: bool = False
     add_on_categories: list[str] | None = None
+    new_clients_only: bool = False
+    first_visit_lead_days: int | None = None
+    first_visit_categories: list[str] | None = None
 
 
 # --- providers and hours ---------------------------------------------------------
@@ -668,15 +831,48 @@ class BookingAgendaItem(BaseModel):
     source: BookingSource
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer pays the business by hand (`deposit_collection` "
+            "`business`), 0 otherwise. Unpaid until `deposit_received_at` is set. "
+            "Show it as due only while `status` is `pending` or `confirmed`: the UI "
+            "must check the status too, since a cancelled booking owes nothing."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    deposit_received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When staff marked the deposit paid to the business as received.",
+    )
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "Staff only: a returning client requested a new-clients-only service."
+        ),
+    )
     expires_at: UtcDateTime | None = Field(
         default=None,
         description=(
             "For a request waiting for confirmation (`pending`): when it cancels "
             "itself if not confirmed, the earlier of `pending_expiry_hours` after "
             "it was made and its start. Null for any other status."
+        ),
+    )
+    hold_expires_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: when the unpaid deposit hold releases "
+            "the slot if the payment has not arrived. Null otherwise."
+        ),
+    )
+    hold_expires_soon: bool = Field(
+        default=False,
+        description=(
+            "True for a booking waiting for its deposit whose hold releases within two "
+            "hours of now. Staff use it to see who to chase; the action is the same."
         ),
     )
 
@@ -706,6 +902,22 @@ class BookingAgenda(BaseModel):
 class BookingManualDepositCreate(ManualPaymentCreate):
     """How a deposit taken outside Stripe was paid (``method``, optional receipt
     or transfer ``reference``)."""
+
+
+class BookingDepositReceivedCreate(BaseModel):
+    """A deposit paid to the business by hand arrived. ``received_at`` defaults to
+    now and may not be in the future."""
+
+    method: BookingDepositReceivedMethod
+    reference: str | None = Field(
+        default=None,
+        max_length=100,
+        description="An optional receipt or transfer reference. Staff only.",
+    )
+    received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When it arrived; defaults to now. Must not be in the future.",
+    )
 
 
 class BookingStudioDecline(BaseModel):
@@ -775,6 +987,13 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer was told to pay the business by hand, outside "
+            "Barrels (0 = none)."
+        ),
+    )
     deposit_non_refundable: bool = Field(
         default=False,
         description=(
@@ -783,6 +1002,20 @@ class BookingStudioDetail(BaseModel):
             "changes do not change it."
         ),
     )
+    returning_client: bool = Field(
+        default=False,
+        description=(
+            "A returning client (a confirmed or completed booking with the business) "
+            "requested a new-clients-only service. Staff only; never shown to the "
+            "customer."
+        ),
+    )
+    deposit_received_at: UtcDateTime | None = Field(
+        default=None,
+        description="When staff marked the deposit paid to the business as received.",
+    )
+    deposit_received_method: BookingDepositReceivedMethod | None = None
+    deposit_received_reference: str | None = None
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -812,6 +1045,13 @@ class BookingPublicService(BaseModel):
     duration_min: int
     price_minor: int
     deposit_minor: int
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "With `deposit_collection` `business`: the deposit the customer pays the "
+            "business by hand for this service (0 = none). Always 0 otherwise."
+        ),
+    )
     due_at_booking_minor: int = Field(
         default=0,
         description=(
@@ -820,6 +1060,18 @@ class BookingPublicService(BaseModel):
             "More than 0 means the emailed-code step comes first."
         ),
     )
+    new_clients_only: bool = Field(
+        default=False,
+        description="First-time clients only: every booking of it is a request the business confirms.",
+    )
+    first_visit_lead_days: int | None = Field(
+        default=None,
+        description=(
+            "With `new_clients_only`: book at least this many days before the first "
+            "appointment in `first_visit_categories`. Informational."
+        ),
+    )
+    first_visit_categories: list[str] | None = None
 
 
 class BookingPublicAddOn(BaseModel):
@@ -863,9 +1115,24 @@ class BookingBusinessContact(BaseModel):
     email: str | None = Field(description="For a mailto: link.")
 
 
+class BookingLateFee(BaseModel):
+    """The business's late-arrival rule: the fee, paid at the appointment, applies
+    once the customer is more than `grace_min` minutes late."""
+
+    amount_minor: int
+    grace_min: int = Field(description="Minutes of lateness allowed first (0 = none).")
+
+
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
+    accepting_bookings: bool = Field(
+        default=True,
+        description=(
+            "False while the business is paused (ADR-0066): show its `contact` and no "
+            "booking form; availability and booking answer 409 `BUSINESS_PAUSED`."
+        ),
+    )
     slug: str
     display_name: str
     timezone: str
@@ -878,6 +1145,21 @@ class BookingStorefront(BaseModel):
     booking_policy: str | None = Field(
         default=None,
         description="The business's plain-text booking policy, or null when it has none.",
+    )
+    deposit_collection: BookingDepositCollection = Field(
+        default=BookingDepositCollection.ONLINE,
+        description=(
+            "`business`: the deposit is paid to the business by hand, outside "
+            "Barrels; show each service's `deposit_to_business_minor` and "
+            "`deposit_instructions`, and take no online payment for it."
+        ),
+    )
+    deposit_instructions: str | None = Field(
+        default=None,
+        description="Plain text: how to pay the deposit to the business, or null.",
+    )
+    late_fee: BookingLateFee | None = Field(
+        default=None, description="The late-arrival fee rule, or null when none."
     )
     contact: BookingBusinessContact
     brand_color: str | None = Field(
@@ -1193,6 +1475,31 @@ class BookingPublicDetail(BaseModel):
         default=None,
         description="The business's plain-text booking policy, or null when it has none.",
     )
+    deposit_to_business_minor: int = Field(
+        default=0,
+        description=(
+            "The deposit the customer pays the business by hand, outside Barrels "
+            "(0 = none). Set when the booking was made."
+        ),
+    )
+    deposit_instructions: str | None = Field(
+        default=None,
+        description=(
+            "How to pay that deposit (plain text); only set while "
+            "`deposit_to_business_minor` is above 0 and it is not yet received."
+        ),
+    )
+    deposit_received: bool = Field(
+        default=False,
+        description=(
+            "The business has confirmed the deposit paid to it by hand "
+            "(`deposit_to_business_minor`) arrived. Show it as paid; no method or "
+            "reference is shown to the customer."
+        ),
+    )
+    late_fee: BookingLateFee | None = Field(
+        default=None, description="The late-arrival fee rule, or null when none."
+    )
     can_cancel: bool = Field(
         description="True while the booking is active and before the cancellation cutoff."
     )
@@ -1211,11 +1518,31 @@ class BookingPublicDetail(BaseModel):
             "to an account."
         ),
     )
+    new_clients_only: bool = Field(
+        default=False, description="The service is for first-time clients only."
+    )
+    first_visit_lead_days: int | None = Field(
+        default=None,
+        description=(
+            "Only for a new-clients-only service: it is meant to be booked at least "
+            "this many days before the first appointment in `first_visit_categories`."
+        ),
+    )
+    first_visit_categories: list[str] | None = None
     hold_ends_at: UtcDateTime | None = Field(
         default=None,
         description=(
             "While `status` is `pending_payment`: when the unpaid hold is released "
             "if the payment has not arrived. Null otherwise."
+        ),
+    )
+    hold_minutes: int | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: the length of the hold in minutes "
+            "(the business's setting, capped at 120 for an online card checkout). "
+            "Show it as 'Your time is held for N hours until your deposit is "
+            "received'. Null otherwise."
         ),
     )
     add_ons: list[BookingAddOnLine] = Field(
@@ -1296,3 +1623,78 @@ class BookingSettings(BaseModel):
 
 class BookingPublicCancelBody(RootModel[BookingPublicCancel | None]):
     """Optional cancellation request. An absent body and null are both accepted."""
+
+
+# --- Barrels staff: listing review (ADR-0066) ---------------------------------------
+
+
+class BookingListingReview(BaseModel):
+    """Staff view of one business's home page listing and the flags staff review."""
+
+    organisation_id: str
+    public_slug: str
+    display_name: str
+    #: The business asked to appear on the home page.
+    listed: bool
+    #: Set once staff approved the listing; null while it waits for review.
+    listing_approved_at: UtcDateTime | None
+    listing_approved_by_user_id: uuid.UUID | None
+    #: The business was created by its own account, not by Barrels staff.
+    self_created: bool
+    #: Set when the last owner of a self-created business deleted their account.
+    owner_left_at: UtcDateTime | None
+    #: Set when the sign-up name was refused by the sender-name guard (ADR-0066).
+    sender_name_flagged_at: UtcDateTime | None = None
+
+
+class BookingListingQueue(str, Enum):
+    """Which listings the staff list shows."""
+
+    #: Asked for the home page listing and not approved yet: the work queue.
+    PENDING = "pending"
+    #: Approved, whether or not the business still asks to be listed.
+    APPROVED = "approved"
+    #: The owner left, or the sign-up name was refused by the sender-name guard.
+    FLAGGED = "flagged"
+    ALL = "all"
+
+
+class BookingListingReviewList(BaseModel):
+    """One page of listings for staff review, oldest business first."""
+
+    data: list[BookingListingReview]
+    count: int
+    page: int
+    size: int
+
+
+# --- Setup checklist (ADR-0066 item 3) ---------------------------------------------
+
+
+class BookingSetupItemKey(str, Enum):
+    SERVICES = "services"
+    HOURS = "hours"
+    CONTACT = "contact"
+    BRANDING = "branding"
+
+
+class BookingSetupItem(BaseModel):
+    """One checklist item. ``services``: at least one active service. ``hours``: an
+    active provider with working hours who offers an active service. ``contact``: a
+    phone, WhatsApp, Instagram or email. ``branding``: a logo or colour (optional)."""
+
+    key: BookingSetupItemKey
+    done: bool
+    required: bool
+
+
+class BookingSetupChecklist(BaseModel):
+    """What a business still needs before it can open online booking."""
+
+    items: list[BookingSetupItem]
+    #: Required items not done yet, in checklist order; empty when ready.
+    missing: list[BookingSetupItemKey]
+    #: Every required item is done, so online booking can be opened.
+    ready: bool
+    #: Online booking is open now (``profile.enabled``).
+    live: bool

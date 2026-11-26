@@ -234,7 +234,7 @@ the API image and the local source mount contain the same migration assets.
 | `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
 | `NEXT_PUBLIC_SITE_URL` (bookings) | `apps/web/bookings` only: its own public address (`docker-compose.deploy.yml` sets `https://bookings.${BASE_DOMAIN}`; read at run time). The booking page's sign-up link tells auth to return a new account to `<this address>/signin?returnTo=/<slug>`; auth accepts it only if that origin is in `AUTH_ALLOWED_RETURN_HOSTS`. Unset (local default): the link is the plain sign-up page with no return target. |
-| `BOOKINGS_APP_URL` | Public URL of the Barrels Bookings web app (app-scoped sign-in). Also read by the account app (`web-account`) to link each business on the My bookings page, and by the Babydoll seed for the manage link. Default `http://localhost:3015`. |
+| `BOOKINGS_APP_URL` | Public URL of the Barrels Bookings web app (app-scoped sign-in). Also read by the account app (`web-account`) to link each business on the My bookings page, by the admin console (`web-admin`) to link each business on the listing review page, and by the Babydoll seed for the manage link. Default `http://localhost:3015`. |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Secret the Bookings web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/bookings`. |
 | `ACCOUNT_APP_URL` | Public URL of the Barrels account web app (`account.barrels.gd`, ADR-0057; app-scoped sign-in). Default `http://localhost:3018`. |
 | `PRINTIX_APP_URL` | Public URL of the Printix scanner and organiser app (`scan.barrels.gd`, ADR-0061; browser-only app with no client secret, sign-in by emailed code). Default `https://scan.barrels.gd`; `docker-compose.deploy.yml` sets `https://scan.${BASE_DOMAIN}` (so `https://scan.staging.barrels.gd` on staging). Its origin must also be on `BACKEND_CORS_ORIGINS`. |
@@ -292,6 +292,7 @@ the API image and the local source mount contain the same migration assets.
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
 | `BILLING_STRIPE_PRICES` | JSON object of app subscription prices (ADR-0065): `{"bookings-monthly:XCD": "price_..."}`. A plan with no entry answers 503 at checkout. Test-mode price ids only until the owner approves live mode |
+| `BILLING_STRIPE_LIVE_ENABLED` | Owner switch for live money (ADR-0065, "Going live"). Default `false`: test keys only, live-mode webhook events refused. `true`: live keys only (`sk_live_`), live-mode events only; a test key or test event is refused with 503. Set it only after the live steps in ADR-0065 are done |
 | `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
 | `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
 | `BILLING_INVOICE_LEGAL_ENTITY_NAME` | **Provisional.** Name printed on invoices and snapshotted onto each invoice when it is issued (default `Barrels Grenada`) |
@@ -344,6 +345,7 @@ the table above. All are optional unless stated; empty counts as unset.
 | `ORG_SECRET_ENCRYPTION_KEYS`, `PAYSLIP_HMAC_KEYS` | Dedicated key sets; see "Organisation secrets" and "Payslip signing keys" |
 | `SOCIAL_TOKEN_ENCRYPTION_KEYS` | JSON array of Fernet keys (newest first) for sealing platform tokens at rest (`src/utils/secret_box.py`). Secret. Stays empty until a token is stored that way; malformed keys fail at startup |
 | `BOOKINGS_DEPOSIT_HOLD_MINUTES` | How long an unpaid deposit booking holds its slot before the sweeper releases it (default 30) |
+| `BOOKINGS_ACCESS_FOLLOWS_SUBSCRIPTION` | Bookings access follows the subscription (ADR-0066 item 6; default `false`). While on, a business whose grant is `trial` or `subscription` and has no trial, no active or past-due subscription and no grace left (7 days) is paused: public booking is refused, nothing is deleted. Off clears every pause. Turn on only when live billing is ready |
 | `WXWATCH_DATABASE_URL`, `EREGISTER_DATABASE_URL`, `JANITORIAL_DATABASE_URL`, `TRANSPORT_DATABASE_URL` | PostgreSQL URLs of the other FastAPI-owned databases (with `WXPRODUCTS_DATABASE_URL` above). Local examples use the `grenmet-postgres` host; deployment derives them (`WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL`, `EREGISTER_DATABASE_URL`) from the committed names and the GitHub passwords. Missing configuration returns 503 for that domain |
 | `EREGISTER_DB_NAME` | Expected eRegister database name for its Alembic guard and the import scripts (default `eregister`) |
 | `WXWATCH_INGEST_TOKEN`, `WXWATCH_LOCAL_IMAGES_DIR`, `WXWATCH_LOCAL_ASSET_ROOTS`, `WXWATCH_NHC_ROOT` | Collector ingest secret (32+ characters; also set for the collector), local image directory, JSON map of local asset roots, and the NHC archive root (set by the local `nhc-worker` compose service) |
@@ -839,9 +841,11 @@ Add credentials independently to **Settings → Environments → staging / produ
 credentials into staging.
 
 - PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, optionally `NEXT_PUBLIC_POSTHOG_HOST`. **Not wired today:** `deploy.yml` does not pass either name and `build-web-images.yml` sends no PostHog build argument, so a value stored in GitHub has no effect and deployed web images run with analytics off. Wiring it means adding the build argument (the key is build-time).
-- Stripe: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET`,
-  `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
-  `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
+- Stripe app subscriptions (ADR-0065): `BILLING_STRIPE_SECRET_KEY`,
+  `BILLING_STRIPE_WEBHOOK_SECRET` and `BILLING_STRIPE_PRICES` together (the deploy
+  refuses a partial set or a malformed price map). `BILLING_STRIPE_PRICE_ID` and
+  the fallback `BILLING_CHECKOUT_SUCCESS_URL` / `_CANCEL_URL` are optional; set
+  URLs must be HTTPS.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`,
   `BARRELS_ADMIN_SSO_CLIENT_SECRET` (required); `EVENTS_SSO_CLIENT_SECRET`,
@@ -932,7 +936,7 @@ but they are not all deployment prerequisites:
 - Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
 - Google Analytics: `NEXT_PUBLIC_GA_MEASUREMENT_ID` (read by the gms app, which has a build argument for it, but no workflow passes a value, so it is not wired).
-- Stripe billing: the complete `BILLING_STRIPE_*` and checkout URL bundle.
+- Stripe billing: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` and `BILLING_STRIPE_PRICES` together; the price id and checkout URLs are optional.
 - Resend webhooks and email rendering: `RESEND_WEBHOOK_SECRET`,
   `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
 - CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
@@ -1194,7 +1198,7 @@ when the value is empty.
 | `PAYMENTS_STRIPE_SECRET_KEY`, `PAYMENTS_STRIPE_WEBHOOK_SECRET` | secrets | API and worker |
 | `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | variables | API and worker |
 | `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` | secrets | API |
-| `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`, `BILLING_CHECKOUT_CANCEL_URL` | secret first, then variable | API |
+| `BILLING_STRIPE_PRICES`, `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`, `BILLING_CHECKOUT_CANCEL_URL` | secret first, then variable | API |
 | `META_PAGE_ID`, `META_INSTAGRAM_ACCOUNT_ID` | variables | worker only |
 | `META_PAGE_ACCESS_TOKEN` | secret | worker only |
 | `SOCIAL_LINK_HOSTS`, `SOCIAL_IMAGE_HOSTS` | variables | API only |

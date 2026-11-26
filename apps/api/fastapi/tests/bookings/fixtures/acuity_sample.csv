@@ -1,0 +1,17 @@
+Appointment ID,Date Scheduled,Start Time,End Time,First Name,Last Name,Phone,Email,Type,Calendar,Appointment Price,Paid?,Amount Paid Online,Certificate Code,Notes,Label,Canceled,Skin Type (intake)
+1001,"November 20, 2026 9:00 am","December 3, 2026 10:00 am",,Ada,Example,"(473) 555-0101",ada@example.com,Luxe Classic,Jeriann,210.00,Yes,0.00,,Prefers a quiet room,,,Combination
+1002,"November 20, 2026 9:00 am","December 3, 2026 1:00 pm",,Bea,Sample,"473-555-0199",bea@example.com,hybrid,Jeriann,150.00,Yes,0.00,,,,,Dry
+1003,"November 20, 2026 9:00 am","December 4, 2026 9:30 am",,Cy,Placeholder,"473-555-0102",,Volume,Jeriann,150.00,No,0.00,,,,,Normal
+1004,"November 20, 2026 9:00 am","December 5, 2026 10:00 am",,Cy,Placeholder,"+1 473 555 0102",,Lash touch-up,Jeriann,65.00,No,0.00,,,,,Normal
+1005,"November 20, 2026 9:00 am","December 6, 2026 11:00 am",,Dan,Cancelled,"",dan@example.com,Volume,Jeriann,150.00,No,0.00,,,,Yes,Normal
+1006,"November 20, 2026 9:00 am","November 30, 2026 10:00 am",,Eve,Past,"",eve@example.com,Hybrid,Jeriann,150.00,Yes,0.00,,,,,Normal
+1007,"November 20, 2026 9:00 am","December 7, 2026 10:00 am",,Fay,Unknown,"",fay@example.com,Mystery Facial,Jeriann,60.00,No,0.00,,,,,Normal
+1008,"November 20, 2026 9:00 am","December 1, 2026 12:30 am",,Gus,Midnight,"",gus@example.com,Chin,Jeriann,25.00,No,0.00,,,,,Normal
+1009,"November 20, 2026 9:00 am","2026-12-02T14:00:00-04:00",,Hal,Iso,"",hal@example.com,Chin,Jeriann,25.00,No,0.00,,,,,Normal
+1001,"November 20, 2026 9:00 am","December 10, 2026 10:00 am",,Ada,Example,"",ada@example.com,Luxe Classic,Jeriann,210.00,No,0.00,,,,,Normal
+1011,"November 20, 2026 9:00 am","Soon-ish",,Ivy,Badtime,"",ivy@example.com,Chin,Jeriann,25.00,No,0.00,,,,,Normal
+1012,"November 20, 2026 9:00 am","December 8, 2026 10:00 am",,Jo,Nocontact,"","",Chin,Jeriann,25.00,No,0.00,,,,,Normal
+1013,"November 20, 2026 9:00 am","December 8, 2026 2:00 pm",,Kim,Nobody,"",kim@example.com,Chin,Nobody,25.00,No,0.00,,,,,Normal
+1014,"November 20, 2026 9:00 am","December 3, 2026 10:30 am",,Lou,Overlap,"",lou@example.com,Volume,Jeriann,150.00,No,0.00,,,,,Normal
+1015,"November 20, 2026 9:00 am","December 9, 2026 10:00 am",,Max,Retired,"",max@example.com,Retired Cut,Jeriann,30.00,No,0.00,,,,,Normal
+1016,"November 20, 2026 9:00 am","December 9, 2026 1:00 pm",,Nia,Refill,"",nia@example.com,"Refill, 2–3 weeks",Jeriann,130.00,No,0.00,,,,,Normal

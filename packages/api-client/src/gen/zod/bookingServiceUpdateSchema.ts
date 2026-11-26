@@ -17,7 +17,13 @@ export const bookingServiceUpdateSchema = z.object({
   active: z.union([z.boolean(), z.null()]).optional(),
   sort_order: z.union([z.int().min(0).max(10000), z.null()]).optional(),
   is_add_on: z.union([z.boolean(), z.null()]).optional(),
+  also_add_on: z.union([z.boolean(), z.null()]).optional(),
   add_on_categories: z
+    .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
+    .optional(),
+  new_clients_only: z.union([z.boolean(), z.null()]).optional(),
+  first_visit_lead_days: z.union([z.int().min(0).max(60), z.null()]).optional(),
+  first_visit_categories: z
     .union([z.array(z.string().min(1).max(80)).max(20), z.null()])
     .optional(),
 });

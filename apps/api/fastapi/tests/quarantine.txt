@@ -1,0 +1,3 @@
+# Tests that fail at random. One per line: <node id> #<issue number>
+# Example: tests/hr/test_roster.py::test_swap_keeps_hours #1234
+# Rules and limits: tests/quarantine.py. Remove the line when the test is fixed.

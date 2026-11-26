@@ -18,6 +18,9 @@ export const BOOKINGS_PLAN_KEY = "bookings-monthly";
 /** The app the plan belongs to; the list also carries other apps' subscriptions. */
 export const BOOKINGS_APP_KEY = "bookings";
 
+/** The only currency the plan is sold in (owner decision above). */
+export const PLAN_CURRENCY = "XCD";
+
 /** The plan price in XCD minor units (cents): XCD 30.00 a month. */
 // The price is set in three places, change all of them together: this constant
 // (the label), `billing.plan_price` (the row the API reads for the amount), and the
@@ -227,5 +230,5 @@ export function checkoutReturnCopy(
   if (result === "success") {
     return "Thank you. Stripe has your checkout. The plan status below updates once Stripe confirms the payment, usually within a minute.";
   }
-  return "Checkout was cancelled. Nothing was charged. You can start the plan again below.";
+  return "Checkout was cancelled. Nothing was charged.";
 }

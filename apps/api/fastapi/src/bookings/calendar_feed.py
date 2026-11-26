@@ -232,7 +232,10 @@ async def _window_rows(
 ) -> Sequence[Any]:
     changes = (
         select(func.count())
-        .where(BookingEvent.booking_id == Booking.id)
+        .where(
+            BookingEvent.booking_id == Booking.id,
+            BookingEvent.staff_note.is_(False),
+        )
         .scalar_subquery()
     )
     cancelled_since = now - timedelta(days=CANCELLED_KEEP_DAYS)

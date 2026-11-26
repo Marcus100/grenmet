@@ -132,6 +132,10 @@ describe("contentSecurityPolicyHeaders", () => {
 
 const POSTHOG_HOSTS = "https://us.i.posthog.com https://eu.i.posthog.com";
 
+// Uploaded images and the presigned upload host (#1622).
+const OBJECT_STORE = "https://nyc3.digitaloceanspaces.com";
+const UPLOADED_IMAGES = `https://api.barrels.gd https://api.staging.barrels.gd ${OBJECT_STORE}`;
+
 describe("bookings policy", () => {
   // Turnstile guards the public booking form; funnel events go to PostHog.
   function expectedBookings(sentry: boolean): string {
@@ -139,9 +143,9 @@ describe("bookings policy", () => {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
+      `img-src 'self' data: blob: ${UPLOADED_IMAGES}`,
       "font-src 'self'",
-      `connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com ${POSTHOG_HOSTS}${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+      `connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com ${POSTHOG_HOSTS} ${OBJECT_STORE}${sentry ? " https://o1.ingest.sentry.io" : ""}`,
       "frame-src https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -341,11 +345,11 @@ const NEW_APP_EXTRAS: Record<
   cms: NO_EXTRAS,
   events: {
     script: GA_SCRIPT,
-    connect: `${GA_CONNECT} ${POSTHOG_HOSTS}`,
-    img: GA_IMG,
+    connect: `${GA_CONNECT} ${POSTHOG_HOSTS} ${OBJECT_STORE}`,
+    img: `${GA_IMG} ${UPLOADED_IMAGES}`,
     frame: "",
   },
-  "gaa-admin": { ...NO_EXTRAS, frame: "'self' blob:" },
+  "gaa-admin": { ...NO_EXTRAS, img: OBJECT_STORE, frame: "'self' blob:" },
   gms: {
     script: `${GA_SCRIPT} ${TURNSTILE}`,
     connect: `${GA_CONNECT} ${TURNSTILE}`,
@@ -531,5 +535,29 @@ describe("Google Analytics measurement host", () => {
 describe("eval", () => {
   it.each(CSP_APPS)("%s never allows unsafe-eval", (app) => {
     expect(buildContentSecurityPolicy({ app })).not.toContain("unsafe-eval");
+  });
+});
+
+describe("uploaded images and presigned uploads (#1622)", () => {
+  it("lets the upload apps show stored images and upload to the object store", () => {
+    for (const app of ["bookings", "events", "account"] as const) {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      for (const origin of [
+        "https://api.barrels.gd",
+        "https://api.staging.barrels.gd",
+        OBJECT_STORE,
+      ]) {
+        expect(policy["img-src"]).toContain(origin);
+      }
+      expect(policy["connect-src"]).toContain(OBJECT_STORE);
+    }
+  });
+
+  it("keeps the object store out of apps that upload nothing", () => {
+    for (const app of ["docs", "cms", "gmsdash", "babydoll"] as const) {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      expect(policy["connect-src"] ?? []).not.toContain(OBJECT_STORE);
+      expect(policy["img-src"] ?? []).not.toContain(OBJECT_STORE);
+    }
   });
 });

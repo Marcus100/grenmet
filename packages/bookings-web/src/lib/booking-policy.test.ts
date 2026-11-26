@@ -4,12 +4,13 @@ import {
   cancellationPolicyLine,
   depositRefundLine,
   holdEndsLine,
+  holdLengthText,
   nonRefundableDepositLine,
 } from "./booking-policy";
 
 const GET_DEPOSIT_BACK = /get your deposit back/u;
 const HOLD_SENTENCE =
-  /^Your time is held until .*\. It is released if the payment has not arrived by then\.$/u;
+  /^Your time is held until .* while we wait for your deposit\.$/u;
 
 describe("cancellationPolicyLine", () => {
   it("names the cutoff in hours, with the right noun", () => {
@@ -35,6 +36,26 @@ describe("holdEndsLine", () => {
     expect(line).toContain("9:00 am");
     expect(line).toContain("5 January 2027");
     expect(line).toMatch(HOLD_SENTENCE);
+    expect(line).not.toContain("(");
+  });
+
+  it("names the hold length when the API gives it", () => {
+    const line = holdEndsLine("2027-01-05T13:00:00Z", "America/Grenada", 1440);
+    expect(line).toContain("9:00 am");
+    expect(line).toContain(" (24 hours) while we wait for your deposit.");
+  });
+});
+
+describe("holdLengthText", () => {
+  it("words the hold in minutes, hours and days", () => {
+    expect(holdLengthText(30)).toBe("30 minutes");
+    expect(holdLengthText(120)).toBe("2 hours");
+    expect(holdLengthText(60)).toBe("1 hour");
+    expect(holdLengthText(1440)).toBe("24 hours");
+    expect(holdLengthText(2880)).toBe("48 hours");
+    expect(holdLengthText(4320)).toBe("3 days");
+    expect(holdLengthText(10_080)).toBe("7 days");
+    expect(holdLengthText(90)).toBe("90 minutes");
   });
 });
 
@@ -225,5 +246,16 @@ describe("bookingRulesLine", () => {
     ).toBe(
       "US$10 deposit, refunded if you cancel at least 1 hour before it starts. Change or cancel online up to 1 hour before; after that, contact the business."
     );
+  });
+
+  it("says a business deposit is paid to the business, never at the salon", () => {
+    expect(
+      bookingRulesLine({
+        ...base,
+        businessDepositMinor: 5300,
+        dueMinor: 0,
+        ownDepositMinor: 5300,
+      })
+    ).toBe(`EC$53 deposit, paid to the business. ${CHANGE}`);
   });
 });

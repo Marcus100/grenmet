@@ -17,6 +17,8 @@ from src.email_colour import safe_accent
 from src.storage.public_url import public_file_url
 from src.utils.timezones import utc_to_local
 
+from .deposit_payments import money_text
+
 
 def business_logo(name: str, file_id: uuid.UUID | None) -> layout.Logo | None:
     """The business logo for the card header, alt text being the business name.
@@ -63,6 +65,16 @@ class BookingEmail:
     deposit_non_refundable: bool = False
     #: The business has confirmed the booking; otherwise the promise waits for it.
     booking_confirmed: bool = False
+    #: Display-only deposit the customer pays the business by hand (0 = none), with
+    #: the business's plain-text instructions and the booking's currency.
+    deposit_to_business_minor: int = 0
+    deposit_instructions: str | None = None
+    #: The business confirmed the deposit arrived: the mail says so instead.
+    deposit_received: bool = False
+    currency: str = ""
+    #: The late-arrival rule: fee in minor units (None = no fee) and grace minutes.
+    late_fee_minor: int | None = None
+    late_grace_min: int = 0
 
     @property
     def when(self) -> str:
@@ -98,6 +110,37 @@ def _rows(mail: BookingEmail, *extra: layout.Row) -> tuple[layout.Row, ...]:
     return (*rows, *extra)
 
 
+def _deposit_due(mail: BookingEmail) -> tuple[tuple[layout.Row, ...], tuple[str, ...]]:
+    """The "Deposit to pay" row and the business's payment instructions, one line each,
+    when the customer pays the deposit to the business by hand."""
+    if mail.deposit_to_business_minor <= 0:
+        return (), ()
+    if mail.deposit_received:
+        # Paid and confirmed: no instructions any more, only the fact.
+        return (
+            layout.Row(
+                "Deposit received",
+                money_text(mail.deposit_to_business_minor, mail.currency),
+            ),
+        ), ()
+    row = layout.Row(
+        "Deposit to pay", money_text(mail.deposit_to_business_minor, mail.currency)
+    )
+    lines = tuple(
+        line.strip()
+        for line in (mail.deposit_instructions or "").split("\n")
+        if line.strip()
+    )
+    if not lines:
+        return (row,), ()
+    # The business wrote these lines: say so, so they never read as a Barrels request.
+    lead = (
+        f"How to pay your deposit to {mail.business} (paid directly to "
+        f"{mail.business}, not through Barrels):"
+    )
+    return (row,), (lead, *lines)
+
+
 def _manage(mail: BookingEmail) -> layout.Action | None:
     return layout.Action("Manage booking", mail.manage_url) if mail.manage_url else None
 
@@ -128,8 +171,19 @@ def _policy(mail: BookingEmail) -> tuple[str, ...]:
             f"Changes made less than {hours} {noun} before the start are arranged "
             f"with {mail.business}."
         )
-    if mail.deposit_non_refundable and mail.payment_line:
+    if mail.deposit_non_refundable and (
+        mail.payment_line or mail.deposit_to_business_minor > 0
+    ):
         lines.append(_non_refundable_line(hours, mail.booking_confirmed))
+    if mail.late_fee_minor:
+        fee = money_text(mail.late_fee_minor, mail.currency)
+        if mail.late_grace_min > 0:
+            lines.append(
+                f"Arriving more than {mail.late_grace_min} minutes late adds a "
+                f"late fee of {fee}."
+            )
+        else:
+            lines.append(f"Arriving late adds a late fee of {fee}.")
     lines.extend(
         line.strip() for line in (mail.booking_policy or "").split("\n") if line.strip()
     )
@@ -221,7 +275,11 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCar
                 mail,
                 chip=layout.Chip("Confirmed"),
                 title="Your booking is confirmed",
-                paragraphs=(f"Thank you for booking with {mail.business}.",),
+                paragraphs=(
+                    f"Thank you for booking with {mail.business}.",
+                    *_deposit_due(mail)[1],
+                ),
+                rows=_rows(mail, *_deposit_due(mail)[0]),
                 primary=_manage(mail),
                 secondary=_calendar(mail),
                 policy=_policy(mail),
@@ -234,7 +292,11 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCar
             mail,
             chip=layout.Chip("Request received"),
             title="We received your booking request",
-            paragraphs=(f"We will email you once {mail.business} confirms it.",),
+            paragraphs=(
+                f"We will email you once {mail.business} confirms it.",
+                *_deposit_due(mail)[1],
+            ),
+            rows=_rows(mail, *_deposit_due(mail)[0]),
             primary=_manage(mail),
             policy=_policy(mail),
             **_invite(mail),
@@ -285,7 +347,11 @@ def customer_confirmed(mail: BookingEmail) -> layout.EmailCard:
             mail,
             chip=layout.Chip("Confirmed"),
             title="Your booking is confirmed",
-            paragraphs=(f"{mail.business} has confirmed your booking request.",),
+            paragraphs=(
+                f"{mail.business} has confirmed your booking request.",
+                *_deposit_due(mail)[1],
+            ),
+            rows=_rows(mail, *_deposit_due(mail)[0]),
             primary=_manage(mail),
             secondary=_calendar(mail),
             policy=_policy(mail),

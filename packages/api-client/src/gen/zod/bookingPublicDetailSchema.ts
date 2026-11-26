@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
@@ -45,6 +46,30 @@ export const bookingPublicDetailSchema = z
       .describe(
         "The business's plain-text booking policy, or null when it has none."
       ),
+    deposit_to_business_minor: z
+      .int()
+      .optional()
+      .default(0)
+      .describe(
+        "The deposit the customer pays the business by hand, outside Barrels (0 = none). Set when the booking was made."
+      ),
+    deposit_instructions: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0 and it is not yet received."
+      ),
+    deposit_received: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "The business has confirmed the deposit paid to it by hand (`deposit_to_business_minor`) arrived. Show it as paid; no method or reference is shown to the customer."
+      ),
+    late_fee: z
+      .union([bookingLateFeeSchema, z.null()])
+      .optional()
+      .describe("The late-arrival fee rule, or null when none."),
     can_cancel: z
       .boolean()
       .describe(
@@ -63,11 +88,29 @@ export const bookingPublicDetailSchema = z
       .describe(
         "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
       ),
+    new_clients_only: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("The service is for first-time clients only."),
+    first_visit_lead_days: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "Only for a new-clients-only service: it is meant to be booked at least this many days before the first appointment in `first_visit_categories`."
+      ),
+    first_visit_categories: z.union([z.array(z.string()), z.null()]).optional(),
     hold_ends_at: z
       .union([z.iso.datetime(), z.null()])
       .optional()
       .describe(
         "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+      ),
+    hold_minutes: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
       ),
     add_ons: z
       .array(bookingAddOnLineSchema)

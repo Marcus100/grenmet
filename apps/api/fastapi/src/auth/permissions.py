@@ -269,6 +269,85 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Give organisation members Printix roles you hold yourself",
         binding="organisation",
     ),
+    # Operations log (ADR-0067). Organisation keys; owners and admins hold them all.
+    # API key scopes (ADR-0029) every product has; no opslog route takes an API key yet.
+    PermissionDef(
+        "opslog.read",
+        "API key: read Barrels Operations Log data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.write",
+        "API key: change Barrels Operations Log data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.read",
+        "Operations log: read logs, categories and entries (not private ones)",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.write",
+        "Operations log: write entries, edit your own under the log's rule and add comments",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.entries.private",
+        "Operations log: see and write private entries",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.settings.manage",
+        "Operations log: create and change logs and their categories",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "opslog.team.manage",
+        "Give organisation members operations log roles you hold yourself",
+        binding="organisation",
+    ),
+    # Incidents (ADR-0067). Organisation keys; owners and admins hold them all.
+    # API key scopes (ADR-0029) every product has; no incidents route takes an API key yet.
+    PermissionDef(
+        "incidents.read",
+        "API key: read Barrels Incidents data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.write",
+        "API key: change Barrels Incidents data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.read",
+        "Incidents: read incidents, categories and checklists (not private notes)",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.write",
+        "Incidents: report, edit and open incidents, record actions and notes, tick checklists",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.private",
+        "Incidents: see and write private notes",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.incidents.manage",
+        "Incidents: close and reopen incidents",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.settings.manage",
+        "Incidents: set up categories, their managers and checklists",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "incidents.team.manage",
+        "Give organisation members incidents roles you hold yourself",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -401,6 +480,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         binding="organisation",
     ),
     PermissionDef(
+        "bookings.deposits.manage",
+        "Record a deposit paid to the business as received, and undo it",
+        binding="organisation",
+    ),
+    PermissionDef(
         "bookings.settings.manage",
         "Change services, staff hours and booking settings",
         binding="organisation",
@@ -422,6 +506,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
     PermissionDef("app.bookings.access", "Sign in to Barrels Bookings"),
+    PermissionDef(
+        "bookings.listing.approve",
+        "Approve or withdraw a Barrels Bookings business on the public home page listing",
+    ),
     PermissionDef("app.account.access", "Sign in to your Barrels account"),
     PermissionDef(
         "gmsdash.guidance.view",

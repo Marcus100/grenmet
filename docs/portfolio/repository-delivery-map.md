@@ -84,6 +84,7 @@ transition:
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
+| `packages/admin-kit` | Barrels platform admin shell and page blocks for every admin dashboard (ADR-0068) | Built; no app migrated yet | Brand-neutral: the GMS staff portal layout, colours from each app; draws only (no API calls, sessions or permission checks) |
 | `packages/bookings-web` | Barrels Bookings public booking flow (Barrels platform) | Active | Brand-neutral and framework-light: hosts pass server actions, links and class names in as props; never imports the API client at runtime or reads env |
 | `packages/pwa-kit` | Barrels platform base for the phone apps (`apps/pwa/*`) | Active; first user is the Printix scanner | Brand-neutral: colours come from each app's `--color-pwa-*` values and words are passed in; never imports the API client or reads env; static-export friendly (no server code) |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |

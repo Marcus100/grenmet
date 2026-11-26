@@ -1,3 +1,4 @@
+import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { BookingAgendaItem } from "@barrelsgd/api-client";
 import {
   formatDay,
@@ -7,18 +8,17 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import {
+  DepositBadge,
+  ExpiresSoonBadge,
+  StatusBadge,
+} from "@/components/studio/badges";
 import { BookingAddress } from "@/components/studio/booking-address";
 import { NeedsConfirming } from "@/components/studio/needs-confirming";
+import { ReturningClientTag } from "@/components/studio/returning-client";
 import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
-import {
-  CARD,
-  CARD_LINK,
-  FOCUS,
-  PRIMARY_ACTION,
-  StudioPageHeader,
-} from "@/components/studio/studio-ui";
+import { CARD, CARD_LINK, FOCUS } from "@/components/studio/studio-ui";
 import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -33,7 +33,7 @@ import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
   type AgendaRange,
-  agendaDepositView,
+  agendaChips,
   canManageBookings,
   DEFAULT_TIMEZONE,
   daysIn,
@@ -191,19 +191,8 @@ export default async function AgendaPage({
 
   return (
     <div className="space-y-6">
-      <StudioPageHeader
-        action={
-          canManageBookings(org.value.role) ? (
-            <Link
-              className={PRIMARY_ACTION}
-              href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
-            >
-              New booking
-            </Link>
-          ) : null
-        }
-        title="Agenda"
-      />
+      {/* New booking lives in the shell's top bar (owners and admins). */}
+      <PageHeader title="Agenda" />
 
       <NeedsConfirming
         expiryHours={expiryHours}
@@ -499,9 +488,16 @@ function BookingRow({
       </span>
       <span className="flex flex-wrap gap-2">
         <StatusBadge kind={booking.payment_kind} status={booking.status} />
-        {booking.deposit_minor > 0 ? (
-          <DepositBadge view={agendaDepositView(booking)} />
+        {booking.returning_client && booking.status === "pending" ? (
+          <ReturningClientTag />
         ) : null}
+        {agendaChips(booking).map((chip) =>
+          chip.kind === "expires_soon" ? (
+            <ExpiresSoonBadge key="expires-soon" />
+          ) : (
+            <DepositBadge key="deposit" view={chip.view} />
+          )
+        )}
       </span>
     </Link>
   );

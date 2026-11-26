@@ -27,6 +27,7 @@ from src.organisations.exceptions import (
     OrganisationSuspendedError,
 )
 from src.organisations.models import (
+    EntitlementSource,
     Membership,
     MembershipRole,
     MembershipStatus,
@@ -82,13 +83,15 @@ async def create_organisation(
     slug: str | None = None,
     organisation_id: str | None = None,
     reserved_ok: bool = False,
+    created_by_user_id: uuid.UUID | None = None,
 ) -> PlatformOrganisation:
     """Create a new organisation with an immutable ``org_<hex>`` id.
 
     The id is generated unless a caller needs a deterministic one (idempotent
     cross-database backfills). A slug on the platform reserved list is never
     used (a numeric suffix is added) unless ``reserved_ok``, which only platform
-    seeds pass for their own names (``barrels``, ``babydoll``)."""
+    seeds pass for their own names (``barrels``, ``babydoll``). ``created_by_user_id``
+    records the account that made a self-created business (ADR-0066)."""
     clean = name.strip()
     if not clean:
         raise AppException("Organisation name is required", 422)
@@ -98,6 +101,7 @@ async def create_organisation(
         name=clean,
         kind=kind.value,
         status=OrganisationStatus.ACTIVE.value,
+        created_by_user_id=created_by_user_id,
     )
     session.add(organisation)
     await session.flush()
@@ -231,9 +235,23 @@ async def add_member(
     return membership
 
 
+_TRIAL_OR_SUBSCRIPTION_SOURCES = (
+    EntitlementSource.TRIAL.value,
+    EntitlementSource.SUBSCRIPTION.value,
+)
+
+
 async def set_app_enabled(
-    session: AsyncSession, *, organisation_id: str, app_key: str, enabled: bool
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    app_key: str,
+    enabled: bool,
+    source: EntitlementSource = EntitlementSource.MANUAL,
 ) -> OrganisationApp:
+    """Switch an entitlement on or off and record why (ADR-0066). Staff grants keep the
+    default ``manual``, which also opts the business out of any subscription switch.
+    Bundled rows take the same source."""
     if not entitlements.is_known(app_key):
         raise AppException("Unknown app", 404)
     switching_printix_off = not enabled and app_key == printix_app_role.APP_KEY
@@ -245,11 +263,21 @@ async def set_app_enabled(
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         row = OrganisationApp(
-            organisation_id=organisation_id, app_key=app_key, enabled=enabled
+            organisation_id=organisation_id,
+            app_key=app_key,
+            enabled=enabled,
+            source=source.value,
         )
         session.add(row)
     else:
+        # A staff grant on access that is already on keeps its trial or subscription
+        # source (slice 2 follow-up): it must not turn the trial into a manual grant.
+        keeps_source = (
+            enabled and row.enabled and row.source in _TRIAL_OR_SUBSCRIPTION_SOURCES
+        )
         row.enabled = enabled
+        if not keeps_source:
+            row.source = source.value
     await session.flush()
     if switching_printix_off:
         # No organisation keys left from here: drop the sign-in role of anyone whose
@@ -257,23 +285,32 @@ async def set_app_enabled(
         await printix_app_role.release_lost(session, organisation_id, printix_holders)
     if enabled:
         for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
-            await _ensure_enabled(session, organisation_id, bundled)
+            await _ensure_enabled(session, organisation_id, bundled, source)
     return row
 
 
 async def _ensure_enabled(
-    session: AsyncSession, organisation_id: str, app_key: str
+    session: AsyncSession,
+    organisation_id: str,
+    app_key: str,
+    source: EntitlementSource = EntitlementSource.MANUAL,
 ) -> None:
-    """Switch an entitlement on if it is missing or off (never touches others)."""
+    """Switch a bundled entitlement on (never touches other keys). A row is created with
+    ``source``, or switched on with it when it was off. A bundled row that is already on
+    keeps its own source, so a separate grant never re-stamps it."""
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         session.add(
             OrganisationApp(
-                organisation_id=organisation_id, app_key=app_key, enabled=True
+                organisation_id=organisation_id,
+                app_key=app_key,
+                enabled=True,
+                source=source.value,
             )
         )
     elif not row.enabled:
         row.enabled = True
+        row.source = source.value
     await session.flush()
 
 
