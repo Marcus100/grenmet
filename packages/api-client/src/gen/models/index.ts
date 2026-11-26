@@ -6630,6 +6630,8 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { IncidentAttachmentCreate } from "./IncidentAttachmentCreate.js";
+export type { IncidentAttachmentPublic } from "./IncidentAttachmentPublic.js";
 export type { IncidentCategoryCreate } from "./IncidentCategoryCreate.js";
 export type { IncidentCategoryList } from "./IncidentCategoryList.js";
 export type { IncidentCategoryPublic } from "./IncidentCategoryPublic.js";
@@ -6662,6 +6664,21 @@ export type {
   IncidentsCloseIncidentStatus409,
   IncidentsCloseIncidentStatus422,
 } from "./IncidentsCloseIncident.js";
+export type {
+  IncidentsCreateAttachmentBody,
+  IncidentsCreateAttachmentHeaders,
+  IncidentsCreateAttachmentOptions,
+  IncidentsCreateAttachmentPath,
+  IncidentsCreateAttachmentResponse,
+  IncidentsCreateAttachmentResponses,
+  IncidentsCreateAttachmentStatus201,
+  IncidentsCreateAttachmentStatus400,
+  IncidentsCreateAttachmentStatus401,
+  IncidentsCreateAttachmentStatus403,
+  IncidentsCreateAttachmentStatus404,
+  IncidentsCreateAttachmentStatus409,
+  IncidentsCreateAttachmentStatus422,
+} from "./IncidentsCreateAttachment.js";
 export type {
   IncidentsCreateCategoryBody,
   IncidentsCreateCategoryHeaders,
@@ -7563,6 +7580,8 @@ export { observationSendPropertiesStatusEnum } from "./ObservationSendProperties
 export type { ObservationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export { observationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
+export type { OpsLogAttachmentCreate } from "./OpsLogAttachmentCreate.js";
+export type { OpsLogAttachmentPublic } from "./OpsLogAttachmentPublic.js";
 export type { OpsLogCategoryCreate } from "./OpsLogCategoryCreate.js";
 export type { OpsLogCategoryList } from "./OpsLogCategoryList.js";
 export type { OpsLogCategoryPublic } from "./OpsLogCategoryPublic.js";
@@ -7583,6 +7602,21 @@ export type { OpsLogList } from "./OpsLogList.js";
 export type { OpsLogPublic } from "./OpsLogPublic.js";
 export type { OpsLogRecordRef } from "./OpsLogRecordRef.js";
 export type { OpsLogUpdate } from "./OpsLogUpdate.js";
+export type {
+  OpslogCreateAttachmentBody,
+  OpslogCreateAttachmentHeaders,
+  OpslogCreateAttachmentOptions,
+  OpslogCreateAttachmentPath,
+  OpslogCreateAttachmentResponse,
+  OpslogCreateAttachmentResponses,
+  OpslogCreateAttachmentStatus201,
+  OpslogCreateAttachmentStatus400,
+  OpslogCreateAttachmentStatus401,
+  OpslogCreateAttachmentStatus403,
+  OpslogCreateAttachmentStatus404,
+  OpslogCreateAttachmentStatus409,
+  OpslogCreateAttachmentStatus422,
+} from "./OpslogCreateAttachment.js";
 export type {
   OpslogCreateCategoryBody,
   OpslogCreateCategoryHeaders,

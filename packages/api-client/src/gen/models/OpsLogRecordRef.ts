@@ -5,9 +5,18 @@
 
 /**
  * @description The record another module posted an entry about (ADR-0067).
+ *
+ * ``title`` is filled only when the viewer may see that record; otherwise
+ * ``available`` is false and the screen shows "record not available".
  * @type object
  */
 export type OpsLogRecordRef = {
   kind: string;
   id: string;
+  title?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  available?: boolean;
 };

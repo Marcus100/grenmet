@@ -534,6 +534,7 @@ export { hrUploadDocument } from "./hrUploadDocument.js";
 export { hrValidateCsv } from "./hrValidateCsv.js";
 export { hrValidateGrid } from "./hrValidateGrid.js";
 export { incidentsCloseIncident } from "./incidentsCloseIncident.js";
+export { incidentsCreateAttachment } from "./incidentsCreateAttachment.js";
 export { incidentsCreateCategory } from "./incidentsCreateCategory.js";
 export { incidentsCreateChecklistItem } from "./incidentsCreateChecklistItem.js";
 export { incidentsCreateIncident } from "./incidentsCreateIncident.js";
@@ -594,6 +595,7 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { opslogCreateAttachment } from "./opslogCreateAttachment.js";
 export { opslogCreateCategory } from "./opslogCreateCategory.js";
 export { opslogCreateComment } from "./opslogCreateComment.js";
 export { opslogCreateEntry } from "./opslogCreateEntry.js";

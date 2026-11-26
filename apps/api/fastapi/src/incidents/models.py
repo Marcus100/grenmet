@@ -253,3 +253,38 @@ class IncidentNote(Base):
     text: Mapped[str] = mapped_column(Text)
     private: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+def new_attachment_id() -> str:
+    return f"ina_{secrets.token_hex(8)}"
+
+
+class IncidentAttachment(Base):
+    """A photo added to an incident: the storage upload id only (purpose
+    ``incident-photo``). Rows are only ever inserted."""
+
+    __tablename__ = "attachment"
+    __table_args__ = (
+        sa.UniqueConstraint("incident_id", "file_id", name="attachment_incident_file"),
+        sa.CheckConstraint(
+            "caption IS NULL OR char_length(caption) BETWEEN 1 AND 200",
+            name="caption",
+        ),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_attachment_id
+    )
+    incident_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.incident.id", ondelete="CASCADE"),
+        index=True,
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    file_id: Mapped[uuid.UUID]
+    caption: Mapped[str | None] = mapped_column(String(200))
+    added_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

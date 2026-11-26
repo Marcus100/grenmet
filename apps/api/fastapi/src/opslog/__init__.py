@@ -29,7 +29,9 @@ scoped: the airport authority is one organisation like any other.
   without the entitlement, without a receiving log, or naming a log archived since,
   and dead-letters
   (`TerminalFailure`) a bad payload or a `log_id` that is not the organisation's.
-- **Not built yet** (issue #1875): attachments, category notifications, the daily
+- **Photos** (`attachments.py`, purpose `opslog-photo`) hold an upload id only; an
+  entry's `record` gets its title from `src/record_links.py` when the viewer may see it.
+- **Not built yet** (issue #1875): category notifications, the daily
   summary email, structured logs and the shift handover report.
 
 Keyword search (`q`) is an unindexed `ILIKE` within one log; fine at airport volumes,

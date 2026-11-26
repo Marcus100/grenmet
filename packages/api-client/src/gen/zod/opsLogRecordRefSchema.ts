@@ -9,5 +9,9 @@ export const opsLogRecordRefSchema = z
   .object({
     kind: z.string(),
     id: z.string(),
+    title: z.union([z.string(), z.null()]).optional(),
+    available: z.boolean().optional().default(false),
   })
-  .describe("The record another module posted an entry about (ADR-0067).");
+  .describe(
+    'The record another module posted an entry about (ADR-0067).\n\n``title`` is filled only when the viewer may see that record; otherwise\n``available`` is false and the screen shows "record not available".'
+  );

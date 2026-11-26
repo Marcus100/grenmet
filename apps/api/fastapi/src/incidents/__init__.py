@@ -21,7 +21,10 @@ lookup filters on the organisation in SQL.
 - References are ``INC-<year>-<nnnn>`` per organisation, issued by one upsert on
   ``counter``.
 - History (``audit.py``) tracks every table under ``platform_organisation``.
+- Photos (``attachments.py``, purpose ``incident-photo``) hold an upload id only.
+  Other domains link to an incident through ``src/record_links.py``
+  (``record_links.py`` here: title only for holders of the read key).
 - Not built yet (later slices of #1876): persons involved and witnesses, damage
-  and resources, weather at the time, attachments, notifications to the category
-  manager, links to work orders and cases, the public report form.
+  and resources, weather at the time, notifications to the category manager,
+  links to work orders and cases, the public report form.
 """
