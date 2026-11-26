@@ -34,7 +34,7 @@ import {
   type PaymentKind,
   paymentWord,
   takesDeposit,
-  timelineEntry,
+  timelineEntries,
 } from "@/lib/studio-view";
 
 export const metadata: Metadata = {
@@ -92,6 +92,11 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
   const kind = booking.payment_kind;
   const word = paymentWord(kind);
   const zone = booking.timezone;
+  const entries = timelineEntries(booking.events, {
+    kind,
+    zone,
+    startsAt: booking.starts_at,
+  });
   // A deposit the customer pays the business by hand (#1869): no Barrels amount.
   const toBusiness = booking.deposit_to_business_minor ?? 0;
 
@@ -253,23 +258,20 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           </p>
         ) : (
           <ol className="space-y-2">
-            {booking.events.map((event) => {
-              const entry = timelineEntry(event, kind);
-              return (
-                <li
-                  className="border-border rounded-xl border p-3"
-                  key={`${event.created_at}-${event.to_status}`}
-                >
-                  <p className="font-medium">{entry.title}</p>
-                  <p className="text-foreground/80 text-sm">
-                    {formatDateTime(event.created_at, zone)}
-                  </p>
-                  {entry.detail ? (
-                    <p className="text-sm">{entry.detail}</p>
-                  ) : null}
-                </li>
-              );
-            })}
+            {entries.map((entry) => (
+              <li
+                className="border-border rounded-xl border p-3"
+                key={entry.key}
+              >
+                <p className="font-medium">{entry.title}</p>
+                <p className="text-foreground/80 text-sm">
+                  {formatDateTime(entry.at, zone)}
+                </p>
+                {entry.detail ? (
+                  <p className="text-sm">{entry.detail}</p>
+                ) : null}
+              </li>
+            ))}
           </ol>
         )}
       </section>

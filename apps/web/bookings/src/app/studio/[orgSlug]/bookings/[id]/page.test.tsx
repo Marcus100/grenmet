@@ -183,6 +183,29 @@ describe("studio booking detail", () => {
     expect(screen.queryByText("Confirmed to Confirmed")).toBeNull();
   });
 
+  it("titles a reschedule Time changed and never shows a raw ISO time", async () => {
+    const moved = {
+      from_status: "confirmed" as const,
+      to_status: "confirmed" as const,
+      actor_user_id: null,
+      note: "Rescheduled from 2026-10-20T14:00Z by the business",
+      created_at: "2026-10-18T12:05:00Z",
+    };
+    // Two entries with the same time and status: the list keys must not collide.
+    const errors = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    vi.mocked(getBooking).mockResolvedValue(detail({ events: [moved, moved] }));
+    const { container } = render(await StudioBookingPage(props()));
+    expect(screen.getAllByText("Time changed")).toHaveLength(2);
+    expect(container.textContent).not.toContain("2026-10-20T14:00Z");
+    expect(container.textContent).not.toContain("Confirmed to Confirmed");
+    expect(
+      errors.mock.calls.some((call) => String(call[0]).includes("same key"))
+    ).toBe(false);
+    errors.mockRestore();
+  });
+
   it("shows the action buttons to an admin and an owner, not a member", async () => {
     vi.mocked(getBooking).mockResolvedValue(detail());
     for (const [role, shown] of [
