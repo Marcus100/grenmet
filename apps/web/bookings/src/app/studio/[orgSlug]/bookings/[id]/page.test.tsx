@@ -44,10 +44,27 @@ vi.mock("@/components/studio/record-deposit", () => ({
   ),
 }));
 
+vi.mock("@/components/studio/deposit-received", () => ({
+  DepositReceived: ({
+    amountLabel,
+    canMark,
+  }: {
+    amountLabel: string;
+    canMark: boolean;
+  }) => (
+    <button type="button">
+      Business deposit {amountLabel} can-mark={String(canMark)}
+    </button>
+  ),
+}));
+
 import { findOrganisation, getBooking } from "@/lib/studio-api";
 import StudioBookingPage from "./page";
 
 const RECORD = /Record deposit/u;
+const BUSINESS_BUTTON = /Business deposit/u;
+const CAN_MARK = /can-mark=true/u;
+const CANNOT_MARK = /can-mark=false/u;
 
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),
@@ -435,5 +452,90 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
     expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
       "due=false"
     );
+  });
+});
+
+describe("deposit paid to the business (#1869)", () => {
+  const TO_BUSINESS = { deposit_minor: 0, deposit_to_business_minor: 5300 };
+
+  function asRole(role: "admin" | "member") {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role,
+    });
+  }
+
+  it("offers marking it received to an admin on an open booking, not Record deposit", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "pending" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByRole("button", { name: CAN_MARK })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: RECORD })).toBeNull();
+    expect(screen.getByText("Deposit due")).toBeInTheDocument();
+  });
+
+  it("shows the amount to the business in the price card, not Deposit asked None", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "confirmed" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("To the business").nextSibling).toHaveTextContent(
+      "EC$53"
+    );
+    expect(screen.queryByText("Deposit asked")).toBeNull();
+  });
+
+  it("shows received once marked, and no mark action for it", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        ...TO_BUSINESS,
+        deposit_received_at: "2026-10-20T12:00:00Z",
+        deposit_received_method: "cash",
+        status: "confirmed",
+      })
+    );
+    render(await StudioBookingPage(props()));
+    // The badge; the timeline's own note also reads "Deposit received".
+    expect(
+      screen.getByText("Deposit received", { selector: "span" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: CANNOT_MARK })
+    ).toBeInTheDocument();
+  });
+
+  it("says Deposit cancelled and never due on a cancelled booking", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "cancelled" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit cancelled")).toBeInTheDocument();
+    expect(screen.queryByText("Deposit due")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: CANNOT_MARK })
+    ).toBeInTheDocument();
+  });
+
+  it("is not offered to a member", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ ...TO_BUSINESS, status: "pending" })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
+  });
+
+  it("keeps Record deposit for an online deposit and hides the business one", async () => {
+    asRole("admin");
+    vi.mocked(getBooking).mockResolvedValue(detail({ status: "pending" }));
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
+    expect(screen.getByRole("button", { name: RECORD })).toBeInTheDocument();
   });
 });

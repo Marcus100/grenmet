@@ -36,6 +36,7 @@ import {
   isUuid,
   parseRange,
   rangeLabel,
+  showsAgendaDeposit,
   stepDay,
   todayIn,
 } from "@/lib/studio-view";
@@ -487,7 +488,7 @@ function BookingRow({
         {booking.returning_client && booking.status === "pending" ? (
           <ReturningClientTag />
         ) : null}
-        {booking.deposit_minor > 0 ? (
+        {showsAgendaDeposit(booking) ? (
           <DepositBadge view={agendaDepositView(booking)} />
         ) : null}
       </span>

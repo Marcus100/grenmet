@@ -20,6 +20,11 @@ export function businessDepositLabel(minor: number, currency: string): string {
   return `${formatMoney(minor, currency)} deposit, paid to the business`;
 }
 
+/** "Deposit received: EC$53", once the business has confirmed it. */
+export function depositReceivedLine(minor: number, currency: string): string {
+  return `Deposit received: ${formatMoney(minor, currency)}`;
+}
+
 /** "Deposit to pay: EC$53". */
 export function depositToPayLine(minor: number, currency: string): string {
   return `Deposit to pay: ${formatMoney(minor, currency)}`;
@@ -42,6 +47,20 @@ export function showsBusinessDeposit(
     (booking.deposit_to_business_minor ?? 0) > 0 &&
     DEPOSIT_STATUSES.has(booking.status)
   );
+}
+
+/**
+ * The business has confirmed the deposit it was paid by hand (#1869) while the
+ * booking is still open. The customer sees "Deposit received" in its place; the
+ * method and reference are staff-only and never reach this package.
+ */
+export function showsDepositReceived(
+  booking: Pick<
+    BookingPublicDetail,
+    "deposit_received" | "deposit_to_business_minor" | "status"
+  >
+): boolean {
+  return showsBusinessDeposit(booking) && booking.deposit_received === true;
 }
 
 /** The business deposit while it is still to pay or paid; undefined otherwise. */
