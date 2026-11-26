@@ -424,6 +424,9 @@ ACCEPTED_HOLD_DEFAULT_MINUTES = 24 * 60
 #: A request is not accepted into "pay online" with less than this before its
 #: start: the customer could not reasonably pay in time.
 ACCEPT_MIN_MINUTES_TO_START = 30
+#: Stripe refuses a checkout that ends sooner than 30 minutes from now, so an accepted
+#: request's checkout ends at least this long ahead (its hold can be 30 minutes).
+CHECKOUT_MIN_MINUTES = 31
 
 
 def accepted_hold_minutes_for(
@@ -537,10 +540,13 @@ async def start_deposit(
     *,
     title: str | None = None,
     checkout_expires_at: datetime | None = None,
+    strict: bool = False,
 ) -> str | None:
     """Create the deposit intent. Returns the hosted checkout URL, or None when
     the studio must record a manual payment. ``checkout_expires_at`` (naive UTC)
-    ends a Stripe checkout at the booking's hold."""
+    ends a Stripe checkout at the booking's hold. ``strict`` raises the provider's
+    error instead of falling back to a manual intent (acceptance uses it: a customer
+    must not be emailed a payment with no way to pay)."""
     if stripe_available():
         try:
             async with session.begin_nested():
@@ -556,6 +562,8 @@ async def start_deposit(
                 )
             return result.checkout_url
         except AppException:
+            if strict:
+                raise
             logger.warning(
                 "stripe checkout unavailable for a booking deposit; using manual",
                 extra={"booking_id": str(booking.id)},

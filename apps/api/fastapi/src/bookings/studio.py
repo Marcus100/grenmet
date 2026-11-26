@@ -261,6 +261,23 @@ async def agenda(
 # --- actions -------------------------------------------------------------------------
 
 
+logger = logging.getLogger(__name__)
+WAIVED_NOTE = (
+    "Accepted with online payment off: the deposit is now paid directly to the "
+    "business, and the customer was not asked to pay by card. Mark it received when "
+    "it arrives."
+)
+PAYMENT_NOT_STARTED = (
+    "The payment could not be started, so the request is still pending. "
+    "Try Confirm again in a moment."
+)
+TOO_CLOSE_TO_PAY_ONLINE = (
+    "Too close to the start to take an online payment. Cancel the request, or let "
+    "the customer book a later time."
+)
+ALREADY_ACCEPTED = "This request is already accepted and is waiting for payment"
+
+
 async def confirm(
     session: AsyncSession,
     organisation_id: str,
@@ -291,8 +308,14 @@ async def confirm(
                 session, managed, actor_user_id=actor_user_id, now=moment
             )
         # Online payment is off now (the entitlement or the collection changed since
-        # the request was made): accept without asking for a card payment, and say so.
+        # the request was made). The only way left to collect is directly, so the
+        # deposit becomes one paid to the business: nothing is held or refunded by
+        # Barrels, and the booking follows the direct-payment path from here on.
         waived = True
+        await deposit_payments.cancel_unpaid_deposit(session, booking)
+        booking.deposit_to_business_minor = booking.deposit_minor
+        booking.deposit_minor = 0
+        booking.pay_after_acceptance = False
     await public.transition(
         session,
         booking,
@@ -310,22 +333,6 @@ async def confirm(
     )
     await session.flush()
     return await _detail(session, managed, accepted_without_payment=waived)
-
-
-logger = logging.getLogger(__name__)
-WAIVED_NOTE = (
-    "Accepted without a payment request: online payment is not on for this business "
-    "any more, so the customer was not asked to pay. Agree how the deposit is paid."
-)
-PAYMENT_NOT_STARTED = (
-    "The payment could not be started, so the request is still pending. "
-    "Try Confirm again in a moment."
-)
-TOO_CLOSE_TO_PAY_ONLINE = (
-    "Too close to the start to take an online payment. Mark the deposit received "
-    "if they have paid you, or cancel the request."
-)
-ALREADY_ACCEPTED = "This request is already accepted and is waiting for payment"
 
 
 async def _payment_due_on_acceptance(session: AsyncSession, booking: Booking) -> bool:
@@ -374,7 +381,9 @@ async def _accept_for_payment(
             title=deposit_payments.checkout_title(
                 booking, managed.service, profile, booking.deposit_minor
             ),
-            checkout_expires_at=now + timedelta(minutes=hold),
+            checkout_expires_at=now
+            + timedelta(minutes=max(hold, deposit_payments.CHECKOUT_MIN_MINUTES)),
+            strict=True,
         )
     except AppException as error:
         # Nothing is kept (the transaction is not committed), so the request is still

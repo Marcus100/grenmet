@@ -221,7 +221,7 @@ async def expire_unpaid(
             ),
             hold_started + hold * _ONE_MINUTE <= moment,
         )
-        .order_by(Booking.created_at)
+        .order_by(hold_started, Booking.id)
         .limit(limit)
         .with_for_update(skip_locked=True, of=Booking)
     )

@@ -727,8 +727,8 @@ async def test_accepting_needs_half_an_hour_before_the_start_to_take_a_payment(
             )
         assert refused.value.status_code == 409
         assert refused.value.message == (
-            "Too close to the start to take an online payment. Mark the deposit "
-            "received if they have paid you, or cancel the request."
+            "Too close to the start to take an online payment. Cancel the request, or let "
+            "the customer book a later time."
         )
         await db_async.rollback()
         stored = await _booking_for(db_async, receipt["booking"]["id"])
@@ -956,7 +956,7 @@ async def test_the_staff_calendar_feed_keeps_a_booking_that_waits_for_payment(
     assert "STATUS:TENTATIVE" in after
 
 
-async def test_accepting_says_when_no_pay_link_could_be_made(
+async def test_accepting_refuses_cleanly_when_no_pay_link_can_be_made(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -964,23 +964,16 @@ async def test_accepting_says_when_no_pay_link_could_be_made(
     studio_, receipt = await _request(db_async, async_client)
     booking_id = receipt["booking"]["id"]
     # The card rail is on but the provider cannot start a checkout (no usable key
-    # here), so the deposit falls back to one the business takes itself.
+    # here). Acceptance does not fall back to a linkless payment: it refuses, and the
+    # request stays pending so Confirm can be retried.
     monkeypatch.setattr(deposit_payments, "stripe_available", lambda: True)
 
-    accepted = await _accept(async_client, studio_, booking_id)
-    assert accepted.status_code == 200, accepted.text
-    detail = accepted.json()
-    assert detail["status"] == "pending_payment"
-    assert detail["deposit_payment_link"] is False
-    view = await _manage(async_client, receipt["manage_token"])
-    assert view["payment"]["status"] == "due"
-    assert view["payment"]["checkout_url"] is None
-
-    mail = await _mail(db_async, studio_, f"booking-accepted:{booking_id}")
-    assert mail is not None
-    text = payload_text(mail.payload)
-    assert "will tell you how to pay" in text
-    assert "Pay now" not in text
+    refused = await _accept(async_client, studio_, booking_id)
+    assert refused.status_code == 409, refused.text
+    assert refused.json()["detail"].startswith("The payment could not be started")
+    assert (await _booking_for(db_async, booking_id)).status == "pending"
+    assert await _intent(db_async, booking_id) is None
+    assert await _mail(db_async, studio_, f"booking-accepted:{booking_id}") is None
 
 
 async def test_accepting_reports_the_pay_link_when_the_checkout_was_made(
@@ -1081,3 +1074,126 @@ def test_the_accepted_mail_without_an_online_payment_points_to_the_business() ->
     assert online.primary is not None and online.primary.label == "Pay now"
     assert any("Pay XCD 50.00 by" in line for line in online.paragraphs)
     assert any("(Grenada time)" in line for line in online.paragraphs)
+
+
+async def _waive_online_payment(db: AsyncSession, studio_: Studio, mode: str) -> None:
+    """Turn online payment off after a request was made: by collecting directly, or
+    by removing the payments entitlement."""
+    if mode == "switched":
+        await db.execute(
+            update(BookingProfile)
+            .where(BookingProfile.organisation_id == studio_.org_id)
+            .values(deposit_collection="business")
+        )
+    else:
+        await db.execute(
+            update(OrganisationApp)
+            .where(
+                OrganisationApp.organisation_id == studio_.org_id,
+                OrganisationApp.app_key == "payments",
+            )
+            .values(enabled=False)
+        )
+    await db.commit()
+
+
+@pytest.mark.parametrize("mode", ["switched", "entitlement"])
+@pytest.mark.parametrize("instructions", [None, "Pay Jeriann in cash at the salon."])
+async def test_a_waived_request_becomes_a_direct_deposit_everywhere_it_is_shown(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    mode: str,
+    instructions: str | None,
+) -> None:
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    await db_async.execute(
+        update(BookingProfile)
+        .where(BookingProfile.organisation_id == studio_.org_id)
+        .values(deposit_instructions=instructions)
+    )
+    await db_async.commit()
+    await _waive_online_payment(db_async, studio_, mode)
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["accepted_without_payment"] is True
+    stored = await _booking_for(db_async, booking_id)
+    assert stored.status == "confirmed"
+    assert stored.deposit_minor == 0
+    assert stored.deposit_to_business_minor == DEPOSIT
+    assert stored.pay_after_acceptance is False
+    assert await _intent(db_async, booking_id) is None
+
+    # The confirmation says what is owed and how to pay it, never a payment made.
+    mail = await _mail(db_async, studio_, f"booking-confirmed:{booking_id}")
+    assert mail is not None
+    text = payload_text(mail.payload)
+    assert "Deposit to pay" in text
+    assert "Deposit paid" not in text
+    assert "was not made" not in text
+    if instructions is None:
+        assert "will tell you how to pay this deposit directly" in text
+    else:
+        assert instructions in text
+
+    # The manage page shows the amount to pay the business, and no payment summary.
+    view = await _manage(async_client, receipt["manage_token"])
+    assert view["payment"] is None
+    assert view["deposit_to_business_minor"] == DEPOSIT
+    assert "was not made" not in str(view)
+    assert "Deposit paid" not in str(view)
+
+    # Cancelling later refunds and keeps nothing: no money was ever taken.
+    cancelled = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/cancel",
+        headers=studio_.headers,
+        json={"reason": "Staff cancel"},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    notes = [(event["note"] or "").lower() for event in cancelled.json()["events"]]
+    assert not any("refund" in note or "kept" in note for note in notes)
+
+
+async def test_a_thirty_minute_hold_still_gets_a_usable_pay_link(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    # Stripe refuses a checkout that ends under 30 minutes away (enforced by the stub).
+    stripe_env.enforce_checkout_expiry = True
+    studio_, receipt = await _request(db_async, async_client, deposit_hold_minutes=30)
+    booking_id = receipt["booking"]["id"]
+
+    accepted = await _accept(async_client, studio_, booking_id)
+    assert accepted.status_code == 200, accepted.text
+    stored = await _booking_for(db_async, booking_id)
+    assert stored.hold_minutes == 30
+    view = await _manage(async_client, receipt["manage_token"])
+    assert view["payment"]["status"] == "due"
+    assert view["payment"]["checkout_url"]
+    ends = (stored.accepted_at + timedelta(minutes=31)).replace(tzinfo=UTC)
+    assert stripe_env.form()["expires_at"] == str(int(ends.timestamp()))
+    mail = await _mail(db_async, studio_, f"booking-accepted:{booking_id}")
+    assert mail is not None
+    assert "Pay now" in payload_text(mail.payload)
+
+
+async def test_a_stripe_failure_at_acceptance_is_a_clean_retryable_conflict(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    studio_, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+
+    refused = await _accept(async_client, studio_, booking_id)
+    assert refused.status_code == 409, refused.text
+    assert refused.json()["detail"].startswith("The payment could not be started")
+    stored = await _booking_for(db_async, booking_id)
+    assert stored.status == "pending"
+    assert stored.deposit_minor == DEPOSIT
+    # No silent manual fallback: no intent, and no mail promising a payment.
+    assert await _intent(db_async, booking_id) is None
+    assert await _mail(db_async, studio_, f"booking-accepted:{booking_id}") is None

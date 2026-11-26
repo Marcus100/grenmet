@@ -134,7 +134,9 @@ def _deposit_due(mail: BookingEmail) -> tuple[tuple[layout.Row, ...], tuple[str,
         if line.strip()
     )
     if not lines:
-        return (row,), ()
+        return (row,), (
+            f"{mail.business} will tell you how to pay this deposit directly.",
+        )
     # The business wrote these lines: say so, so they never read as a Barrels request.
     lead = (
         f"How to pay your deposit to {mail.business} (paid directly to "

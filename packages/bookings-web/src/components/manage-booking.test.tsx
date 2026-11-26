@@ -521,6 +521,29 @@ const RX_6 = /first-time/u;
 const RX_7 = /for first-time clients/iu;
 const RX_8 = /Please book at least/u;
 
+const NOT_MADE = /was not made/u;
+const DEPOSIT_PAID = /Deposit paid/u;
+describe("a request whose online payment went off is a direct deposit", () => {
+  const DEPOSIT_AMOUNT = "Deposit to pay: EC$53";
+  // What the API returns after a waived acceptance: no payment summary, the amount
+  // owed to the business.
+  const DIRECT: BookingPublicDetail = {
+    ...booking,
+    status: "confirmed",
+    business_name: "Babydoll Beauty Bar",
+    payment: null,
+    deposit_to_business_minor: 5300,
+    deposit_instructions: null,
+  };
+
+  it("shows the amount to pay the business and never says a payment was not made", () => {
+    renderManage(DIRECT);
+    expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
+    expect(screen.queryByText(NOT_MADE)).toBeNull();
+    expect(screen.queryByText(DEPOSIT_PAID)).toBeNull();
+  });
+});
+
 describe("business deposit, late fee and new clients on the manage page", () => {
   const WITH_DEPOSIT: BookingPublicDetail = {
     ...booking,

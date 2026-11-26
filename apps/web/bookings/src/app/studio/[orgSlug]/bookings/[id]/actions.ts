@@ -190,7 +190,7 @@ const ACCEPT_REFUSALS: readonly { nextStep: string; start: string }[] = [
   },
   {
     start: "Too close to the start",
-    nextStep: "Use Record deposit received, or Cancel booking.",
+    nextStep: "Cancel the request, or let the customer book a later time.",
   },
   {
     start: "The payment could not be started",

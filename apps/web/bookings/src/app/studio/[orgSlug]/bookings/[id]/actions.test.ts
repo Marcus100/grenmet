@@ -165,7 +165,7 @@ describe("booking actions", () => {
 
   it("says why a request too close to its start cannot take an online payment", async () => {
     const detail =
-      "Too close to the start to take an online payment. Mark the deposit received if they have paid you, or cancel the request.";
+      "Too close to the start to take an online payment. Cancel the request, or let the customer book a later time.";
     vi.mocked(confirmBooking).mockRejectedValue(apiError(409, { detail }));
     expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
       status: "error",
