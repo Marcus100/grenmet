@@ -15,10 +15,7 @@ import {
 } from "@/components/form-styles";
 import { OrDivider } from "@/components/or-divider";
 import { PasswordField } from "@/components/password-field";
-import {
-  CreateAccountLink,
-  GoogleSignInLink,
-} from "@/components/sign-in-options";
+import { GoogleSignInLink } from "@/components/sign-in-options";
 
 interface SignInFormProps {
   appName: string | null;
@@ -149,8 +146,6 @@ export function SignInForm({ appName, codeHref, returnTo }: SignInFormProps) {
           </p>
         ) : null}
       </form>
-
-      {needsCode ? null : <CreateAccountLink returnTo={returnTo} />}
     </div>
   );
 }

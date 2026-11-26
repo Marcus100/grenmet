@@ -60,9 +60,11 @@ describe("SignInForm (password)", () => {
   it("hides the authenticator code until the account asks for it", () => {
     render(<SignInForm appName={null} codeHref={CODE_HREF} returnTo={null} />);
     expect(screen.queryByLabelText("Authenticator code")).toBeNull();
+    // No "create an account" link: it would loop back to the code screen, which
+    // "Email me a code instead" already reaches.
     expect(
-      screen.getByRole("link", { name: "Create an account" })
-    ).toHaveAttribute("href", "/signup");
+      screen.queryByRole("link", { name: "Create an account" })
+    ).toBeNull();
   });
 
   it("offers Google before the email form", () => {
@@ -205,6 +207,26 @@ describe("EmailCodeForm (code first)", () => {
     expect(
       screen.getByRole("button", { name: "Continue" })
     ).toBeInTheDocument();
+  });
+
+  it("sends one request when the code submits itself and Continue is tapped at once", () => {
+    setState({ email: "jane@example.com", step: "code" });
+    const { container, rerender } = render(<EmailCodeForm returnTo={null} />);
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    // The sixth digit submits the form; the tap lands before `pending` renders.
+    fireEvent.submit(form);
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.submit(form);
+    expect(formAction).toHaveBeenCalledTimes(1);
+
+    // Once that request has settled (a wrong code, say) the next try goes out.
+    pendingNow.current = true;
+    rerender(<EmailCodeForm returnTo={null} />);
+    pendingNow.current = false;
+    rerender(<EmailCodeForm returnTo={null} />);
+    fireEvent.submit(form);
+    expect(formAction).toHaveBeenCalledTimes(2);
   });
 
   it("holds 'Send a new code' until the server's cooldown has passed", () => {

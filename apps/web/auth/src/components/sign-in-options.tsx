@@ -19,20 +19,6 @@ export function GoogleSignInLink({ returnTo }: { returnTo: string | null }) {
   );
 }
 
-export function CreateAccountLink({ returnTo }: { returnTo: string | null }) {
-  return (
-    <p className="text-body-sm text-muted-foreground text-center">
-      New here?{" "}
-      <Link
-        className={textLinkClass}
-        href={signInPath("/signup", { returnTo })}
-      >
-        Create an account
-      </Link>
-    </p>
-  );
-}
-
 /**
  * The other ways in, kept behind one small disclosure so the first screen asks
  * a single question (the email). A native <details>: it opens without script.

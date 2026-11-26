@@ -74,6 +74,10 @@ function EmailCodeStep({
   const emailRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLDivElement>(null);
   const resendRequested = useRef(false);
+  // Set the moment a request is handed to the action. `pending` only turns true
+  // on the next render, so a pasted code that submits itself followed by a
+  // quick tap on Continue would otherwise send two requests.
+  const inFlight = useRef(false);
   const [notice, setNotice] = useState("");
   const check = useTurnstileCheck();
 
@@ -91,12 +95,17 @@ function EmailCodeStep({
     codeRef.current?.querySelector("input")?.focus();
   }, [pending, state.error, state.step]);
 
+  useEffect(() => {
+    if (!pending) inFlight.current = false;
+  }, [pending]);
+
   // React resets an uncontrolled form after its action settles, which would
   // wipe the typed email on a refusal. Passing FormData keeps the values.
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // The code field submits on its sixth digit; one request at a time.
-    if (pending) return;
+    if (pending || inFlight.current) return;
+    inFlight.current = true;
     const data = new FormData(event.currentTarget);
     if (!sent) check.attachToken(data);
     startTransition(() => {
@@ -106,6 +115,8 @@ function EmailCodeStep({
 
   // A new code for the same address: the email only, so the action sends one.
   function resendCode() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     const data = new FormData();
     data.set("email", state.email);
     data.set("returnTo", returnTo ?? "");
