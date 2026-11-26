@@ -2,7 +2,7 @@ import type {
   BookingPublicService,
   BookingStorefront,
 } from "@barrelsgd/api-client";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -246,6 +246,20 @@ describe("typed details survive a reload or a trip to sign in", () => {
     const stored = Object.keys(window.sessionStorage).join(" ");
     expect(stored).not.toMatch(CODE_WORD);
     expect(window.sessionStorage.length).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("Back and Edit keep the link in step with the choices", () => {
+  it("writes the choices into the link again on popstate, so a reload keeps them", async () => {
+    renderFlow({ initialServiceId: LASHES, initialStartsAt: TUE });
+    await screen.findByRole("radio", { name: "9:30 am" });
+    // Back lands on an entry whose link was written before the latest choice.
+    window.history.replaceState(null, "", "/choices-studio");
+    act(() => {
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+    });
+    expect(linked().searchParams.get("service")).toBe(LASHES);
+    expect(linked().searchParams.get("time")).toBe(TUE);
   });
 });
 

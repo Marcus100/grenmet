@@ -1061,20 +1061,25 @@ function BookingFlowBody({
 
   // The choices live in the page's own link (`?service=`, `?day=`, `?time=`),
   // so a reload or a shared link keeps them. Written in place: no history entry.
-  // Re-run on each step change too: Back and Edit can land on an entry whose
-  // link was written before the latest choice, so the link follows the state.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: step is a trigger only; the link is re-derived from the choices on each step change
+  // Back and Edit (popstate) can land on an entry whose link was written before
+  // the latest choice, so the link is written again then, from the choices held
+  // in state.
   useEffect(() => {
-    const here = window.location.href;
-    const there = withChoices(here, {
-      day,
-      service: serviceId,
-      time: startsAt,
-    });
-    if (there !== here) {
-      window.history.replaceState(window.history.state, "", there);
-    }
-  }, [day, serviceId, startsAt, step]);
+    const sync = () => {
+      const here = window.location.href;
+      const there = withChoices(here, {
+        day,
+        service: serviceId,
+        time: startsAt,
+      });
+      if (there !== here) {
+        window.history.replaceState(window.history.state, "", there);
+      }
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, [day, serviceId, startsAt]);
 
   // What was typed comes back after a reload or a trip to sign in (this tab only).
   // Filled fields are left alone, so a signed-in visitor keeps their own details.
