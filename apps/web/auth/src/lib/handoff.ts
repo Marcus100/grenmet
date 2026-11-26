@@ -39,10 +39,25 @@ export function continuePath({ app, state }: HandoffRequest): Route {
   return `/continue?${new URLSearchParams({ app, state })}`;
 }
 
+const CONTINUE_PREFIX = "/continue?";
+
+/**
+ * The handoff a sign-in will return to, read from a validated local `returnTo`
+ * (`/continue?app=…&state=…`). Null for any other address.
+ */
+export function handoffRequestFromReturnTo(
+  returnTo: string | null
+): HandoffRequest | null {
+  if (!returnTo?.startsWith(CONTINUE_PREFIX)) return null;
+  const query = new URLSearchParams(returnTo.slice(CONTINUE_PREFIX.length));
+  return parseHandoffRequest(query.get("app"), query.get("state"));
+}
+
 /** FastAPI's reply once a staff-app access request is waiting. */
 const STAFF_REQUEST_PENDING = "Your request is waiting for an administrator";
 
-async function appLabel(app: string): Promise<string> {
+/** The registry's name for an app ("Barrels Bookings"); null when it can't be read. */
+export async function fetchAppLabel(app: string): Promise<string | null> {
   try {
     const result = await authApiFetch(
       getAuthConfig(),
@@ -51,8 +66,12 @@ async function appLabel(app: string): Promise<string> {
     );
     return result.label;
   } catch {
-    return "this app";
+    return null;
   }
+}
+
+async function appLabel(app: string): Promise<string> {
+  return (await fetchAppLabel(app)) ?? "this app";
 }
 
 export async function startHandoff(

@@ -182,43 +182,28 @@ describe("EmailCodeForm (code first)", () => {
     vi.useRealTimers();
   });
 
-  it("puts the emailed-code button before the password link", () => {
-    render(
-      <EmailCodeForm
-        passwordHref={"/?method=password" as Route}
-        returnTo={null}
-      />
-    );
-    const button = screen.getByRole("button", { name: "Email me a code" });
-    const password = screen.getByRole("link", { name: "Use password instead" });
-    const controls = Array.from(document.querySelectorAll("button, a"));
-    expect(controls.indexOf(button)).toBeLessThan(controls.indexOf(password));
-  });
-
-  it("offers the password link with the return address kept", () => {
-    render(
-      <EmailCodeForm
-        passwordHref={"/?method=password&returnTo=%2Fapps%2Fx" as Route}
-        returnTo="/apps/x"
-      />
-    );
+  it("asks one question first: the email, with a Continue button", () => {
+    render(<EmailCodeForm returnTo={null} />);
+    expect(screen.getByLabelText("Email address")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Use password instead" })
-    ).toHaveAttribute("href", "/?method=password&returnTo=%2Fapps%2Fx");
+      screen.getByRole("button", { name: "Continue" })
+    ).toBeInTheDocument();
+    // The password route lives on the page, behind "More ways to sign in".
+    expect(screen.queryByRole("link")).toBeNull();
   });
 
-  it("hides the password link when there is no password (sign-up)", () => {
-    render(<EmailCodeForm purpose="sign-up" returnTo={null} />);
-    expect(
-      screen.queryByRole("link", { name: "Use password instead" })
-    ).toBeNull();
-  });
-
-  it("names the final button for sign-up", () => {
+  it("shows the same code step whether or not the address has an account", () => {
     setState({ email: "jane@example.com", step: "code" });
-    render(<EmailCodeForm purpose="sign-up" returnTo={null} />);
+    render(<EmailCodeForm returnTo={null} />);
+    const status = screen.getAllByRole("status")[0];
+    expect(status).toHaveTextContent(
+      "Check jane@example.com for a 6-digit code and enter it here."
+    );
+    // No wording that depends on the account existing, and one button name.
+    expect(document.body.textContent).not.toContain("can sign in");
+    expect(document.body.textContent).not.toContain("Create account");
     expect(
-      screen.getByRole("button", { name: "Create account" })
+      screen.getByRole("button", { name: "Continue" })
     ).toBeInTheDocument();
   });
 
@@ -286,7 +271,7 @@ describe("EmailCodeForm (code first)", () => {
     expect(screen.queryByText("Email code")).toBeNull();
     expect(screen.getByLabelText("Email address")).toHaveValue("");
     expect(
-      screen.getByRole("button", { name: "Email me a code" })
+      screen.getByRole("button", { name: "Continue" })
     ).toBeInTheDocument();
   });
 

@@ -23,10 +23,12 @@ test.describe("Sign-in page", () => {
   }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("button", { name: "Email me a code" })
+      page.getByRole("heading", { name: "Sign in or create an account" })
     ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
     await expect(password(page)).toHaveCount(0);
-    await page.getByRole("link", { name: "Use password instead" }).click();
+    await page.getByText("More ways to sign in").click();
+    await page.getByRole("link", { name: "Sign in with a password" }).click();
     await expect(password(page)).toBeVisible();
   });
 

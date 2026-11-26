@@ -6,7 +6,12 @@ vi.mock("@barrelsgd/auth/server", () => ({ authApiFetch }));
 vi.mock("./auth-config", () => ({ getAuthConfig: () => ({}) }));
 
 import { AuthApiError } from "@barrelsgd/auth";
-import { continuePath, parseHandoffRequest, startHandoff } from "./handoff";
+import {
+  continuePath,
+  handoffRequestFromReturnTo,
+  parseHandoffRequest,
+  startHandoff,
+} from "./handoff";
 
 const STATE = "s".repeat(32);
 const request = { app: "events", state: STATE };
@@ -21,6 +26,25 @@ describe("parseHandoffRequest", () => {
     expect(parseHandoffRequest("events/../x", STATE)).toBeNull();
     expect(parseHandoffRequest(null, STATE)).toBeNull();
     expect(continuePath(request)).toBe(`/continue?app=events&state=${STATE}`);
+  });
+});
+
+describe("handoffRequestFromReturnTo", () => {
+  it("reads the request only from a local /continue address", () => {
+    expect(handoffRequestFromReturnTo(continuePath(request))).toEqual(request);
+    expect(handoffRequestFromReturnTo("/security")).toBeNull();
+    expect(handoffRequestFromReturnTo(null)).toBeNull();
+    expect(
+      handoffRequestFromReturnTo("/continue?app=events&state=short")
+    ).toBeNull();
+    expect(
+      handoffRequestFromReturnTo(
+        `https://auth.example.com${continuePath(request)}`
+      )
+    ).toBeNull();
+    expect(
+      handoffRequestFromReturnTo(`/continued?app=events&state=${STATE}`)
+    ).toBeNull();
   });
 });
 
