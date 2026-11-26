@@ -5,6 +5,7 @@ import {
   type DepositState,
   depositView,
   type PaymentKind,
+  paymentWord,
   type StatusView,
   statusView,
 } from "@/lib/studio-view";
@@ -33,6 +34,31 @@ export function StatusBadge({
       {view.label}
     </Badge>
   );
+}
+
+/** A cancelled booking's unpaid payment: neutral, and never "due" (#1849). */
+export function PaymentCancelledBadge({ kind }: { kind?: PaymentKind }) {
+  return (
+    <Badge className={BADGE_SIZE} variant="outline">
+      {`${paymentWord(kind)} cancelled`}
+    </Badge>
+  );
+}
+
+/** The detail page's payment badge: a cancelled booking owes nothing. */
+export function PaymentBadge({
+  kind,
+  state,
+  status,
+}: {
+  kind?: PaymentKind;
+  state: DepositState;
+  status: BookingStatus;
+}) {
+  if (status === "cancelled" && state === "due") {
+    return <PaymentCancelledBadge kind={kind} />;
+  }
+  return <DepositBadge kind={kind} state={state} />;
 }
 
 export function DepositBadge({

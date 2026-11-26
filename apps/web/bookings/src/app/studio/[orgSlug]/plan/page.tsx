@@ -1,3 +1,4 @@
+import { EmptyState } from "@barrelsgd/admin-kit/components/empty-state";
 import { PageHeader } from "@barrelsgd/admin-kit/components/page-header";
 import type { AppSubscriptionPublic } from "@barrelsgd/api-client";
 import {
@@ -14,10 +15,12 @@ import {
   PLAN_ADMIN_REQUIRED,
 } from "@/lib/billing-errors";
 import {
+  BOOKINGS_PLAN_KEY,
   bookingsSubscription,
   checkoutAction,
   checkoutReturn,
   checkoutReturnCopy,
+  PLAN_CURRENCY,
   planCopy,
   planPriceLabel,
   planState,
@@ -29,13 +32,18 @@ import { listAppSubscriptions } from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings } from "@/lib/studio-view";
+import { isPurchasable } from "./purchasable";
 
 export const metadata: Metadata = {
   title: "Plan & billing",
 };
 
 type SubscriptionRead =
-  | { ok: true; subscriptions: AppSubscriptionPublic[] }
+  | {
+      ok: true;
+      subscriptions: AppSubscriptionPublic[];
+      purchasable: string[] | undefined;
+    }
   | { ok: false; failure: StudioFailure };
 
 /** The person's subscription rows. A failed read is shown as a failure, never as "none". */
@@ -44,11 +52,15 @@ async function readSubscriptions(
   organisationId: string
 ): Promise<SubscriptionRead> {
   try {
-    const subscriptions = await listAppSubscriptions(
+    const list = await listAppSubscriptions(
       session.accessToken,
       organisationId
     );
-    return { ok: true, subscriptions };
+    return {
+      ok: true,
+      subscriptions: list.data,
+      purchasable: list.purchasable,
+    };
   } catch (error) {
     const failure = billingFailure(error);
     if (billingFailureNeedsReport(error)) {
@@ -95,8 +107,20 @@ export default async function PlanPage({
     ? bookingsSubscription(read.subscriptions)
     : undefined;
   const state = planState(subscription);
-  const action = read.ok ? checkoutAction(state) : null;
+  // Subscribe is offered only when the API says this plan can be bought now. The
+  // checkout answers 503 until Stripe is configured, so a plan that is not listed
+  // as purchasable shows the "open soon" note instead of any checkout button.
+  const wanted = read.ok ? checkoutAction(state) : null;
+  const purchasable =
+    read.ok &&
+    isPurchasable(read.purchasable, BOOKINGS_PLAN_KEY, PLAN_CURRENCY);
+  const action = purchasable ? wanted : null;
+  const comingSoon = wanted !== null && !purchasable;
   const copy = planCopy(state);
+  // An open checkout cannot be continued while paid plans are closed, so its
+  // heading must not ask for an action.
+  const heading =
+    comingSoon && state.kind === "pending" ? "Checkout on hold" : copy.heading;
 
   return (
     <div className="space-y-6">
@@ -125,8 +149,10 @@ export default async function PlanPage({
         </h2>
         {read.ok ? (
           <div className="space-y-1">
-            <p className="font-semibold">{copy.heading}</p>
-            <p className="text-foreground/80">{copy.detail}</p>
+            <p className="font-semibold">{heading}</p>
+            {comingSoon ? null : (
+              <p className="text-foreground/80">{copy.detail}</p>
+            )}
             {copy.supportLink ? (
               <p>
                 <a
@@ -149,6 +175,12 @@ export default async function PlanPage({
         )}
         {action ? (
           <StartSubscriptionButton label={action.label} orgSlug={orgSlug} />
+        ) : null}
+        {comingSoon ? (
+          <EmptyState
+            description="You can start the Bookings plan here once paid plans open. Nothing is charged until then."
+            title="Paid plans open soon"
+          />
         ) : null}
       </section>
     </div>

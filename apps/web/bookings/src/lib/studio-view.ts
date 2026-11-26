@@ -258,6 +258,8 @@ export function agendaDepositView(booking: {
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
+  // The agenda item has no captured or refunded amount, so a cancelled booking
+  // keeps the neutral amount label (never "due"); the detail page says what was paid.
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }

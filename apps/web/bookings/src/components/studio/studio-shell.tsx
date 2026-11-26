@@ -3,6 +3,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { CalendarPlus } from "lucide-react";
 import Link from "next/link";
 import { StudioSkipLink } from "@/components/root-skip-link";
+import { PausedBanner } from "@/components/studio/paused-banner";
 import { FOCUS } from "@/components/studio/studio-ui";
 import { studioNavigation } from "@/lib/studio-navigation";
 
@@ -13,6 +14,8 @@ export interface StudioShellProps {
   /** The business's name; a generic name stands in when it could not be read. */
   name: string;
   orgSlug: string;
+  /** Online booking is paused (`paused_at`): a banner sits above every studio page. */
+  paused?: boolean;
   pendingCount: number | null;
   /** The customers' booking page (`/<public slug>`), when the business has one. */
   publicHref: string | null;
@@ -61,6 +64,7 @@ export function StudioShell({
   children,
   name,
   orgSlug,
+  paused = false,
   pendingCount,
   publicHref,
   user,
@@ -114,7 +118,14 @@ export function StudioShell({
       themeSwitcher={false}
       user={{ user, signOut: { action: "/auth/logout" } }}
     >
-      <div className="mx-auto w-full max-w-4xl">{children}</div>
+      <div className="mx-auto w-full max-w-4xl">
+        {paused ? (
+          <div className="mb-6">
+            <PausedBanner canManage={canManage} orgSlug={orgSlug} />
+          </div>
+        ) : null}
+        {children}
+      </div>
     </AdminShell>
   );
 }

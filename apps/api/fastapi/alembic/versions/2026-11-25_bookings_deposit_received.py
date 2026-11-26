@@ -15,7 +15,7 @@ ledger entry is written:
 The downgrade drops these columns and their checks, nothing else.
 
 Revision ID: bookingdepositreceived20261125
-Revises: opslog20261125
+Revises: incidents20261125
 """
 
 import sqlalchemy as sa
@@ -23,7 +23,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "bookingdepositreceived20261125"
-down_revision = "opslog20261125"
+down_revision = "incidents20261125"
 branch_labels = None
 depends_on = None
 
