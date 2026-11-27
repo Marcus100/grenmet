@@ -39,12 +39,12 @@ allowedDeprecatedVersions:
 
 catalog:
   # GMS editorial CMS (keep Payload packages on the same exact version)
-  payload: 3.94.1
-  "@payloadcms/next": 3.94.1
-  "@payloadcms/db-postgres": 3.94.1
-  "@payloadcms/ui": 3.94.1
-  "@payloadcms/email-resend": 3.94.1
-  "@payloadcms/richtext-lexical": 3.94.1
+  payload: 3.94.2
+  "@payloadcms/next": 3.94.2
+  "@payloadcms/db-postgres": 3.94.2
+  "@payloadcms/ui": 3.94.2
+  "@payloadcms/email-resend": 3.94.2
+  "@payloadcms/richtext-lexical": 3.94.2
   # Payload 3.90.2 supports GraphQL 16; revisit when its peer range allows 17.
   graphql: ^16.15.0
   react-markdown: "^10.1.0"
@@ -57,7 +57,7 @@ catalog:
   server-only: "0.0.1"
   # Barcode reading where the browser has no BarcodeDetector (iPhone Safari):
   # apps/pwa/printix. Brings zxing-wasm; the .wasm file is served from the app.
-  barcode-detector: "3.2.4"
+  barcode-detector: "3.2.5"
   # App-first phone apps (apps/pwa/*) build with Vite, not Next.js (owner, 16 Nov 2026).
   vite: "^8.3.3"
   "@vitejs/plugin-react": "^6.3.0"
@@ -119,8 +119,8 @@ catalog:
   motion: ^14.14.0
 
   # Types
-  "@types/node": ^26.6.6
-  "@types/react": ^19.3.0
+  "@types/node": ^26.6.7
+  "@types/react": ^19.3.1
   "@types/react-dom": ^19.3.0
 
 
@@ -150,9 +150,9 @@ catalog:
   "@kubb/plugin-zod": 5.8.3
 
   # Repository tooling
-  "@biomejs/biome": "~2.6.8"
+  "@biomejs/biome": "~2.6.9"
   turbo: "^2.11.13"
-  ultracite: "8.2.1"
+  ultracite: "8.3.1"
   husky: "^9.1.7"
   knip: "^6.48.0"
   lint-staged: ^17.6.2
@@ -176,7 +176,7 @@ catalog:
   "@sentry/nextjs": ^11.17.0
 
   # Analytics
-  "posthog-js": ^1.454.2
+  "posthog-js": ^1.454.3
   "posthog-node": ^5.74.0
 
   # Testing
@@ -190,7 +190,7 @@ catalog:
   jsdom: ^31.0.1
   "@playwright/test": "^1.65.1"
   # Accessibility checks in the staging journeys (owner approved, 11 Nov 2026).
-  "@axe-core/playwright": "^4.14.0"
+  "@axe-core/playwright": "^4.14.1"
 
 
 # Payload CMS's Postgres adapter depends on drizzle-kit; replace its esbuild
