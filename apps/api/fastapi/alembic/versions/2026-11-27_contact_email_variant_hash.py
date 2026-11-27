@@ -76,19 +76,28 @@ def _backfill() -> None:
 
 
 def upgrade() -> None:
+    # Order matters: the column, then the backfill (transactional DML that only
+    # writes the new column), then the index last, built without blocking writes.
     op.execute("SET LOCAL lock_timeout = '5s'")
     op.add_column(
         "contact",
         sa.Column("email_variant_hash", sa.String(length=64), nullable=True),
         schema="org",
     )
-    op.create_index(
-        op.f(INDEX),
-        "contact",
-        ["organisation_id", "email_variant_hash"],
-        schema="org",
-    )
-    _backfill()
+    _backfill()  # migration-safety: no destructive ops (writes only the new column)
+    # CONCURRENTLY cannot run inside a transaction, hence the autocommit block. It
+    # does not block writes to org.contact, which sit on the booking path. Trade-off
+    # accepted: a concurrent build can fail and leave an INVALID index. If it does,
+    # drop that index and rerun the build (DROP INDEX CONCURRENTLY, then CREATE INDEX
+    # CONCURRENTLY) before relying on it.
+    with op.get_context().autocommit_block():
+        op.create_index(
+            op.f(INDEX),
+            "contact",
+            ["organisation_id", "email_variant_hash"],
+            schema="org",
+            postgresql_concurrently=True,
+        )
 
 
 def downgrade() -> None:

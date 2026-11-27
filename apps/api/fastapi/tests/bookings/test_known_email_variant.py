@@ -11,11 +11,17 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.email_verification import ERROR_CODE
-from tests.bookings.test_known_email_proof import (
-    _booking_count,
-    _contact_rows,
-    _create,
-    _known_studio,
+from tests.bookings.email_code_helpers import (
+    booking_count as _booking_count,
+)
+from tests.bookings.email_code_helpers import (
+    contact_rows as _contact_rows,
+)
+from tests.bookings.email_code_helpers import (
+    create_booking_request as _create,
+)
+from tests.bookings.email_code_helpers import (
+    known_studio as _known_studio,
 )
 
 KNOWN = "victim@gmail.com"
@@ -51,7 +57,9 @@ async def test_a_dotted_variant_of_a_known_gmail_address_is_refused_without_proo
 async def test_a_googlemail_variant_of_a_known_gmail_address_is_refused_without_proof(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    await _refused_and_stored_nothing(db_async, async_client, "v.ictim+x@googlemail.com")
+    await _refused_and_stored_nothing(
+        db_async, async_client, "v.ictim+x@googlemail.com"
+    )
 
 
 async def test_a_dotted_address_at_a_provider_that_keeps_dots_books_in_one_pass(
@@ -59,7 +67,9 @@ async def test_a_dotted_address_at_a_provider_that_keeps_dots_books_in_one_pass(
 ) -> None:
     # Outlook keeps dots, so vic.tim@ is a different mailbox from victim@ and
     # is not refused: it books in one pass as a new address.
-    studio, slots = await _known_studio(db_async, async_client, email="victim@outlook.com")
+    studio, slots = await _known_studio(
+        db_async, async_client, email="victim@outlook.com"
+    )
     created = await _create(
         async_client, studio, slots[-1], None, email="vic.tim@outlook.com"
     )
@@ -72,7 +82,9 @@ async def test_the_variant_check_is_per_organisation(
     # The known customer belongs to another business: this business does not know
     # the address, so the variant books in one pass.
     other, _ = await _known_studio(db_async, async_client, email=KNOWN)
-    studio, slots = await _known_studio(db_async, async_client, email="someone@example.net")
+    studio, slots = await _known_studio(
+        db_async, async_client, email="someone@example.net"
+    )
     created = await _create(
         async_client, studio, slots[-1], None, email="vic.tim@gmail.com"
     )
