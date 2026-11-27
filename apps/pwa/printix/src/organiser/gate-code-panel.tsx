@@ -56,12 +56,16 @@ export function GateCodePanel({
   }, [onHide]);
 
   // Leaving the page (switching tabs or apps) drops the secret straight away.
+  // The page may already be hidden when the code arrives (the tab was switched
+  // while the create request was in flight), and no event fires for that, so
+  // check on mount as well.
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         onHide();
       }
     };
+    onVisibility();
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [onHide]);

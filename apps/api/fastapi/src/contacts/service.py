@@ -12,7 +12,7 @@ from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import Any
 
-from sqlalchemy import ColumnElement, func, select, update
+from sqlalchemy import ColumnElement, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +22,7 @@ from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
-from src.utils.email_hash import hash_email, normalise_email
+from src.utils.email_hash import hash_email, hash_email_variant, normalise_email
 from src.webhooks_out import service as webhook_service
 
 from . import references
@@ -61,6 +61,36 @@ async def find_by_email(
         )
     )
     return found
+
+
+async def is_known_address(
+    session: AsyncSession, organisation_id: str, email: str
+) -> bool:
+    """True when ``email`` is a contact of this organisation, or may be its mailbox.
+
+    Matches the exact email hash, or the variant hash (``email_variant_hash``), so
+    ``victim+x@gmail.com`` and ``vic.tim@gmail.com`` count as ``victim@gmail.com``.
+    This is the only use of the variant hash. It is read-only, runs one SQL query
+    scoped to ``organisation_id``, and includes erased contacts. Over-matching is
+    deliberate: a provider that treats ``+`` as a real character may see a new
+    address counted as known, which costs its owner one emailed code.
+    Under-matching would leave the look-alike hole open.
+
+    An erased contact keeps only its exact ``email_hash`` tombstone (erasure clears
+    ``email_variant_hash``), so it matches on its exact address alone.
+    """
+    found = await session.scalar(
+        select(Contact.id)
+        .where(
+            Contact.organisation_id == organisation_id,
+            or_(
+                Contact.email_hash == hash_email(email),
+                Contact.email_variant_hash == hash_email_variant(email),
+            ),
+        )
+        .limit(1)
+    )
+    return found is not None
 
 
 async def current_consents(
@@ -154,6 +184,7 @@ async def upsert_contact(
         contact = Contact(
             organisation_id=organisation_id,
             email_hash=hash_email(email),
+            email_variant_hash=hash_email_variant(email),
             email=email.strip(),
             name=name,
             phone=phone,
@@ -176,6 +207,7 @@ async def upsert_contact(
             contact.phone = None
             contact.source = source
         contact.email = email.strip()
+        contact.email_variant_hash = hash_email_variant(email)
         if name and not contact.name:
             contact.name = name
         if phone and not contact.phone:
@@ -388,11 +420,15 @@ async def merge_contacts(
     keep.user_id = keep.user_id or drop.user_id
     # An address-less contact (a walk-in) takes the other record's address. The
     # unique (organisation, email_hash) means the dropped row must go first.
-    inherit = (drop.email, drop.email_hash) if keep.email_hash is None else None
+    inherit = (
+        (drop.email, drop.email_hash, drop.email_variant_hash)
+        if keep.email_hash is None
+        else None
+    )
     await session.delete(drop)
     if inherit is not None:
         await session.flush()
-        keep.email, keep.email_hash = inherit
+        keep.email, keep.email_hash, keep.email_variant_hash = inherit
     await audit_service.record_change(
         session,
         entity_type=SUBJECT,
@@ -434,6 +470,10 @@ async def erase_contact(
             session, organisation_id=contact.organisation_id, email=contact.email
         )
     contact.email = None
+    # The variant hash is a second derived identifier that links a forgotten
+    # person's address variants together. Erasure keeps only the exact tombstone
+    # (``email_hash``), so an erased contact matches on its exact address alone.
+    contact.email_variant_hash = None
     contact.name = None
     contact.phone = None
     contact.user_id = None

@@ -6,22 +6,23 @@ proof is required when the deposit is due OR the booking email is already a
 contact of that organisation. A new address still books in one pass.
 """
 
-import uuid
-
 import httpx
-from sqlalchemy import func, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.email_verification import ERROR_CODE
-from src.bookings.models import Booking
 from src.contacts import service as contacts_service
-from src.contacts.models import Contact
-from tests.bookings.email_code_helpers import get_proof, latest_code, slot_body
+from tests.bookings.email_code_helpers import (
+    booking_count,
+    contact_rows,
+    create_booking_request,
+    get_proof,
+    known_studio,
+    latest_code,
+    slot_body,
+)
 from tests.bookings.memory_code_store import MemoryCodeStore
 from tests.bookings.test_public_bookings import (
     API,
-    Studio,
-    _body,
     _emails,
     _slots,
     _studio,
@@ -32,52 +33,10 @@ from tests.organisations.support import headers_for
 EMAIL = "returning@example.com"
 
 
-async def _create(
-    client: httpx.AsyncClient,
-    studio: Studio,
-    slot: str,
-    proof: str | None,
-    *,
-    email: str = EMAIL,
-    headers: dict[str, str] | None = None,
-) -> httpx.Response:
-    return await client.post(
-        f"{API}/public/{studio.slug}/bookings",
-        headers={"Idempotency-Key": uuid.uuid4().hex, **(headers or {})},
-        json=_body(studio, slot, customer_email=email, email_proof=proof),
-    )
-
-
-async def _booking_count(db: AsyncSession, org_id: str) -> int:
-    db.expire_all()
-    return int(
-        await db.scalar(
-            select(func.count(Booking.id)).where(Booking.organisation_id == org_id)
-        )
-        or 0
-    )
-
-
-async def _contact_rows(db: AsyncSession, org_id: str) -> list[dict[str, object]]:
-    """Every contact of the organisation, as plain column values, for a before/after diff."""
-    db.expire_all()
-    columns = [attr.key for attr in inspect(Contact).column_attrs]
-    rows = await db.scalars(select(Contact).where(Contact.organisation_id == org_id))
-    return sorted(
-        ({key: getattr(row, key) for key in columns} for row in rows),
-        key=lambda row: str(row["id"]),
-    )
-
-
-async def _known_studio(
-    db: AsyncSession, client: httpx.AsyncClient, email: str = EMAIL
-) -> tuple[Studio, list[str]]:
-    """A free-service business where ``email`` has already booked once (so it is a contact)."""
-    studio = await _studio(db, client)
-    slots = await _slots(client, studio)
-    first = await _create(client, studio, slots[0], None, email=email)
-    assert first.status_code == 201, first.text
-    return studio, slots
+_create = create_booking_request
+_booking_count = booking_count
+_contact_rows = contact_rows
+_known_studio = known_studio
 
 
 # --- a new address still books in one pass ----------------------------------------------

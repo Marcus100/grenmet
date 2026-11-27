@@ -713,12 +713,13 @@ async def _is_known_contact(
 ) -> bool:
     """True when ``email`` already belongs to a contact of this business (#1969).
 
-    The exact-hash lookup of the contacts domain, read only: it never creates or
-    changes a contact, so a refused booking leaves no trace."""
-    contact = await contacts_service.find_by_email(
+    The contacts domain's known-address check (#1982): the exact email hash or the
+    variant hash, so ``victim+x@gmail.com`` is known from ``victim@gmail.com``.
+    Read only: it never creates or changes a contact, so a refused booking leaves
+    no trace."""
+    return await contacts_service.is_known_address(
         session, profile.organisation_id, email
     )
-    return contact is not None
 
 
 async def request_email_code(
