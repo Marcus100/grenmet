@@ -14,7 +14,7 @@ const CUTOFF =
 describe("booking-errors", () => {
   it("shows the API's open-bookings limit as written, with contact links", () => {
     const cap =
-      "We can't take another online booking for this email right now. Please contact the business to book.";
+      "This email address already has as many upcoming bookings with this business as we can hold online. To book another time, change or cancel one from the link in your booking email, or contact the business.";
     const failed = classifyFailure(409, cap, "create");
     expect(failed.code).toBe("conflict");
     expect(failed.message).toBe(cap);

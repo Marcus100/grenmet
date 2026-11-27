@@ -9,7 +9,10 @@ import httpx
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bookings import public
 from src.bookings.models import Booking
+from src.contacts.models import Contact, ContactConsent
+from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import MONDAY, utc_iso
 from tests.bookings.test_public_bookings import (
     API,
@@ -23,10 +26,12 @@ from tests.bookings.test_public_bookings import (
 EMAIL = "repeat-{}@example.com"
 
 
-#: The same text whatever the count: a refusal must not reveal that bookings exist.
+#: One text whatever the count (security review): it says what to do next without
+#: disclosing how many bookings the address holds, nor what the cap is.
 REFUSAL = (
-    "We can't take another online booking for this email right now. "
-    "Please contact the business to book."
+    "This email address already has as many upcoming bookings with this business "
+    "as we can hold online. To book another time, change or cancel one from the "
+    "link in your booking email, or contact the business."
 )
 
 
@@ -58,7 +63,7 @@ async def test_the_fourth_open_booking_is_refused_by_default(
 
     refused = await _book_again(async_client, studio, email)
     assert refused.status_code == 409, refused.text
-    assert REFUSAL in refused.text
+    assert refused.json()["detail"] == REFUSAL
 
 
 async def test_a_cancelled_booking_frees_room_under_the_cap(
@@ -91,21 +96,23 @@ async def test_a_pending_request_counts_towards_the_cap(
     await _fill(async_client, studio, email, 2)
     refused = await _book_again(async_client, studio, email)
     assert refused.status_code == 409
-    assert REFUSAL in refused.text
+    assert refused.json()["detail"] == REFUSAL
 
 
-async def test_the_refusal_is_the_same_whatever_the_count(
+async def test_the_refusal_is_the_same_text_whatever_the_count(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
+    """A cap of 1 refuses with the same words as a cap of 3, so the refusal says
+    neither how many bookings the address holds nor what the business's cap is."""
     studio = await _studio(db_async, async_client, providers=2, max_open_per_customer=1)
     email = EMAIL.format(uuid.uuid4().hex[:8])
     await _fill(async_client, studio, email, 1)
     refused = await _book_again(async_client, studio, email)
     assert refused.status_code == 409
-    assert REFUSAL in refused.text
-    # The count is not revealed: no number, no word for "bookings".
-    assert "upcoming" not in refused.text
-    assert "1" not in refused.text
+    detail = refused.json()["detail"]
+    assert detail == REFUSAL
+    # No number at all: not the count, not the cap.
+    assert not any(character.isdigit() for character in detail)
 
 
 async def test_another_customer_is_not_affected(
@@ -157,7 +164,7 @@ async def test_staff_bookings_are_never_refused(
     # towards the next online booking, but they never refuse a staff entry.
     refused = await _book_again(async_client, studio, email)
     assert refused.status_code == 409
-    assert REFUSAL in refused.text
+    assert refused.json()["detail"] == REFUSAL
 
 
 async def test_a_walk_in_without_an_email_is_not_capped(
@@ -178,11 +185,13 @@ async def test_a_walk_in_without_an_email_is_not_capped(
     assert online.status_code == 201, online.text
 
 
-def test_refusal_wording_is_plain_and_generic() -> None:
-    assert REFUSAL == (
-        "We can't take another online booking for this email right now. "
-        "Please contact the business to book."
-    )
+def test_refusal_wording_says_what_to_do_without_a_number() -> None:
+    assert public.OPEN_CAP_MESSAGE == REFUSAL
+    # The customer is told how to free a slot up themselves.
+    assert "link in your booking email" in REFUSAL
+    # The page shows the business's contact links under a message that says so.
+    assert "contact the business" in REFUSAL
+    assert not any(character.isdigit() for character in REFUSAL)
 
 
 async def test_the_same_address_in_another_case_is_the_same_customer(
@@ -194,7 +203,7 @@ async def test_the_same_address_in_another_case_is_the_same_customer(
     # customer and already at the cap.
     refused = await _book_again(async_client, studio, "a@x.com")
     assert refused.status_code == 409, refused.text
-    assert REFUSAL in refused.text
+    assert refused.json()["detail"] == REFUSAL
 
 
 async def test_a_refused_request_stores_no_booking(
@@ -214,3 +223,115 @@ async def test_a_refused_request_stores_no_booking(
         select(func.count(Booking.id)).where(Booking.organisation_id == studio.org_id)
     )
     assert before == after == 3
+
+
+async def _contact_for(db: AsyncSession, org_id: str, email: str) -> Contact:
+    db.expire_all()
+    contact = await db.scalar(
+        select(Contact).where(
+            Contact.organisation_id == org_id,
+            Contact.email_hash == hash_email(email),
+        )
+    )
+    assert contact is not None
+    return contact
+
+
+async def _consents_for(db: AsyncSession, contact_id: str) -> list[tuple[str, bool]]:
+    db.expire_all()
+    rows = await db.scalars(
+        select(ContactConsent)
+        .where(ContactConsent.contact_id == contact_id)
+        .order_by(ContactConsent.id)
+    )
+    return [(row.purpose, row.granted) for row in rows]
+
+
+async def test_a_refused_request_leaves_the_contact_exactly_as_it_was(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """The cap is checked after ``_upsert_customer`` has already written the name,
+    phone and marketing decision the caller supplied, and a public create needs no
+    proof of the address. If the 409 did not roll that write back, anyone could fill
+    in a stranger's blank contact details and flip their marketing consent by
+    sending an over-cap booking for their email. The whole create must roll back.
+
+    The contact's name and phone are blanked first, because ``upsert_contact`` keeps
+    details that are already set and only fills blanks: the blank is the path where
+    a missing rollback would actually overwrite something. The consent row is the
+    other half, since ``_apply_consents`` inserts one whenever the decision changes.
+    """
+    studio = await _studio(db_async, async_client, providers=4)
+    email = EMAIL.format(uuid.uuid4().hex[:8])
+    await _fill(async_client, studio, email, 3)
+
+    contact = await _contact_for(db_async, studio.org_id, email)
+    contact.name = None
+    contact.phone = None
+    await db_async.commit()
+    before = await _contact_for(db_async, studio.org_id, email)
+    was = (before.name, before.phone, before.email, before.user_id, before.updated_at)
+    consents_before = await _consents_for(db_async, before.id)
+    # The bookings above recorded "no marketing", so True below is a real change
+    # and would insert a row (this is what gives the assertion its teeth).
+    assert consents_before == [("marketing", False)]
+
+    refused = await _book(
+        async_client,
+        studio,
+        (await _slots(async_client, studio))[0],
+        customer_email=email,
+        customer_name="Attacker Name",
+        customer_phone="+1 473 555 9999",
+        marketing_consent=True,
+    )
+    assert refused.status_code == 409, refused.text
+    assert refused.json()["detail"] == REFUSAL
+
+    after = await _contact_for(db_async, studio.org_id, email)
+    assert (
+        after.name,
+        after.phone,
+        after.email,
+        after.user_id,
+        after.updated_at,
+    ) == was
+    assert after.name is None and after.phone is None
+    assert await _consents_for(db_async, after.id) == consents_before
+
+
+async def test_an_accepted_request_does_record_the_contact_write(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """The control for the test above: the same write, on a request that is not
+    refused, does fill a blank name and phone and does insert the changed consent
+    row. So their absence after a 409 is the rollback, not an inert code path."""
+    studio = await _studio(db_async, async_client, providers=4)
+    email = EMAIL.format(uuid.uuid4().hex[:8])
+    first = await _book_again(async_client, studio, email)
+    assert first.status_code == 201, first.text
+
+    contact = await _contact_for(db_async, studio.org_id, email)
+    contact.name = None
+    contact.phone = None
+    await db_async.commit()
+    assert await _consents_for(db_async, contact.id) == [("marketing", False)]
+
+    accepted = await _book(
+        async_client,
+        studio,
+        (await _slots(async_client, studio))[0],
+        customer_email=email,
+        customer_name="Second Booking",
+        customer_phone="+1 473 555 0188",
+        marketing_consent=True,
+    )
+    assert accepted.status_code == 201, accepted.text
+
+    after = await _contact_for(db_async, studio.org_id, email)
+    assert after.name == "Second Booking"
+    assert after.phone == "+1 473 555 0188"
+    assert await _consents_for(db_async, after.id) == [
+        ("marketing", False),
+        ("marketing", True),
+    ]

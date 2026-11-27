@@ -146,6 +146,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           example={exampleServiceFor(data.services)}
           orgSlug={orgSlug}
           profile={data.profile}
+          services={data.services}
         />
         <ContactSection
           editable={editable}

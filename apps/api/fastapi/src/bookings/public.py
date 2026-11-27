@@ -812,12 +812,20 @@ OPEN_CAP_STATUSES = tuple(
 )
 
 
-#: The same text whatever the count, so a refusal does not reveal that bookings exist
-#: for an address (security review, MEDIUM-2). The cap limits careless repeat bookings;
-#: it is not abuse protection (the rate limit and Turnstile are).
+#: The refusal for a customer who already holds the business's
+#: ``max_open_per_customer`` future bookings. It says what to do next (owner
+#: decision, 27 Nov 2026: the old wording left a legitimate customer with nothing to
+#: act on) and still keeps one text whatever the count (security review, MEDIUM-2).
+#:
+#: Naming the count was tried and withdrawn on review: it would disclose bookings
+#: staff entered by phone above the cap, and a count equal to the cap discloses the
+#: cap itself. Neither is needed to tell the customer what to do. The cap limits
+#: careless repeat bookings; it is not abuse protection (the rate limit and
+#: Turnstile are).
 OPEN_CAP_MESSAGE = (
-    "We can't take another online booking for this email right now. "
-    "Please contact the business to book."
+    "This email address already has as many upcoming bookings with this business "
+    "as we can hold online. To book another time, change or cancel one from the "
+    "link in your booking email, or contact the business."
 )
 
 

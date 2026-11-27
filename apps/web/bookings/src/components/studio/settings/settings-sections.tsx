@@ -38,6 +38,7 @@ import { PaymentsPanel } from "@/components/studio/settings/payments-panel";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
+import { NobodyDoesNotice } from "@/components/studio/settings/settings-ui";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
@@ -45,6 +46,10 @@ import type { GalleryPhotoView } from "@/lib/gallery-photo";
 import { lateFeeSentence } from "@/lib/late-fee";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 import { servicesNobodyDoes } from "@/lib/setup-checklist";
+import {
+  businessTakesDeposit,
+  type PolicyService,
+} from "@/lib/suggested-policy";
 
 /** The jump menu's targets, in the order the sections appear. */
 export const SETTINGS_SECTIONS = [
@@ -264,18 +269,13 @@ export function ServicesSection({
                     {serviceLine(item, currency)}
                   </span>
                 </summary>
-                {nobodyDoes.has(item.id) ? (
-                  <p className="pt-2 text-sm">
-                    No one is set to do this service, so customers see no times.
-                    Add it to a person under{" "}
-                    <Link
-                      className="font-medium underline underline-offset-4"
-                      href={{ pathname: `/studio/${orgSlug}/people` }}
-                    >
-                      People
-                    </Link>
-                    .
-                  </p>
+                {/* The editable form carries this notice itself, right above
+                    "Offered to customers", so it is said once. A viewer who
+                    cannot edit reads it here instead. */}
+                {nobodyDoes.has(item.id) && !editable ? (
+                  <div className="pt-2">
+                    <NobodyDoesNotice orgSlug={orgSlug} />
+                  </div>
                 ) : null}
                 <div className="pt-4">
                   {editable ? (
@@ -285,6 +285,7 @@ export function ServicesSection({
                       currency={currency}
                       depositCollection={depositCollection}
                       depositsAvailable={depositsAvailable}
+                      nobodyDoes={nobodyDoes.has(item.id)}
                       orgSlug={orgSlug}
                       service={item}
                       serviceCategories={serviceCategories}
@@ -513,6 +514,7 @@ export function PaymentsSection({
   example,
   orgSlug,
   profile,
+  services = [],
 }: {
   cardPaymentsAvailable: boolean;
   currency: string;
@@ -521,6 +523,8 @@ export function PaymentsSection({
   example: ExampleService | null;
   orgSlug: string;
   profile: BookingProfilePublic | null;
+  /** The business's services; a live one with its own deposit shapes the policy suggestion. */
+  services?: PolicyService[];
 }) {
   return (
     <Section
@@ -553,6 +557,7 @@ export function PaymentsSection({
           currency={currency}
           orgSlug={orgSlug}
           profile={profile}
+          takesDeposit={businessTakesDeposit(profile, services)}
         />
       ) : null}
       {profile !== null && editable ? (
