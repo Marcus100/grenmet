@@ -60,8 +60,11 @@ Claude Code fills these in; in Codex, run the commands.
       answer each finding. A `risk:high` PR also needs a clean
       `security-reviewer` pass, named in the PR body. For a cross-tool review,
       post the block from `pnpm agents:handoff` as a PR comment the same way.
-   4. Both owner-merge groups stop after CI and review; the hook refuses an
-      agent merge of either. Enforcement files (hooks, `.claude/settings.json`,
+   4. Both owner-merge groups stop after CI and review. The hook refuses an
+      agent merge of an enforcement file outright; for an agent-rules file it
+      only checks for review lines you write yourself, so owner-merge there is
+      a rule you keep, not a mechanism that keeps you.
+      Enforcement files (hooks, `.claude/settings.json`,
       `.codex`, Codex rules, `.github`, rulesets, `.husky`, root `package.json`,
       guardrail scripts that are not tests): stop there. Agent-rules files
       (skills, role briefs, `docs/agents`, guardrail tests, the root

@@ -147,7 +147,9 @@ too: the agent records a clean Claude `security-reviewer` pass for the exact
 head in the PR body, then stops and sends the owner a phone alert naming the PR
 and the files (`docs/agents/workflow.md` → Merging into dev). The hook still
 asks an agent for a Codex review line as well, which cannot be obtained, so it
-refuses an agent merge of that lane either way. `protect-files.mjs` refuses agent edits to the hooks, settings and Codex
+refuses an agent merge of that lane — but both lines are the agent's own
+statement, so that lane is owner-merge by rule, not by mechanism. Only the
+enforcement lane is unconditional. `protect-files.mjs` refuses agent edits to the hooks, settings and Codex
 rules. It refuses pushes to `dev`,
 `staging` and `main`, tag pushes and remote deletes. `protect-files.mjs` blocks edits to `.env*`
 and generated-client files. Claude Code's `PostToolUse` hook formats the

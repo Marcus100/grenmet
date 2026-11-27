@@ -313,8 +313,9 @@ current head must equal the pinned sha (base, head and body come from one REST
 call); an unknown base, head, file list or PR body blocks, and `staging` and
 `main` always block. A PR that changes an enforcement file always blocks; one
 that changes an agent-rules file is owner-merge, and the hook blocks an agent
-merge of it because it still asks for the Codex review line that cannot be
-obtained (see [Merging into dev](#merging-into-dev)). The
+merge of it while the unobtainable Codex review line is missing — a rule it
+states, not one it can prove, since the lines are self-attested
+(see [Merging into dev](#merging-into-dev)). The
 REST merge is accepted in one shape only, under the same rules:
 `gh api -X PUT repos/Marcus100/grenmet/pulls/<number>/merge -f sha=<full head sha> -f merge_method=merge`
 (plus `--jq`, `--silent` or a redirect). `gh alias`, GraphQL merge mutations,

@@ -172,7 +172,8 @@ unresolved goes to the owner.
    finding; no agent pushes `dev`. The author never counts its own review as the
    fresh-context one. A PR that changes an agent-rules file records a clean
    `security-reviewer` pass for its head in the PR body and is then left for the
-   owner to merge; the hook blocks an agent merge of it, and always blocks a
+   owner to merge; the hook blocks an agent merge of it while a review line is
+   missing, and always blocks a
    PR that changes an enforcement file. This is the
    factory-flow rule in `AGENTS.md` and [workflow.md](workflow.md). The
    `Protect dev` ruleset requires CI; the worker's review statuses are advisory.
