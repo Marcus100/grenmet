@@ -14,10 +14,10 @@ from src.bookings.models import Booking
 from src.contacts.models import Contact, ContactConsent
 from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import MONDAY, utc_iso
+from tests.bookings.email_code_helpers import book_known
 from tests.bookings.test_public_bookings import (
     API,
     Studio,
-    _book,
     _booking_for,
     _slots,
     _studio,
@@ -36,19 +36,24 @@ REFUSAL = (
 
 
 async def _book_again(
-    client: httpx.AsyncClient, studio: Studio, email: str, slot: int = 0
+    db: AsyncSession,
+    client: httpx.AsyncClient,
+    studio: Studio,
+    email: str,
+    slot: int = 0,
 ) -> httpx.Response:
-    """Book the first free slot of the day for ``email``."""
+    """Book the first free slot of the day for ``email`` (with its emailed code when
+    the address is already a contact, #1969)."""
     slots = await _slots(client, studio)
-    return await _book(client, studio, slots[slot], customer_email=email)
+    return await book_known(db, client, studio, slots[slot], customer_email=email)
 
 
 async def _fill(
-    client: httpx.AsyncClient, studio: Studio, email: str, count: int
+    db: AsyncSession, client: httpx.AsyncClient, studio: Studio, email: str, count: int
 ) -> list[dict]:
     receipts = []
     for _ in range(count):
-        response = await _book_again(client, studio, email)
+        response = await _book_again(db, client, studio, email)
         assert response.status_code == 201, response.text
         receipts.append(response.json())
     return receipts
@@ -59,9 +64,9 @@ async def test_the_fourth_open_booking_is_refused_by_default(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    await _fill(async_client, studio, email, 3)
+    await _fill(db_async, async_client, studio, email, 3)
 
-    refused = await _book_again(async_client, studio, email)
+    refused = await _book_again(db_async, async_client, studio, email)
     assert refused.status_code == 409, refused.text
     assert refused.json()["detail"] == REFUSAL
 
@@ -71,14 +76,14 @@ async def test_a_cancelled_booking_frees_room_under_the_cap(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    receipts = await _fill(async_client, studio, email, 3)
-    assert (await _book_again(async_client, studio, email)).status_code == 409
+    receipts = await _fill(db_async, async_client, studio, email, 3)
+    assert (await _book_again(db_async, async_client, studio, email)).status_code == 409
 
     cancel = await async_client.post(
         f"{API}/public/bookings/{receipts[0]['manage_token']}/cancel"
     )
     assert cancel.status_code == 200, cancel.text
-    again = await _book_again(async_client, studio, email)
+    again = await _book_again(db_async, async_client, studio, email)
     assert again.status_code == 201, again.text
 
 
@@ -93,8 +98,8 @@ async def test_a_pending_request_counts_towards_the_cap(
         max_open_per_customer=2,
     )
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    await _fill(async_client, studio, email, 2)
-    refused = await _book_again(async_client, studio, email)
+    await _fill(db_async, async_client, studio, email, 2)
+    refused = await _book_again(db_async, async_client, studio, email)
     assert refused.status_code == 409
     assert refused.json()["detail"] == REFUSAL
 
@@ -106,8 +111,8 @@ async def test_the_refusal_is_the_same_text_whatever_the_count(
     neither how many bookings the address holds nor what the business's cap is."""
     studio = await _studio(db_async, async_client, providers=2, max_open_per_customer=1)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    await _fill(async_client, studio, email, 1)
-    refused = await _book_again(async_client, studio, email)
+    await _fill(db_async, async_client, studio, email, 1)
+    refused = await _book_again(db_async, async_client, studio, email)
     assert refused.status_code == 409
     detail = refused.json()["detail"]
     assert detail == REFUSAL
@@ -119,8 +124,8 @@ async def test_another_customer_is_not_affected(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, providers=4)
-    await _fill(async_client, studio, EMAIL.format("full-a"), 3)
-    other = await _book_again(async_client, studio, EMAIL.format("open-b"))
+    await _fill(db_async, async_client, studio, EMAIL.format("full-a"), 3)
+    other = await _book_again(db_async, async_client, studio, EMAIL.format("open-b"))
     assert other.status_code == 201, other.text
 
 
@@ -129,7 +134,7 @@ async def test_past_bookings_do_not_count(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    receipts = await _fill(async_client, studio, email, 3)
+    receipts = await _fill(db_async, async_client, studio, email, 3)
     # The three have started: they are no longer upcoming.
     for receipt in receipts:
         booking = await _booking_for(db_async, receipt["booking"]["id"])
@@ -140,7 +145,7 @@ async def test_past_bookings_do_not_count(
         booking.blocked_until = booking.ends_at
     await db_async.commit()
 
-    again = await _book_again(async_client, studio, email)
+    again = await _book_again(db_async, async_client, studio, email)
     assert again.status_code == 201, again.text
 
 
@@ -162,7 +167,7 @@ async def test_staff_bookings_are_never_refused(
 
     # Staff bookings are upcoming bookings of this customer, so they do count
     # towards the next online booking, but they never refuse a staff entry.
-    refused = await _book_again(async_client, studio, email)
+    refused = await _book_again(db_async, async_client, studio, email)
     assert refused.status_code == 409
     assert refused.json()["detail"] == REFUSAL
 
@@ -181,7 +186,7 @@ async def test_a_walk_in_without_an_email_is_not_capped(
         )
         assert response.status_code == 201, response.text
     # Walk-ins carry no email, so they belong to no customer's count.
-    online = await _book_again(async_client, studio, EMAIL.format("fresh"))
+    online = await _book_again(db_async, async_client, studio, EMAIL.format("fresh"))
     assert online.status_code == 201, online.text
 
 
@@ -198,10 +203,10 @@ async def test_the_same_address_in_another_case_is_the_same_customer(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, providers=4)
-    await _fill(async_client, studio, "A@x.com", 3)
+    await _fill(db_async, async_client, studio, "A@x.com", 3)
     # Email is normalised for the contact, so the lower-case address is the same
     # customer and already at the cap.
-    refused = await _book_again(async_client, studio, "a@x.com")
+    refused = await _book_again(db_async, async_client, studio, "a@x.com")
     assert refused.status_code == 409, refused.text
     assert refused.json()["detail"] == REFUSAL
 
@@ -213,11 +218,11 @@ async def test_a_refused_request_stores_no_booking(
     # back the whole create so nothing (no booking, no extra mail) is stored.
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    await _fill(async_client, studio, email, 3)
+    await _fill(db_async, async_client, studio, email, 3)
     before = await db_async.scalar(
         select(func.count(Booking.id)).where(Booking.organisation_id == studio.org_id)
     )
-    assert (await _book_again(async_client, studio, email)).status_code == 409
+    assert (await _book_again(db_async, async_client, studio, email)).status_code == 409
     db_async.expire_all()
     after = await db_async.scalar(
         select(func.count(Booking.id)).where(Booking.organisation_id == studio.org_id)
@@ -263,7 +268,7 @@ async def test_a_refused_request_leaves_the_contact_exactly_as_it_was(
     """
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    await _fill(async_client, studio, email, 3)
+    await _fill(db_async, async_client, studio, email, 3)
 
     contact = await _contact_for(db_async, studio.org_id, email)
     contact.name = None
@@ -276,7 +281,8 @@ async def test_a_refused_request_leaves_the_contact_exactly_as_it_was(
     # and would insert a row (this is what gives the assertion its teeth).
     assert consents_before == [("marketing", False)]
 
-    refused = await _book(
+    refused = await book_known(
+        db_async,
         async_client,
         studio,
         (await _slots(async_client, studio))[0],
@@ -308,7 +314,7 @@ async def test_an_accepted_request_does_record_the_contact_write(
     row. So their absence after a 409 is the rollback, not an inert code path."""
     studio = await _studio(db_async, async_client, providers=4)
     email = EMAIL.format(uuid.uuid4().hex[:8])
-    first = await _book_again(async_client, studio, email)
+    first = await _book_again(db_async, async_client, studio, email)
     assert first.status_code == 201, first.text
 
     contact = await _contact_for(db_async, studio.org_id, email)
@@ -317,7 +323,8 @@ async def test_an_accepted_request_does_record_the_contact_write(
     await db_async.commit()
     assert await _consents_for(db_async, contact.id) == [("marketing", False)]
 
-    accepted = await _book(
+    accepted = await book_known(
+        db_async,
         async_client,
         studio,
         (await _slots(async_client, studio))[0],

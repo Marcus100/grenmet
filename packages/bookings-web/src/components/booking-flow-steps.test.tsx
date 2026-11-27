@@ -36,7 +36,6 @@ const BROWS_NAME = /Brow shaping/u;
 const CONTINUE = { name: "Continue" };
 const BOOK = { name: "Request my booking" };
 // The emailed-code step is asked for neutrally, never as a booking failure.
-const CODE_ASK = /One more step: we email a 6-digit code/u;
 const RED_SUMMARY = /We couldn't book that/u;
 const CHOOSE_SERVICE = /Choose a service to continue/u;
 const CHOOSE_TIME = /Choose a day and time to continue/u;
@@ -527,22 +526,24 @@ describe("phone path to a booking", () => {
     expect(activePanes()).toEqual(["1"]);
   });
 
-  it("shows the email-code request on step 3 when the API wants a code", async () => {
+  it("requests the code on step 3 when the API wants one (#1969)", async () => {
     const user = userEvent.setup();
     submitBooking.mockResolvedValue({
       ok: false,
       code: "email_unverified",
       message: "We need to confirm your email again.",
     });
+    vi.mocked(actions.requestEmailCode).mockResolvedValue({
+      ok: true,
+      data: { expiresInSeconds: 600, required: true },
+    });
     renderFlow();
     await reachDetails(user);
     await user.click(screen.getByRole("button", BOOK));
-    expect(await screen.findByText(CODE_ASK)).toBeVisible();
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
     expect(screen.queryByText(RED_SUMMARY)).toBeNull();
     expect(activePanes()).toEqual(["3"]);
-    expect(
-      screen.getByRole("button", { name: "Email me a verification code" })
-    ).toBeInTheDocument();
+    expect(actions.requestEmailCode).toHaveBeenCalledTimes(1);
   });
 
   it.each([

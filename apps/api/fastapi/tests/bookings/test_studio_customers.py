@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bookings.models import Booking, Customer
 from src.contacts.models import Contact
 from src.utils.datetime import utc_now
-from tests.bookings.test_public_bookings import API, Studio, _book, _slots, _studio
+from tests.bookings.email_code_helpers import book_known
+from tests.bookings.test_public_bookings import API, Studio, _slots, _studio
 from tests.bookings.test_studio import _key
 from tests.factories import make_user
 from tests.organisations.support import headers_for
@@ -24,6 +25,7 @@ def _email(name: str) -> str:
 
 
 async def _booking(
+    db: AsyncSession,
     client: httpx.AsyncClient,
     studio: Studio,
     *,
@@ -33,7 +35,8 @@ async def _booking(
 ) -> str:
     """Book the next free slot for this person and return the booking id."""
     starts_at = (await _slots(client, studio))[0]
-    response = await _book(
+    response = await book_known(
+        db,
         client,
         studio,
         starts_at,
@@ -85,10 +88,19 @@ async def test_repeat_customer_is_one_row_with_its_booking_facts(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=2)
     ada = _email("ada")
-    first = await _booking(async_client, studio, name="Ada Lovelace", email=ada)
-    second = await _booking(async_client, studio, name="Ada Lovelace", email=ada)
+    first = await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=ada
+    )
+    second = await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=ada
+    )
     await _booking(
-        async_client, studio, name="Grace Hopper", email=_email("grace"), phone=""
+        db_async,
+        async_client,
+        studio,
+        name="Grace Hopper",
+        email=_email("grace"),
+        phone="",
     )
     await _move_to_past(db_async, first)
 
@@ -134,11 +146,17 @@ async def test_cancelled_bookings_and_no_shows_are_not_visits(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=2)
     ada = _email("ada")
-    kept = await _booking(async_client, studio, name="Ada Lovelace", email=ada)
-    cancelled = await _booking(async_client, studio, name="Ada Lovelace", email=ada)
-    missed = await _booking(async_client, studio, name="Ada Lovelace", email=ada)
+    kept = await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=ada
+    )
+    cancelled = await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=ada
+    )
+    missed = await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=ada
+    )
     only_cancelled = await _booking(
-        async_client, studio, name="Grace Hopper", email=_email("grace")
+        db_async, async_client, studio, name="Grace Hopper", email=_email("grace")
     )
     await _set_status(db_async, cancelled, "cancelled")
     await _set_status(db_async, only_cancelled, "cancelled")
@@ -162,13 +180,15 @@ async def test_upcoming_first_then_most_recent_visit(
 ) -> None:
     studio = await _studio(db_async, async_client)
     long_ago = await _booking(
-        async_client, studio, name="Long Ago", email=_email("long")
+        db_async, async_client, studio, name="Long Ago", email=_email("long")
     )
-    recent = await _booking(async_client, studio, name="Recent", email=_email("recent"))
+    recent = await _booking(
+        db_async, async_client, studio, name="Recent", email=_email("recent")
+    )
     await _move_to_past(db_async, long_ago, days=400)
     await _move_to_past(db_async, recent, days=100)
-    await _booking(async_client, studio, name="Soonest", email=_email("soon"))
-    await _booking(async_client, studio, name="Later", email=_email("later"))
+    await _booking(db_async, async_client, studio, name="Soonest", email=_email("soon"))
+    await _booking(db_async, async_client, studio, name="Later", email=_email("later"))
 
     body = await _list(async_client, studio)
     assert _names(body) == ["Soonest", "Later", "Recent", "Long Ago"]
@@ -180,9 +200,15 @@ async def test_search_matches_name_email_and_phone(
     studio = await _studio(db_async, async_client)
     ada = _email("ada")
     await _booking(
-        async_client, studio, name="Ada Lovelace", email=ada, phone="+1 473 555 0100"
+        db_async,
+        async_client,
+        studio,
+        name="Ada Lovelace",
+        email=ada,
+        phone="+1 473 555 0100",
     )
     await _booking(
+        db_async,
         async_client,
         studio,
         name="Grace Hopper",
@@ -210,7 +236,9 @@ async def test_pages_with_limit_and_offset(
 ) -> None:
     studio = await _studio(db_async, async_client, providers=2)
     for name in ("First", "Second", "Third"):
-        await _booking(async_client, studio, name=name, email=_email(name.lower()))
+        await _booking(
+            db_async, async_client, studio, name=name, email=_email(name.lower())
+        )
 
     first = await _list(async_client, studio, limit=2)
     assert first["total"] == 3
@@ -235,10 +263,12 @@ async def test_another_organisation_never_sees_these_customers(
     studio = await _studio(db_async, async_client)
     other = await _studio(db_async, async_client)
     shared = _email("shared")
-    await _booking(async_client, studio, name="Ada Here", email=shared)
-    await _booking(async_client, studio, name="Ada Here", email=shared)
-    await _booking(async_client, other, name="Ada There", email=shared)
-    await _booking(async_client, other, name="Only There", email=_email("only"))
+    await _booking(db_async, async_client, studio, name="Ada Here", email=shared)
+    await _booking(db_async, async_client, studio, name="Ada Here", email=shared)
+    await _booking(db_async, async_client, other, name="Ada There", email=shared)
+    await _booking(
+        db_async, async_client, other, name="Only There", email=_email("only")
+    )
 
     mine = await _list(async_client, studio)
     assert _names(mine) == ["Ada Here"]
@@ -259,7 +289,9 @@ async def test_non_member_and_anonymous_are_refused(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
-    await _booking(async_client, studio, name="Ada Lovelace", email=_email("ada"))
+    await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=_email("ada")
+    )
     stranger = await make_user(db_async)
 
     denied = await async_client.get(URL, headers=headers_for(stranger, studio.org_id))
@@ -272,7 +304,9 @@ async def test_api_key_with_the_read_scope_is_refused(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
-    await _booking(async_client, studio, name="Ada Lovelace", email=_email("ada"))
+    await _booking(
+        db_async, async_client, studio, name="Ada Lovelace", email=_email("ada")
+    )
     reader = await _key(async_client, studio, ["bookings.read", "bookings.write"])
 
     # The key is good: it reads the organisation's settings.
@@ -288,8 +322,10 @@ async def test_erased_contact_is_left_out(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
-    gone = await _booking(async_client, studio, name="Gone", email=_email("gone"))
-    await _booking(async_client, studio, name="Here", email=_email("here"))
+    gone = await _booking(
+        db_async, async_client, studio, name="Gone", email=_email("gone")
+    )
+    await _booking(db_async, async_client, studio, name="Here", email=_email("here"))
     booking = await db_async.get(Booking, uuid.UUID(gone))
     assert booking is not None
     contact_id = await db_async.scalar(

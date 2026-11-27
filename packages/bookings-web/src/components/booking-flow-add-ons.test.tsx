@@ -37,7 +37,6 @@ const RE_3 = /EC\$30 deposit, refunded if you cancel/u;
 const RE_4 = /You pay a deposit of EC\$30 now/u;
 const RE_5 = /You pay the full price, EC\$50/u;
 const RE_6 = /You pay the full price/u;
-const RE_7 = /One more step: we email a 6-digit code/u;
 const PERCENT_LINE = /EC\$45 deposit, refunded if you cancel/u;
 const PAY_45 = /You pay a deposit of EC\$45 now/u;
 const PAY_FULL_150 = /You pay the full price, EC\$150/u;
@@ -441,14 +440,12 @@ describe("money with add-ons ticked", () => {
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.click(screen.getByRole("button", { name: SUBMIT }));
-    expect((await screen.findAllByText(RE_7)).length).toBeGreaterThan(0);
+    // The refusal asks for the code by itself (#1969): the code step opens.
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
+    expect(actions.requestEmailCode).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText("Name")).toHaveValue("Ada Lovelace");
     expect(box(1)).toBeChecked();
     expect(screen.getByText(CHOSEN_LINE)).toBeVisible();
-    await user.click(
-      screen.getByRole("button", { name: "Email me a verification code" })
-    );
-    expect(actions.requestEmailCode).toHaveBeenCalledTimes(1);
   });
 });
 

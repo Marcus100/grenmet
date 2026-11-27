@@ -30,6 +30,7 @@ from src.rewards.schemas import ProgramCreate
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import MONDAY, utc_at
+from tests.bookings.email_code_helpers import book_known
 from tests.bookings.test_public_bookings import API, Studio, _body, _slots, _studio
 from tests.factories import make_user
 from tests.organisations.support import headers_for
@@ -903,10 +904,14 @@ async def test_a_guest_booking_keeps_the_stored_name(
     )
     await db_async.commit()
     slots = await _slots(async_client, studio)
-    resp = await async_client.post(
-        f"{API}/public/{studio.slug}/bookings",
-        headers={"Idempotency-Key": uuid.uuid4().hex},
-        json=_body(studio, slots[0], customer_email=email, customer_name="Typed Name"),
+    # The address is already a contact, so the booking needs its emailed code (#1969).
+    resp = await book_known(
+        db_async,
+        async_client,
+        studio,
+        slots[0],
+        customer_email=email,
+        customer_name="Typed Name",
     )
     assert resp.status_code == 201, resp.text
     contact = await _contact_for(db_async, studio.org_id, email)

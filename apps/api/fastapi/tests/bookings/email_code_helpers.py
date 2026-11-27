@@ -6,6 +6,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts import service as contacts_service
 from src.outbox import Outbox
 from tests.bookings.test_public_bookings import API, Studio
 from tests.email_payload import payload_html
@@ -60,3 +61,31 @@ async def get_proof(
     )
     assert done.status_code == 200, done.text
     return done.json()["proof"]
+
+
+async def book_known(
+    db: AsyncSession,
+    client: httpx.AsyncClient,
+    studio: Studio,
+    starts_at: str,
+    **overrides: object,
+) -> httpx.Response:
+    """``_book``, but a free booking from an address the business already has (#1969)
+    is refused for want of a proof: then the emailed code is fetched and the same
+    booking is sent again with it. Any other answer is returned as it is."""
+    # Imported here: test_public_bookings imports nothing from this module.
+    from tests.bookings.test_public_bookings import _body, _book
+
+    response = await _book(client, studio, starts_at, **overrides)
+    if (
+        response.status_code != 403
+        or "email_verification_required" not in response.text
+    ):
+        return response
+    email = str(_body(studio, starts_at, **overrides)["customer_email"])
+    # Only a known address may be refused for want of a proof. A new address must
+    # book in one pass, so a refusal for one fails here instead of being fixed up.
+    known = await contacts_service.find_by_email(db, studio.org_id, email)
+    assert known is not None, "a new address was refused for want of an emailed code"
+    proof = await get_proof(db, client, studio, starts_at, email)
+    return await _book(client, studio, starts_at, email_proof=proof, **overrides)
