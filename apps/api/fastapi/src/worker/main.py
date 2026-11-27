@@ -824,6 +824,23 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
     return result.total
 
 
+async def backfill_erased_contact_copies(ctx: dict[str, Any]) -> dict[str, int]:
+    """One-off (enqueued by hand, not a cron): apply erasure's clearing rules to contacts
+    erased before they existed (#2028). Idempotent; counts per table are the result.
+    See src/contacts/erasure_backfill.py."""
+    from src.contacts import erasure_backfill
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        result = await erasure_backfill.backfill_erased_copies(session)
+    logger.info(
+        "backfill_erased_contact_copies job_id=%s counts=%s",
+        ctx.get("job_id", ""),
+        result.as_dict(),
+    )
+    return result.as_dict()
+
+
 @monitored(schedule="20 * * * *", checkin_margin=30, max_runtime=300)
 async def sweep_booking_uploads(ctx: dict[str, Any]) -> int:
     """Hourly sweep of unreferenced booking uploads, 24 hours after upload (#1972).
@@ -1025,6 +1042,7 @@ class WorkerSettings:
         release_social_posts,
         purge_expired_data,
         sweep_booking_uploads,
+        backfill_erased_contact_copies,
         purge_superuser_invitations,
         clear_former_staff_personal_details,
         check_nhc_failures,
