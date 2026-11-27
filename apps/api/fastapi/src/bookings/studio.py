@@ -69,6 +69,18 @@ async def get_detail(
     return await _detail(session, managed)
 
 
+def _history_reason(code: str | None) -> BookingEventReason | None:
+    """The stored reason code, or None when it is not one of the fixed list. A value
+    written outside the API must not take the whole booking page down (the column
+    has no database constraint)."""
+    if not code:
+        return None
+    try:
+        return BookingEventReason(code)
+    except ValueError:
+        return None
+
+
 async def _detail(
     session: AsyncSession,
     managed: public.Managed,
@@ -140,7 +152,7 @@ async def _detail(
                 to_status=BookingStatus(e.to_status),
                 actor_user_id=e.actor_user_id,
                 note=e.note,
-                reason=BookingEventReason(e.reason) if e.reason else None,
+                reason=_history_reason(e.reason),
                 created_at=e.created_at,
             )
             for e in events

@@ -4,6 +4,8 @@ read back in the studio detail. The free-text ``reason`` still goes to the custo
 email and to the booking, not to the event. Assertions read the database.
 """
 
+import uuid
+
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -92,3 +94,30 @@ async def test_a_code_outside_the_fixed_list_is_422(
 
     rows = await _events(db_async, booking_id)
     assert [r.to_status for r in rows] == ["confirmed"]
+
+
+async def test_an_unknown_stored_reason_does_not_break_the_detail(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # The column has no database constraint, so a value written outside the API
+    # must read as no reason, not turn the booking page into a 500.
+    studio, booking_id = await _booked(db_async, async_client)
+    db_async.add(
+        BookingEvent(
+            id=uuid.uuid4(),
+            booking_id=uuid.UUID(booking_id),
+            organisation_id=studio.org_id,
+            from_status="confirmed",
+            to_status="confirmed",
+            reason="made_up",
+            staff_note=True,
+        )
+    )
+    await db_async.commit()
+
+    detail = await async_client.get(_url(booking_id), headers=studio.headers)
+    assert detail.status_code == 200, detail.text
+    assert [e["reason"] for e in _history(detail.json())] == [None] * len(
+        _history(detail.json())
+    )
+    assert "made_up" in [r.reason for r in await _events(db_async, booking_id)]

@@ -726,7 +726,8 @@ class BookingEvent(Base):
     from_status: Mapped[str | None] = mapped_column(String(20))
     to_status: Mapped[str] = mapped_column(String(20))
     actor_user_id: Mapped[uuid.UUID | None]
-    #: Staff-written or system text. Erasure clears it (``_erase_booking_copies``).
+    #: System text only: no API accepts a staff-typed note here. Erasure clears it
+    #: (``_erase_booking_copies``).
     note: Mapped[str | None] = mapped_column(String(300))
     #: Reason code from ``BookingEventReason``; null for rows written before it existed
     #: and for rows no decline or cancel action gave one. Not personal data: kept on erasure.
