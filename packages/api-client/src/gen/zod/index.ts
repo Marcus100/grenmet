@@ -1257,6 +1257,9 @@ export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js"
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
 export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
+export { bookingGalleryImageSchema } from "./bookingGalleryImageSchema.js";
+export { bookingGalleryPhotoCreateSchema } from "./bookingGalleryPhotoCreateSchema.js";
+export { bookingGalleryPhotoPublicSchema } from "./bookingGalleryPhotoPublicSchema.js";
 export { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 export { bookingListingNotShownReasonSchema } from "./bookingListingNotShownReasonSchema.js";
 export { bookingListingQueueSchema } from "./bookingListingQueueSchema.js";
@@ -1313,6 +1316,20 @@ export { bookingStudioDeclineSchema } from "./bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
 export { bookingStudioEventSchema } from "./bookingStudioEventSchema.js";
 export { bookingStudioRescheduleSchema } from "./bookingStudioRescheduleSchema.js";
+export {
+  bookingsAddGalleryPhotoBodySchema,
+  bookingsAddGalleryPhotoErrorSchema,
+  bookingsAddGalleryPhotoHeadersSchema,
+  bookingsAddGalleryPhotoHeaderXBarrelsOrganisationSchema,
+  bookingsAddGalleryPhotoResponseSchema,
+  bookingsAddGalleryPhotoStatus201Schema,
+  bookingsAddGalleryPhotoStatus400Schema,
+  bookingsAddGalleryPhotoStatus401Schema,
+  bookingsAddGalleryPhotoStatus403Schema,
+  bookingsAddGalleryPhotoStatus404Schema,
+  bookingsAddGalleryPhotoStatus409Schema,
+  bookingsAddGalleryPhotoStatus422Schema,
+} from "./bookingsAddGalleryPhotoSchema.js";
 export {
   bookingsApproveListingErrorSchema,
   bookingsApproveListingPathOrganisationIdSchema,
@@ -1789,6 +1806,18 @@ export {
   bookingsListExceptionsStatus422Schema,
 } from "./bookingsListExceptionsSchema.js";
 export {
+  bookingsListGalleryErrorSchema,
+  bookingsListGalleryHeadersSchema,
+  bookingsListGalleryHeaderXBarrelsOrganisationSchema,
+  bookingsListGalleryResponseSchema,
+  bookingsListGalleryStatus200Schema,
+  bookingsListGalleryStatus400Schema,
+  bookingsListGalleryStatus401Schema,
+  bookingsListGalleryStatus403Schema,
+  bookingsListGalleryStatus404Schema,
+  bookingsListGalleryStatus422Schema,
+} from "./bookingsListGallerySchema.js";
+export {
   bookingsListListingReviewsErrorSchema,
   bookingsListListingReviewsQueryPageSchema,
   bookingsListListingReviewsQueryQueueSchema,
@@ -1921,6 +1950,35 @@ export {
   bookingsRecordManualDepositStatus409Schema,
   bookingsRecordManualDepositStatus422Schema,
 } from "./bookingsRecordManualDepositSchema.js";
+export {
+  bookingsRemoveGalleryPhotoErrorSchema,
+  bookingsRemoveGalleryPhotoHeadersSchema,
+  bookingsRemoveGalleryPhotoHeaderXBarrelsOrganisationSchema,
+  bookingsRemoveGalleryPhotoPathPhotoIdSchema,
+  bookingsRemoveGalleryPhotoPathSchema,
+  bookingsRemoveGalleryPhotoResponseSchema,
+  bookingsRemoveGalleryPhotoStatus204Schema,
+  bookingsRemoveGalleryPhotoStatus400Schema,
+  bookingsRemoveGalleryPhotoStatus401Schema,
+  bookingsRemoveGalleryPhotoStatus403Schema,
+  bookingsRemoveGalleryPhotoStatus404Schema,
+  bookingsRemoveGalleryPhotoStatus409Schema,
+  bookingsRemoveGalleryPhotoStatus422Schema,
+} from "./bookingsRemoveGalleryPhotoSchema.js";
+export {
+  bookingsReorderGalleryBodySchema,
+  bookingsReorderGalleryErrorSchema,
+  bookingsReorderGalleryHeadersSchema,
+  bookingsReorderGalleryHeaderXBarrelsOrganisationSchema,
+  bookingsReorderGalleryResponseSchema,
+  bookingsReorderGalleryStatus200Schema,
+  bookingsReorderGalleryStatus400Schema,
+  bookingsReorderGalleryStatus401Schema,
+  bookingsReorderGalleryStatus403Schema,
+  bookingsReorderGalleryStatus404Schema,
+  bookingsReorderGalleryStatus409Schema,
+  bookingsReorderGalleryStatus422Schema,
+} from "./bookingsReorderGallerySchema.js";
 export {
   bookingsReorderProvidersBodySchema,
   bookingsReorderProvidersErrorSchema,

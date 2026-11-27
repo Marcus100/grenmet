@@ -137,6 +137,35 @@ describe("logo upload failures", () => {
       kind: "unavailable",
       message: "Logo uploads are not available right now.",
     });
+    expect(logoUploadFailure(apiError(503, {}), "cover photo")).toMatchObject({
+      kind: "unavailable",
+      message: "Cover photo uploads are not available right now.",
+      nextStep:
+        "Save the profile without a new cover photo, or try again later.",
+    });
+  });
+
+  it("tells a gallery photograph that the profile save is not the fix", () => {
+    // A photograph saves the moment it is added, so it is never waiting on Save.
+    expect(logoUploadFailure(apiError(503, {}), "photograph")).toMatchObject({
+      kind: "unavailable",
+      message: "Photo uploads are not available right now.",
+      nextStep: "Try again later. Your other settings are not affected.",
+    });
+  });
+
+  it("names a photograph in the plain retry and the refused-image lines", () => {
+    expect(logoUploadFailure(new Error("boom"), "photograph")).toMatchObject({
+      kind: "unavailable",
+      message: "The photograph could not be uploaded.",
+      nextStep: "Try again in a moment.",
+    });
+    expect(logoUploadFailure(apiError(409, {}), "photograph").nextStep).toBe(
+      "Start the upload again."
+    );
+    expect(logoUploadFailure(apiError(422, {}), "photograph").nextStep).toBe(
+      "Choose a different image and try again."
+    );
   });
 
   it("refuses a member in plain words", () => {

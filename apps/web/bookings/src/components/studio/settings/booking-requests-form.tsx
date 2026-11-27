@@ -15,6 +15,7 @@ import {
   MAX_OPEN_DEFAULT,
   MAX_OPEN_MAX,
   MAX_OPEN_MIN,
+  maxOpenSentence,
 } from "@/lib/request-hygiene";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -114,6 +115,7 @@ export function BookingRequestsForm({
         </div>
         <SettingsField
           error={limitError}
+          hint={maxOpenSentence(limit) ?? undefined}
           id="requests-max-open"
           label="Most upcoming bookings one customer can hold online"
         >
@@ -136,9 +138,6 @@ export function BookingRequestsForm({
         <p className="text-muted-foreground text-base">
           If you don&apos;t confirm a request in time, it cancels itself and the
           customer gets an email saying so.
-        </p>
-        <p className="text-muted-foreground text-base">
-          Customers who reach the limit are asked to contact you to book more.
         </p>
       </fieldset>
       <SettingsResult pending={pending} state={state} />

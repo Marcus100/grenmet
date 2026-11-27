@@ -1301,6 +1301,9 @@ export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
 export type { BookingFeaturedService } from "./BookingFeaturedService.js";
+export type { BookingGalleryImage } from "./BookingGalleryImage.js";
+export type { BookingGalleryPhotoCreate } from "./BookingGalleryPhotoCreate.js";
+export type { BookingGalleryPhotoPublic } from "./BookingGalleryPhotoPublic.js";
 export type { BookingLateFee } from "./BookingLateFee.js";
 export type { BookingListingNotShownReason } from "./BookingListingNotShownReason.js";
 export { bookingListingNotShownReason } from "./BookingListingNotShownReason.js";
@@ -1366,6 +1369,20 @@ export type { BookingStudioDecline } from "./BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./BookingStudioDetail.js";
 export type { BookingStudioEvent } from "./BookingStudioEvent.js";
 export type { BookingStudioReschedule } from "./BookingStudioReschedule.js";
+export type {
+  BookingsAddGalleryPhotoBody,
+  BookingsAddGalleryPhotoHeaders,
+  BookingsAddGalleryPhotoOptions,
+  BookingsAddGalleryPhotoResponse,
+  BookingsAddGalleryPhotoResponses,
+  BookingsAddGalleryPhotoStatus201,
+  BookingsAddGalleryPhotoStatus400,
+  BookingsAddGalleryPhotoStatus401,
+  BookingsAddGalleryPhotoStatus403,
+  BookingsAddGalleryPhotoStatus404,
+  BookingsAddGalleryPhotoStatus409,
+  BookingsAddGalleryPhotoStatus422,
+} from "./BookingsAddGalleryPhoto.js";
 export type {
   BookingsApproveListingOptions,
   BookingsApproveListingPath,
@@ -1812,6 +1829,18 @@ export type {
   BookingsListExceptionsStatus422,
 } from "./BookingsListExceptions.js";
 export type {
+  BookingsListGalleryHeaders,
+  BookingsListGalleryOptions,
+  BookingsListGalleryResponse,
+  BookingsListGalleryResponses,
+  BookingsListGalleryStatus200,
+  BookingsListGalleryStatus400,
+  BookingsListGalleryStatus401,
+  BookingsListGalleryStatus403,
+  BookingsListGalleryStatus404,
+  BookingsListGalleryStatus422,
+} from "./BookingsListGallery.js";
+export type {
   BookingsListListingReviewsOptions,
   BookingsListListingReviewsQuery,
   BookingsListListingReviewsResponse,
@@ -1931,6 +1960,34 @@ export type {
   BookingsRecordManualDepositStatus409,
   BookingsRecordManualDepositStatus422,
 } from "./BookingsRecordManualDeposit.js";
+export type {
+  BookingsRemoveGalleryPhotoHeaders,
+  BookingsRemoveGalleryPhotoOptions,
+  BookingsRemoveGalleryPhotoPath,
+  BookingsRemoveGalleryPhotoResponse,
+  BookingsRemoveGalleryPhotoResponses,
+  BookingsRemoveGalleryPhotoStatus204,
+  BookingsRemoveGalleryPhotoStatus400,
+  BookingsRemoveGalleryPhotoStatus401,
+  BookingsRemoveGalleryPhotoStatus403,
+  BookingsRemoveGalleryPhotoStatus404,
+  BookingsRemoveGalleryPhotoStatus409,
+  BookingsRemoveGalleryPhotoStatus422,
+} from "./BookingsRemoveGalleryPhoto.js";
+export type {
+  BookingsReorderGalleryBody,
+  BookingsReorderGalleryHeaders,
+  BookingsReorderGalleryOptions,
+  BookingsReorderGalleryResponse,
+  BookingsReorderGalleryResponses,
+  BookingsReorderGalleryStatus200,
+  BookingsReorderGalleryStatus400,
+  BookingsReorderGalleryStatus401,
+  BookingsReorderGalleryStatus403,
+  BookingsReorderGalleryStatus404,
+  BookingsReorderGalleryStatus409,
+  BookingsReorderGalleryStatus422,
+} from "./BookingsReorderGallery.js";
 export type {
   BookingsReorderProvidersBody,
   BookingsReorderProvidersHeaders,

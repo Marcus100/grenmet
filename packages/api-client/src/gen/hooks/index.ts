@@ -534,6 +534,11 @@ export {
   useBillingVoidInvoice,
 } from "./useBillingVoidInvoice.js";
 export {
+  bookingsAddGalleryPhotoMutationKey,
+  bookingsAddGalleryPhotoMutationOptions,
+  useBookingsAddGalleryPhoto,
+} from "./useBookingsAddGalleryPhoto.js";
+export {
   bookingsApproveListingMutationKey,
   bookingsApproveListingMutationOptions,
   useBookingsApproveListing,
@@ -709,6 +714,11 @@ export {
   useBookingsListExceptions,
 } from "./useBookingsListExceptions.js";
 export {
+  bookingsListGalleryQueryKey,
+  bookingsListGalleryQueryOptions,
+  useBookingsListGallery,
+} from "./useBookingsListGallery.js";
+export {
   bookingsListListingReviewsQueryKey,
   bookingsListListingReviewsQueryOptions,
   useBookingsListListingReviews,
@@ -758,6 +768,16 @@ export {
   bookingsRecordManualDepositMutationOptions,
   useBookingsRecordManualDeposit,
 } from "./useBookingsRecordManualDeposit.js";
+export {
+  bookingsRemoveGalleryPhotoMutationKey,
+  bookingsRemoveGalleryPhotoMutationOptions,
+  useBookingsRemoveGalleryPhoto,
+} from "./useBookingsRemoveGalleryPhoto.js";
+export {
+  bookingsReorderGalleryMutationKey,
+  bookingsReorderGalleryMutationOptions,
+  useBookingsReorderGallery,
+} from "./useBookingsReorderGallery.js";
 export {
   bookingsReorderProvidersMutationKey,
   bookingsReorderProvidersMutationOptions,

@@ -1172,6 +1172,11 @@ function BookingFlowBody({
   // A service the API demanded a code for although the page showed no deposit
   // (a stale page): the next press requests a code instead of resubmitting.
   const [codeForced, setCodeForced] = useState<string | null>(null);
+  // Set when a refusal for want of a proof (#1969) asks for a code: the request
+  // waits for a Turnstile token other than the one the refused booking spent.
+  const [codeAfterRefusal, setCodeAfterRefusal] = useState<{
+    spent: string | null;
+  } | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -1332,13 +1337,14 @@ function BookingFlowBody({
 
   const onBookingFailed = (outcome: Failure) => {
     if (outcome.code === "email_unverified") {
-      // The proof was used, expired or never accepted, or a signed-in person's
-      // own address still needs confirming. Asking for a code is a normal step,
-      // not a failure: the ask above the button says so and nothing red shows
+      // The proof was used, expired or never accepted, or the address is already
+      // a contact of this business (#1969) and needs confirming. The code is asked
+      // for at once (below): a normal step, not a failure, so nothing red shows
       // (issue #1951, item 4). The typed details are all kept.
       emailCode.dropProof();
       setCodeForced(serviceId);
       setFormError(null);
+      setCodeAfterRefusal({ spent: token });
       return;
     }
     setFormError(outcome.message);
@@ -1351,6 +1357,22 @@ function BookingFlowBody({
       setReloadKey((n) => n + 1);
     }
   };
+
+  // Requests the code after a refusal once a fresh Turnstile token has arrived.
+  // Without a widget there is no token to wait for.
+  useEffect(() => {
+    if (!codeAfterRefusal || submitting || emailCode.busy) {
+      return;
+    }
+    const fresh = turnstileSiteKey
+      ? token !== null && token !== codeAfterRefusal.spent
+      : true;
+    if (!fresh) {
+      return;
+    }
+    setCodeAfterRefusal(null);
+    emailCode.start().catch(() => undefined);
+  });
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

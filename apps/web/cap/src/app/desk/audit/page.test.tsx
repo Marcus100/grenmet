@@ -151,4 +151,24 @@ describe("/desk/audit", () => {
     expect(screen.queryByText(RAW_USER_ID)).toBeNull();
     expect(screen.queryByText(NONE_WORD)).toBeNull();
   });
+
+  it("gives every control on the page a 44px tap target", async () => {
+    api.listAuditEvents.mockResolvedValue({
+      count: 60,
+      data: [event({ alert_id: ALERT })],
+      page: 2,
+      size: 25,
+    });
+    render(await page({ page: "2", alert_id: ALERT }));
+    const controls = [
+      screen.getByRole("textbox"),
+      screen.getByRole("button", { name: "Filter history" }),
+      screen.getByRole("link", { name: "Open alert" }),
+      screen.getByRole("link", { name: "Previous" }),
+      screen.getByRole("link", { name: "Next" }),
+    ];
+    for (const control of controls) {
+      expect(control.classList.contains("min-h-11")).toBe(true);
+    }
+  });
 });

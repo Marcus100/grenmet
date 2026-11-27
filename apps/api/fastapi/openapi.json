@@ -11167,6 +11167,456 @@
         }
       }
     },
+    "/api/v1/bookings/org/gallery": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "List my gallery photographs",
+        "description": "The photographs of the business's work, in the order it arranged them.",
+        "operationId": "bookingsListGallery",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingGalleryPhotoPublic"
+                  },
+                  "title": "Response Bookingslistgallery"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Add a gallery photograph",
+        "description": "Add a completed `booking-gallery` upload of this business to the end of its gallery. At most 12 photographs; a further one, or a file that is not a finished upload of this business, is refused with 409. Adding a file that is already there answers the photograph that is there.",
+        "operationId": "bookingsAddGalleryPhoto",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingGalleryPhotoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingGalleryPhotoPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/gallery/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder gallery photographs",
+        "description": "Set the gallery order: each photograph's `sort_order` becomes its position. Every id must be one of this business's photographs, else 404.",
+        "operationId": "bookingsReorderGallery",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingGalleryPhotoPublic"
+                  },
+                  "title": "Response Bookingsreordergallery"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/gallery/{photo_id}": {
+      "delete": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Remove a gallery photograph",
+        "description": "Take one photograph out of the gallery. The photographs that are left keep their order with no gap in it.",
+        "operationId": "bookingsRemoveGalleryPhoto",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/org/services": {
       "get": {
         "tags": [
@@ -88042,6 +88492,76 @@
         "title": "BookingFeaturedService",
         "description": "A service shown on a home page card. Public fields only."
       },
+      "BookingGalleryImage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Public https address of the photograph. Load it as an image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "title": "BookingGalleryImage",
+        "description": "One photograph of the business's work, in the order it arranged them. The\nphotographs are decorative: there is no caption and no alternative text."
+      },
+      "BookingGalleryPhotoCreate": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id",
+            "description": "A completed `booking-gallery` upload of this business (see `POST /storage/uploads`). Adding the same file twice answers the row that is already there."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "BookingGalleryPhotoCreate",
+        "description": "Add one photograph of the business's work to its gallery."
+      },
+      "BookingGalleryPhotoPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "description": "The position the business arranged, from 0, with no gaps."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "file_id",
+          "sort_order",
+          "created_at"
+        ],
+        "title": "BookingGalleryPhotoPublic",
+        "description": "One gallery photograph as the studio sees it."
+      },
       "BookingLateFee": {
         "properties": {
           "amount_minor": {
@@ -88786,6 +89306,19 @@
             "title": "Booking Policy",
             "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
+          "about": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "About",
+            "description": "What the business says about itself, up to 1000 characters of plain text. Shown above the services on its public booking page. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
           "deposit_collection": {
             "$ref": "#/components/schemas/BookingDepositCollection",
             "description": "Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.",
@@ -89226,6 +89759,19 @@
             ],
             "title": "Booking Policy",
             "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
+          "about": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "About",
+            "description": "What the business says about itself, up to 1000 characters of plain text. Shown above the services on its public booking page. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
           "deposit_collection": {
             "$ref": "#/components/schemas/BookingDepositCollection",
@@ -91300,6 +91846,26 @@
             ],
             "title": "Booking Policy",
             "description": "The business's plain-text booking policy, or null when it has none."
+          },
+          "about": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "About",
+            "description": "What the business says about itself, as plain text, or null when it has written nothing. Show it above the services, with its line breaks kept and escaped as text; it is never HTML."
+          },
+          "gallery": {
+            "items": {
+              "$ref": "#/components/schemas/BookingGalleryImage"
+            },
+            "type": "array",
+            "title": "Gallery",
+            "description": "The business's photographs of its work, at most 12, in its own order. Empty when it has uploaded none: show no gallery at all then."
           },
           "deposit_collection": {
             "$ref": "#/components/schemas/BookingDepositCollection",

@@ -16,6 +16,7 @@ import {
 } from "@/lib/late-fee";
 import { moneyInput } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
+import { suggestedPolicy } from "@/lib/suggested-policy";
 import { useHydrated } from "@/lib/use-hydrated";
 import { INPUT, keepTyped, SettingsField, SettingsResult } from "./settings-ui";
 
@@ -36,10 +37,13 @@ export function BookingPolicyForm({
   currency,
   orgSlug,
   profile,
+  takesDeposit = false,
 }: {
   currency: string;
   orgSlug: string;
   profile: BookingProfilePublic;
+  /** The business asks for money at booking, so the suggestion covers a deposit. */
+  takesDeposit?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(
     saveProfileAction.bind(null, orgSlug),
@@ -96,6 +100,42 @@ export function BookingPolicyForm({
           >
             {count} of {BOOKING_POLICY_MAX} characters
           </p>
+          {text.trim() === "" ? (
+            <div className="space-y-1">
+              <Button
+                className="min-h-11 w-full sm:w-auto"
+                disabled={!hydrated}
+                onClick={() =>
+                  setText(
+                    suggestedPolicy({
+                      currency,
+                      // The late fee on screen, not the saved one, so the words
+                      // match an edit the business has not saved yet.
+                      profile:
+                        fee.ok && grace.ok
+                          ? {
+                              ...profile,
+                              late_fee_minor: fee.value,
+                              late_grace_min: grace.value,
+                            }
+                          : profile,
+                      takesDeposit,
+                    })
+                  )
+                }
+                size="touch"
+                type="button"
+                variant="outline"
+              >
+                Suggest text for me
+              </Button>
+              <p className="text-muted-foreground text-sm">
+                Writes a draft from your own settings — your cancellation
+                cutoff, your deposit rule and your late fee. Edit it, then press
+                Save. Nothing is saved until you do.
+              </p>
+            </div>
+          ) : null}
           {tooLong ? (
             <p className="text-destructive text-base font-medium" role="alert">
               Shorten the policy to {BOOKING_POLICY_MAX} characters.

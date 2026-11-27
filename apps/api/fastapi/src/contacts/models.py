@@ -39,6 +39,11 @@ class Contact(Base):
         sa.UniqueConstraint(
             "organisation_id", "email_hash", name="contact_organisation_email_hash"
         ),
+        sa.Index(
+            "contact_organisation_email_variant_hash_idx",
+            "organisation_id",
+            "email_variant_hash",
+        ),
         {"schema": "org"},
     )
 
@@ -54,6 +59,17 @@ class Contact(Base):
     email_hash: Mapped[str | None] = mapped_column(String(64))
     #: Kept only while the address is needed to send; blanked on erasure.
     email: Mapped[str | None] = mapped_column(String(320))
+    #: HMAC of the coarser variant form of the address (``normalise_email_variant``:
+    #: ``+tag`` stripped everywhere, dots stripped at dot-ignoring providers). Used
+    #: ONLY by ``is_known_address`` to refuse a look-alike of a known customer. It
+    #: is NOT identity: never match, merge or find a contact by it, never make it
+    #: unique. Two different people can share a variant form (at a provider that
+    #: treats ``x+a@example.com`` and ``x+b@example.com`` as two mailboxes, both
+    #: are ``x@example.com`` here), so ``email_hash`` stays the only key. Cleared on
+    #: erasure: an erased contact matches on its exact ``email_hash`` tombstone
+    #: alone. NULL for an erased contact erased before this column existed, and for
+    #: a walk-in.
+    email_variant_hash: Mapped[str | None] = mapped_column(String(64))
     name: Mapped[str | None] = mapped_column(String(255))
     phone: Mapped[str | None] = mapped_column(String(40))
     #: Optional Barrels ID link. Deliberately not a foreign key: deleting an

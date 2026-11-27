@@ -6,6 +6,7 @@
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
 import type { BookingBusinessType } from "./BookingBusinessType.js";
 import type { BookingDepositCollection } from "./BookingDepositCollection.js";
+import type { BookingGalleryImage } from "./BookingGalleryImage.js";
 import type { BookingLateFee } from "./BookingLateFee.js";
 import type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 import type { BookingPublicProvider } from "./BookingPublicProvider.js";
@@ -37,6 +38,15 @@ export type BookingStorefront = {
    * @description The business's plain-text booking policy, or null when it has none.
    */
   booking_policy?: string | null;
+  /**
+   * @description What the business says about itself, as plain text, or null when it has written nothing. Show it above the services, with its line breaks kept and escaped as text; it is never HTML.
+   */
+  about?: string | null;
+  /**
+   * @description The business's photographs of its work, at most 12, in its own order. Empty when it has uploaded none: show no gallery at all then.
+   * @type array | undefined
+   */
+  gallery?: BookingGalleryImage[];
   /**
    * @description `business`: the deposit is paid to the business by hand, outside Barrels; show each service's `deposit_to_business_minor` and `deposit_instructions`, and take no online payment for it.
    * @default 'online'

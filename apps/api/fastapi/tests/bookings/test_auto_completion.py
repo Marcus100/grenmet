@@ -21,6 +21,7 @@ from src.rewards import service as rewards_service
 from src.rewards.schemas import ProgramCreate
 from src.utils.datetime import utc_now
 from src.worker import main as worker
+from tests.bookings.email_code_helpers import book_known
 from tests.bookings.test_public_bookings import (
     Studio,
     _book,
@@ -140,7 +141,9 @@ async def test_a_system_completion_earns_no_reward_and_sends_nothing(
         ),
     )
     slots = await _slots(async_client, studio)
-    first = await _book(async_client, studio, slots[0], customer_email=email)
+    first = await book_known(
+        db_async, async_client, studio, slots[0], customer_email=email
+    )
     assert first.status_code == 201, first.text
     first_id = first.json()["booking"]["id"]
     customer = await db_async.scalar(
@@ -155,7 +158,9 @@ async def test_a_system_completion_earns_no_reward_and_sends_nothing(
     await db_async.commit()
 
     # A second booking with the same contact, closed by hand: this one earns.
-    second = await _book(async_client, studio, slots[0], customer_email=email)
+    second = await book_known(
+        db_async, async_client, studio, slots[0], customer_email=email
+    )
     assert second.status_code == 201, second.text
     second_id = second.json()["booking"]["id"]
     booking = await db_async.get(Booking, uuid.UUID(second_id))

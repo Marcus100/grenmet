@@ -123,6 +123,12 @@ export const bookingProfilePublicSchema = z.object({
     .describe(
       "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
     ),
+  about: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "What the business says about itself, up to 1000 characters of plain text. Shown above the services on its public booking page. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+    ),
   deposit_collection: bookingDepositCollectionSchema
     .optional()
     .default("online")

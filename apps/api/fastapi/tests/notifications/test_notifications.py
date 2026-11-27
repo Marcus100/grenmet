@@ -369,6 +369,62 @@ async def test_dispatch_failure_backs_off(db_async: AsyncSession) -> None:
     assert await dispatch.process_due_deliveries(session=db_async, sender=boom) == 0
 
 
+@pytest.mark.parametrize(
+    ("attempts", "seconds"),
+    [(1, 10), (2, 20), (3, 40), (4, 80), (9, 2560), (10, 3600), (20, 3600)],
+)
+def test_email_retry_delay_doubles_from_ten_seconds_and_caps_at_an_hour(
+    attempts: int, seconds: int
+) -> None:
+    assert dispatch._retry_delay_seconds(attempts) == seconds
+
+
+@pytest.mark.usefixtures("email_on")
+async def test_email_delivery_waits_then_stops_when_attempts_run_out(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    delivery = await _queued(db_async, user)
+
+    def boom(**_kwargs: object) -> None:
+        raise RuntimeError("provider down")
+
+    async def make_due() -> None:
+        # The cron run only picks a failed row once its wait has passed.
+        await db_async.execute(
+            update(NotificationDelivery)
+            .where(NotificationDelivery.id == delivery.id)
+            .values(next_retry_at=utc_now() - timedelta(days=1))
+        )
+        await db_async.commit()
+
+    # Three attempts allowed: the waits after each failure are 10 s, 20 s, 40 s.
+    for attempt, seconds in ((1, 10), (2, 20), (3, 40)):
+        await make_due()
+        before = utc_now()
+        assert (
+            await dispatch.process_due_deliveries(
+                session=db_async, sender=boom, max_attempts=3
+            )
+            == 1
+        )
+        await db_async.refresh(delivery)
+        assert delivery.attempts == attempt
+        assert timedelta(seconds=seconds - 5) <= delivery.next_retry_at - before
+        assert delivery.next_retry_at - before <= timedelta(seconds=seconds + 5)
+
+    # Exhausted: still FAILED, but no attempt is left, so even a due row is not picked.
+    await make_due()
+    assert (
+        await dispatch.process_due_deliveries(
+            session=db_async, sender=boom, max_attempts=3
+        )
+        == 0
+    )
+    await db_async.refresh(delivery)
+    assert (delivery.status, delivery.attempts) == (DeliveryStatus.FAILED.value, 3)
+
+
 # ── Sweeps ────────────────────────────────────────────────────────────────────
 
 

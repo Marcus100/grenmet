@@ -31,7 +31,7 @@ const NO_SERVICES = /No services yet/u;
 const SETTINGS_LINK = "Business settings";
 const NO_PEOPLE = /so customers can see times/u;
 const NOBODY_DOES =
-  /No one is set to do this service, so customers see no times/u;
+  /Nobody is set to do this, so customers see no times for it/u;
 
 const SETTINGS: BookingSettings = {
   profile: null,

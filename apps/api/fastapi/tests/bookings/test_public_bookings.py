@@ -14,8 +14,8 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox, turnstile
-from src.bookings import public, reminders
 from src.auth.models import User
+from src.bookings import public, reminders
 from src.bookings.models import Booking, BookingEvent, BookingStatus, Customer
 from src.contacts.models import Contact
 from src.email_config import email_settings
@@ -261,12 +261,20 @@ async def test_requires_confirmation_creates_a_pending_booking(
 async def test_repeat_customer_reuses_the_customer_row(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
+    from tests.bookings.email_code_helpers import (
+        book_known,  # #1969: needs the email code
+    )
+
     studio = await _studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     email = f"repeat-{uuid.uuid4().hex[:6]}@example.com"
-    first = (await _book(async_client, studio, slots[0], customer_email=email)).json()
+    first = (
+        await book_known(db_async, async_client, studio, slots[0], customer_email=email)
+    ).json()
     second = (
-        await _book(async_client, studio, slots[-1], customer_email=email.upper())
+        await book_known(
+            db_async, async_client, studio, slots[-1], customer_email=email.upper()
+        )
     ).json()
     first_customer = (await _booking_for(db_async, first["booking"]["id"])).customer_id
     second_customer = (
