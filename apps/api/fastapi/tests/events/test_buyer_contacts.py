@@ -193,6 +193,27 @@ async def test_online_orders_and_legacy_organisers_are_left_alone(
 
 
 @pytest.mark.asyncio
+async def test_a_blank_name_and_phone_count_as_no_name(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop(db_async, events_db, linked=True)
+    blank = await _order(events_db, shop, name="", phone="   ")
+    spaces = await _order(events_db, shop, name="   ")
+    named = await _order(events_db, shop, name="  ", phone="473-555-0102")
+
+    assert await _run_backfill(events_db) == 1
+
+    assert await _contact_id_of(events_db, blank) is None
+    assert await _contact_id_of(events_db, spaces) is None
+    contact_id = await _contact_id_of(events_db, named)
+    assert contact_id is not None
+    contact = await db_async.get(Contact, contact_id)
+    assert contact is not None
+    assert contact.name is None  # a blank name is stored as no name
+    assert contact.phone == "473-555-0102"
+
+
+@pytest.mark.asyncio
 async def test_a_nameless_cash_sale_gets_no_contact(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:

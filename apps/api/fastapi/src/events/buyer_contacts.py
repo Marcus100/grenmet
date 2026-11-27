@@ -8,9 +8,9 @@ an opt-in. Bookings does not gate on the contacts product either, so this
 creates the contact whatever the organisation holds: erasure must reach it.
 """
 
-from typing import cast
+from typing import Any, cast
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.contacts import service as contacts_service
@@ -18,6 +18,17 @@ from src.contacts import service as contacts_service
 from .models import Listing, Order, Organiser
 
 WALK_IN_SOURCE = "events"
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    """A name or phone that is empty or only spaces identifies nobody: no value."""
+    stripped = (value or "").strip()
+    return stripped or None
+
+
+def _nonblank(column: Any) -> Any:
+    """SQL: the column holds a value after trimming (NULL, '' and spaces do not)."""
+    return func.nullif(func.trim(column), "").is_not(None)
 
 
 async def organisation_for_listing(db: AsyncSession, listing_id: object) -> str | None:
@@ -39,13 +50,15 @@ async def link_walk_in(
     """
     if organisation_id is None:
         return
-    if order.buyer_name is None and order.buyer_phone is None:
+    name = _blank_to_none(order.buyer_name)
+    phone = _blank_to_none(order.buyer_phone)
+    if name is None and phone is None:
         return
     contact = await contacts_service.create_without_email(
         db,
         organisation_id,
-        name=order.buyer_name,
-        phone=order.buyer_phone,
+        name=name,
+        phone=phone,
         source=WALK_IN_SOURCE,
     )
     order.contact_id = contact.id
@@ -67,7 +80,10 @@ async def backfill_batch(db: AsyncSession, *, limit: int) -> int:
                 Order.channel == "outlet",
                 Order.contact_id.is_(None),
                 Organiser.organisation_id.is_not(None),
-                or_(Order.buyer_name.is_not(None), Order.buyer_phone.is_not(None)),
+                or_(
+                    _nonblank(Order.buyer_name),
+                    _nonblank(Order.buyer_phone),
+                ),
             )
             .order_by(Order.id)
             .limit(limit)
