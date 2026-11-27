@@ -159,8 +159,8 @@ jobs:
         with:
           sarif_file: "trivy-results.sarif"
 
-  # Job 3: Tests, sharded across parallel jobs. Three file-aligned slices of the
-  # suite (tests/sharding.py) and the Schemathesis fuzz suite (-m fuzz, deselected
+  # Job 3: Tests, sharded across parallel jobs. Four file-aligned slices of the
+  # suite, balanced by measured seconds (tests/sharding.py), and the Schemathesis fuzz suite (-m fuzz, deselected
   # by default in pyproject) each run on their own runner with their own Postgres
   # service. Every test runs whenever the diff touches Python or an unknown path
   # (scripts/ci/select-images.mjs selectJobs); sharding only shrinks wall time.
@@ -175,9 +175,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { id: shard-1, name: "shard 1/3", pytest: "-m 'not fuzz' --shard 1/3" }
-          - { id: shard-2, name: "shard 2/3", pytest: "-m 'not fuzz' --shard 2/3" }
-          - { id: shard-3, name: "shard 3/3", pytest: "-m 'not fuzz' --shard 3/3" }
+          - { id: shard-1, name: "shard 1/4", pytest: "-m 'not fuzz' --shard 1/4" }
+          - { id: shard-2, name: "shard 2/4", pytest: "-m 'not fuzz' --shard 2/4" }
+          - { id: shard-3, name: "shard 3/4", pytest: "-m 'not fuzz' --shard 3/4" }
+          - { id: shard-4, name: "shard 4/4", pytest: "-m 'not fuzz' --shard 4/4" }
           - { id: fuzz, name: "fuzz", pytest: "-m fuzz" }
     env:
       POSTGRES_SERVER: localhost
@@ -257,17 +258,17 @@ jobs:
         run: uv run --frozen --package fast-back python -m scripts.fetch_iwxxm_schemas
 
       - name: Test database isolation contract
-        if: matrix.id == 'shard-1'
+        if: matrix.id == 'fuzz'
         run: uv run --frozen --package fast-back python -m unittest tests.test_database_target
 
       - name: Run migrations
         # Migration smoke checks are independent of the sharded pytest slices, so
-        # one job runs them rather than all four.
-        if: matrix.id == 'shard-1'
+        # one job runs them: the fuzz job, the lightest, so no slice waits on them.
+        if: matrix.id == 'fuzz'
         run: uv run --frozen --package fast-back alembic upgrade head
 
       - name: Verify CMS media migration rollback
-        if: matrix.id == 'shard-1'
+        if: matrix.id == 'fuzz'
         env:
           CMS_MIGRATION_TEST_DSN: postgresql://app:changethis@localhost:5432/app
         run: uv run --frozen --package fast-back python -m unittest discover -s ../../../scripts/production -p test_cms_migrations.py
@@ -337,7 +338,7 @@ jobs:
         # without path remapping. The HTML report keeps per-test contexts.
         run: |
           set -euo pipefail
-          test "$(ls reports/shards/*.data | wc -l)" -eq 4
+          test "$(ls reports/shards/*.data | wc -l)" -eq 5
           export COVERAGE_FILE=reports/coverage.combined
           uv run --frozen --package fast-back coverage combine reports/shards/*.data
           uv run --frozen --package fast-back coverage report --skip-covered
