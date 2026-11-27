@@ -414,7 +414,8 @@ async def erase_contact(
     """Blank personal details, keep the hash tombstone, revoke all consent.
 
     Registered domains clear their own copies of those details in the same
-    transaction (``references.erase_all``).
+    transaction (``references.erase_all``), and the mail addressed to the contact
+    is deleted (queued) or redacted (sent) by ``address_log.clear_contact_mail``.
     """
     if contact.erased_at is not None:
         return contact
@@ -423,6 +424,15 @@ async def erase_contact(
     for purpose, consent in current.items():
         if consent.granted:
             await set_consent(session, contact, purpose, False, source=ERASURE_SOURCE)
+    if contact.email is not None:
+        # The queued and sent mail is found by the address, so it must run before the
+        # address is blanked below (#1963). Imported here: notifications sits above
+        # contacts in the import graph.
+        from src.notifications import address_log
+
+        await address_log.clear_contact_mail(
+            session, organisation_id=contact.organisation_id, email=contact.email
+        )
     contact.email = None
     contact.name = None
     contact.phone = None

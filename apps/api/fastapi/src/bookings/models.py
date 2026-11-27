@@ -752,13 +752,14 @@ async def _merge_customers(session: AsyncSession, from_id: str, to_id: str) -> N
         await session.execute(sa.delete(Customer).where(Customer.id.in_(dropped)))
 
 
-async def _erase_booked_names(session: AsyncSession, contact_id: str) -> None:
-    """A contact erasure: drop the names typed on that person's bookings.
+async def _erase_booking_copies(session: AsyncSession, contact_id: str) -> None:
+    """A contact erasure: drop the personal text typed on that person's bookings.
 
-    ``booking.booked_name`` is the only copy of a contact's personal data this
-    domain keeps, and every view prefers it (``public.booked_name``), so the
-    copy has to go with the contact's own name. Each booking then reads as the
-    blanked contact does: no name at all.
+    ``booking.booked_name`` is the name typed on each booking, and every view prefers
+    it (``public.booked_name``), so the copy has to go with the contact's own name.
+    ``booking.notes`` is free text the customer typed, which can hold anything, so it
+    goes too (#1963). Each booking row survives, and reads as the blanked contact
+    does: no name and no notes.
     """
     await session.execute(
         sa.update(Booking)
@@ -767,12 +768,12 @@ async def _erase_booked_names(session: AsyncSession, contact_id: str) -> None:
                 sa.select(Customer.id).where(Customer.contact_id == contact_id)
             )
         )
-        .values(booked_name=None)
+        .values(booked_name=None, notes=None)
     )
 
 
 contact_references.register(
     cast(sa.Table, Customer.__table__),
     merge=_merge_customers,
-    erase=_erase_booked_names,
+    erase=_erase_booking_copies,
 )

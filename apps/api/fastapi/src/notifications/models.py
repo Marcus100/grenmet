@@ -201,6 +201,8 @@ class OutboundEmail(Base):
     __tablename__ = "outbound_email"
     __table_args__ = (
         sa.Index("ix_outbound_email_due", "status", "next_retry_at"),
+        # Erasure of one organisation's contact (#1963) finds its mail here.
+        sa.Index("ix_outbound_email_organisation_id", "organisation_id"),
         # One row per dedupe key (e.g. a CAP alert and one subscriber).
         sa.Index(
             "uq_outbound_email_dedupe_key",
@@ -218,6 +220,10 @@ class OutboundEmail(Base):
     html: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     transactional: Mapped[bool] = mapped_column(default=False)
     dedupe_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    #: The business the mail was sent for. NULL on rows written before this column
+    #: (not backfilled: their owner is unknown) and on mail no business queued. No
+    #: foreign key: the value only scopes contact erasure (#1963).
+    organisation_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), default=OutboundEmailStatus.PENDING.value
     )
