@@ -884,6 +884,24 @@ function TimeStep({
   );
 }
 
+/**
+ * Asked above the book button whenever this booking still needs an emailed
+ * code: before the first press when the service says so, and as soon as the API
+ * says the signed-in person's address needs confirming. Confirming an address is
+ * a normal step, so this is never styled as a failure (issue #1951, item 4).
+ */
+function CodeAsk({ email }: { email: string }) {
+  const address = email.trim();
+  return (
+    <p className="notice" role="status">
+      One more step: we email a {CODE_LENGTH}-digit code to{" "}
+      {address ? <strong>{address}</strong> : "the address above"} to check it
+      reaches you. Press Email me a verification code, then type the code in.
+      Nothing is booked or charged until you do.
+    </p>
+  );
+}
+
 /** Shown once the code is verified, or when no code is needed. */
 function VerifiedNotice({ proof }: { proof: string | null }) {
   return (
@@ -1313,12 +1331,17 @@ function BookingFlowBody({
   };
 
   const onBookingFailed = (outcome: Failure) => {
-    setFormError(outcome.message);
     if (outcome.code === "email_unverified") {
-      // The proof was used, expired or never accepted: ask for a new code.
+      // The proof was used, expired or never accepted, or a signed-in person's
+      // own address still needs confirming. Asking for a code is a normal step,
+      // not a failure: the ask above the button says so and nothing red shows
+      // (issue #1951, item 4). The typed details are all kept.
       emailCode.dropProof();
       setCodeForced(serviceId);
+      setFormError(null);
+      return;
     }
+    setFormError(outcome.message);
     if (outcome.code === "add_ons_unavailable") {
       addOns.gone(outcome.message);
       setStartsAt(null);
@@ -1679,6 +1702,7 @@ function BookingFlowBody({
           {isVerified && needsCode && (
             <VerifiedNotice proof={emailCode.proof} />
           )}
+          {needsCode && !isVerified && !stepOpen && <CodeAsk email={email} />}
 
           <ServiceNotes
             businessDeposit={businessDeposit}

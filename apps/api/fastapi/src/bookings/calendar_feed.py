@@ -256,7 +256,7 @@ async def _window_rows(
             changes.label("changes"),
             Service.name.label("service_name"),
             Provider.name.label("provider_name"),
-            Contact.name.label("customer_name"),
+            func.coalesce(Booking.booked_name, Contact.name).label("customer_name"),
         )
         .join(Service, Service.id == Booking.service_id)
         .join(Provider, Provider.id == Booking.provider_id)

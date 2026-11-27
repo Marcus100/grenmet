@@ -93,7 +93,7 @@ async def _detail(
         provider_name=managed.provider.name,
         customer=BookingStudioCustomer(
             id=customer.id,
-            name=public.display_name(contact),
+            name=public.booked_name(booking, contact),
             email=contact.email,
             phone=contact.phone,
         ),
@@ -198,7 +198,11 @@ async def agenda(
     )
     rows = (
         await session.execute(
-            select(Booking, Service.name, func.coalesce(Contact.name, ""))
+            select(
+                Booking,
+                Service.name,
+                func.coalesce(Booking.booked_name, Contact.name, ""),
+            )
             .join(Service, Service.id == Booking.service_id)
             .join(Customer, Customer.id == Booking.customer_id)
             .join(Contact, Contact.id == Customer.contact_id)
@@ -697,6 +701,8 @@ async def create_booking(
         provider_id=provider.id,
         service_id=svc.id,
         customer_id=customer.id,
+        # What this entry shows, whatever name the contact already holds.
+        booked_name=" ".join(payload.customer_name.split()) or None,
         starts_at=starts_at,
         ends_at=ends_at,
         blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),

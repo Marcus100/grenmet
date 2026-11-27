@@ -605,6 +605,13 @@ class Booking(Base):
     customer_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("bookings.customer.id"), index=True
     )
+    #: The name typed on this booking. It is what this booking shows everywhere
+    #: (mail, manage page, agenda, studio detail); the contact keeps its own name
+    #: for matching and the customer list, so a second booking under one email
+    #: never shows the first booking's name. Null for rows made before the
+    #: column existed and for a staff entry with no name: the contact's name
+    #: then shows, as it always did.
+    booked_name: Mapped[str | None] = mapped_column(String(120), default=None)
     starts_at: Mapped[datetime]
     ends_at: Mapped[datetime]
     blocked_from: Mapped[datetime]
