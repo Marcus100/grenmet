@@ -844,6 +844,22 @@ async def sweep_booking_uploads(ctx: dict[str, Any]) -> int:
                 False,
             )
             raise
+    if result.objects_failed:
+        # Rows are gone but these files are still in storage and still served.
+        logger.warning(
+            "Booking upload sweep left %s of %s file(s) in storage",
+            result.objects_failed,
+            result.swept,
+            extra={"area": "storage"},
+        )
+    if result.swept and result.objects_failed == result.swept:
+        # Every delete failed: an outage (credentials, reachability), not a bad object.
+        await operational_metrics.record_job(
+            ctx.get("redis"), "sweep_booking_uploads", str(ctx.get("job_id", "")), False
+        )
+        raise RuntimeError(
+            "Booking upload sweep could not delete any file from storage"
+        )
     await operational_metrics.record_job(
         ctx.get("redis"), "sweep_booking_uploads", str(ctx.get("job_id", "")), True
     )

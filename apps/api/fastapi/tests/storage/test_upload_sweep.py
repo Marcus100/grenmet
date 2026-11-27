@@ -663,6 +663,38 @@ def test_the_sweep_job_is_scheduled_hourly_and_monitored() -> None:
     )
 
 
+async def test_the_job_fails_when_every_storage_delete_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rows already gone and every file still in storage is an outage: the job must be
+    recorded as failed. A partial failure is only logged, and the job still succeeds."""
+    from src import operational_metrics
+    from src.worker import main
+
+    recorded: list[tuple[str, bool]] = []
+
+    async def record(_: object, name: str, __: str, success: bool) -> None:
+        recorded.append((name, success))
+
+    monkeypatch.setattr(operational_metrics, "record_job", record)
+
+    async def all_failed(_session: object) -> sweep.SweepResult:
+        return sweep.SweepResult(swept=2, batches=1, objects_failed=2)
+
+    monkeypatch.setattr(sweep, "sweep_unreferenced", all_failed)
+    with pytest.raises(RuntimeError):
+        await main.sweep_booking_uploads({"job_id": "t"})
+    assert recorded == [("sweep_booking_uploads", False)]
+
+    async def partly_failed(_session: object) -> sweep.SweepResult:
+        return sweep.SweepResult(swept=2, batches=1, objects_failed=1)
+
+    monkeypatch.setattr(sweep, "sweep_unreferenced", partly_failed)
+    recorded.clear()
+    assert await main.sweep_booking_uploads({"job_id": "t"}) == 2
+    assert recorded == [("sweep_booking_uploads", True)]
+
+
 def test_the_sweep_is_registered_as_a_tracked_job() -> None:
     from src import operational_metrics
 
