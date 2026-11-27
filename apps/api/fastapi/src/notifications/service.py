@@ -900,13 +900,14 @@ def enqueue_email(
     template: str | None = None,
     props: dict[str, Any] | None = None,
     html: str | None = None,
+    organisation_id: str | None = None,
 ) -> OutboundEmail:
     """Queue an email for the worker, inside the caller's transaction.
 
     The ``OutboundEmail`` row holds the content and is the delivery log; an
     ``email.deliver`` outbox row (same transaction) sends it and owns retry and
     backoff. Non-transactional mail is dropped at send time for suppressed
-    addresses.
+    addresses. ``organisation_id`` names the business that queued it (#1963).
     """
     row = OutboundEmail(
         id=uuid.uuid4(),
@@ -916,6 +917,7 @@ def enqueue_email(
         props=props or {},
         html=html,
         transactional=transactional,
+        organisation_id=organisation_id,
     )
     session.add(row)
     _queue_delivery(session, row.id)

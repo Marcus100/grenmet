@@ -74,7 +74,8 @@ async def enqueue_email(
     )
 
 
-def _log_row(payload: dict[str, Any]) -> OutboundEmail:
+def _log_row(message: outbox.OutboxMessage) -> OutboundEmail:
+    payload = message.payload
     return OutboundEmail(
         id=uuid.uuid4(),
         to_email=service.normalise_email(payload["to_email"]),
@@ -83,13 +84,15 @@ def _log_row(payload: dict[str, Any]) -> OutboundEmail:
         props=payload.get("props") or {},
         html=payload.get("html"),
         transactional=bool(payload.get("transactional", False)),
+        # The business that queued the mail (#1963): the outbox row carries it.
+        organisation_id=message.organisation_id,
     )
 
 
 async def _email_send_dead(
     session: AsyncSession, message: outbox.OutboxMessage, error: Exception
 ) -> None:
-    row = _log_row(message.payload)
+    row = _log_row(message)
     row.status = OutboundEmailStatus.FAILED.value
     row.attempts = message.attempts + 1
     row.last_error = f"Delivery failed: {type(error).__name__}"
@@ -100,7 +103,7 @@ async def _email_send_dead(
 
 @outbox.handler(EMAIL_SEND, on_dead=_email_send_dead)
 async def send_email(session: AsyncSession, message: outbox.OutboxMessage) -> None:
-    row = _log_row(message.payload)
+    row = _log_row(message)
     await dispatch.send_outbound_row(
         session,
         row,

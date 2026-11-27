@@ -66,7 +66,8 @@ def _checks(connection) -> set[str]:
 def test_there_is_a_single_alembic_head() -> None:
     # Later slices stack on this one; the head moves with each new revision.
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["contactvariant20261127"]
+    # The head moved to outboundemailorg20261127 (#1963), as intended.
+    assert heads == ["outboundemailorg20261127"]
 
 
 def test_upgrade_adds_both_columns_with_their_defaults(rehearsal):
