@@ -33,7 +33,10 @@ async function bookManageAndCancel(
 ): Promise<void> {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
-  const email = `e2e+${tag}-${Date.now()}@example.com`;
+  // No "+tag": the known-customer check folds every "x+tag@" to "x@" (issue #1982),
+  // so every run of e2e+<tag>@ would be one customer and the second run would be
+  // refused as known. A hyphen keeps each run a new address.
+  const email = `e2e-${tag}-${Date.now()}@example.com`;
   const first = `Cancel${tag}`;
   const customer = `${first} Tester`;
 
