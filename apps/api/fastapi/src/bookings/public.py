@@ -812,13 +812,28 @@ OPEN_CAP_STATUSES = tuple(
 )
 
 
-#: The same text whatever the count, so a refusal does not reveal that bookings exist
-#: for an address (security review, MEDIUM-2). The cap limits careless repeat bookings;
-#: it is not abuse protection (the rate limit and Turnstile are).
-OPEN_CAP_MESSAGE = (
-    "We can't take another online booking for this email right now. "
-    "Please contact the business to book."
-)
+def open_cap_message(open_count: int) -> str:
+    """The refusal for a customer who already holds the business's
+    ``max_open_per_customer`` future bookings (owner decision, 27 Nov 2026: the old
+    one wording left a legitimate customer with nothing to act on). It names only
+    the caller's own count and where to change a booking: never another customer's
+    or another booking's name, time, address or reference.
+
+    The earlier rule (security review, MEDIUM-2) was one text whatever the count, so
+    that a refusal would not say that bookings exist for an address. The refusal
+    itself already says the address is at the cap, and the count is the caller's own
+    number, so naming it tells a prober nothing new about anybody else. The cap
+    limits careless repeat bookings; it is not abuse protection (the rate limit and
+    Turnstile are).
+    """
+    one = open_count == 1
+    return (
+        f"You already have {open_count} upcoming "
+        f"{'booking' if one else 'bookings'} with this business, "
+        "which is as many as we can hold online for one email address. "
+        f"To book another time, change or cancel {'it' if one else 'one of them'} "
+        "from the link in your booking email, or contact the business."
+    )
 
 
 async def _require_under_open_cap(
@@ -841,8 +856,9 @@ async def _require_under_open_cap(
             Booking.starts_at > now,
         )
     )
-    if (open_count or 0) >= profile.max_open_per_customer:
-        raise BookingConflictError(OPEN_CAP_MESSAGE)
+    held = open_count or 0
+    if held >= profile.max_open_per_customer:
+        raise BookingConflictError(open_cap_message(held))
 
 
 #: A booking that makes its customer a returning client of the business.

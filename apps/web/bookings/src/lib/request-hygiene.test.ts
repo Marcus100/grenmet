@@ -5,6 +5,7 @@ import {
   EXPIRY_INVALID,
   expiryText,
   MAX_OPEN_INVALID,
+  maxOpenSentence,
 } from "./request-hygiene";
 
 describe("checkExpiry", () => {
@@ -121,5 +122,28 @@ describe("expiryText", () => {
         startsAt: "2026-11-30T10:00:00Z",
       })
     ).toBe("Expires in 20 min");
+  });
+});
+
+describe("maxOpenSentence", () => {
+  it("says the limit in plain words, singular at 1", () => {
+    expect(maxOpenSentence("1")).toContain(
+      "A customer may hold 1 upcoming booking at once."
+    );
+    expect(maxOpenSentence("3")).toContain(
+      "A customer may hold 3 upcoming bookings at once."
+    );
+  });
+
+  it("says what the customer is told, so a business is not surprised", () => {
+    const text = maxOpenSentence("3") ?? "";
+    expect(text).toContain("told how many they hold");
+    expect(text).toContain("link in their booking email");
+  });
+
+  it("is null for a value the API would refuse", () => {
+    for (const text of ["", "0", "21", "two"]) {
+      expect(maxOpenSentence(text)).toBeNull();
+    }
   });
 });

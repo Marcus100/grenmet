@@ -5,8 +5,34 @@
 // screen reader and a keyboard user land on the outcome.
 
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import Link from "next/link";
 import { type FormEvent, startTransition, useEffect, useRef } from "react";
 import type { ActionState } from "@/lib/studio-action-state";
+
+/**
+ * Said about a service that is offered to customers but that no active person is
+ * set to do: customers can pick it and then see no open times, and nothing else
+ * tells the business. One wording for the Services list and the service's form.
+ */
+export function NobodyDoesNotice({ orgSlug }: { orgSlug: string }) {
+  return (
+    <p
+      className="border-border rounded-lg border p-3 text-sm"
+      data-testid="nobody-does-notice"
+      role="status"
+    >
+      Nobody is set to do this, so customers see no times for it. Tick it for
+      someone under{" "}
+      <Link
+        className="font-medium underline underline-offset-4"
+        href={{ pathname: `/studio/${orgSlug}/people` }}
+      >
+        People
+      </Link>
+      , or untick &quot;Offered to customers&quot;.
+    </p>
+  );
+}
 
 export const INPUT = "h-11";
 export const SELECT = "w-full [&_select]:h-11";

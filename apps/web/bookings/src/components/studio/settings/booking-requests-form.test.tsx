@@ -13,6 +13,10 @@ const LIMIT = "Most upcoming bookings one customer can hold online";
 const START = "Only at the start time";
 const TO_20 = /from 1 to 20/u;
 const SAVE = "Save booking requests";
+const HOLD_1 = /A customer may hold 1 upcoming booking at once\./u;
+const HOLD_7 = /A customer may hold 7 upcoming bookings at once\./u;
+const HOLD_5 = /A customer may hold 5 upcoming bookings at once\./u;
+const HOLD_ANY = /A customer may hold/u;
 
 function profile(extra: Partial<BookingProfilePublic>): BookingProfilePublic {
   return {
@@ -55,7 +59,7 @@ describe("BookingRequestsForm", () => {
     ).toBeVisible();
     expect(
       screen.getByText(
-        "Customers who reach the limit are asked to contact you to book more."
+        "A customer may hold 3 upcoming bookings at once. Beyond that, online booking is refused: the customer is told how many they hold and that they can change or cancel one from the link in their booking email."
       )
     ).toBeVisible();
   });
@@ -73,5 +77,31 @@ describe("BookingRequestsForm", () => {
     render(<BookingRequestsForm orgSlug="salon" profile={profile({})} />);
     fireEvent.click(screen.getByRole("radio", { name: START }));
     expect(screen.getByLabelText(HOURS)).toBeDisabled();
+  });
+});
+
+describe("the limit in plain words", () => {
+  it("follows the number being typed, in the singular at 1", () => {
+    render(<BookingRequestsForm orgSlug="salon" profile={profile({})} />);
+    fireEvent.change(screen.getByLabelText(LIMIT), { target: { value: "1" } });
+    expect(screen.getByText(HOLD_1)).toBeVisible();
+    fireEvent.change(screen.getByLabelText(LIMIT), { target: { value: "7" } });
+    expect(screen.getByText(HOLD_7)).toBeVisible();
+  });
+
+  it("says nothing while the number is not one the API would take", () => {
+    render(<BookingRequestsForm orgSlug="salon" profile={profile({})} />);
+    fireEvent.change(screen.getByLabelText(LIMIT), { target: { value: "99" } });
+    expect(screen.queryByText(HOLD_ANY)).toBeNull();
+  });
+
+  it("describes the stored limit when the form opens", () => {
+    render(
+      <BookingRequestsForm
+        orgSlug="salon"
+        profile={profile({ max_open_per_customer: 5 })}
+      />
+    );
+    expect(screen.getByText(HOLD_5)).toBeVisible();
   });
 });

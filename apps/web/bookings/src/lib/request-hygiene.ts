@@ -48,6 +48,23 @@ export function checkMaxOpen(text: string): Checked<number> {
 }
 
 /**
+ * The limit in plain words, under the field, so a business can see what the
+ * number does before a customer meets it. Null while the typed value is not one
+ * the API would take (the field's own error says why).
+ */
+export function maxOpenSentence(text: string): string | null {
+  const check = checkMaxOpen(text);
+  if (!check.ok) {
+    return null;
+  }
+  const held =
+    check.value === 1
+      ? "1 upcoming booking"
+      : `${check.value} upcoming bookings`;
+  return `A customer may hold ${held} at once. Beyond that, online booking is refused: the customer is told how many they hold and that they can change or cancel one from the link in their booking email.`;
+}
+
+/**
  * When a pending request cancels itself: the request time plus the window, or
  * the start time if that is sooner or the window is null. Without a request
  * time and with a window set, the moment cannot be known: null (say nothing).
