@@ -125,6 +125,8 @@ jobs:
             dpkg -s "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
           done
           if [ ${#missing[@]} -gt 0 ]; then
+            # packages.microsoft.com returns 403 Forbidden and apt-get update fails hard on it; no package below comes from there (#1989).
+            sudo rm -f /etc/apt/sources.list.d/microsoft*.list /etc/apt/sources.list.d/microsoft*.sources
             installed=false
             for attempt in 1 2 3; do
               if sudo apt-get update && sudo apt-get install -y --no-install-recommends "${missing[@]}"; then
