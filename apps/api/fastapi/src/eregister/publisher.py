@@ -22,6 +22,7 @@ from src import provider_health
 from src.storage.config import StorageConfig
 from src.storage.service import StorageService
 from src.utils.datetime import utc_now
+from src.utils.retry_state import backoff_seconds, is_exhausted
 
 from .config import Wis2boxConfig, wis2box_settings
 from .models import (
@@ -42,7 +43,9 @@ Sink = Callable[[str, str], None]
 
 
 def retry_delay_seconds(attempts: int) -> int:
-    return min(RETRY_BASE_SECONDS << max(attempts - 1, 0), RETRY_MAX_SECONDS)
+    return backoff_seconds(
+        attempts, base_seconds=RETRY_BASE_SECONDS, max_seconds=RETRY_MAX_SECONDS
+    )
 
 
 def directory_sink(config: Wis2boxConfig) -> Sink:
@@ -99,7 +102,7 @@ async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> bool:
         )
     except Exception as exc:  # noqa: BLE001 - one bad file must not stop the batch
         row.last_error = str(exc)[:1000] or type(exc).__name__
-        if row.attempts >= max_attempts:
+        if is_exhausted(row.attempts, max_attempts):
             row.status = STATUS_FAILED
             row.next_retry_at = None
         else:

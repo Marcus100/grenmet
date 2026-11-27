@@ -25,6 +25,7 @@ from src.email_config import email_settings
 from src.outbox import Outbox
 from src.subscriptions.constants import NEWSLETTER_TEMPLATE
 from src.utils.datetime import utc_now
+from src.utils.retry_state import backoff_seconds
 
 from . import service
 from .config import notification_settings
@@ -53,7 +54,9 @@ _templates = Environment(
 
 
 def _retry_delay_seconds(attempts: int) -> int:
-    return min(_RETRY_BASE_SECONDS << max(attempts - 1, 0), _RETRY_MAX_SECONDS)
+    return backoff_seconds(
+        attempts, base_seconds=_RETRY_BASE_SECONDS, max_seconds=_RETRY_MAX_SECONDS
+    )
 
 
 def link_url(link_path: str | None) -> str | None:
