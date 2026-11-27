@@ -8,6 +8,7 @@ import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
+import { AboutField } from "./about-field";
 import { BrandSection } from "./brand-section";
 import { ListingSection } from "./listing-section";
 import {
@@ -287,6 +288,7 @@ export function ProfileForm({
           )}
         </SettingsField>
       </div>
+      <AboutField initial={profile?.about ?? null} />
       <ListingSection
         businessName={profile?.display_name ?? suggestedName}
         businessType={profile?.business_type ?? null}

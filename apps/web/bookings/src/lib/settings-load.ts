@@ -9,9 +9,15 @@ import type {
 } from "@barrelsgd/api-client";
 import { ResponseError } from "@barrelsgd/api-client";
 import { redirect } from "next/navigation";
+import type { GalleryPhotoView } from "@/lib/gallery-photo";
 import { reportError } from "@/lib/report-error";
 import type { StudioSession } from "@/lib/session";
-import { getSettings, listClosures, listExceptions } from "@/lib/studio-api";
+import {
+  getSettings,
+  listClosures,
+  listExceptions,
+  listGallery,
+} from "@/lib/studio-api";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 
@@ -135,6 +141,24 @@ export async function loadClosures(
   } catch (error) {
     readFailed(error, returnTo);
     return null;
+  }
+}
+
+/**
+ * The business's gallery photographs for the Profile section. A failed read
+ * answers an empty gallery, so the rest of Settings stays editable.
+ */
+export async function loadGallery(
+  session: StudioSession,
+  organisationId: string,
+  returnTo: string
+): Promise<GalleryPhotoView[]> {
+  try {
+    const photos = await listGallery(session.accessToken, organisationId);
+    return photos.map((photo) => ({ id: photo.id, fileId: photo.file_id }));
+  } catch (error) {
+    readFailed(error, returnTo);
+    return [];
   }
 }
 

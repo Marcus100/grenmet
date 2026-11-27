@@ -272,7 +272,7 @@ export function settingsFailure(error: unknown): StudioFailure {
  */
 export function logoUploadFailure(
   error: unknown,
-  what: "logo" | "cover photo" = "logo"
+  what: "logo" | "cover photo" | "photograph" = "logo"
 ): StudioFailure {
   const retry: StudioFailure = {
     kind: "unavailable",
@@ -306,6 +306,15 @@ export function logoUploadFailure(
       };
     }
     case 503:
+      // A gallery photograph is its own record, saved the moment it is added, so
+      // "save the profile without it" would be wrong advice for one.
+      if (what === "photograph") {
+        return {
+          kind: "unavailable",
+          message: "Photo uploads are not available right now.",
+          nextStep: "Try again later. Your other settings are not affected.",
+        };
+      }
       return {
         kind: "unavailable",
         message: `${what === "logo" ? "Logo" : "Cover photo"} uploads are not available right now.`,

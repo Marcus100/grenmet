@@ -32,6 +32,7 @@ import {
   type ClosedDaysProps,
 } from "@/components/studio/settings/closed-days";
 import { ContactForm } from "@/components/studio/settings/contact-form";
+import { GallerySection } from "@/components/studio/settings/gallery-section";
 import { HoursForm } from "@/components/studio/settings/hours-form";
 import { PaymentsPanel } from "@/components/studio/settings/payments-panel";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
@@ -41,6 +42,7 @@ import { NobodyDoesNotice } from "@/components/studio/settings/settings-ui";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
+import type { GalleryPhotoView } from "@/lib/gallery-photo";
 import { lateFeeSentence } from "@/lib/late-fee";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 import { servicesNobodyDoes } from "@/lib/setup-checklist";
@@ -142,12 +144,14 @@ function EmptyNote({
 
 export function ProfileSection({
   editable,
+  gallery,
   orgSlug,
   profile,
   suggestedName,
   zone,
 }: {
   editable: boolean;
+  gallery: readonly GalleryPhotoView[];
   orgSlug: string;
   profile: BookingProfilePublic | null;
   suggestedName: string;
@@ -168,6 +172,13 @@ export function ProfileSection({
       ) : (
         <ProfileSummary profile={profile} />
       )}
+      {/* Its own records, outside the profile form: each change saves at once. */}
+      <GallerySection
+        businessName={profile?.display_name ?? suggestedName}
+        editable={editable}
+        orgSlug={orgSlug}
+        photos={gallery}
+      />
     </Section>
   );
 }

@@ -154,6 +154,10 @@ class BookingProfile(Base):
             name="booking_policy",
         ),
         sa.CheckConstraint(
+            "about IS NULL OR char_length(about) BETWEEN 1 AND 1000",
+            name="about",
+        ),
+        sa.CheckConstraint(
             f"deposit_collection IN ({_values(BookingDepositCollection)})",
             name="deposit_collection",
         ),
@@ -290,6 +294,9 @@ class BookingProfile(Base):
     #: Plain-text booking policy (late fees and so on), shown before booking and in
     #: the confirmation. Never HTML: every surface renders it as text.
     booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
+    #: What the business says about itself, shown above the services on its public
+    #: booking page. Plain text, never HTML, rendered as text like the policy.
+    about: Mapped[str | None] = mapped_column(String(1000), default=None)
     #: ``BookingDepositCollection``: ``online`` (default) or ``business`` (display only).
     deposit_collection: Mapped[str] = mapped_column(
         String(20),
@@ -317,6 +324,30 @@ class BookingProfile(Base):
     max_open_per_customer: Mapped[int] = mapped_column(default=3, server_default="3")
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class GalleryPhoto(Base):
+    """One photograph of a business's work, shown in the strip on its booking page.
+
+    ``file_id`` names a completed ``booking-gallery`` upload of the same organisation
+    (no cross-database FK, the same as the logo and the cover photo). ``sort_order``
+    is the position the business arranged, always 0..n-1 with no hole: adding appends,
+    removing and reordering renumber what is left (``gallery.py``).
+    """
+
+    __tablename__ = "gallery_photo"
+    __table_args__ = (
+        sa.UniqueConstraint("organisation_id", "file_id", name="gallery_photo_file"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id"), index=True
+    )
+    file_id: Mapped[uuid.UUID] = mapped_column()
+    sort_order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
 class Service(Base):

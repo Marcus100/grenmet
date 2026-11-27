@@ -48,6 +48,7 @@ from . import (
     calendar_feed,
     customers,
     deposit_payments,
+    gallery,
     go_live,
     listing_review,
     public,
@@ -73,6 +74,8 @@ from .schemas import (
     BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingGalleryPhotoCreate,
+    BookingGalleryPhotoPublic,
     BookingListingQueue,
     BookingListingReview,
     BookingListingReviewList,
@@ -82,6 +85,7 @@ from .schemas import (
     BookingMyChoice,
     BookingMyChoices,
     BookingMyOrganisation,
+    BookingOrder,
     BookingProfilePublic,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -464,6 +468,89 @@ async def upsert_profile(
     )
     await session.commit()
     return profile
+
+
+# --- organisation: gallery -----------------------------------------------------------------
+
+
+@router.get(
+    "/org/gallery",
+    response_model=list[BookingGalleryPhotoPublic],
+    summary="List my gallery photographs",
+    description="The photographs of the business's work, in the order it arranged them.",
+    operation_id="bookingsListGallery",
+    responses=READ_ERRORS,
+)
+async def list_gallery(*, session: SessionDep, org: BookingsOrgRead) -> Any:
+    return await gallery.list_photos(session, org.organisation_id)
+
+
+@router.post(
+    "/org/gallery",
+    response_model=BookingGalleryPhotoPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a gallery photograph",
+    description=(
+        "Add a completed `booking-gallery` upload of this business to the end of its "
+        f"gallery. At most {gallery.MAX_PHOTOS} photographs; a further one, or a file "
+        "that is not a finished upload of this business, is refused with 409. Adding "
+        "a file that is already there answers the photograph that is there."
+    ),
+    operation_id="bookingsAddGalleryPhoto",
+    responses=WRITE_ERRORS,
+)
+async def add_gallery_photo(
+    *,
+    session: SessionDep,
+    org: BookingsOrgAdmin,
+    payload: BookingGalleryPhotoCreate,
+) -> Any:
+    photo = await gallery.add_photo(
+        session, organisation_id=org.organisation_id, file_id=payload.file_id
+    )
+    await session.commit()
+    return photo
+
+
+@router.put(
+    "/org/gallery/order",
+    response_model=list[BookingGalleryPhotoPublic],
+    summary="Reorder gallery photographs",
+    description=(
+        "Set the gallery order: each photograph's `sort_order` becomes its position. "
+        "Every id must be one of this business's photographs, else 404."
+    ),
+    operation_id="bookingsReorderGallery",
+    responses=WRITE_ERRORS,
+)
+async def reorder_gallery(
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingOrder
+) -> Any:
+    photos = await gallery.reorder(
+        session, organisation_id=org.organisation_id, ids=payload.ids
+    )
+    await session.commit()
+    return photos
+
+
+@router.delete(
+    "/org/gallery/{photo_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove a gallery photograph",
+    description=(
+        "Take one photograph out of the gallery. The photographs that are left keep "
+        "their order with no gap in it."
+    ),
+    operation_id="bookingsRemoveGalleryPhoto",
+    responses=WRITE_ERRORS,
+)
+async def remove_gallery_photo(
+    *, session: SessionDep, org: BookingsOrgAdmin, photo_id: uuid.UUID
+) -> None:
+    await gallery.remove_photo(
+        session, organisation_id=org.organisation_id, photo_id=photo_id
+    )
+    await session.commit()
 
 
 # --- organisation: services ----------------------------------------------------------------
