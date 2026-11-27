@@ -20,6 +20,7 @@ from sqlalchemy import (
     func,
     literal,
     literal_column,
+    or_,
     select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.payments.models import Intent, ProviderKey
 from src.utils.datetime import utc_now
 
-from . import deposit_payments, emails, public
+from . import deposit_payments, emails, lifecycle, public
 from .config import bookings_settings
 from .exceptions import BookingNotFoundError
 from .models import Booking, BookingDepositCollection, BookingProfile, BookingStatus
@@ -43,9 +44,13 @@ EXPIRY_BATCH = 100
 async def confirm_paid(
     session: AsyncSession, *, organisation_id: str, booking_id: uuid.UUID
 ) -> str:
-    """A deposit was captured: move ``pending_payment`` to ``confirmed`` (or to
-    ``pending`` when the business confirms requests by hand) and queue the
-    emails. Returns ``confirmed``, ``pending``, ``refunded`` or ``ignored``.
+    """A deposit was captured: move ``pending_payment`` to ``confirmed`` and queue
+    the emails. Returns ``confirmed``, ``pending``, ``refunded`` or ``ignored``.
+
+    A request paid after the business accepted it (``pay_after_acceptance``) is
+    confirmed: the acceptance already happened. ``pending`` is only for a booking
+    made before requests were paid after acceptance, which was paid first and
+    still waits for the business to confirm it by hand.
 
     A replay finds the booking already moved and does nothing. A booking that
     was cancelled before the payment landed (late callback after the hold
@@ -64,8 +69,16 @@ async def confirm_paid(
             session, booking, reason="Booking was cancelled before payment arrived"
         )
         return "refunded"
+    if status is BookingStatus.PENDING and booking.pay_after_acceptance:
+        # Paid before the business accepted (staff recorded it by hand): nothing
+        # is left to ask for on acceptance, so accepting confirms it directly.
+        booking.pay_after_acceptance = False
+        await session.flush()
+        return "ignored"
     if status is not BookingStatus.PENDING_PAYMENT:
         return "ignored"
+    if booking.pay_after_acceptance:
+        return await _confirm_accepted(session, managed)
     target = (
         BookingStatus.PENDING
         if profile.requires_confirmation
@@ -93,6 +106,54 @@ async def confirm_paid(
     )
     await session.flush()
     return target.value
+
+
+async def _confirm_accepted(session: AsyncSession, managed: public.Managed) -> str:
+    """The customer paid a request the business had accepted: it is confirmed.
+    The request and its acceptance were mailed already, so these mails have keys
+    of their own (the booking's ``booking-confirmation`` key is used)."""
+    booking = managed.booking
+    await public.transition(
+        session,
+        booking,
+        BookingStatus.CONFIRMED,
+        note=f"{deposit_payments.payment_noun(booking)} paid",
+    )
+    mail = public.build_mail(managed)
+    await public.queue_customer_email(
+        session,
+        managed,
+        emails.customer_confirmed(mail, paid=True),
+        f"booking-confirmed:{booking.id}",
+    )
+    await public.queue_studio_email(
+        session,
+        managed,
+        emails.studio_notice(mail, event="paid"),
+        f"booking-studio-paid:{booking.id}",
+    )
+    await session.flush()
+    return BookingStatus.CONFIRMED.value
+
+
+async def _tell_lapsed(session: AsyncSession, booking: Booking) -> None:
+    """An accepted request was not paid in time. Its customer was told it was
+    accepted and the business accepted it, so both are told it lapsed. (A checkout
+    abandoned at booking mails nobody: nobody was ever told about that booking.)"""
+    managed = await public.load_by_id(session, booking.id, booking.organisation_id)
+    mail = public.build_mail(managed)
+    await public.queue_customer_email(
+        session,
+        managed,
+        emails.customer_payment_lapsed(mail, lifecycle.book_again_url(managed.profile)),
+        f"booking-payment-lapsed:{booking.id}",
+    )
+    await public.queue_studio_email(
+        session,
+        managed,
+        emails.studio_notice(mail, event="unpaid"),
+        f"booking-studio-unpaid:{booking.id}",
+    )
 
 
 async def expire_unpaid(
@@ -136,17 +197,31 @@ async def expire_unpaid(
             else_=profile_hold,
         )
         hold = func.coalesce(Booking.hold_minutes, fallback)
+    # The same clock as ``deposit_payments.hold_started_at``: a request paid after
+    # acceptance is held from the acceptance, every other booking from its creation.
+    hold_started = case(
+        (
+            Booking.pay_after_acceptance.is_(True),
+            func.coalesce(Booking.accepted_at, Booking.created_at),
+        ),
+        else_=Booking.created_at,
+    )
     query = (
         select(Booking)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .where(
             Booking.status == BookingStatus.PENDING_PAYMENT.value,
-            # Business-collected deposits are never held (same rule as the read side).
-            BookingProfile.deposit_collection
-            != BookingDepositCollection.BUSINESS.value,
-            Booking.created_at + hold * _ONE_MINUTE <= moment,
+            # Business-collected deposits are never held (same rule as the read
+            # side). A request accepted for an online payment is, whatever the
+            # profile collects now: the booking decides, not a later setting.
+            or_(
+                Booking.pay_after_acceptance.is_(True),
+                BookingProfile.deposit_collection
+                != BookingDepositCollection.BUSINESS.value,
+            ),
+            hold_started + hold * _ONE_MINUTE <= moment,
         )
-        .order_by(Booking.created_at)
+        .order_by(hold_started, Booking.id)
         .limit(limit)
         .with_for_update(skip_locked=True, of=Booking)
     )
@@ -173,6 +248,8 @@ async def expire_unpaid(
             "booking.cancelled",
             event_id=f"booking.cancelled:{booking.id}",
         )
+        if booking.pay_after_acceptance:
+            await _tell_lapsed(session, booking)
         cancelled += 1
     await session.flush()
     return cancelled

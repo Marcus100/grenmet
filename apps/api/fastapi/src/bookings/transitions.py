@@ -1,7 +1,9 @@
 """Booking status state machine: a table, no database access.
 
 ``pending_payment`` waits for a deposit (B6), ``pending`` waits for the business
-to confirm, ``confirmed`` is on the books. ``cancelled``, ``no_show`` and
+to confirm, ``confirmed`` is on the books. A request that is paid only after the
+business accepts it goes ``pending`` -> ``pending_payment`` on acceptance (the
+payment hold starts then) and ``confirmed`` when paid. ``cancelled``, ``no_show`` and
 ``completed`` are final. Every change goes through ``public.transition``,
 which writes a ``BookingEvent`` row.
 """
@@ -13,7 +15,11 @@ TRANSITIONS: dict[BookingStatus, frozenset[BookingStatus]] = {
         {BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.CANCELLED}
     ),
     BookingStatus.PENDING: frozenset(
-        {BookingStatus.CONFIRMED, BookingStatus.CANCELLED}
+        {
+            BookingStatus.PENDING_PAYMENT,
+            BookingStatus.CONFIRMED,
+            BookingStatus.CANCELLED,
+        }
     ),
     BookingStatus.CONFIRMED: frozenset(
         {BookingStatus.CANCELLED, BookingStatus.NO_SHOW, BookingStatus.COMPLETED}

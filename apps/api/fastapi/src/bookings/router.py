@@ -997,8 +997,11 @@ async def create_studio_booking(
     response_model=BookingStudioDetail,
     summary="Confirm a booking request",
     description=(
-        "Moves a `pending` booking to `confirmed` and emails the customer. 409 "
-        "for any other status, including one still waiting for its deposit."
+        "Accepts a `pending` request and emails the customer. It becomes "
+        "`confirmed`, or, when a card payment is due only after acceptance "
+        "(`pay_after_acceptance` with a deposit not yet paid), `pending_payment`: "
+        "the payment hold starts now and paying confirms it. 409 for any other "
+        "status, including one still waiting for its payment."
     ),
     operation_id="bookingsConfirmStudioBooking",
     responses=WRITE_ERRORS,

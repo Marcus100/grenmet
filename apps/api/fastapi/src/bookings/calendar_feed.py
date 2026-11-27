@@ -71,6 +71,13 @@ _CONTACT_IN_NAME = re.compile(
     r"|\.(?:com|net|org|edu|gov|io|co|me|info|biz)\b|\d{7,}",
     re.IGNORECASE,
 )
+#: A request the business accepted that waits for its payment holds its slot, so it
+#: stays on the feed as tentative (see ``_window_rows``). A deposit awaited before
+#: acceptance (pay at booking) is still not on the feed.
+_TENTATIVE_STATUSES = (
+    BookingStatus.PENDING_PAYMENT.value,
+    BookingStatus.PENDING.value,
+)
 _LIVE_STATUSES = (
     BookingStatus.PENDING.value,
     BookingStatus.CONFIRMED.value,
@@ -262,6 +269,10 @@ async def _window_rows(
             or_(
                 Booking.status.in_(_LIVE_STATUSES),
                 and_(
+                    Booking.status == BookingStatus.PENDING_PAYMENT.value,
+                    Booking.pay_after_acceptance.is_(True),
+                ),
+                and_(
                     Booking.status == BookingStatus.CANCELLED.value,
                     func.coalesce(Booking.cancelled_at, Booking.updated_at)
                     >= cancelled_since,
@@ -277,7 +288,7 @@ async def _window_rows(
 def _event(row: Any, profile: BookingProfile) -> ics.CalendarEvent:
     if row.status == BookingStatus.CANCELLED.value:
         status: ics.IcsStatus = "CANCELLED"
-    elif row.status == BookingStatus.PENDING.value:
+    elif row.status in _TENTATIVE_STATUSES:
         status = "TENTATIVE"
     else:
         status = "CONFIRMED"

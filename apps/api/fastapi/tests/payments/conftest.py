@@ -3,6 +3,7 @@
 import json
 import time
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qs
 
@@ -52,6 +53,9 @@ class StripeStub:
     paid: bool = False
     fail_refund: bool = False
     fail_checkout: bool = False
+    #: When True a checkout whose ``expires_at`` is under 30 minutes away is refused
+    #: with 400, as Stripe does.
+    enforce_checkout_expiry: bool = False
     #: Status Stripe reports for the refunds it creates (``pending`` settles later).
     refund_status: str = "succeeded"
     checkout_id: str = "cs_test_1"
@@ -101,6 +105,14 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
         if request.method == "POST" and request.url.path == "/v1/checkout/sessions":
             if stub.fail_checkout:
                 return httpx.Response(500, json={"error": {"message": "down"}})
+            if stub.enforce_checkout_expiry:
+                params = parse_qs(request.content.decode())
+                expires = params.get("expires_at")
+                if expires and int(expires[0]) < datetime.now(UTC).timestamp() + 1800:
+                    return httpx.Response(
+                        400,
+                        json={"error": {"message": "expires_at too soon"}},
+                    )
             return httpx.Response(
                 200,
                 json={

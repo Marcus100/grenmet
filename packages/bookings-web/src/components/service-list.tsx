@@ -28,6 +28,26 @@ export interface ServiceListProps {
   storefront: BookingStorefront;
 }
 
+/**
+ * What is paid online for a service, on its row. A request (the business accepts
+ * by hand) is paid only after acceptance, so it never says "now".
+ */
+function dueLabel(
+  due: number,
+  item: BookingPublicService,
+  currency: string
+): string {
+  const deposit = due < item.price_minor;
+  if (item.pay_after_acceptance) {
+    return deposit
+      ? `Deposit ${formatMoney(due, currency)}, paid after your request is accepted`
+      : "Paid after your request is accepted";
+  }
+  return deposit
+    ? `Deposit ${formatMoney(due, currency)} paid now`
+    : "Paid now";
+}
+
 function ServiceOption({
   addOnsChosen,
   item,
@@ -82,11 +102,7 @@ function ServiceOption({
             </span>
           )}
           {due > 0 && (
-            <span className="muted">
-              {due < item.price_minor
-                ? `Deposit ${formatMoney(due, currency)} paid now`
-                : "Paid now"}
-            </span>
+            <span className="muted">{dueLabel(due, item, currency)}</span>
           )}
         </span>
         <span className="service-price">

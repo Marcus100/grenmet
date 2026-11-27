@@ -2,6 +2,8 @@
 
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import {
+  businessDepositAwaitsAcceptance,
+  businessDepositLaterLine,
   showsBusinessDeposit,
   showsDepositReceived,
 } from "../lib/booking-extras";
@@ -32,16 +34,31 @@ export function BookedExtras({
           minor={booking.deposit_to_business_minor ?? 0}
         />
       )}
-      {showsBusinessDeposit(booking) && !booking.deposit_received && (
-        <DepositToBusiness
-          businessName={booking.business_name ?? ""}
-          contact={booking.contact}
-          currency={currency}
-          instructions={booking.deposit_instructions}
-          minor={booking.deposit_to_business_minor ?? 0}
-        />
+      {businessDepositAwaitsAcceptance(booking) && (
+        <p className="notice deposit-business">
+          {businessDepositLaterLine(
+            booking.deposit_to_business_minor ?? 0,
+            currency,
+            booking.business_name ?? "",
+            true
+          )}
+        </p>
       )}
-      {withNewClients && <NewClientsNote booked service={booking} />}
+      {showsBusinessDeposit(booking) &&
+        !booking.deposit_received &&
+        !businessDepositAwaitsAcceptance(booking) && (
+          <DepositToBusiness
+            businessName={booking.business_name ?? ""}
+            contact={booking.contact}
+            currency={currency}
+            instructions={booking.deposit_instructions}
+            minor={booking.deposit_to_business_minor ?? 0}
+          />
+        )}
+      {/* "It stays a request" is true only until the business answers (#1951). */}
+      {withNewClients && booking.status === "pending" && (
+        <NewClientsNote booked service={booking} />
+      )}
     </>
   );
 }

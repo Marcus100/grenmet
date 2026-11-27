@@ -486,6 +486,13 @@ async def seed_bookings(
                 now=now,
             )
             booking_id = uuid.UUID(str(receipt["booking"]["id"]))
+            if kind in ("pending_payment", "deposit_paid"):
+                # The profile confirms by hand, so the booking is a request and
+                # nothing is asked until the business accepts it: accepting
+                # starts the deposit and its hold ("Accepted, awaiting payment").
+                await studio.confirm(
+                    session, STUDIO_ID, booking_id, actor_user_id=actor.id, now=now
+                )
             if kind == "deposit_paid":
                 intent = await payments_service.find_by_source(
                     session,
@@ -504,13 +511,10 @@ async def seed_bookings(
                         reference="demo deposit",
                     ),
                 )
-                # What the outbox handler does in production; with
-                # requires_confirmation the booking lands in "pending".
+                # What the outbox handler does in production: paying an accepted
+                # request confirms it.
                 await deposits.confirm_paid(
                     session, organisation_id=STUDIO_ID, booking_id=booking_id
-                )
-                await studio.confirm(
-                    session, STUDIO_ID, booking_id, actor_user_id=actor.id
                 )
         else:
             _status, detail = await studio.create_booking(

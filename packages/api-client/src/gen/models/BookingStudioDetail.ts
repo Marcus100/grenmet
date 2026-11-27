@@ -76,6 +76,16 @@ export type BookingStudioDetail = {
    * @description When staff marked the deposit paid to the business as received.
    */
   deposit_received_at?: string | null;
+  /**
+   * @description A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts.
+   * @default false
+   * @type boolean | undefined
+   */
+  pay_after_acceptance?: boolean;
+  /**
+   * @description When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay.
+   */
+  accepted_at?: string | null;
   deposit_received_method?: BookingDepositReceivedMethod | null;
   deposit_received_reference?: string | null;
   /**
@@ -98,6 +108,18 @@ export type BookingStudioDetail = {
    * @type string
    */
   created_at: string;
+  /**
+   * @description True only in the response to Confirm on a request that was to be paid online, when online payment was off by then (the payments entitlement or the collection changed). The booking is confirmed with no payment requested; the business agrees how the deposit is paid.
+   * @default false
+   * @type boolean | undefined
+   */
+  accepted_without_payment?: boolean;
+  /**
+   * @description True while the deposit has an open online checkout the customer can pay through. False for an accepted request means no pay link could be made: the business has to tell the customer how to pay.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_payment_link?: boolean;
   /**
    * @description The payments intent for the deposit, to record a manual payment.
    */

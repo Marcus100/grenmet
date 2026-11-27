@@ -50,6 +50,43 @@ export function showsBusinessDeposit(
 }
 
 /**
+ * A deposit paid to the business on a request it has not accepted yet: nothing
+ * is paid until it accepts, so the page says so and shows no instructions.
+ */
+export function businessDepositAwaitsAcceptance(
+  booking: Pick<
+    BookingPublicDetail,
+    "deposit_received" | "deposit_to_business_minor" | "status"
+  >
+): boolean {
+  return (
+    (booking.deposit_to_business_minor ?? 0) > 0 &&
+    booking.status === "pending" &&
+    booking.deposit_received !== true
+  );
+}
+
+/**
+ * The business deposit of a request, before the business accepts. `minor` null:
+ * the amount is not known yet (add-ons ticked). `booked` false is the form.
+ */
+export function businessDepositLaterLine(
+  minor: number | null,
+  currency: string,
+  businessName: string,
+  booked: boolean
+): string {
+  const who = businessName.trim() || "the business";
+  const deposit =
+    minor === null
+      ? "a deposit"
+      : `a deposit of ${formatMoney(minor, currency)}`;
+  return booked
+    ? `Nothing to pay yet. We will email you when ${who} accepts. You then pay ${deposit} directly to ${who}, not through Barrels.`
+    : `Nothing to pay now. This is a request: if ${who} accepts it, you pay ${deposit} directly to ${who}, not through Barrels. We will email you how.`;
+}
+
+/**
  * The business has confirmed the deposit it was paid by hand (#1869) while the
  * booking is still open. The customer sees "Deposit received" in its place; the
  * method and reference are staff-only and never reach this package.

@@ -66,6 +66,10 @@ const BUSINESS_BUTTON = /Business deposit/u;
 const CAN_MARK = /can-mark=true/u;
 const CANNOT_MARK = /can-mark=false/u;
 
+const NOTHING_PAID =
+  /Nothing has been paid yet\. When you confirm this request/u;
+const ACCEPTED_NOTE =
+  /You accepted this request\s+and the customer was emailed/u;
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),
 });
@@ -590,5 +594,41 @@ describe("deposit paid to the business (#1869)", () => {
     render(await StudioBookingPage(props()));
     expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
     expect(screen.getByRole("button", { name: RECORD })).toBeInTheDocument();
+  });
+});
+
+describe("request paid after acceptance", () => {
+  it("says nothing is paid yet while the request needs confirming", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending", pay_after_acceptance: true, events: [] })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText(NOTHING_PAID)).toBeVisible();
+    expect(screen.queryByText("Accepted, awaiting payment")).toBeNull();
+  });
+
+  it("shows Accepted, awaiting payment once the business accepted", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "pending_payment",
+        pay_after_acceptance: true,
+        accepted_at: "2026-10-19T12:00:00Z",
+        events: [],
+      })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Accepted, awaiting payment")).toBeVisible();
+    expect(screen.getByText(ACCEPTED_NOTE)).toBeVisible();
+    expect(screen.queryByText(NOTHING_PAID)).toBeNull();
+  });
+
+  it("says neither for a payment taken at booking", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending_payment", events: [] })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByText("Accepted, awaiting payment")).toBeNull();
+    expect(screen.queryByText(NOTHING_PAID)).toBeNull();
+    expect(screen.getByText("Awaiting deposit")).toBeVisible();
   });
 });

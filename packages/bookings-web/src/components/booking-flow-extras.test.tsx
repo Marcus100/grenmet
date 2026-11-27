@@ -51,6 +51,8 @@ const REQUEST_SENT = /sent as a request/u;
 const CHECK_ADDRESS = /Check the web address/u;
 const NO_PAYMENT = /No payment online/u;
 
+const AFTER_ACCEPTED =
+  /EC\$53 deposit, paid to the business after your request is accepted\./u;
 const slots = {
   ok: true as const,
   data: {
@@ -232,7 +234,8 @@ describe("deposit paid to the business", () => {
     const user = userEvent.setup();
     const made: BookingPublicDetail = {
       id: "b1",
-      status: "pending",
+      // Confirmed at once: this business does not accept bookings by hand.
+      status: "confirmed",
       service_id: SERVICE_ID,
       service_name: "Hybrid",
       provider_id: "p1",
@@ -397,5 +400,61 @@ describe("paused business", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: PAUSED_TITLE })).toBeVisible()
     );
+  });
+});
+
+describe("deposit paid to the business on a request", () => {
+  it("confirms the request with nothing to pay yet and no instructions", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValue({
+      ok: true,
+      data: {
+        manageToken: "tok",
+        booking: {
+          id: "b1",
+          status: "pending",
+          service_id: SERVICE_ID,
+          service_name: "Hybrid",
+          provider_id: "p1",
+          provider_name: "Jeriann",
+          starts_at: TUE,
+          ends_at: "2027-01-05T15:45:00Z",
+          timezone: "America/Grenada",
+          customer_name: "Ada Lovelace",
+          business_name: "Test Studio",
+          price_minor: 22_500,
+          deposit_minor: 0,
+          currency: "XCD",
+          cancel_cutoff_hours: 24,
+          can_cancel: true,
+          contact: NO_CONTACT,
+          deposit_to_business_minor: 5300,
+          deposit_instructions: null,
+        },
+      },
+    });
+    renderFlow(businessShop({}, { pay_after_acceptance: true }));
+    await chooseSlot(user);
+    await fillAndSubmit(user);
+    expect(
+      await screen.findByText(
+        "Nothing to pay yet. We will email you when Test Studio accepts. You then pay a deposit of EC$53 directly to Test Studio, not through Barrels."
+      )
+    ).toBeVisible();
+    expect(screen.queryByText(DEPOSIT_AMOUNT)).toBeNull();
+    expect(screen.queryByRole("heading", { name: DEPOSIT_TITLE })).toBeNull();
+  });
+
+  const LATER =
+    "Nothing to pay now. This is a request: if Test Studio accepts it, you pay a deposit of EC$53 directly to Test Studio, not through Barrels. We will email you how.";
+
+  it("says the deposit follows acceptance and shows no payment instructions", async () => {
+    const user = userEvent.setup();
+    renderFlow(businessShop({}, { pay_after_acceptance: true }));
+    await chooseSlot(user);
+    expect(screen.getByText(LATER)).toBeVisible();
+    expect(screen.getByText(AFTER_ACCEPTED)).toBeVisible();
+    expect(screen.queryByRole("heading", { name: DEPOSIT_TITLE })).toBeNull();
+    expect(screen.queryByText(RX_3)).toBeNull();
   });
 });

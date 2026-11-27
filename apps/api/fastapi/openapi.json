@@ -13887,7 +13887,7 @@
           "bookings"
         ],
         "summary": "Confirm a booking request",
-        "description": "Moves a `pending` booking to `confirmed` and emails the customer. 409 for any other status, including one still waiting for its deposit.",
+        "description": "Accepts a `pending` request and emails the customer. It becomes `confirmed`, or, when a card payment is due only after acceptance (`pay_after_acceptance` with a deposit not yet paid), `pending_payment`: the payment hold starts now and paying confirms it. 409 for any other status, including one still waiting for its payment.",
         "operationId": "bookingsConfirmStudioBooking",
         "security": [
           {
@@ -87177,6 +87177,25 @@
             "title": "Deposit Received At",
             "description": "When staff marked the deposit paid to the business as received."
           },
+          "pay_after_acceptance": {
+            "type": "boolean",
+            "title": "Pay After Acceptance",
+            "description": "A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts.",
+            "default": false
+          },
+          "accepted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At",
+            "description": "When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay."
+          },
           "returning_client": {
             "type": "boolean",
             "title": "Returning Client",
@@ -90164,7 +90183,13 @@
               }
             ],
             "title": "Hold Minutes",
-            "description": "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
+            "description": "While `status` is `pending_payment`: the length of the hold in minutes (the business's setting, capped at 120 for an online card checkout made at booking). Show it as 'Your time is held for N hours until your deposit is received'. Null otherwise."
+          },
+          "pay_after_acceptance": {
+            "type": "boolean",
+            "title": "Pay After Acceptance",
+            "description": "A request paid by card only after the business accepts it. While `status` is `pending`: nothing to pay yet, `payment` is null and `deposit_minor` is what becomes due on acceptance. While `status` is `pending_payment`: the business accepted, and the customer pays by `hold_ends_at`.",
+            "default": false
           },
           "add_ons": {
             "items": {
@@ -90250,7 +90275,7 @@
           "payment_required": {
             "type": "boolean",
             "title": "Payment Required",
-            "description": "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time.",
+            "description": "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time. False for a request paid after the business accepts (`booking.pay_after_acceptance`).",
             "default": false
           },
           "checkout_url": {
@@ -90351,6 +90376,12 @@
             "type": "boolean",
             "title": "New Clients Only",
             "description": "First-time clients only: every booking of it is a request the business confirms.",
+            "default": false
+          },
+          "pay_after_acceptance": {
+            "type": "boolean",
+            "title": "Pay After Acceptance",
+            "description": "A booking of this service is a request the business accepts by hand, and any payment (`due_at_booking_minor` by card, or `deposit_to_business_minor` to the business) is made only after it accepts: nothing is asked when the request is made.",
             "default": false
           },
           "first_visit_lead_days": {
@@ -91638,6 +91669,25 @@
             "title": "Deposit Received At",
             "description": "When staff marked the deposit paid to the business as received."
           },
+          "pay_after_acceptance": {
+            "type": "boolean",
+            "title": "Pay After Acceptance",
+            "description": "A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts.",
+            "default": false
+          },
+          "accepted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At",
+            "description": "When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay."
+          },
           "deposit_received_method": {
             "anyOf": [
               {
@@ -91710,6 +91760,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "accepted_without_payment": {
+            "type": "boolean",
+            "title": "Accepted Without Payment",
+            "description": "True only in the response to Confirm on a request that was to be paid online, when online payment was off by then (the payments entitlement or the collection changed). The booking is confirmed with no payment requested; the business agrees how the deposit is paid.",
+            "default": false
+          },
+          "deposit_payment_link": {
+            "type": "boolean",
+            "title": "Deposit Payment Link",
+            "description": "True while the deposit has an open online checkout the customer can pay through. False for an accepted request means no pay link could be made: the business has to tell the customer how to pay.",
+            "default": false
           },
           "deposit_intent_id": {
             "anyOf": [

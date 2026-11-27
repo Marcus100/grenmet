@@ -279,6 +279,7 @@ async def create_intent(
     actor: User | None,
     payload: schemas.PaymentIntentCreate,
     checkout_title: str | None = None,
+    checkout_expires_at: datetime | None = None,
 ) -> schemas.PaymentCheckoutPublic:
     """Create an intent (idempotent per organisation and ``idempotency_key``).
 
@@ -287,6 +288,7 @@ async def create_intent(
     or ``None`` when the system acts for an anonymous customer (a public booking
     deposit): ``created_by_user_id`` is then NULL. ``checkout_title`` is the human
     name the buyer sees on the hosted checkout (not stored; no personal data).
+    ``checkout_expires_at`` (naive UTC) ends the hosted checkout at that moment.
     """
     # Resolve the provider first so an unavailable rail fails before any row exists.
     provider = registry.get_provider(payload.provider.value)
@@ -336,7 +338,9 @@ async def create_intent(
             raise
         return await _replay(session, existing, payload)
 
-    start = await provider.create_payment(intent, title=checkout_title)
+    start = await provider.create_payment(
+        intent, title=checkout_title, expires_at=checkout_expires_at
+    )
     intent.provider_ref = start.provider_ref
     intent.checkout_url = start.checkout_url
     if start.checkout_url is not None:

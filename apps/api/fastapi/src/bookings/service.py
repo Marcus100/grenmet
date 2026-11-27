@@ -770,6 +770,8 @@ async def list_bookings(
             "price_minor": booking.price_minor,
             "deposit_minor": booking.deposit_minor,
             "currency": booking.currency,
+            "pay_after_acceptance": booking.pay_after_acceptance,
+            "accepted_at": booking.accepted_at,
         }
         for booking, service_name, customer_name in rows
     ]
@@ -964,6 +966,7 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
                     svc, from_attributes=True
                 ).model_dump(),
                 "due_at_booking_minor": due[svc.id],
+                "pay_after_acceptance": deposit_payments.needs_acceptance(profile, svc),
                 "deposit_to_business_minor": deposit_payments.deposit_to_business(
                     profile, svc
                 ),

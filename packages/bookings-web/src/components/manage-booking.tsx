@@ -4,6 +4,7 @@ import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { useState } from "react";
 import { type Outcome, tellsToContact } from "../lib/booking-errors";
 import {
+  businessDepositAwaitsAcceptance,
   businessDepositWhileOpen,
   lateFeeWhileActive,
 } from "../lib/booking-extras";
@@ -12,7 +13,12 @@ import {
   formatHours,
   formatMoney,
 } from "../lib/booking-format";
-import { paymentReceivedHeld } from "../lib/booking-payment";
+import {
+  acceptedAwaitingPayment,
+  awaitsAcceptance,
+  payLaterLine,
+  paymentReceivedHeld,
+} from "../lib/booking-payment";
 import { type BookingRulesInput, holdEndsLine } from "../lib/booking-policy";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
@@ -63,8 +69,105 @@ function manageRules(booking: BookingPublicDetail): BookingRulesInput {
     cutoffHours: booking.cancel_cutoff_hours,
     dueMinor: booking.deposit_minor,
     nonRefundable: booking.deposit_non_refundable === true,
+    // A deposit paid to the business is likewise asked for only once it accepts.
+    payAfterAcceptance:
+      booking.pay_after_acceptance === true ||
+      businessDepositAwaitsAcceptance(booking),
     priceMinor: booking.price_minor,
   };
+}
+
+/** The words beside the service name: the booking's state, as the customer sees it. */
+function statusText(booking: BookingPublicDetail): string {
+  if (paymentReceivedHeld(booking.status, booking.payment)) {
+    return "Payment received, confirming your booking";
+  }
+  if (acceptedAwaitingPayment(booking)) {
+    return "Accepted, waiting for your payment";
+  }
+  return STATUS_TEXT[booking.status] ?? booking.status;
+}
+
+/**
+ * The money side of the booking: nothing to pay while a request waits for the
+ * business, then what to pay and by when once it accepted, else what was paid.
+ */
+function BookingPayment({ booking }: { booking: BookingPublicDetail }) {
+  return (
+    <>
+      {awaitsAcceptance(booking) && (
+        <section
+          aria-labelledby={`pay-later-${booking.id}`}
+          className="notice payment payment-later"
+        >
+          <h3 id={`pay-later-${booking.id}`}>Payment</h3>
+          <p>
+            {payLaterLine(
+              booking.deposit_minor,
+              booking.currency,
+              booking.business_name ?? ""
+            )}
+          </p>
+        </section>
+      )}
+      {booking.payment && (
+        <PaymentStatus
+          acceptedBy={
+            acceptedAwaitingPayment(booking)
+              ? (booking.business_name ?? "")
+              : undefined
+          }
+          bookingId={booking.id}
+          payment={booking.payment}
+        />
+      )}
+      {booking.status === "pending_payment" && booking.hold_ends_at ? (
+        <p>
+          {holdEndsLine(
+            booking.hold_ends_at,
+            booking.timezone,
+            booking.hold_minutes,
+            acceptedAwaitingPayment(booking)
+          )}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Change time and Cancel booking. A request the business accepted cannot be
+ * moved until it is paid (the API refuses it); cancelling stays open.
+ */
+function ViewActions({
+  canChangeTime,
+  onStart,
+}: {
+  canChangeTime: boolean;
+  onStart: (mode: "reschedule" | "confirm-cancel") => void;
+}) {
+  return (
+    <div className="actions">
+      {canChangeTime ? (
+        <button
+          className="btn btn-solid"
+          onClick={() => onStart("reschedule")}
+          type="button"
+        >
+          Change time
+        </button>
+      ) : (
+        <p className="muted">Pay first, then you can change the time.</p>
+      )}
+      <button
+        className="btn"
+        onClick={() => onStart("confirm-cancel")}
+        type="button"
+      >
+        Cancel booking
+      </button>
+    </div>
+  );
 }
 
 type Mode = "view" | "reschedule" | "confirm-cancel";
@@ -128,9 +231,7 @@ export function ManageBooking({
       <h2>
         {booking.service_name}{" "}
         <span className={`status status-${booking.status}`}>
-          {paymentReceivedHeld(booking.status, booking.payment)
-            ? "Payment received, confirming your booking"
-            : (STATUS_TEXT[booking.status] ?? booking.status)}
+          {statusText(booking)}
         </span>
       </h2>
       <dl className="summary">
@@ -152,18 +253,7 @@ export function ManageBooking({
           <dd>{formatMoney(booking.price_minor, booking.currency)}</dd>
         </div>
       </dl>
-      {booking.payment && (
-        <PaymentStatus bookingId={booking.id} payment={booking.payment} />
-      )}
-      {booking.status === "pending_payment" && booking.hold_ends_at ? (
-        <p>
-          {holdEndsLine(
-            booking.hold_ends_at,
-            booking.timezone,
-            booking.hold_minutes
-          )}
-        </p>
-      ) : null}
+      <BookingPayment booking={booking} />
       <BookedExtras
         booking={booking}
         currency={booking.currency}
@@ -209,30 +299,14 @@ export function ManageBooking({
       )}
 
       {editable && mode === "view" && (
-        <div className="actions">
-          <button
-            className="btn btn-solid"
-            onClick={() => {
-              setError(null);
-              setNotice(null);
-              setMode("reschedule");
-            }}
-            type="button"
-          >
-            Change time
-          </button>
-          <button
-            className="btn"
-            onClick={() => {
-              setError(null);
-              setNotice(null);
-              setMode("confirm-cancel");
-            }}
-            type="button"
-          >
-            Cancel booking
-          </button>
-        </div>
+        <ViewActions
+          canChangeTime={!acceptedAwaitingPayment(booking)}
+          onStart={(next) => {
+            setError(null);
+            setNotice(null);
+            setMode(next);
+          }}
+        />
       )}
 
       {editable && mode === "confirm-cancel" && (
