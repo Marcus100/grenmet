@@ -154,7 +154,11 @@ def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     return started + timedelta(minutes=hold_minutes)
 
 
-def _single_line(value: str) -> str:
+def single_line(value: str) -> str:
+    """One line of whitespace-collapsed text, for a name typed into a form.
+
+    Shared: ``studio.py`` cleans a staff-entered name the same way.
+    """
     return " ".join(value.split())
 
 
@@ -401,7 +405,7 @@ def decoy_receipt(
             starts_at=starts_at,
             ends_at=starts_at + timedelta(hours=1),
             timezone=profile.timezone,
-            customer_name=_single_line(payload.customer_name),
+            customer_name=single_line(payload.customer_name),
             price_minor=0,
             deposit_minor=0,
             currency=profile.currency,
@@ -633,7 +637,7 @@ async def _upsert_customer(
         session,
         profile.organisation_id,
         email=str(payload.customer_email).strip(),
-        name=_single_line(payload.customer_name),
+        name=single_line(payload.customer_name),
         phone=phone,
         source="bookings",
         consents={ConsentPurpose.MARKETING: payload.marketing_consent},
@@ -913,7 +917,7 @@ async def _create_booking(
         # follows what the person last called themselves. What each booking
         # shows is its own ``booked_name``, set below.
         contacts_service.take_name_from_linked_account(
-            contact, name=_single_line(payload.customer_name), user_id=payer.id
+            contact, name=single_line(payload.customer_name), user_id=payer.id
         )
     flag_returning = svc.new_clients_only and await _is_returning_client(
         session, profile, contact
@@ -945,7 +949,7 @@ async def _create_booking(
             service_id=svc.id,
             customer_id=customer.id,
             # What this booking shows, whatever name the contact already holds.
-            booked_name=_single_line(payload.customer_name) or None,
+            booked_name=single_line(payload.customer_name) or None,
             starts_at=starts_at,
             ends_at=ends_at,
             blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),

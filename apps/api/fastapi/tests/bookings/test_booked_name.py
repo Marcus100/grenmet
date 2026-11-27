@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings.models import Booking
+from src.contacts import service as contacts_service
 from src.contacts.models import Contact
 from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import DAY
@@ -191,3 +192,86 @@ async def test_a_booking_made_before_the_column_falls_back_to_the_contact(
         "customer_name"
     ] == "TEST verify"
     assert await _agenda_names(async_client, studio) == ["TEST verify"]
+
+
+async def test_erasing_the_contact_clears_the_names_typed_on_its_bookings(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Erasure has to take the copy with it. Every booking view prefers
+    ``booked_name``, so leaving it would keep showing an erased customer's full
+    name in the agenda, the booking detail, the calendar feed and the manage
+    page (`src/contacts/AGENTS.md`: domains must respect ``erased_at``). The
+    stored data really goes; nothing is hidden at read time."""
+    studio = await _studio(db_async, async_client)
+    slots = await _slots(async_client, studio)
+    email = f"gone-{uuid.uuid4().hex[:8]}@example.com"
+    first = await _book(
+        async_client,
+        studio,
+        slots[0],
+        customer_email=email,
+        customer_name="TEST verify",
+    )
+    second = await _book(
+        async_client,
+        studio,
+        slots[-1],
+        customer_email=email,
+        customer_name="TEST direct",
+    )
+    assert first.status_code == second.status_code == 201
+
+    contact = await db_async.scalar(
+        select(Contact).where(
+            Contact.organisation_id == studio.org_id,
+            Contact.email_hash == hash_email(email),
+        )
+    )
+    assert contact is not None
+    await contacts_service.erase_contact(db_async, contact)
+    await db_async.commit()
+
+    db_async.expire_all()
+    for booked in (first, second):
+        row = await db_async.get(Booking, uuid.UUID(booked.json()["booking"]["id"]))
+        assert row is not None
+        assert row.booked_name is None
+
+    detail = await async_client.get(
+        f"{API}/org/bookings/{second.json()['booking']['id']}", headers=studio.headers
+    )
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["customer"]["name"] == ""
+    assert await _agenda_names(async_client, studio) == ["", ""]
+
+
+async def test_erasing_one_contact_leaves_another_persons_bookings_alone(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    slots = await _slots(async_client, studio)
+    gone = f"gone-{uuid.uuid4().hex[:8]}@example.com"
+    kept_email = f"kept-{uuid.uuid4().hex[:8]}@example.com"
+    erased = await _book(
+        async_client, studio, slots[0], customer_email=gone, customer_name="TEST verify"
+    )
+    kept = await _book(
+        async_client,
+        studio,
+        slots[-1],
+        customer_email=kept_email,
+        customer_name="Ada Lovelace",
+    )
+    assert erased.status_code == kept.status_code == 201
+
+    contact = await db_async.scalar(
+        select(Contact).where(
+            Contact.organisation_id == studio.org_id,
+            Contact.email_hash == hash_email(gone),
+        )
+    )
+    assert contact is not None
+    await contacts_service.erase_contact(db_async, contact)
+    await db_async.commit()
+
+    assert await _agenda_names(async_client, studio) == ["", "Ada Lovelace"]

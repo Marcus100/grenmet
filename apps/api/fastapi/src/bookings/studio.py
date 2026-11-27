@@ -702,7 +702,7 @@ async def create_booking(
         service_id=svc.id,
         customer_id=customer.id,
         # What this entry shows, whatever name the contact already holds.
-        booked_name=" ".join(payload.customer_name.split()) or None,
+        booked_name=public.single_line(payload.customer_name) or None,
         starts_at=starts_at,
         ends_at=ends_at,
         blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),
@@ -757,7 +757,7 @@ async def _studio_customer(
     """Reuse the contact with this email; without an email each entry is a new
     contact (a walk-in cannot be matched safely by name). No marketing consent is
     recorded: staff did not ask."""
-    name = " ".join(payload.customer_name.split())
+    name = public.single_line(payload.customer_name)
     phone = payload.customer_phone.strip() if payload.customer_phone else None
     if payload.customer_email:
         contact = await contacts_service.upsert_contact(
