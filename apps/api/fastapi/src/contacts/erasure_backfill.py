@@ -30,7 +30,7 @@ commits on its own, so a crash leaves whole batches done and the rest for the ne
 The worker gives a job 300 seconds and no retry. The mail pass cost grows with the
 number of log pages, so a large mail log can time out part way through. That is safe:
 committed pages stay done and the job is idempotent. Re-enqueue it until a run logs
-``contacts_remaining`` 0 and no "matched no mail" warning.
+``contacts_remaining`` 0. On a first run, a "matched no mail" warning points at the pepper; on a rerun it is expected.
 
 Read ``mail_rows`` for what was purged. ``mail_addresses`` counts matched (organisation,
 address) pairs even when a matched pair had nothing left to clear.
@@ -285,7 +285,8 @@ async def backfill_erased_copies(
         # Zeros look like success. A rotated pepper, or a mail log that no longer holds
         # the addresses, matches nothing, so say so: this is the failure to look for.
         logger.warning(
-            "Erased-contact backfill matched no mail for erased contacts (check the pepper)",
+            "Erased-contact backfill matched no mail for erased contacts: expected on a rerun "
+            "once the first run has completed; on a first run this points at EMAIL_HASH_PEPPER",
             extra=result.as_dict(),
         )
     logger.info("Erased-contact backfill finished", extra=result.as_dict())
