@@ -183,6 +183,10 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
     {
+        "name": "cases",
+        "description": "Case engine (safety management first): cases, the ICAO Doc 9859 risk grid, risk assessments and corrective actions for an organisation, one programme per path and product (ADR-0069).",
+    },
+    {
         "name": "incidents",
         "description": "Incidents: draft, open and closed incidents with a shared response timeline, notes and category checklists for an organisation (incidents entitlement, organisation-bound keys).",
     },

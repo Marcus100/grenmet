@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingListingNotShownReasonSchema } from "./bookingListingNotShownReasonSchema.js";
 
 export const bookingListingReviewSchema = z
   .object({
@@ -16,6 +17,17 @@ export const bookingListingReviewSchema = z
     self_created: z.boolean(),
     owner_left_at: z.union([z.iso.datetime(), z.null()]),
     sender_name_flagged_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    on_home_page: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "True when the business is shown on the public home page now: every condition of the public listing holds, not only staff approval."
+      ),
+    not_shown_reasons: z
+      .array(bookingListingNotShownReasonSchema)
+      .optional()
+      .describe("Why the business is not on the home page; empty when it is."),
   })
   .describe(
     "Staff view of one business's home page listing and the flags staff review."

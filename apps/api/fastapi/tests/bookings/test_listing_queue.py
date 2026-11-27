@@ -12,8 +12,9 @@ import httpx
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bookings.models import BookingProfile
-from src.organisations.models import PlatformOrganisation
+from src.bookings.models import BookingProfile, Service
+from src.organisations import service as organisation_service
+from src.organisations.models import OrganisationStatus, PlatformOrganisation
 from src.utils.datetime import utc_now
 from tests.bookings.test_public_bookings import API, Studio, _studio
 
@@ -199,3 +200,139 @@ async def test_businesses_made_at_the_same_moment_page_without_repeats(
 
     seen = [org for page in pages for org in page]
     assert sorted(seen) == sorted(s.org_id for s in studios)
+
+
+# --- whether an approved business is really on the home page (#1951) ------------------
+
+
+def _row(body: dict[str, Any], org: str) -> dict[str, Any]:
+    return next(row for row in body["data"] if row["organisation_id"] == org)
+
+
+async def _on_home_page(client: httpx.AsyncClient, studio: Studio) -> bool:
+    """Whether the public home page list shows the business."""
+    response = await client.get(f"{API}/public/businesses")
+    assert response.status_code == 200, response.text
+    return studio.slug in {card["slug"] for card in response.json()["items"]}
+
+
+async def test_an_approved_listed_business_is_on_the_home_page(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    shown = await _studio(db_async, async_client, display_name="Shown", listed=True)
+    await _approve(async_client, superuser_token_headers_async, shown.org_id)
+
+    body = await _queue(async_client, superuser_token_headers_async, queue="approved")
+
+    row = _row(body, shown.org_id)
+    assert row["on_home_page"] is True
+    assert row["not_shown_reasons"] == []
+    assert await _on_home_page(async_client, shown) is True
+
+
+async def test_an_approved_business_with_its_own_switch_off_is_not_on_the_home_page(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    hidden = await _studio(db_async, async_client, display_name="Hidden", listed=True)
+    await _approve(async_client, superuser_token_headers_async, hidden.org_id)
+    await _set(db_async, hidden, listed=False)
+
+    body = await _queue(async_client, superuser_token_headers_async, queue="approved")
+
+    row = _row(body, hidden.org_id)
+    assert row["listing_approved_at"] is not None
+    assert row["on_home_page"] is False
+    assert row["not_shown_reasons"] == ["not_listed"]
+    assert await _on_home_page(async_client, hidden) is False
+
+
+async def test_each_reason_a_business_is_not_shown_is_named(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """One business per failed condition, beside a shown one, so a reason never leaks
+    from another organisation's services, entitlement or status."""
+    shown = await _studio(db_async, async_client, display_name="Shown", listed=True)
+    waiting = await _studio(db_async, async_client, display_name="Wait", listed=True)
+    closed = await _studio(db_async, async_client, display_name="Closed", listed=True)
+    paused = await _studio(db_async, async_client, display_name="Paused", listed=True)
+    empty = await _studio(db_async, async_client, display_name="Empty", listed=True)
+    lapsed = await _studio(db_async, async_client, display_name="Lapsed", listed=True)
+    gone = await _studio(db_async, async_client, display_name="Gone", listed=True)
+    for studio in (shown, closed, paused, empty, lapsed, gone):
+        await _approve(async_client, superuser_token_headers_async, studio.org_id)
+    await _set(db_async, closed, enabled=False)
+    await _set(db_async, paused, paused_at=utc_now())
+    await db_async.execute(
+        update(Service)
+        .where(Service.organisation_id == empty.org_id)
+        .values(active=False)
+    )
+    await organisation_service.set_app_enabled(
+        db_async, organisation_id=lapsed.org_id, app_key="bookings", enabled=False
+    )
+    await db_async.execute(
+        update(PlatformOrganisation)
+        .where(PlatformOrganisation.id == gone.org_id)
+        .values(status=OrganisationStatus.SUSPENDED.value)
+    )
+    await db_async.commit()
+
+    body = await _queue(async_client, superuser_token_headers_async, queue="all")
+
+    reasons = {row["organisation_id"]: row["not_shown_reasons"] for row in body["data"]}
+    assert reasons[shown.org_id] == []
+    assert reasons[waiting.org_id] == ["not_approved"]
+    assert reasons[closed.org_id] == ["booking_closed"]
+    assert reasons[paused.org_id] == ["paused"]
+    assert reasons[empty.org_id] == ["no_active_service"]
+    assert reasons[lapsed.org_id] == ["not_entitled"]
+    assert reasons[gone.org_id] == ["organisation_inactive"]
+    for studio in (shown, waiting, closed, paused, empty, lapsed, gone):
+        row = _row(body, studio.org_id)
+        assert row["on_home_page"] is (studio is shown)
+        assert await _on_home_page(async_client, studio) is (studio is shown)
+
+
+async def test_every_missing_condition_is_listed_together(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    never = await _studio(db_async, async_client, display_name="Never", enabled=False)
+
+    body = await _queue(async_client, superuser_token_headers_async, queue="all")
+
+    assert _row(body, never.org_id)["not_shown_reasons"] == [
+        "not_listed",
+        "not_approved",
+        "booking_closed",
+    ]
+
+
+async def test_approving_and_withdrawing_return_the_new_home_page_state(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    studio = await _studio(db_async, async_client, display_name="Flip", listed=True)
+    base = f"{API}/admin/businesses/{studio.org_id}/listing"
+
+    before = await async_client.get(base, headers=superuser_token_headers_async)
+    approved = await async_client.post(
+        f"{base}/approve", headers=superuser_token_headers_async
+    )
+    withdrawn = await async_client.post(
+        f"{base}/withdraw", headers=superuser_token_headers_async
+    )
+
+    assert before.json()["not_shown_reasons"] == ["not_approved"]
+    assert approved.json()["on_home_page"] is True
+    assert approved.json()["not_shown_reasons"] == []
+    assert withdrawn.json()["on_home_page"] is False
+    assert withdrawn.json()["not_shown_reasons"] == ["not_approved"]

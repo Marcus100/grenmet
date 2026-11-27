@@ -33,6 +33,8 @@ Shared components required by an authorized task may proceed after checking cons
 
 If you find yourself re-implementing a button or input from scratch inside an app, stop and use `@barrelsgd/ui`.
 
+Composed, presentational components that are not primitives (`AccountMenu`, `AccountButton`) live in `packages/ui/src/components/<name>.tsx`, imported from `@barrelsgd/ui/components/<name>`; primitives stay in `components/ui/`.
+
 ## App feel stylesheet
 
 `@barrelsgd/ui/styles/app-feel` holds brand-neutral, behaviour-only CSS that makes

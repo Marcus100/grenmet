@@ -12,6 +12,11 @@ vi.mock("@/env", () => ({
   env: { NEXT_PUBLIC_SITE_URL: "https://bookings.example.test" },
 }));
 vi.mock("@/lib/public-businesses", () => ({ getPublicBusinesses: vi.fn() }));
+// The account control reads the session (an async server component); it has
+// its own test, so the home page test stands in a signed-out link.
+vi.mock("@/components/account-control", () => ({
+  AccountControl: () => <a href="/signin?returnTo=%2F">Sign in</a>,
+}));
 
 const EMPTY: BookingPublicBusinessPage = {
   items: [],
@@ -96,8 +101,27 @@ describe("bookings home page", () => {
     ).toBeTruthy();
   });
 
-  it("marks Home as the current page in the rail and the bottom bar, icons named by label", async () => {
+  it("leaves the Types of business link out of both navs when there are no types", async () => {
     vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    await renderHome();
+
+    for (const name of ["Main", "Quick links"]) {
+      const nav = screen.getByRole("navigation", { name });
+      expect(
+        within(nav).queryByRole("link", { name: "Types of business" })
+      ).toBeNull();
+      expect(within(nav).getByRole("link", { name: "Home" })).toBeTruthy();
+      expect(
+        within(nav).getByRole("link", { name: "For businesses" })
+      ).toBeTruthy();
+    }
+  });
+
+  it("marks Home as the current page in the rail and the bottom bar, icons named by label", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue({
+      ...EMPTY,
+      types_available: ["hair"],
+    });
     await renderHome();
 
     const rail = screen.getByRole("navigation", { name: "Main" });

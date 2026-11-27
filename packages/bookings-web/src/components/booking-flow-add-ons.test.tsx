@@ -37,7 +37,7 @@ const RE_3 = /EC\$30 deposit, refunded if you cancel/u;
 const RE_4 = /You pay a deposit of EC\$30 now/u;
 const RE_5 = /You pay the full price, EC\$50/u;
 const RE_6 = /You pay the full price/u;
-const RE_7 = /We need to confirm your email again/u;
+const RE_7 = /One more step: we email a 6-digit code/u;
 const PERCENT_LINE = /EC\$45 deposit, refunded if you cancel/u;
 const PAY_45 = /You pay a deposit of EC\$45 now/u;
 const PAY_FULL_150 = /You pay the full price, EC\$150/u;
@@ -389,7 +389,7 @@ describe("money with add-ons ticked", () => {
     const user = userEvent.setup();
     renderFlow(storefront([addOn(1)]));
     await pickService(user);
-    expect(screen.getByText(RE_1)).toBeVisible();
+    expect(screen.getAllByText(RE_1).at(-1)).toBeVisible();
     await tick(user, 1);
     expect(await screen.findByText(ON_TOTAL)).toBeVisible();
     expect(screen.queryByText(RE_1)).toBeNull();
@@ -409,15 +409,15 @@ describe("money with add-ons ticked", () => {
     await pickService(user);
     await tick(user, 1);
     expect(screen.queryByText(ON_TOTAL)).toBeNull();
-    expect(screen.getByText(RE_3)).toBeVisible();
-    expect(screen.getByText(RE_4)).toBeVisible();
+    expect(screen.getAllByText(RE_3).at(-1)).toBeVisible();
+    expect(screen.getAllByText(RE_4).at(-1)).toBeVisible();
   });
 
   it("does not quote the main service's full price when add-ons would raise it", async () => {
     const user = userEvent.setup();
     renderFlow(storefront([addOn(1)], { due_at_booking_minor: 5000 }));
     await pickService(user);
-    expect(screen.getByText(RE_5)).toBeVisible();
+    expect(screen.getAllByText(RE_5).at(-1)).toBeVisible();
     await tick(user, 1);
     expect(screen.queryByText(RE_6)).toBeNull();
     expect(await screen.findByText(ON_TOTAL)).toBeVisible();
@@ -594,7 +594,7 @@ describe("the amount due comes from the availability response", () => {
     await pickService(user);
     await tick(user, 1);
     await waitFor(() => expect(screen.queryByText(ON_TOTAL)).toBeNull());
-    expect(screen.getByText(NO_DEPOSIT)).toBeVisible();
+    expect(screen.getAllByText(NO_DEPOSIT).at(-1)).toBeVisible();
     expect(screen.getByRole("button", { name: SUBMIT })).toBeVisible();
   });
 

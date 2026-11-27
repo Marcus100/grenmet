@@ -9,38 +9,21 @@ turns it into a 422).
 import re
 from urllib.parse import urlsplit
 
-# Spaces, dots, dashes and brackets people type inside phone numbers.
-_PHONE_SEPARATORS = re.compile(r"[\s().\-]")
-#: E.164: a plus, a country code that does not start with 0, at most 15 digits.
-_E164 = re.compile(r"^\+[1-9][0-9]{6,14}$")
+from src.utils.phone import PHONE_SEPARATORS as _PHONE_SEPARATORS
+from src.utils.phone import blank_to_none as _blank_to_none
+from src.utils.phone import normalise_phone
+
+__all__ = [
+    "normalise_email",
+    "normalise_instagram",
+    "normalise_phone",
+    "normalise_whatsapp",
+]
+
 _WHATSAPP = re.compile(r"^[1-9][0-9]{6,14}$")
 #: Instagram usernames: letters, digits, dots and underscores, at most 30.
 _INSTAGRAM_HANDLE = re.compile(r"^[A-Za-z0-9._]{1,30}$")
 _INSTAGRAM_HOSTS = frozenset({"instagram.com", "www.instagram.com", "m.instagram.com"})
-
-
-def _blank_to_none(value: object) -> str | None:
-    if value is None:
-        return None
-    if not isinstance(value, str):
-        raise TypeError("Enter text")
-    stripped = value.strip()
-    return stripped or None
-
-
-def normalise_phone(value: object) -> str | None:
-    """A phone number in E.164 form (``+14734401234``), for ``tel:`` links."""
-    text = _blank_to_none(value)
-    if text is None:
-        return None
-    compact = _PHONE_SEPARATORS.sub("", text)
-    if compact.startswith("00"):
-        compact = f"+{compact[2:]}"
-    if not _E164.fullmatch(compact):
-        raise ValueError(
-            "Enter the phone number with its country code, for example +1 473 440 1234"
-        )
-    return compact
 
 
 def normalise_whatsapp(value: object) -> str | None:

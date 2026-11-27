@@ -1,4 +1,5 @@
 import type {
+  BookingListingNotShownReason,
   BookingListingQueue,
   BookingListingReview,
 } from "@barrelsgd/api-client";
@@ -89,6 +90,40 @@ export function listingState(row: BookingListingReview): {
   };
 }
 
+/** Each reason a business is not on the home page, in plain words. */
+const NOT_SHOWN_REASON: Record<BookingListingNotShownReason, string> = {
+  not_listed: "the business has not switched on its home page listing",
+  not_approved: "Barrels has not approved the listing",
+  booking_closed: "its online booking is closed",
+  paused: "the business is paused",
+  no_active_service: "it has no active service",
+  not_entitled: "its organisation does not have the Bookings app",
+  organisation_inactive: "its organisation is suspended",
+};
+
+/**
+ * Whether the business is on the Bookings home page right now, which approval
+ * alone does not decide. Null when the API did not say (an older API).
+ */
+export function homePageState(
+  row: BookingListingReview
+): { shown: boolean; text: string } | null {
+  if (row.on_home_page === undefined) return null;
+  if (row.on_home_page) {
+    return { shown: true, text: "Shown on the home page now." };
+  }
+  const reasons = (row.not_shown_reasons ?? []).map(
+    (reason) => NOT_SHOWN_REASON[reason]
+  );
+  const lead = row.listing_approved_at
+    ? "Approved, but not on the home page"
+    : "Not on the home page";
+  return {
+    shown: false,
+    text: reasons.length > 0 ? `${lead}: ${reasons.join("; ")}.` : `${lead}.`,
+  };
+}
+
 /** Flags staff review, written out; empty when there are none. */
 export function listingFlags(row: BookingListingReview): string[] {
   const flags: string[] = [];
@@ -157,6 +192,7 @@ function ListingRow({
   withdraw: ListingFormAction;
 }) {
   const state = listingState(row);
+  const homePage = homePageState(row);
   const flags = listingFlags(row);
   const publicHref = `${publicOrigin.replace(TRAILING_SLASH, "")}/${encodeURIComponent(row.public_slug)}`;
   const fields = {
@@ -188,6 +224,14 @@ function ListingRow({
           <Badge variant={state.variant}>{state.label}</Badge>
           <span className="text-muted-foreground">{state.detail}</span>
         </div>
+        {homePage ? (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Badge variant={homePage.shown ? "light-success" : "light-warning"}>
+              {homePage.shown ? "On the home page" : "Not on the home page"}
+            </Badge>
+            <span>{homePage.text}</span>
+          </div>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           {flags.length === 0 ? (
             <span className="text-muted-foreground text-sm">No flags</span>

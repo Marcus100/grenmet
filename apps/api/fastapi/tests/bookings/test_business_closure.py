@@ -402,3 +402,29 @@ async def test_closure_list_is_paged_in_order(
     )
     assert len(last.json()) == 1
     assert len(starts) + len(last.json()) == 3
+
+
+@pytest.mark.asyncio
+async def test_closures_can_be_filtered_to_those_not_yet_ended(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    salon = await _salon(db_async, async_client)
+    past = MONDAY - timedelta(days=7)
+    ending_today = MONDAY
+    later = MONDAY + timedelta(days=14)
+    for start, end in ((past, past), (ending_today, ending_today), (later, later)):
+        assert (
+            await _close(async_client, salon.headers, start, end)
+        ).status_code == 201
+
+    response = await async_client.get(
+        f"{API}/org/closures",
+        headers=salon.headers,
+        params={"ends_on_from": ending_today.isoformat()},
+    )
+    assert response.status_code == 200, response.text
+    ends = [c["ends_on"] for c in response.json()]
+    assert ends == [ending_today.isoformat(), later.isoformat()]
+
+    everything = await async_client.get(f"{API}/org/closures", headers=salon.headers)
+    assert len(everything.json()) == 3

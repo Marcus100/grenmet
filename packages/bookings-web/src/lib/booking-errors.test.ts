@@ -97,7 +97,7 @@ describe("booking-errors", () => {
       "create"
     );
     expect(missing.code).toBe("email_unverified");
-    expect(missing.message).toContain("new code");
+    expect(missing.message).toContain("next step");
     expect(classifyFailure(403, "Turnstile failed", "create").code).toBe(
       "verification"
     );

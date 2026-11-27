@@ -94,6 +94,85 @@ describe("booking actions", () => {
     );
   });
 
+  it("says a request paid afterwards is accepted, what happens next and the way out", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue({
+      events: [],
+      status: "pending_payment",
+      deposit_payment_link: true,
+    } as never);
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
+      status: "success",
+      message:
+        "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives and released if it does not. To take the acceptance back, use Cancel booking.",
+    });
+  });
+
+  it("says plainly when it was accepted without an online pay link", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue({
+      events: [],
+      status: "pending_payment",
+      deposit_payment_link: false,
+    } as never);
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
+      status: "success",
+      message:
+        "Accepted, but the online payment link could not be created. Tell the customer how to pay.",
+    });
+  });
+
+  it("says so when accepting confirmed it because online payment was off", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue({
+      events: [],
+      status: "confirmed",
+      accepted_without_payment: true,
+      deposit_payment_link: false,
+    } as never);
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toEqual({
+      status: "success",
+      message:
+        "Confirmed. Online payment is not on for this business any more, so the customer was not asked to pay. Agree how the deposit is paid, then use Mark deposit received once it is.",
+    });
+  });
+
+  it("keeps the request pending and says to retry when the payment could not start", async () => {
+    vi.mocked(confirmBooking).mockRejectedValue(
+      apiError(409, {
+        detail:
+          "The payment could not be started, so the request is still pending. Try Confirm again in a moment.",
+      })
+    );
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
+      status: "error",
+      nextStep:
+        "The request is still pending. Press Confirm again; if it keeps failing, cancel the request.",
+    });
+  });
+
+  it("shows the API's own words on a second accept, not a generic failure", async () => {
+    vi.mocked(confirmBooking).mockRejectedValue(
+      apiError(409, {
+        detail: "This request is already accepted and is waiting for payment",
+      })
+    );
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
+      status: "error",
+      message: "This request is already accepted and is waiting for payment",
+      nextStep:
+        "The customer has been emailed to pay. To take the acceptance back, use Cancel booking.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says why a request too close to its start cannot take an online payment", async () => {
+    const detail =
+      "Too close to the start to take an online payment. Cancel the request, or let the customer book a later time.";
+    vi.mocked(confirmBooking).mockRejectedValue(apiError(409, { detail }));
+    expect(await confirmBookingAction(SLUG, BOOKING_ID)).toMatchObject({
+      status: "error",
+      message: detail,
+    });
+  });
+
   it("also refreshes the business layout so the waiting count follows", async () => {
     vi.mocked(confirmBooking).mockResolvedValue(OK);
     await confirmBookingAction(SLUG, BOOKING_ID);

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AccountControl } from "@/components/account-control";
 
 // Real destinations only. "My bookings" and "Account" live in the account app,
 // whose address this app has no typed setting for, so they are not linked yet.
@@ -26,6 +27,8 @@ const ICONS = {
   ),
 };
 
+const TYPES_LABEL = "Types of business";
+
 const ITEMS = [
   {
     label: "Home",
@@ -34,7 +37,7 @@ const ITEMS = [
     current: true,
   },
   {
-    label: "Types of business",
+    label: TYPES_LABEL,
     icon: ICONS.types,
     href: { pathname: "/" as const, hash: "types" },
     current: false,
@@ -47,7 +50,14 @@ const ITEMS = [
   },
 ];
 
-const SIGN_IN = { pathname: "/signin" as const, query: { returnTo: "/" } };
+interface NavProps {
+  /** False when the page has no "Types of business" block to jump to. */
+  showTypes?: boolean;
+}
+
+function navItems(showTypes: boolean) {
+  return showTypes ? ITEMS : ITEMS.filter((item) => item.label !== TYPES_LABEL);
+}
 
 // No display utility here: `hidden` and `inline-flex` in one string both apply and
 // the later one in the stylesheet wins, which showed the laptop mark on phones.
@@ -68,8 +78,9 @@ function Icon({ children }: Readonly<{ children: ReactNode }>) {
   );
 }
 
-/** Floating left rail on laptops: the home mark, the icons and a Sign in pill. */
-export function SideRail() {
+/** Floating left rail on laptops: the home mark, the icons and the account control. */
+export function SideRail({ showTypes = true }: Readonly<NavProps>) {
+  const items = navItems(showTypes);
   return (
     <>
       <Link
@@ -83,7 +94,7 @@ export function SideRail() {
         aria-label="Main"
         className="bg-background fixed top-1/2 left-5 z-30 hidden -translate-y-1/2 flex-col items-center gap-1.5 rounded-full p-1.5 shadow-lg md:flex"
       >
-        {ITEMS.map((item) => (
+        {items.map((item) => (
           <Link
             aria-current={item.current ? "page" : undefined}
             aria-label={item.label}
@@ -95,24 +106,20 @@ export function SideRail() {
           </Link>
         ))}
       </nav>
-      <Link
-        className={`${ITEM_BASE} bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex`}
-        href={SIGN_IN}
-      >
-        Sign in
-      </Link>
+      <AccountControl className="bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex" />
     </>
   );
 }
 
 /** Floating pill bar at the bottom on phones. */
-export function BottomNav() {
+export function BottomNav({ showTypes = true }: Readonly<NavProps>) {
+  const items = navItems(showTypes);
   return (
     <nav
       aria-label="Quick links"
       className="bg-background fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 flex items-center justify-between rounded-full p-2 shadow-lg md:hidden"
     >
-      {ITEMS.map((item) => (
+      {items.map((item) => (
         <Link
           aria-current={item.current ? "page" : undefined}
           aria-label={item.label}
@@ -123,12 +130,9 @@ export function BottomNav() {
           <Icon>{item.icon}</Icon>
         </Link>
       ))}
-      <Link
-        className={`${ITEM} text-secondary-foreground h-12 px-3 text-[13px] font-semibold`}
-        href={SIGN_IN}
-      >
-        Sign in
-      </Link>
+      <AccountControl
+        className={`${ITEM} text-secondary-foreground h-12 text-[13px] font-semibold`}
+      />
     </nav>
   );
 }

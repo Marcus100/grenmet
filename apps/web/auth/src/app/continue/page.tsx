@@ -10,6 +10,7 @@ import {
   parseHandoffRequest,
   startHandoff,
 } from "@/lib/handoff";
+import { hasJoinIntent } from "@/lib/join-intent";
 import { readQueryParam } from "@/lib/return-to";
 import { readSessionCookie } from "@/lib/session";
 import { joinApp } from "./actions";
@@ -58,7 +59,19 @@ export default async function ContinuePage({ searchParams }: PageProps) {
   const sessionToken = await readSessionCookie();
   if (!sessionToken) redirect(signInPath(request));
 
-  const result = await startHandoff(request, sessionToken);
+  let result = await startHandoff(request, sessionToken);
+  // An instant-join app (no administrator approval) is joined without the
+  // question, but never on this GET alone: `state` is checked only by the app,
+  // so anyone can write a /continue link. It needs the mark the emailed-code
+  // sign-in leaves for this session, app and state (lib/join-intent.ts). A
+  // staff app (`request`) always keeps its explicit request screen.
+  if (
+    result.kind === "join" &&
+    !result.request &&
+    (await hasJoinIntent(request, sessionToken))
+  ) {
+    result = await startHandoff(request, sessionToken, true);
+  }
   if (result.kind === "redirect") redirect(result.url);
   if (result.kind === "sign-in") redirect(signInPath(request));
   switch (result.kind) {

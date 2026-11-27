@@ -46,6 +46,7 @@ from src.utils.datetime import utc_now
 
 from . import (
     calendar_feed,
+    customers,
     deposit_payments,
     go_live,
     listing_review,
@@ -64,6 +65,7 @@ from .schemas import (
     BookingClosureCreate,
     BookingClosureCreated,
     BookingClosurePublic,
+    BookingCustomerList,
     BookingDepositReceivedCreate,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
@@ -721,18 +723,34 @@ BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
     "/org/closures",
     response_model=list[BookingClosurePublic],
     summary="List whole-business closures",
-    description="Days the business is closed for every provider, earliest first.",
+    description=(
+        "Days the business is closed for every provider, earliest first. Pass "
+        "`ends_on_from` to list only closures that have not yet ended."
+    ),
     operation_id="bookingsListClosures",
     responses=READ_ERRORS,
 )
 async def list_closures(
-    *, session: SessionDep, org: BookingsOrgRead, pagination: PaginationDep
+    *,
+    session: SessionDep,
+    org: BookingsOrgRead,
+    pagination: PaginationDep,
+    ends_on_from: Annotated[
+        date | None,
+        Query(
+            description=(
+                "Only closures that end on or after this date (the business's today "
+                "for upcoming closures). Omit: every closure."
+            )
+        ),
+    ] = None,
 ) -> Any:
     return await service.list_closures(
         session,
         org.organisation_id,
         skip=pagination.skip,
         limit=pagination.limit,
+        ends_on_from=ends_on_from,
     )
 
 
@@ -874,6 +892,44 @@ async def get_agenda(
 
 
 @router.get(
+    "/org/customers",
+    response_model=BookingCustomerList,
+    summary="List the business's customers",
+    description=(
+        "One row per customer with a booking that was not cancelled: name, email, "
+        "phone, how many bookings, the last visit and the next booking. `q` "
+        "matches name, email or phone, any case. Whoever has a booking coming up "
+        "is first (soonest first), then the most recent visit. Page with `limit` "
+        "and `offset`. For a signed-in member of the organisation only: an API "
+        "key is refused. At most 30 requests a minute."
+    ),
+    operation_id="bookingsListCustomers",
+    responses={
+        **READ_ERRORS,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("30/minute")
+async def list_customers(
+    *,
+    request: Request,
+    session: SessionDep,
+    # A signed-in member only: an API key never reads the customer list.
+    org: BookingsOrgMember,
+    q: Annotated[
+        str | None,
+        Query(max_length=100, description="Part of a name, email or phone."),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    return await customers.list_customers(
+        session, org.organisation_id, q=q, limit=limit, offset=offset
+    )
+
+
+@router.get(
     "/org/bookings/{booking_id}",
     response_model=BookingStudioDetail,
     summary="Get a booking",
@@ -941,8 +997,11 @@ async def create_studio_booking(
     response_model=BookingStudioDetail,
     summary="Confirm a booking request",
     description=(
-        "Moves a `pending` booking to `confirmed` and emails the customer. 409 "
-        "for any other status, including one still waiting for its deposit."
+        "Accepts a `pending` request and emails the customer. It becomes "
+        "`confirmed`, or, when a card payment is due only after acceptance "
+        "(`pay_after_acceptance` with a deposit not yet paid), `pending_payment`: "
+        "the payment hold starts now and paying confirms it. 409 for any other "
+        "status, including one still waiting for its payment."
     ),
     operation_id="bookingsConfirmStudioBooking",
     responses=WRITE_ERRORS,

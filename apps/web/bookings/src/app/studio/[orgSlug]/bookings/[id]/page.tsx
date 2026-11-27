@@ -24,17 +24,20 @@ import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import {
+  ACCEPTED_AWAITING_VIEW,
+  acceptedAwaitingPayment,
   businessDepositView,
   canManageBookings,
   canMarkDepositReceived,
   type DepositState,
   depositState,
-  eventLabel,
   isUuid,
   localWhenNow,
   type PaymentKind,
   paymentWord,
+  paysAfterYouAccept,
   takesDeposit,
+  timelineEntries,
 } from "@/lib/studio-view";
 
 export const metadata: Metadata = {
@@ -92,6 +95,11 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
   const kind = booking.payment_kind;
   const word = paymentWord(kind);
   const zone = booking.timezone;
+  const entries = timelineEntries(booking.events, {
+    kind,
+    zone,
+    startsAt: booking.starts_at,
+  });
   // A deposit the customer pays the business by hand (#1869): no Barrels amount.
   const toBusiness = booking.deposit_to_business_minor ?? 0;
 
@@ -110,6 +118,8 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           <HeaderDepositBadge booking={booking} kind={kind} state={deposit} />
         </div>
       </div>
+
+      <PayAfterAcceptanceNotice booking={booking} word={word} />
 
       <ReturningClientNoticeFor
         manages={canManageBookings(org.value.role)}
@@ -253,18 +263,18 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           </p>
         ) : (
           <ol className="space-y-2">
-            {booking.events.map((event) => (
+            {entries.map((entry) => (
               <li
                 className="border-border rounded-xl border p-3"
-                key={`${event.created_at}-${event.to_status}`}
+                key={entry.key}
               >
-                <p className="font-medium">
-                  {eventLabel(event.from_status, event.to_status, kind)}
-                </p>
+                <p className="font-medium">{entry.title}</p>
                 <p className="text-foreground/80 text-sm">
-                  {formatDateTime(event.created_at, zone)}
+                  {formatDateTime(entry.at, zone)}
                 </p>
-                {event.note ? <p className="text-sm">{event.note}</p> : null}
+                {entry.detail ? (
+                  <p className="text-sm">{entry.detail}</p>
+                ) : null}
               </li>
             ))}
           </ol>
@@ -272,6 +282,40 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       </section>
     </article>
   );
+}
+
+/**
+ * A request paid by card after acceptance, in words: before you accept nothing
+ * has been asked; after, the customer has been emailed to pay.
+ */
+function PayAfterAcceptanceNotice({
+  booking,
+  word,
+}: {
+  booking: BookingStudioDetail;
+  word: string;
+}) {
+  const amount = formatMoney(booking.deposit_minor, booking.currency);
+  if (acceptedAwaitingPayment(booking)) {
+    return (
+      <p className={CARD}>
+        <strong>Accepted, awaiting payment.</strong> You accepted this request
+        and the customer was emailed to pay the {word.toLowerCase()} of {amount}
+        . The booking is confirmed when the payment arrives. If it does not
+        arrive in time, the booking is cancelled and the time is released.
+      </p>
+    );
+  }
+  if (paysAfterYouAccept(booking)) {
+    return (
+      <p className={CARD}>
+        Nothing has been paid yet. When you confirm this request, the customer
+        is emailed to pay the {word.toLowerCase()} of {amount}, and the booking
+        is confirmed once they have paid.
+      </p>
+    );
+  }
+  return null;
 }
 
 function HeaderDepositBadge({
@@ -283,6 +327,9 @@ function HeaderDepositBadge({
   kind: PaymentKind;
   state: DepositState;
 }) {
+  if (acceptedAwaitingPayment(booking)) {
+    return <DepositBadge view={ACCEPTED_AWAITING_VIEW} />;
+  }
   if ((booking.deposit_to_business_minor ?? 0) > 0) {
     return <DepositBadge view={businessDepositView(booking)} />;
   }

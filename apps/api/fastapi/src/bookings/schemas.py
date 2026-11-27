@@ -847,6 +847,21 @@ class BookingAgendaItem(BaseModel):
         default=None,
         description="When staff marked the deposit paid to the business as received.",
     )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending` nothing has been asked or paid and `deposit_minor` "
+            "is what becomes due when the business accepts."
+        ),
+    )
+    accepted_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "When the business accepted the request. With `pay_after_acceptance` and "
+            "`status` `pending_payment`: accepted, waiting for the customer to pay."
+        ),
+    )
     returning_client: bool = Field(
         default=False,
         description=(
@@ -894,6 +909,50 @@ class BookingAgenda(BaseModel):
     limit: int
     offset: int
     days: list[BookingAgendaDay]
+
+
+# --- studio customers ----------------------------------------------------------------
+
+
+class BookingCustomerListItem(BaseModel):
+    """One customer of the business, with the facts its bookings give."""
+
+    id: uuid.UUID
+    name: str = Field(description="As the contact book holds it; empty when unknown.")
+    email: str | None = None
+    phone: str | None = Field(
+        default=None, description="As it was typed when booking; not normalised."
+    )
+    bookings_count: int = Field(
+        description="Every booking of this customer except cancelled ones."
+    )
+    last_visit_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Start of the latest past booking that was kept (`confirmed` or "
+            "`completed`). Null before the first visit."
+        ),
+    )
+    next_booking_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "Start of the next booking still to come (`pending_payment`, `pending` "
+            "or `confirmed`). Null when nothing is booked."
+        ),
+    )
+    returning: bool = Field(
+        description="True when the customer has more than one counted booking."
+    )
+
+
+class BookingCustomerList(BaseModel):
+    """One page of the business's customers. `total` counts every match so a
+    client can page with `limit` and `offset`."""
+
+    total: int
+    limit: int
+    offset: int
+    customers: list[BookingCustomerListItem]
 
 
 # --- studio actions (B5) -------------------------------------------------------------
@@ -1014,6 +1073,21 @@ class BookingStudioDetail(BaseModel):
         default=None,
         description="When staff marked the deposit paid to the business as received.",
     )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending` nothing has been asked or paid and `deposit_minor` "
+            "is what becomes due when the business accepts."
+        ),
+    )
+    accepted_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "When the business accepted the request. With `pay_after_acceptance` and "
+            "`status` `pending_payment`: accepted, waiting for the customer to pay."
+        ),
+    )
     deposit_received_method: BookingDepositReceivedMethod | None = None
     deposit_received_reference: str | None = None
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
@@ -1025,6 +1099,23 @@ class BookingStudioDetail(BaseModel):
     cancel_reason: str | None
     cancelled_at: UtcDateTime | None
     created_at: UtcDateTime
+    accepted_without_payment: bool = Field(
+        default=False,
+        description=(
+            "True only in the response to Confirm on a request that was to be paid "
+            "online, when online payment was off by then (the payments entitlement "
+            "or the collection changed). The booking is confirmed with no payment "
+            "requested; the business agrees how the deposit is paid."
+        ),
+    )
+    deposit_payment_link: bool = Field(
+        default=False,
+        description=(
+            "True while the deposit has an open online checkout the customer can "
+            "pay through. False for an accepted request means no pay link could be "
+            "made: the business has to tell the customer how to pay."
+        ),
+    )
     deposit_intent_id: uuid.UUID | None = Field(
         description="The payments intent for the deposit, to record a manual payment."
     )
@@ -1063,6 +1154,15 @@ class BookingPublicService(BaseModel):
     new_clients_only: bool = Field(
         default=False,
         description="First-time clients only: every booking of it is a request the business confirms.",
+    )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A booking of this service is a request the business accepts by hand, "
+            "and any payment (`due_at_booking_minor` by card, or "
+            "`deposit_to_business_minor` to the business) is made only after it "
+            "accepts: nothing is asked when the request is made."
+        ),
     )
     first_visit_lead_days: int | None = Field(
         default=None,
@@ -1540,9 +1640,19 @@ class BookingPublicDetail(BaseModel):
         default=None,
         description=(
             "While `status` is `pending_payment`: the length of the hold in minutes "
-            "(the business's setting, capped at 120 for an online card checkout). "
-            "Show it as 'Your time is held for N hours until your deposit is "
-            "received'. Null otherwise."
+            "(the business's setting, capped at 120 for an online card checkout made "
+            "at booking). Show it as 'Your time is held for N hours until your "
+            "deposit is received'. Null otherwise."
+        ),
+    )
+    pay_after_acceptance: bool = Field(
+        default=False,
+        description=(
+            "A request paid by card only after the business accepts it. While "
+            "`status` is `pending`: nothing to pay yet, `payment` is null and "
+            "`deposit_minor` is what becomes due on acceptance. While `status` is "
+            "`pending_payment`: the business accepted, and the customer pays by "
+            "`hold_ends_at`."
         ),
     )
     add_ons: list[BookingAddOnLine] = Field(
@@ -1566,7 +1676,8 @@ class BookingPublicReceipt(BaseModel):
         description=(
             "True when the booking holds the slot but waits for a payment (a "
             "deposit or the full price; `status` is `pending_payment`). It is "
-            "cancelled and the slot released if it is not paid in time."
+            "cancelled and the slot released if it is not paid in time. False for a "
+            "request paid after the business accepts (`booking.pay_after_acceptance`)."
         ),
     )
     checkout_url: str | None = Field(
@@ -1628,6 +1739,24 @@ class BookingPublicCancelBody(RootModel[BookingPublicCancel | None]):
 # --- Barrels staff: listing review (ADR-0066) ---------------------------------------
 
 
+class BookingListingNotShownReason(str, Enum):
+    """Why a business is not on the home page. The values are the keys of
+    ``service.listing_conditions``."""
+
+    #: The business's own "show my business on the home page" switch is off.
+    NOT_LISTED = "not_listed"
+    #: Barrels staff have not approved the listing.
+    NOT_APPROVED = "not_approved"
+    #: Online booking is closed (the profile is not enabled).
+    BOOKING_CLOSED = "booking_closed"
+    #: The business is paused.
+    PAUSED = "paused"
+    NO_ACTIVE_SERVICE = "no_active_service"
+    #: The organisation does not hold the bookings app.
+    NOT_ENTITLED = "not_entitled"
+    ORGANISATION_INACTIVE = "organisation_inactive"
+
+
 class BookingListingReview(BaseModel):
     """Staff view of one business's home page listing and the flags staff review."""
 
@@ -1645,6 +1774,17 @@ class BookingListingReview(BaseModel):
     owner_left_at: UtcDateTime | None
     #: Set when the sign-up name was refused by the sender-name guard (ADR-0066).
     sender_name_flagged_at: UtcDateTime | None = None
+    on_home_page: bool = Field(
+        default=False,
+        description=(
+            "True when the business is shown on the public home page now: every "
+            "condition of the public listing holds, not only staff approval."
+        ),
+    )
+    not_shown_reasons: list[BookingListingNotShownReason] = Field(
+        default_factory=list,
+        description="Why the business is not on the home page; empty when it is.",
+    )
 
 
 class BookingListingQueue(str, Enum):

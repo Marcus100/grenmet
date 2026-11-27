@@ -5,9 +5,13 @@
 
 import type { IncidentAttachmentPublic } from "./IncidentAttachmentPublic.js";
 import type { IncidentCheckPublic } from "./IncidentCheckPublic.js";
+import type { IncidentDamagePublic } from "./IncidentDamagePublic.js";
 import type { IncidentNotePublic } from "./IncidentNotePublic.js";
+import type { IncidentPartyPublic } from "./IncidentPartyPublic.js";
+import type { IncidentResourcePublic } from "./IncidentResourcePublic.js";
 import type { IncidentStatus } from "./IncidentStatus.js";
 import type { IncidentTimelinePublic } from "./IncidentTimelinePublic.js";
+import type { IncidentWeather } from "./IncidentWeather.js";
 
 /**
  * @description Checks in order, the timeline oldest first, notes oldest first. Private
@@ -36,6 +40,7 @@ export type IncidentDetail = {
    */
   reported_by: string;
   reported_by_name: string | null;
+  weather?: IncidentWeather | null;
   opened_at: string | null;
   closed_at: string | null;
   closed_by: string | null;
@@ -59,4 +64,19 @@ export type IncidentDetail = {
    * @type array | undefined
    */
   attachments?: IncidentAttachmentPublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  parties?: IncidentPartyPublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  damage?: IncidentDamagePublic[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  resources?: IncidentResourcePublic[];
 };

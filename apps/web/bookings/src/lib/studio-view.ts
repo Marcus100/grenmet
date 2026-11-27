@@ -4,6 +4,7 @@
 import type { BookingStatus, MembershipRole } from "@barrelsgd/api-client";
 import {
   addDays,
+  formatDateTime,
   formatDay,
   formatMoney,
   localDay,
@@ -247,6 +248,169 @@ export function eventLabel(
     : `Created as ${next}`;
 }
 
+/** The API's history notes for a deposit paid to the business (`studio.py`). */
+const DEPOSIT_RECEIVED_NOTE = "Deposit received";
+const DEPOSIT_UNDONE_NOTE = "Deposit receipt undone";
+/** "Rescheduled from 2026-11-20T14:00Z by the business" (or "by customer"). */
+const RESCHEDULED_NOTE =
+  /^Rescheduled from (\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z by (the business|customer)$/u;
+/** "Deposit recorded by hand (cash)", or "Payment recorded by hand (cash)". */
+const RECORDED_NOTE = /^(Deposit|Payment) recorded by hand \(.+\)$/u;
+/** "Deposit refunded", "Payment refund queued", "Deposit refund failed; ...". */
+const REFUND_NOTE = /\brefund/iu;
+
+export interface TimelineEvent {
+  created_at: string;
+  from_status: BookingStatus | null;
+  note: string | null;
+  to_status: BookingStatus;
+}
+
+export interface TimelineEntry {
+  /** The line under the time, or null when the title already says it. */
+  detail: string | null;
+  title: string;
+}
+
+/** One entry as the page lists it: when it happened and a key unique in the list. */
+export interface TimelineRow extends TimelineEntry {
+  at: string;
+  key: string;
+}
+
+export interface TimelineContext {
+  kind?: PaymentKind;
+  /**
+   * The start the booking moved to, for a reschedule entry: the API's note
+   * holds only the old one. Null when it is not known.
+   */
+  newStart?: string | null;
+  /** The business's time zone; times are written the way the page writes them. */
+  zone: string;
+}
+
+function capitalised(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The old start in a reschedule note, as an instant; null when it is not one. */
+function rescheduledFrom(note: string | null): string | null {
+  const match = note ? RESCHEDULED_NOTE.exec(note) : null;
+  if (!match) {
+    return null;
+  }
+  const iso = `${match[1]}:00Z`;
+  return Number.isNaN(Date.parse(iso)) ? null : iso;
+}
+
+function rescheduleEntry(
+  note: string,
+  oldStart: string,
+  context: TimelineContext
+): TimelineEntry {
+  const who = note.endsWith("by customer") ? "the customer" : "the business";
+  const from = formatDateTime(oldStart, context.zone);
+  const to = context.newStart
+    ? ` to ${formatDateTime(context.newStart, context.zone)}`
+    : "";
+  return { title: "Time changed", detail: `From ${from}${to}, by ${who}` };
+}
+
+/** An entry whose status stays the same and is not a deposit receipt or a reschedule. */
+function sameStatusEntry(event: TimelineEvent, note: string): TimelineEntry {
+  const recorded = RECORDED_NOTE.exec(note);
+  if (recorded) {
+    return { title: `${recorded[1]} recorded`, detail: note };
+  }
+  if (REFUND_NOTE.test(note)) {
+    return { title: "Refund", detail: note };
+  }
+  if (event.to_status === "cancelled") {
+    // "Deposit kept", "Unpaid deposit cancelled": what happened to the money.
+    return { title: "Cancellation note", detail: note };
+  }
+  return { title: "Booking updated", detail: note };
+}
+
+/**
+ * The title and detail of one timeline entry. Only a real change of status is
+ * titled "X to Y". An entry whose status stays the same is titled by what
+ * happened ("Deposit received", "Time changed", "Refund"), so "Confirmed to
+ * Confirmed" is never shown, and a note this does not recognise is shown as
+ * the detail under "Booking updated", never as a title.
+ */
+export function timelineEntry(
+  event: TimelineEvent,
+  context: TimelineContext
+): TimelineEntry {
+  const note = event.note?.trim() || null;
+  if (event.from_status !== event.to_status) {
+    return {
+      title: eventLabel(event.from_status, event.to_status, context.kind),
+      detail: note,
+    };
+  }
+  if (note === null) {
+    return { title: "Booking updated", detail: null };
+  }
+  if (note === DEPOSIT_UNDONE_NOTE) {
+    return { title: "Deposit marked not received", detail: null };
+  }
+  if (note.startsWith(DEPOSIT_RECEIVED_NOTE)) {
+    // "Deposit received by cash" keeps its method as the detail: "By cash".
+    const method = note.slice(DEPOSIT_RECEIVED_NOTE.length).trim();
+    return {
+      title: DEPOSIT_RECEIVED_NOTE,
+      detail: method ? capitalised(method) : null,
+    };
+  }
+  const oldStart = rescheduledFrom(note);
+  if (oldStart) {
+    return rescheduleEntry(note, oldStart, context);
+  }
+  return sameStatusEntry(event, note);
+}
+
+/**
+ * Every timeline entry, in the order given (the API's: oldest first). A
+ * reschedule's new time is the old time of the next reschedule, or the
+ * booking's start now for the last one.
+ */
+export function timelineEntries(
+  events: TimelineEvent[],
+  booking: { kind?: PaymentKind; startsAt: string; zone: string }
+): TimelineRow[] {
+  const seen = new Map<string, number>();
+  return events.map((event, index) => {
+    // Two entries can share a time and a status, so the key counts repeats.
+    const stem = `${event.created_at}-${event.to_status}`;
+    const repeat = seen.get(stem) ?? 0;
+    seen.set(stem, repeat + 1);
+    const later = events
+      .slice(index + 1)
+      .map((next) =>
+        next.from_status === next.to_status ? rescheduledFrom(next.note) : null
+      )
+      .find((start) => start !== null);
+    return {
+      ...timelineEntry(event, {
+        kind: booking.kind,
+        zone: booking.zone,
+        newStart: later ?? booking.startsAt,
+      }),
+      at: event.created_at,
+      key: `${stem}-${repeat}`,
+    };
+  });
+}
+
+/**
+ * Cancelled bookings, whose unpaid business-collected deposit is hidden on the
+ * agenda. A no-show is not here: the business may still want the unpaid deposit
+ * or a late fee, so it keeps the chip it has on `dev`.
+ */
+const CANCELLED_UNPAID = "cancelled";
+
 /**
  * The agenda lists carry no payment amounts, so they can only say a deposit is
  * still awaited or show its size; the detail page shows paid and refunded.
@@ -259,16 +423,18 @@ export function agendaDepositView(booking: {
   status: BookingStatus;
 }): StatusView {
   const kind = booking.payment_kind ?? "deposit";
-  // Only a deposit paid to the business is ever marked received (#1869), so a
-  // received mark is always a paid one. A cancelled booking is never shown as paid.
-  if (booking.deposit_received_at && booking.status !== "cancelled") {
-    return { label: "Deposit received", tone: "success" };
+  // Only money the business actually received is marked received, so a received
+  // mark is always a paid one, on any status.
+  if (booking.deposit_received_at) {
+    return { label: `${paymentWord(kind)} received`, tone: "success" };
   }
-  // The agenda item has no captured or refunded amount, so a cancelled booking
-  // keeps the neutral amount label (never "due"); the detail page says what was paid.
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
+  // TODO(agenda-captured): this neutral amount on a cancelled or no-show booking is
+  // kept only because the agenda item has no captured or refunded amount, so it
+  // cannot tell whether an online payment was taken. Remove the cancelled part
+  // once the agenda item carries captured and refunded amounts.
   return {
     label: `${paymentWord(kind)} ${formatMoney(booking.deposit_minor, booking.currency)}`,
     tone: "neutral",
@@ -341,18 +507,29 @@ export function takesDeposit(booking: {
 }
 
 /**
- * Whether the agenda row shows a deposit badge. A deposit paid to the business
- * carries no amount on the agenda item, so it shows only once it is received.
+ * Whether the agenda row shows a deposit badge. Received always shows. A
+ * cancelled booking whose deposit is business-collected (`deposit_to_business_minor`
+ * above 0, `deposit_minor` 0) shows nothing, because Barrels never held it.
+ * Anything else shows its amount when `deposit_minor` is above 0, as on `dev`.
+ * The API never writes both amounts on one booking (`price_booking` and
+ * `deposit_payments` set one by the profile's collection mode), so a row with
+ * both keeps the online amount: a card payment may have been captured.
  */
 export function showsAgendaDeposit(booking: {
   deposit_minor: number;
+  deposit_to_business_minor?: number;
   deposit_received_at?: string | null;
   status: BookingStatus;
 }): boolean {
-  return (
-    booking.deposit_minor > 0 ||
-    (Boolean(booking.deposit_received_at) && booking.status !== "cancelled")
-  );
+  if (booking.deposit_received_at) {
+    return true;
+  }
+  const businessOnly =
+    (booking.deposit_to_business_minor ?? 0) > 0 && booking.deposit_minor <= 0;
+  if (booking.status === CANCELLED_UNPAID && businessOnly) {
+    return false;
+  }
+  return booking.deposit_minor > 0;
 }
 
 /**
@@ -384,6 +561,73 @@ export function businessDepositDueView(booking: {
   return { label: `Deposit due ${amount} to you`, tone: "warning" };
 }
 
+/** What the API says about a request that is paid by card after acceptance. */
+interface AcceptanceFields {
+  accepted_at?: string | null;
+  pay_after_acceptance?: boolean;
+  status: BookingStatus;
+}
+
+/**
+ * A request you accepted that now waits for the customer's payment: the hold
+ * started when you accepted, and paying confirms the booking.
+ */
+export function acceptedAwaitingPayment(booking: AcceptanceFields): boolean {
+  return (
+    booking.pay_after_acceptance === true &&
+    booking.status === "pending_payment" &&
+    Boolean(booking.accepted_at)
+  );
+}
+
+/** A request the customer pays for only after you accept it: nothing is paid yet. */
+export function paysAfterYouAccept(
+  booking: AcceptanceFields & { deposit_minor: number }
+): boolean {
+  return (
+    booking.pay_after_acceptance === true &&
+    booking.status === "pending" &&
+    booking.deposit_minor > 0
+  );
+}
+
+/** "Accepted, awaiting payment": the state between your yes and the money. */
+export const ACCEPTED_AWAITING_VIEW: StatusView = {
+  label: "Accepted, awaiting payment",
+  tone: "warning",
+};
+
+/** "Deposit EC$50 after you accept", the chip on a request that pays later. */
+export function payAfterAcceptView(booking: {
+  currency: string;
+  deposit_minor: number;
+  payment_kind?: PaymentKind;
+}): StatusView {
+  const amount = formatMoney(booking.deposit_minor, booking.currency);
+  return {
+    label: `${paymentWord(booking.payment_kind ?? "deposit")} ${amount} after you accept`,
+    tone: "neutral",
+  };
+}
+
+/**
+ * "Deposit EC$50 to you after you accept": a request whose deposit is paid to
+ * the business. The customer is asked to pay only once you accept.
+ */
+export function businessDepositAfterAcceptView(booking: {
+  currency: string;
+  deposit_to_business_minor?: number;
+}): StatusView {
+  const amount = formatMoney(
+    booking.deposit_to_business_minor ?? 0,
+    booking.currency
+  );
+  return {
+    label: `Deposit ${amount} to you after you accept`,
+    tone: "neutral",
+  };
+}
+
 /** A chip on an agenda row: the hold warning, or the deposit line. */
 export type AgendaChip =
   | { kind: "expires_soon" }
@@ -396,8 +640,10 @@ export type AgendaChip =
  */
 export function agendaChips(
   booking: Parameters<typeof agendaDepositView>[0] & {
+    accepted_at?: string | null;
     deposit_to_business_minor?: number;
     hold_expires_soon?: boolean;
+    pay_after_acceptance?: boolean;
   }
 ): AgendaChip[] {
   const chips: AgendaChip[] = [];
@@ -405,7 +651,16 @@ export function agendaChips(
     chips.push({ kind: "expires_soon" });
   }
   const businessDue = businessDepositDue(booking);
-  if (businessDue) {
+  if (acceptedAwaitingPayment(booking)) {
+    chips.push({ kind: "deposit", view: ACCEPTED_AWAITING_VIEW });
+  } else if (paysAfterYouAccept(booking)) {
+    chips.push({ kind: "deposit", view: payAfterAcceptView(booking) });
+  } else if (businessDue && booking.status === "pending") {
+    chips.push({
+      kind: "deposit",
+      view: businessDepositAfterAcceptView(booking),
+    });
+  } else if (businessDue) {
     chips.push({ kind: "deposit", view: businessDepositDueView(booking) });
   } else if (showsAgendaDeposit(booking)) {
     chips.push({ kind: "deposit", view: agendaDepositView(booking) });

@@ -5,7 +5,11 @@ import type {
   BookingSettings,
 } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
-import { setupDoneCount, setupSteps } from "./setup-checklist";
+import {
+  servicesNobodyDoes,
+  setupDoneCount,
+  setupSteps,
+} from "./setup-checklist";
 
 const EMPTY: BookingSettings = {
   profile: null,
@@ -101,5 +105,64 @@ describe("each step is read from saved data", () => {
       deposits_available: true,
     });
     expect(setupDoneCount(steps)).toBe(5);
+  });
+});
+
+describe("a service no one is set to do", () => {
+  const massage = {
+    id: "44444444-4444-4444-8444-444444444444",
+    name: "Massage",
+    active: true,
+  } as BookingServicePublic;
+  const facial = {
+    id: "55555555-5555-4555-8555-555555555555",
+    name: "Facial",
+    active: true,
+  } as BookingServicePublic;
+  const maya = {
+    ...PERSON,
+    active: true,
+    service_ids: [massage.id],
+  } as BookingProviderSettings;
+
+  it("names the active services no active person does", () => {
+    expect([...servicesNobodyDoes([massage, facial], [maya])]).toEqual([
+      facial.id,
+    ]);
+    expect(servicesNobodyDoes([massage], [maya]).size).toBe(0);
+  });
+
+  it("does not count a person who is switched off", () => {
+    expect([
+      ...servicesNobodyDoes([massage], [{ ...maya, active: false }]),
+    ]).toEqual([massage.id]);
+  });
+
+  it("leaves out a switched-off service and an add-on", () => {
+    expect(
+      servicesNobodyDoes(
+        [
+          { ...facial, active: false },
+          { ...massage, is_add_on: true },
+        ],
+        []
+      ).size
+    ).toBe(0);
+  });
+
+  it("adds a step that links to People only while a service has no one", () => {
+    const missing = setupSteps({
+      ...EMPTY,
+      services: [massage, facial],
+      providers: [maya],
+    });
+    const step = missing.find((item) => item.id === "staffed");
+    expect(step).toMatchObject({ done: false, target: "people" });
+    const complete = setupSteps({
+      ...EMPTY,
+      services: [massage],
+      providers: [maya],
+    });
+    expect(complete.some((item) => item.id === "staffed")).toBe(false);
   });
 });

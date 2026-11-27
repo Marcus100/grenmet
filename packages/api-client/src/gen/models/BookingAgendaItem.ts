@@ -68,6 +68,16 @@ export type BookingAgendaItem = {
    */
   deposit_received_at?: string | null;
   /**
+   * @description A request paid by card only after the business accepts it. While `status` is `pending` nothing has been asked or paid and `deposit_minor` is what becomes due when the business accepts.
+   * @default false
+   * @type boolean | undefined
+   */
+  pay_after_acceptance?: boolean;
+  /**
+   * @description When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay.
+   */
+  accepted_at?: string | null;
+  /**
    * @description Staff only: a returning client requested a new-clients-only service.
    * @default false
    * @type boolean | undefined

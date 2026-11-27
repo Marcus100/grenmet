@@ -144,15 +144,21 @@ def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
 
 def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     """When an unpaid hold is released: the same clock the expiry sweeper uses
-    (``created_at`` plus this booking's hold). None for a booking not waiting for payment."""
+    (``deposit_payments.hold_started_at`` plus this booking's hold). None for a
+    booking not waiting for payment."""
     if booking.status != BookingStatus.PENDING_PAYMENT.value:
         return None
-    if booking.created_at is None or hold_minutes is None:
+    started = deposit_payments.hold_started_at(booking)
+    if started is None or hold_minutes is None:
         return None
-    return booking.created_at + timedelta(minutes=hold_minutes)
+    return started + timedelta(minutes=hold_minutes)
 
 
-def _single_line(value: str) -> str:
+def single_line(value: str) -> str:
+    """One line of whitespace-collapsed text, for a name typed into a form.
+
+    Shared: ``studio.py`` cleans a staff-entered name the same way.
+    """
     return " ".join(value.split())
 
 
@@ -343,7 +349,7 @@ def detail(
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
         timezone=profile.timezone,
-        customer_name=display_name(managed.contact),
+        customer_name=booked_name(managed.booking, managed.contact),
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
         currency=booking.currency,
@@ -355,8 +361,8 @@ def detail(
             profile.deposit_instructions
             if booking.deposit_to_business_minor > 0
             and booking.deposit_received_at is None
-            and booking.status
-            in (BookingStatus.PENDING.value, BookingStatus.CONFIRMED.value)
+            # Only once the business accepted: a request is not asked to pay.
+            and booking.status == BookingStatus.CONFIRMED.value
             else None
         ),
         deposit_received=booking.deposit_received_at is not None,
@@ -369,6 +375,7 @@ def detail(
         account_invite_url=account_invite_for(profile, managed.contact),
         hold_ends_at=hold_ends_at(booking, hold_minutes),
         hold_minutes=hold_minutes,
+        pay_after_acceptance=booking.pay_after_acceptance,
         add_ons=[
             BookingAddOnLine(
                 name=line.name,
@@ -398,7 +405,7 @@ def decoy_receipt(
             starts_at=starts_at,
             ends_at=starts_at + timedelta(hours=1),
             timezone=profile.timezone,
-            customer_name=_single_line(payload.customer_name),
+            customer_name=single_line(payload.customer_name),
             price_minor=0,
             deposit_minor=0,
             currency=profile.currency,
@@ -449,7 +456,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
     profile = managed.profile
     return emails.BookingEmail(
         business=profile.display_name,
-        customer_name=display_name(managed.contact),
+        customer_name=booked_name(managed.booking, managed.contact),
         service_name=managed.service.name,
         provider_name=managed.provider.name,
         starts_at=managed.booking.starts_at,
@@ -479,6 +486,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         accent=profile.brand_color,
         logo=emails.business_logo(profile.display_name, profile.logo_file_id),
         payment_line=deposit_payments.payment_line(managed.booking),
+        pay_after_acceptance=deposit_payments.awaits_acceptance(managed.booking),
     )
 
 
@@ -604,6 +612,18 @@ def display_name(contact: Contact) -> str:
     return contact.name or ""
 
 
+def booked_name(booking: Booking, contact: Contact) -> str:
+    """The name one booking shows: the name typed on it, else the contact's.
+
+    A second booking under the same email must show the name typed on it, not
+    the first booking's (issue #1951, item 7). The contact keeps its own
+    curated name for matching and the customer list, so a public form never
+    rewrites it. A row made before the column existed falls back to the
+    contact, so nothing already booked changes.
+    """
+    return booking.booked_name or display_name(contact)
+
+
 async def _upsert_customer(
     session: AsyncSession,
     profile: BookingProfile,
@@ -617,7 +637,7 @@ async def _upsert_customer(
         session,
         profile.organisation_id,
         email=str(payload.customer_email).strip(),
-        name=_single_line(payload.customer_name),
+        name=single_line(payload.customer_name),
         phone=phone,
         source="bookings",
         consents={ConsentPurpose.MARKETING: payload.marketing_consent},
@@ -893,10 +913,11 @@ async def _create_booking(
             booking_email=str(payload.customer_email),
             user_id=payer.id,
         )
-        # The name typed on the booking is the name the booking, the confirmation
-        # and My bookings show. A stored name would otherwise win over it.
+        # A verified account owns its own contact's name, so the contact book
+        # follows what the person last called themselves. What each booking
+        # shows is its own ``booked_name``, set below.
         contacts_service.take_name_from_linked_account(
-            contact, name=_single_line(payload.customer_name), user_id=payer.id
+            contact, name=single_line(payload.customer_name), user_id=payer.id
         )
     flag_returning = svc.new_clients_only and await _is_returning_client(
         session, profile, contact
@@ -906,14 +927,17 @@ async def _create_booking(
         minutes=svc.duration_min + sum(a.duration_min for a in chosen)
     )
     price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
-    if deposit > 0:
+    # A new-clients-only service is always a request staff confirm, so every
+    # client gets the same answer whatever their history.
+    request = deposit_payments.needs_acceptance(profile, svc)
+    if request:
+        # A request first: nothing is asked and no payment hold starts until the
+        # business accepts it (``studio.confirm``), whatever is due.
+        initial = BookingStatus.PENDING
+    elif deposit > 0:
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT
-    elif profile.requires_confirmation or svc.new_clients_only:
-        # A new-clients-only service is always a request staff confirm, so every
-        # client gets the same answer whatever their history.
-        initial = BookingStatus.PENDING
     else:
         initial = BookingStatus.CONFIRMED
     booking: Booking | None = None
@@ -924,6 +948,8 @@ async def _create_booking(
             provider_id=provider_id,
             service_id=svc.id,
             customer_id=customer.id,
+            # What this booking shows, whatever name the contact already holds.
+            booked_name=single_line(payload.customer_name) or None,
             starts_at=starts_at,
             ends_at=ends_at,
             blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),
@@ -934,6 +960,7 @@ async def _create_booking(
             deposit_minor=deposit,
             deposit_to_business_minor=to_business,
             deposit_non_refundable=profile.deposit_non_refundable,
+            pay_after_acceptance=request and deposit > 0,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
@@ -1166,6 +1193,9 @@ async def cancel_booking(
     return await full_detail(session, managed, moment)
 
 
+PAY_BEFORE_CHANGING = "Pay first, then you can change the time"
+
+
 async def move_booking(
     session: AsyncSession, booking: Booking, svc: Service, starts_at: datetime
 ) -> None:
@@ -1203,6 +1233,10 @@ async def reschedule_booking(
     managed = await load_by_token(session, token, lock=True)
     booking, svc = managed.booking, managed.service
     _require_active(booking)
+    if deposit_payments.accepted_awaiting_payment(booking):
+        # The business accepted this time and is waiting for the money: a move
+        # now would change what it agreed to before it is paid for.
+        raise BookingConflictError(PAY_BEFORE_CHANGING)
     _require_before_cutoff(managed, moment, "changed")
     starts_at = service.as_naive_utc(new_starts_at)
     if starts_at == booking.starts_at:

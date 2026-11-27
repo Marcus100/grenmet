@@ -170,9 +170,12 @@ function emailUnverified(
     action === "create" &&
     detail?.includes(EMAIL_UNVERIFIED_MARK)
   ) {
+    // Not a failure to show as one: the flow turns this into the neutral ask
+    // above the book button (issue #1951, item 4). The wording is kept for any
+    // other caller that only has the message.
     return failure(
       "email_unverified",
-      "We need to confirm your email again before booking. Press the button below and we will email you a new code."
+      "Confirming your email is the next step. Press Email me a verification code and type in the code we send you."
     );
   }
   return null;

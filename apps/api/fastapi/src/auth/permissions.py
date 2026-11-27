@@ -348,6 +348,40 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Give organisation members incidents roles you hold yourself",
         binding="organisation",
     ),
+    # Safety programme of the case engine (ADR-0069). Organisation keys; owners
+    # and admins hold them all. API key scopes exist because every product has
+    # them; no case route takes an API key.
+    PermissionDef(
+        "safety.read", "API key: read Barrels Safety data", binding="organisation"
+    ),
+    PermissionDef(
+        "safety.write", "API key: change Barrels Safety data", binding="organisation"
+    ),
+    PermissionDef(
+        "safety.cases.read",
+        "Safety: read cases, risk assessments, corrective actions and the risk grid",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "safety.cases.write",
+        "Safety: report and work cases, assess risk, set and progress corrective actions",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "safety.cases.approve",
+        "Safety: accept a tolerable risk, verify corrective actions, close and reopen cases",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "safety.settings.manage",
+        "Safety: change the organisation's risk grid",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "safety.team.manage",
+        "Give organisation members safety roles you hold yourself",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

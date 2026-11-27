@@ -314,3 +314,41 @@ async def test_a_completed_booking_is_suggested(
     assert [row["service_id"] for row in response.json()["recent"]] == [
         studio.service_id
     ]
+
+
+async def test_the_profile_phone_is_the_fallback_before_the_sign_in_number(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """``contact_phone`` is the number a person types into their Account profile;
+    ``phone_e164`` is only ever set by phone sign-in. The typed one is what they
+    would write on a booking form, so it prefills first."""
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
+    ada.contact_phone = f"+1473555{uuid.uuid4().int % 10000:04d}"
+    await db_async.commit()
+    typed = ada.contact_phone
+    response = await async_client.get(_url(studio), headers=headers_for(ada))
+    assert response.status_code == 200, response.text
+    assert response.json() == {"phone": typed, "recent": []}
+
+    ada.phone_e164 = f"+1473556{uuid.uuid4().int % 10000:04d}"
+    await db_async.commit()
+    with_both = await async_client.get(_url(studio), headers=headers_for(ada))
+    assert with_both.json()["phone"] == typed
+
+
+async def test_the_business_contacts_number_wins_over_the_profile_phone(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Unchanged: the number this business already holds for the person is the
+    most recent thing they gave it, so it comes before the account's own."""
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
+    ada.contact_phone = f"+1473557{uuid.uuid4().int % 10000:04d}"
+    await db_async.commit()
+    booked = await _signed_in_book(
+        async_client, studio, headers_for(ada), customer_email=ada.email
+    )
+    assert booked.status_code == 201, booked.text
+    response = await async_client.get(_url(studio), headers=headers_for(ada))
+    assert response.json()["phone"] == "+1 473 555 0100"

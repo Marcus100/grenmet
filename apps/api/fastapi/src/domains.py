@@ -20,6 +20,7 @@ from collections.abc import Callable, Iterable, Mapping
 from importlib import import_module
 from typing import Any
 
+from src.cases.register import DOMAIN as CASES
 from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
 from src.flights.register import DOMAIN as FLIGHTS
@@ -40,6 +41,7 @@ DOMAINS: tuple[Domain, ...] = (
     MONITORING,
     OPSLOG,
     INCIDENTS,
+    CASES,
 )
 
 # Every router of the app, in mount order (legacy and registered alike).
@@ -123,6 +125,7 @@ MOUNT_ORDER: tuple[str, ...] = (
     "monitoring.admin",
     "opslog.org",
     "incidents.org",
+    "cases.org",
 )
 
 

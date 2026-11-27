@@ -123,26 +123,45 @@ service list three screens long.
 
 - **Steps:** 1 Service (and add-ons, when the chosen service has them), 2 Time
   (the day and time picker), 3 Details (the form, emailed-code step, rules and
-  the Book button). Choosing a service moves to step 2, except when add-ons are
-  offered: then the person stays until they press Continue.
+  the Book button). Choosing a service, a day or a time never moves the step:
+  only Continue and Back do. Continue is `aria-disabled` with the reason until
+  the step's choice is made.
+- **Service details:** the chosen service's row expands in place (one at a
+  time) with its description (three lines, then a "Read more" button that says
+  `aria-expanded`), duration, price, the payment line (`bookingRulesLine`), the
+  new-clients note, its add-ons (names and prices, read only) and a "Full
+  policy" disclosure when the business wrote one. The radio is described by the
+  panel (`aria-describedby`). The panel sits beside the radio's label, never in
+  it.
+- **Remembered choices:** the service, day and time live in the page's own link
+  (`?service=`, `?day=`, `?time=`, written with `replaceState`, so a reload or a
+  shared link keeps them). Typed details (name, email, phone, notes, marketing)
+  live in sessionStorage per business, for this tab only; the emailed code never
+  does. A remembered time the business no longer offers is cleared and the
+  step says so.
 - **Header:** "Step 2 of 3: Time" as a heading (focus moves to it on each step
   change, and the page scrolls to it), three bars below it with
   `aria-current="step"` on the current one (the finished ones and the current
   one use the business accent), and a Back button of 44 px on steps 2 and 3.
   Back keeps every choice and everything typed.
-- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with one
-  line of what is chosen so far (service, day and time, price, and "due now"
-  when the amount is known) and Continue. Continue stays `aria-disabled` with a
-  line saying what to choose first. Step 3 has no bar (the keyboard would
-  cover a field): the form's own Book button is the only Book button, and the
-  same one-line summary sits above the details.
+- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with the
+  chosen service on two lines (its name, truncated; then "45 min · EC$100",
+  plus "due now" when known) and Continue beside them. Continue stays
+  `aria-disabled` with a line saying what to choose first. Step 3 has no bar
+  (the keyboard would cover a field): the form's own Book button is the only
+  Book button.
+- **Chosen-so-far line (steps 2 and 3):** one line above the step's content,
+  "service · day and time", with an "Edit" link. On step 2 it goes back to
+  step 1; on step 3 it goes back to step 2. On a phone the link walks the
+  history this flow pushed, so the phone's Back stays in step.
 - **Errors:** a taken time or removed add-ons return the person to step 2 with
   the message shown at the top as before.
 - **No script:** before JavaScript runs, every section shows (the steps apply
   only once the script has run). Hidden steps are `display: none`.
-- **Deep link:** `/{business}?service=<service id>` preselects that service and
-  starts on step 2 (Back returns to step 1). An id that is malformed, or that
-  the business does not offer, is ignored.
+- **Deep link:** `/{business}?service=<service id>` preselects that service,
+  expands its details and starts on step 1 (nothing moves on by itself). A
+  `day` and `time` in the link are restored with it. An id that is malformed, or
+  that the business does not offer, is ignored.
 - **Motion** (CSS only; transform and opacity; curves `--ease-out` and
   `--ease-in-out` in `booking.css`): the new step fades in and slides 24 px over
   220 ms from the right going forward and from the left going Back (also after an
@@ -184,21 +203,24 @@ documented map (below).
   business's brand colour when `pageAccent` accepts it (4.5:1 against white, so
   white text is safe), else neutral ink. Inside: logo in a small white circle
   if there is one, the name (30 to 32 px, 800, white), "category or type, city"
-  in plain white; at the bottom a 26 px photo panel (150 px) when `cover_url` is
-  a safe https address (no username or password), else a white panel with the
-  short description and a "Book" pill (decoration). The bottom area's priority is
-  the business's featured services (`featured_services`, up to three from the
-  API; the first two show as white 26 px tiles with a dark price pill, the name
-  in two lines at most, and "N min" in muted text; one service fills the width),
-  then the cover photo, then the description panel. The tiles are plain text
-  inside the card's one link. Pagination links sit under the rail.
-  The storefront page header is unchanged.
+  in plain white. When `cover_url` is a safe https address (no username or
+  password) the photo fills the top area behind the logo, name and line, under a
+  `foreground` scrim at 70% (white text clears 4.5:1 on any photo; the photo is
+  decorative, 26 px corners, 12 px above the bottom area, and a failed load falls
+  back to the brand fill). The bottom area is the business's featured services
+  (`featured_services`; the first two show as white 26 px tiles with a dark price
+  pill, the name in two lines at most, and "N min"; one service fills the width)
+  or, with none, a white panel with the short description and a "Book" pill
+  (decoration). Tiles and panel are plain text inside the card's one link.
+  Pagination links sit under the rail. The storefront page shows the same cover
+  as a banner above the name: `aspect-[2/1]`, max 220 px phones and 280 px md up,
+  rounded 16 px, no banner without a safe cover.
 - "Types of business" (h2, nav "Browse by type"): solid tiles, a white label
   top-left (19 px bold) and the type's white stroke icon bottom-right, 2 columns
   phones (118 px, radius 26) and 6 columns md up (140 px, radius 28). Only
   types from the API's `types_available`, "All" first (ink). The chosen tile has
   a white inner ring and `aria-current="page"`. A tile keeps `q` and clears
-  category and page. No types says "No business types yet." The free-text
+  category and page. With no types the whole block (heading included) and the nav link to it are left out. The free-text
   category chips are gone from the page; `category` still works in the address,
   the search form and the page links.
 - Type fills (white text; contrast against white): beauty `#c2185b` 5.87, hair
@@ -240,7 +262,7 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   (`@barrelsgd/admin-kit`, ADR-0068, `docs/web/admin-kit.md`): the Met Service
   portal layout in the Bookings colours. Laptops: an inset collapsible sidebar
   with the business name and a navy "B" mark on top, grouped navigation
-  (Bookings: Agenda, New booking; Business: Services, People, Settings, Plan &
+  (Bookings: Agenda, New booking; Business: Services, People, Customers, Settings, Plan &
   billing; Your page: View my page, which opens in a new tab), and the signed-in person with Sign out at
   the bottom; a slim top bar with the sidebar toggle, search (command palette
   fed by the same navigation) and, for owners and admins, New booking. Phones:
@@ -281,6 +303,57 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   load and again after Confirm, Decline or Change time; it does not update
   while browsing between pages, and there is no polling for now. "Awaiting deposit" is not listed:
   that waits for the customer.
+- **Requests paid after acceptance** (a business that confirms by hand, or a
+  new-clients-only service). The customer pays only once the business accepts.
+  - Studio, request waiting: neutral chip "Deposit EC$50 after you accept" (card)
+    or "Deposit EC$50 to you after you accept" (paid to the business), and on the
+    booking a plain line "Nothing has been paid yet. When you confirm this
+    request, the customer is emailed to pay ...".
+  - Studio, after Confirm with a card payment due: warning badge and chip
+    "Accepted, awaiting payment" (the status badge stays "Awaiting deposit"),
+    with "Expires soon" first when the payment window is closing. The result
+    line reads "Request accepted. The customer was emailed to pay; the booking
+    is confirmed when the payment arrives and released if it does not. To take
+    the acceptance back, use Cancel booking." With no online pay link it reads
+    "Accepted, but the online payment link could not be created. Tell the
+    customer how to pay." A second Confirm, or one inside 30 minutes of the
+    start, shows the API's own sentence, never the generic conflict text.
+    If online payment went off after the request was made (the payments
+    entitlement or the collection changed), Confirm turns the deposit into one paid
+    directly to the business, so the booking follows the direct-payment path: no
+    card payment, nothing shown as paid. The studio says: "Confirmed. Online payment
+    is not on for this business any more, so the customer was not asked to pay by
+    card. Agree how the deposit is paid, then use Mark deposit received once it is."
+    The confirmation shows "Deposit to pay" with the business's instructions, or
+    "will tell you how to pay this deposit directly" when there are none; the manage
+    page shows the amount to pay the business and no payment summary. If the payment cannot start, the request
+    stays pending: "The payment could not be started ... Press Confirm again; if it
+    keeps failing, cancel the request." 
+  - Customer, before acceptance: service row "Deposit EC$50, paid after your
+    request is accepted"; form "Nothing to pay now. This is a request: if
+    <business> accepts it, we will email you to pay a deposit of EC$50 (the rest
+    is paid at the business)."; confirmation and manage page "Nothing to pay
+    yet. We will email you when <business> accepts. You pay then (EC$50)." No
+    Pay now button and no hold line. A deposit paid to the business reads the
+    same way and shows no payment instructions yet.
+  - Customer, after acceptance: status "Accepted, waiting for your payment",
+    "<business> accepted your request. Pay EC$50 to confirm your booking.", the
+    Pay now button and "Pay by <day, time>. Your time is held until then; after
+    that it is released and the booking is cancelled." Change time is replaced
+    by "Pay first, then you can change the time."; Cancel booking stays.
+  - "The business confirms this booking, so it stays a request until they do"
+    shows only while the booking is still a request.
+- **Customers** is a search box (name, email or phone; a GET form, so it works
+  without scripts) above one card of rows. Each row: the name, the phone as a
+  `tel:` link (44 px), the email, then Bookings, Last visit and Next booking
+  with their labels. Rows stack on a phone and sit in three columns from `md`.
+  Empty: "No customers yet. They appear here after their first booking."
+  Fifty a page, with "Previous customers" and "More customers".
+  Every member sees it. The search is personal data: it is never part of a
+  sign-in return address, and a failed read is reported without its query
+  string. The API allows 30 reads a minute per person (the page forwards the
+  visitor headers), and an `offset` outside 0 to 100000 starts from the first
+  page. No detail page, export or editing yet.
 - **Booking detail** has Call (`tel:`) and WhatsApp (`https://wa.me/<digits>`,
   new tab). WhatsApp appears only when the number normalises
   (`lib/phone.ts`): a leading `+` is kept, a 7-digit number is taken as Grenada

@@ -1,5 +1,6 @@
 import { inspect } from "node:util";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getPublicBusinesses } from "@/lib/public-businesses";
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
@@ -13,7 +14,7 @@ vi.mock("@/env", () => ({
     VISITOR_IP_PROXY_HOPS: 1,
   },
 }));
-const reportError = vi.fn();
+const { reportError } = vi.hoisted(() => ({ reportError: vi.fn() }));
 vi.mock("@/lib/report-error", () => ({ reportError }));
 
 const PAGE = {
@@ -24,6 +25,10 @@ const PAGE = {
 };
 
 describe("getPublicBusinesses", () => {
+  beforeEach(() => {
+    reportError.mockClear();
+  });
+
   it("asks the public listing for the query, with the visitor's own address", async () => {
     let sent: Request | undefined;
     vi.stubGlobal(
@@ -33,7 +38,6 @@ describe("getPublicBusinesses", () => {
         return Promise.resolve(Response.json(PAGE));
       })
     );
-    const { getPublicBusinesses } = await import("@/lib/public-businesses");
     const result = await getPublicBusinesses({
       q: "fade",
       category: "Hair",
@@ -58,7 +62,6 @@ describe("getPublicBusinesses", () => {
       "fetch",
       vi.fn(() => Promise.resolve(new Response("{}", { status: 500 })))
     );
-    const { getPublicBusinesses } = await import("@/lib/public-businesses");
     const result = await getPublicBusinesses({
       q: undefined,
       category: undefined,

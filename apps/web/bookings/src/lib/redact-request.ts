@@ -13,3 +13,17 @@ export function redactRequest(error: unknown): never {
   }
   throw error;
 }
+
+/**
+ * The same, for a call whose query string holds what a person typed (a name,
+ * an email or a phone number in a search): the address is kept without its
+ * query, so the search never reaches a log or an error report.
+ */
+export function redactRequestAndQuery(error: unknown): never {
+  if (ResponseError.is(error) && error.request instanceof Request) {
+    const url = new URL(error.request.url);
+    url.search = "";
+    error.request = new Request(url, { method: error.request.method });
+  }
+  throw error;
+}

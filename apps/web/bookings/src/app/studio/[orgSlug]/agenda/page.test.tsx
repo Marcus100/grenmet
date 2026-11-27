@@ -600,7 +600,7 @@ describe("needs confirming", () => {
 });
 
 describe("cancelled booking with an unpaid payment (#1849)", () => {
-  it("keeps the amount label, never Payment due, on a cancelled agenda card", async () => {
+  it("keeps the neutral amount on a cancelled online payment, never due", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -629,7 +629,7 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
     expect(row).not.toHaveTextContent("Payment cancelled");
   });
 
-  it("does not say due for a cancelled deposit that was kept or refunded", async () => {
+  it("keeps the neutral amount on a cancelled online deposit, never due", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {

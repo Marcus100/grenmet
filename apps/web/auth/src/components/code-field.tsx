@@ -5,7 +5,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@barrelsgd/ui/components/ui/input-otp";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { inputClass, labelClass } from "@/components/form-styles";
 
 interface CodeFieldProps {
@@ -15,9 +15,20 @@ interface CodeFieldProps {
   readonly id: string;
   readonly label: string;
   readonly name: string;
+  /**
+   * Submit the surrounding form as soon as the sixth digit is in (typed, pasted
+   * or filled in by the phone). Native validation still runs first.
+   */
+  readonly submitOnComplete?: boolean;
 }
 
 const DIGITS = /^\d+$/u;
+const SEPARATORS = /[\s-]/gu;
+
+/** A code copied as "574 554" or "574-554" pastes as six digits. */
+function withoutSeparators(pasted: string): string {
+  return pasted.replace(SEPARATORS, "");
+}
 
 export function CodeField({
   allowRecovery = false,
@@ -25,11 +36,17 @@ export function CodeField({
   id,
   label,
   name,
+  submitOnComplete = false,
 }: CodeFieldProps) {
   const [useRecovery, setUseRecovery] = useState(false);
+  const fieldRef = useRef<HTMLDivElement>(null);
+
+  function submitForm() {
+    fieldRef.current?.closest("form")?.requestSubmit();
+  }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={fieldRef}>
       <label className={labelClass} htmlFor={id}>
         {useRecovery ? "Recovery code" : label}
       </label>
@@ -49,8 +66,11 @@ export function CodeField({
           autoComplete="one-time-code"
           autoFocus={autoFocus}
           id={id}
+          inputMode="numeric"
           maxLength={6}
           name={name}
+          onComplete={submitOnComplete ? submitForm : undefined}
+          pasteTransformer={withoutSeparators}
           pattern={DIGITS.source}
           required
         >

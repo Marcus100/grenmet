@@ -14,12 +14,17 @@ import { EmailCodeForm } from "@/components/EmailCodeForm";
 import { OrDivider } from "@/components/or-divider";
 import { SignInForm } from "@/components/SignInForm";
 import {
-  CreateAccountLink,
   GoogleSignInLink,
+  MoreWaysToSignIn,
 } from "@/components/sign-in-options";
 import { StaffAccess } from "@/components/staff-access";
 import { getAppHrefs } from "@/lib/app-links";
 import { getAuthConfig } from "@/lib/auth-config";
+import {
+  APP_LABEL_TIMEOUT_MS,
+  fetchAppLabel,
+  handoffRequestFromReturnTo,
+} from "@/lib/handoff";
 import { formatDate, getInitials } from "@/lib/profile";
 import { reportError } from "@/lib/report-error";
 import {
@@ -201,6 +206,23 @@ function signedOutNotice(
 }
 
 /**
+ * "Sign in or create an account", for the app when one is named. An app the
+ * sign-in page has no name for (Bookings) is named from the app registry, and
+ * the plain heading is used if the registry is slow or down.
+ */
+async function codeFirstHeading(
+  directoryLabel: string | null,
+  handoffApp: string | null
+): Promise<string> {
+  const label =
+    directoryLabel ??
+    (handoffApp ? await fetchAppLabel(handoffApp, APP_LABEL_TIMEOUT_MS) : null);
+  return label
+    ? `Sign in or create an account for ${label}`
+    : "Sign in or create an account";
+}
+
+/**
  * This URL is the sign-in form when signed out and the profile when signed in,
  * so the title follows the session cookie. Presence only: no second session
  * exchange here (the page does that once, below).
@@ -228,10 +250,11 @@ export default async function Home({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const returnTo = getSafeReturnTo(readQueryParam(params.returnTo));
-  const requestedApp = getRequestedAppName(
-    readQueryParam(params.app),
-    returnTo
-  );
+  // A sign-in on its way to /continue is for the app that request names, so the
+  // page names that app, whatever `?app=` says.
+  const handoffApp = handoffRequestFromReturnTo(returnTo)?.app ?? null;
+  const requestedApp =
+    handoffApp ?? getRequestedAppName(readQueryParam(params.app), returnTo);
   const { pageError, sessionData } =
     readQueryParam(params.reauth) === "1"
       ? { pageError: null, sessionData: null }
@@ -310,10 +333,13 @@ export default async function Home({ searchParams }: PageProps) {
     );
   }
 
+  // One screen for a new and a returning person: the same emailed code signs
+  // in or creates the account, so nothing here depends on which it is.
   return (
     <AuthShell>
-      <AuthHeading title={heading}>
-        Enter your email and we’ll send you a 6-digit code. No password needed.
+      <AuthHeading title={await codeFirstHeading(appLabel, handoffApp)}>
+        Enter your email and we’ll send you a 6-digit code. It works whether you
+        are new or have an account. No password needed.
       </AuthHeading>
 
       {notice ? (
@@ -325,17 +351,16 @@ export default async function Home({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <EmailCodeForm
+      <EmailCodeForm returnTo={returnTo} />
+      <OrDivider />
+      <GoogleSignInLink returnTo={returnTo} />
+      <MoreWaysToSignIn
         passwordHref={signInPath("/", {
           app: requestedApp,
           method: "password",
           returnTo,
         })}
-        returnTo={returnTo}
       />
-      <OrDivider />
-      <GoogleSignInLink returnTo={returnTo} />
-      <CreateAccountLink returnTo={returnTo} />
     </AuthShell>
   );
 }

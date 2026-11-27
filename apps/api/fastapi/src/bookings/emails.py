@@ -75,6 +75,8 @@ class BookingEmail:
     #: The late-arrival rule: fee in minor units (None = no fee) and grace minutes.
     late_fee_minor: int | None = None
     late_grace_min: int = 0
+    #: A request not yet accepted whose payment is asked only on acceptance.
+    pay_after_acceptance: bool = False
 
     @property
     def when(self) -> str:
@@ -132,7 +134,9 @@ def _deposit_due(mail: BookingEmail) -> tuple[tuple[layout.Row, ...], tuple[str,
         if line.strip()
     )
     if not lines:
-        return (row,), ()
+        return (row,), (
+            f"{mail.business} will tell you how to pay this deposit directly.",
+        )
     # The business wrote these lines: say so, so they never read as a Barrels request.
     lead = (
         f"How to pay your deposit to {mail.business} (paid directly to "
@@ -267,6 +271,20 @@ def verification_code(*, business: str, code: str, minutes: int) -> layout.Email
     return layout.with_subject(f"Your {business} booking code", card)
 
 
+def _request_lead(mail: BookingEmail) -> str:
+    """What a request's mail promises: an answer by email, and, when money is
+    involved, that it is paid only after the business accepts."""
+    if mail.pay_after_acceptance:
+        return f"We will email you when {mail.business} accepts. You pay then."
+    if mail.deposit_to_business_minor > 0 and not mail.deposit_received:
+        amount = money_text(mail.deposit_to_business_minor, mail.currency)
+        return (
+            f"We will email you when {mail.business} accepts. Nothing to pay yet: "
+            f"you then pay a deposit of {amount} directly to {mail.business}."
+        )
+    return f"We will email you once {mail.business} confirms it."
+
+
 def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCard:
     if confirmed:
         return layout.with_subject(
@@ -292,11 +310,11 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCar
             mail,
             chip=layout.Chip("Request received"),
             title="We received your booking request",
-            paragraphs=(
-                f"We will email you once {mail.business} confirms it.",
-                *_deposit_due(mail)[1],
-            ),
-            rows=_rows(mail, *_deposit_due(mail)[0]),
+            paragraphs=(_request_lead(mail),),
+            # A deposit paid to the business is asked for only once it accepts
+            # (``customer_confirmed`` carries the amount and how to pay); one the
+            # business already marked received is still stated.
+            rows=_rows(mail, *(_deposit_due(mail)[0] if mail.deposit_received else ())),
             primary=_manage(mail),
             policy=_policy(mail),
             **_invite(mail),
@@ -339,8 +357,9 @@ def _reason_row(reason: str | None) -> tuple[layout.Row, ...]:
     return (layout.Row("Reason", reason),) if reason else ()
 
 
-def customer_confirmed(mail: BookingEmail) -> layout.EmailCard:
-    """The business accepted a booking request."""
+def customer_confirmed(mail: BookingEmail, *, paid: bool = False) -> layout.EmailCard:
+    """The business accepted a booking request. ``paid``: it had accepted earlier
+    and the booking is confirmed now because the payment arrived."""
     return layout.with_subject(
         f"Your booking at {mail.business} is confirmed",
         _card(
@@ -348,7 +367,12 @@ def customer_confirmed(mail: BookingEmail) -> layout.EmailCard:
             chip=layout.Chip("Confirmed"),
             title="Your booking is confirmed",
             paragraphs=(
-                f"{mail.business} has confirmed your booking request.",
+                (
+                    f"Thank you, your payment arrived. Your booking with "
+                    f"{mail.business} is confirmed."
+                    if paid
+                    else f"{mail.business} has confirmed your booking request."
+                ),
                 *_deposit_due(mail)[1],
             ),
             rows=_rows(mail, *_deposit_due(mail)[0]),
@@ -356,6 +380,77 @@ def customer_confirmed(mail: BookingEmail) -> layout.EmailCard:
             secondary=_calendar(mail),
             policy=_policy(mail),
             **_invite(mail),
+        ),
+    )
+
+
+def _local_time(moment: datetime, tz: ZoneInfo) -> str:
+    """ "Friday 27 November 2026, 3:30 PM (Grenada time)" for a naive UTC moment."""
+    local = utc_to_local(moment, tz)
+    text = local.strftime("%A %d %B %Y, %I:%M %p").replace(" 0", " ")
+    return f"{text} ({zone_label(tz)})"
+
+
+def customer_accepted(
+    mail: BookingEmail,
+    *,
+    amount_minor: int,
+    pay_by: datetime,
+    pay_url: str | None,
+) -> layout.EmailCard:
+    """The business accepted a request that is paid after acceptance: how much to
+    pay and by when (``pay_by``, naive UTC). ``pay_url`` opens the page with the
+    pay button; None when no online payment is available and the business takes
+    the payment itself."""
+    amount = money_text(amount_minor, mail.currency)
+    deadline = _local_time(pay_by, mail.tz)
+    how = (
+        f"Pay {amount} by {deadline} to confirm your booking."
+        if pay_url
+        else (
+            f"{amount} is due by {deadline} to confirm your booking. "
+            f"{mail.business} will tell you how to pay."
+        )
+    )
+    return layout.with_subject(
+        f"{mail.business} accepted your booking request: pay to confirm",
+        _card(
+            mail,
+            chip=layout.Chip("Accepted"),
+            title="Your booking request was accepted",
+            paragraphs=(
+                f"{mail.business} has accepted your booking request.",
+                how,
+                "Your time is held until then. If the payment has not arrived by "
+                "then, the time is released and the booking is cancelled.",
+            ),
+            rows=_rows(
+                mail,
+                layout.Row("To pay", amount),
+                layout.Row("Pay by", deadline),
+            ),
+            primary=layout.Action("Pay now", pay_url) if pay_url else _manage(mail),
+            policy=_policy(mail),
+        ),
+    )
+
+
+def customer_payment_lapsed(
+    mail: BookingEmail, book_again_url: str
+) -> layout.EmailCard:
+    """An accepted request was not paid in time: the time was released."""
+    return layout.with_subject(
+        f"Your booking at {mail.business} was not paid in time",
+        _card(
+            mail,
+            chip=layout.Chip("Cancelled", layout.ChipTone.MUTED),
+            title="Your booking was not paid in time",
+            paragraphs=(
+                "The payment did not arrive in time, so the time has been released "
+                "and the booking is cancelled. Nothing was charged.",
+                "You are welcome to book again.",
+            ),
+            primary=layout.Action("Book again", book_again_url),
         ),
     )
 
@@ -486,7 +581,8 @@ def customer_reminder(
             paragraphs=(
                 "A reminder of your booking request for the next day. "
                 f"{mail.business} has not confirmed it yet. "
-                "We will email you as soon as they do.",
+                "We will email you as soon as they do."
+                + (" You pay then." if mail.pay_after_acceptance else ""),
             ),
             primary=_manage(mail),
             **_invite(mail),
@@ -495,6 +591,11 @@ def customer_reminder(
 
 
 _STUDIO_HEADLINES = {
+    "paid": ("Booking paid and confirmed", layout.Chip("Confirmed")),
+    "unpaid": (
+        "Booking not paid in time",
+        layout.Chip("Cancelled", layout.ChipTone.MUTED),
+    ),
     "created": ("New booking", layout.Chip("New booking")),
     "requested": ("New booking request", layout.Chip("Request")),
     "cancelled": ("Booking cancelled", layout.Chip("Cancelled", layout.ChipTone.MUTED)),
@@ -503,7 +604,8 @@ _STUDIO_HEADLINES = {
 
 
 def studio_notice(mail: BookingEmail, *, event: str) -> layout.EmailCard:
-    """``event``: ``created``, ``requested``, ``cancelled`` or ``rescheduled``."""
+    """``event``: ``created``, ``requested``, ``cancelled``, ``rescheduled``,
+    ``paid`` (an accepted request was paid) or ``unpaid`` (it was not, in time)."""
     headline, chip = _STUDIO_HEADLINES[event]
     contact = ", ".join(
         part for part in (mail.customer_email, mail.customer_phone) if part

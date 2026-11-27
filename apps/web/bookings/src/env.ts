@@ -1,6 +1,7 @@
 import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
+import { accountAppUrlSchema } from "@/lib/account-app-url";
 
 export const env = createEnv({
   server: {
@@ -13,6 +14,11 @@ export const env = createEnv({
       .string()
       .optional()
       .default("bookings_session"),
+    // The Barrels account app (account.barrels.gd, ADR-0057): the account menu
+    // links there. Read on the server only; the menu gets the URL as a prop.
+    ACCOUNT_APP_URL: accountAppUrlSchema
+      .optional()
+      .default("http://localhost:3018"),
     // Deployment passes "" when the secret isn't set: treat that as off.
     BOOKINGS_SSO_CLIENT_SECRET: z.preprocess(
       (value) => value || undefined,
@@ -53,6 +59,7 @@ export const env = createEnv({
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     BOOKINGS_SESSION_COOKIE_NAME: process.env.BOOKINGS_SESSION_COOKIE_NAME,
+    ACCOUNT_APP_URL: process.env.ACCOUNT_APP_URL,
     BOOKINGS_SSO_CLIENT_SECRET: process.env.BOOKINGS_SSO_CLIENT_SECRET,
     VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,
     TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,

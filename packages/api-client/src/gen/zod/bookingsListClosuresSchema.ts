@@ -8,6 +8,13 @@ import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const bookingsListClosuresQueryEndsOnFromSchema = z
+  .union([z.iso.date(), z.null()])
+  .optional()
+  .describe(
+    "Only closures that end on or after this date (the business's today for upcoming closures). Omit: every closure."
+  );
+
 export const bookingsListClosuresQueryPageSchema = z
   .int()
   .min(1)
@@ -68,6 +75,12 @@ export const bookingsListClosuresErrorSchema = z.union([
 ]);
 
 export const bookingsListClosuresQuerySchema = z.object({
+  ends_on_from: z
+    .union([z.iso.date(), z.null()])
+    .optional()
+    .describe(
+      "Only closures that end on or after this date (the business's today for upcoming closures). Omit: every closure."
+    ),
   page: z
     .int()
     .min(1)

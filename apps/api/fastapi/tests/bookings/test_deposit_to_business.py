@@ -78,11 +78,20 @@ async def test_business_mode_records_the_amount_without_the_payments_entitlement
     assert booking["payment"] is None
     # 25% of 21000, rounded up to whole units.
     assert booking["deposit_to_business_minor"] == 5300
-    assert booking["deposit_instructions"] == INSTRUCTIONS
+    # A request: the amount is stated, how to pay it only once the business accepts.
+    assert booking["deposit_instructions"] is None
     assert await _intents(db_async, studio) == 0
     stored = await db_async.get(Booking, uuid.UUID(booking["id"]))
     assert stored is not None
     assert stored.deposit_to_business_minor == 5300
+
+    accepted = await async_client.post(
+        f"{API}/org/bookings/{booking['id']}/confirm", headers=studio.headers
+    )
+    assert accepted.status_code == 200, accepted.text
+    view = await async_client.get(f"{API}/public/bookings/{receipt['manage_token']}")
+    assert view.json()["status"] == "confirmed"
+    assert view.json()["deposit_instructions"] == INSTRUCTIONS
 
 
 async def test_business_mode_confirms_straight_away_when_no_confirmation_is_needed(
@@ -94,7 +103,7 @@ async def test_business_mode_confirms_straight_away_when_no_confirmation_is_need
     assert booking["deposit_to_business_minor"] == 5300
 
 
-async def test_the_request_email_shows_the_deposit_due_and_the_instructions(
+async def test_the_request_email_asks_for_nothing_and_the_accepted_one_says_how_to_pay(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _business(
@@ -103,9 +112,23 @@ async def test_the_request_email_shows_the_deposit_due_and_the_instructions(
         requires_confirmation=True,
         deposit_non_refundable=True,
     )
-    await _booked(async_client, studio)
+    receipt = await _booked(async_client, studio)
     rows = await _emails(db_async, studio.org_id)
     mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmation:"))
+    text = payload_text(mail.payload)
+    # The request: the amount that follows, but nothing to pay and no instructions.
+    assert "Nothing to pay yet: you then pay a deposit of XCD 53.00 directly to" in text
+    assert "Deposit to pay" not in text
+    assert "Send it by PayPal to pay@babydoll.example" not in text
+    assert "Your deposit is non-refundable" in text
+
+    accepted = await async_client.post(
+        f"{API}/org/bookings/{receipt['booking']['id']}/confirm",
+        headers=studio.headers,
+    )
+    assert accepted.status_code == 200, accepted.text
+    rows = await _emails(db_async, studio.org_id)
+    mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmed:"))
     text = payload_text(mail.payload)
     assert "Deposit to pay" in text
     assert "XCD 53.00" in text

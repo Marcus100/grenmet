@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { secondaryButtonClass, textLinkClass } from "@/components/form-styles";
 import { signInPath } from "@/lib/sign-in-links";
@@ -18,16 +19,24 @@ export function GoogleSignInLink({ returnTo }: { returnTo: string | null }) {
   );
 }
 
-export function CreateAccountLink({ returnTo }: { returnTo: string | null }) {
+/**
+ * The other ways in, kept behind one small disclosure so the first screen asks
+ * a single question (the email). A native <details>: it opens without script.
+ */
+export function MoreWaysToSignIn({ passwordHref }: { passwordHref: Route }) {
   return (
-    <p className="text-body-sm text-muted-foreground text-center">
-      New here?{" "}
-      <Link
-        className={textLinkClass}
-        href={signInPath("/signup", { returnTo })}
-      >
-        Create an account
-      </Link>
-    </p>
+    <details className="text-body-sm text-center">
+      <summary className="text-muted-foreground hover:text-foreground inline-flex min-h-11 cursor-pointer items-center underline-offset-4 hover:underline">
+        More ways to sign in
+      </summary>
+      <p className="mt-1">
+        <Link
+          className={`${textLinkClass} inline-flex min-h-11 items-center`}
+          href={passwordHref}
+        >
+          Sign in with a password
+        </Link>
+      </p>
+    </details>
   );
 }

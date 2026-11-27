@@ -292,6 +292,17 @@ async def remember_account_limit(request: Request, current_user: AccountUser) ->
 RateLimitedAccountUser = Annotated[User, Depends(remember_account_limit)]
 
 
+async def remember_own_account_limit(
+    request: Request, current_user: OwnAccountUser
+) -> User:
+    """``OwnAccountUser`` that also keys the route's rate limit on the account."""
+    remember_account(request, current_user.id)
+    return current_user
+
+
+RateLimitedOwnAccountUser = Annotated[User, Depends(remember_own_account_limit)]
+
+
 async def get_current_active_superuser(current_user: CurrentUser) -> User:
     """Shared superuser dependency (canonical in src.dependencies)."""
     if not current_user.is_superuser:

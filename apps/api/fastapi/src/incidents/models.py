@@ -145,6 +145,13 @@ class Incident(Base):
         sa.CheckConstraint(
             "(status = 'closed') = (closed_at IS NOT NULL)", name="closed_state"
         ),
+        sa.CheckConstraint(
+            "weather_source IS NULL OR weather_source IN ('observation', 'manual')",
+            name="weather_source",
+        ),
+        sa.CheckConstraint(
+            "(weather_report IS NULL) = (weather_source IS NULL)", name="weather_pair"
+        ),
         sa.Index("incident_organisation_created_idx", "organisation_id", "created_at"),
         {"schema": SCHEMA},
     )
@@ -170,6 +177,13 @@ class Incident(Base):
     exercise: Mapped[bool] = mapped_column(default=False)
     status: Mapped[str] = mapped_column(String(10), default=IncidentStatus.DRAFT.value)
     reported_by: Mapped[uuid.UUID]
+    #: The aerodrome weather report nearest the time of the incident: the raw
+    #: METAR or SPECI text, its station (ICAO location indicator) and its time.
+    #: ``observation`` came from Met Service observations; ``manual`` was typed.
+    weather_station: Mapped[str | None] = mapped_column(String(4))
+    weather_observed_at: Mapped[datetime | None]
+    weather_report: Mapped[str | None] = mapped_column(String(1000))
+    weather_source: Mapped[str | None] = mapped_column(String(12))
     opened_at: Mapped[datetime | None]
     closed_at: Mapped[datetime | None]
     closed_by: Mapped[uuid.UUID | None]
@@ -286,5 +300,139 @@ class IncidentAttachment(Base):
     )
     file_id: Mapped[uuid.UUID]
     caption: Mapped[str | None] = mapped_column(String(200))
+    added_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class IncidentPartyKind(str, Enum):
+    INVOLVED = "involved"
+    WITNESS = "witness"
+
+
+class IncidentAffiliation(str, Enum):
+    STAFF = "staff"
+    PASSENGER = "passenger"
+    CREW = "crew"
+    TENANT = "tenant"
+    CONTRACTOR = "contractor"
+    PUBLIC = "public"
+    OTHER = "other"
+
+
+def new_party_id() -> str:
+    return f"inp_{secrets.token_hex(8)}"
+
+
+def new_damage_id() -> str:
+    return f"ind_{secrets.token_hex(8)}"
+
+
+def new_resource_id() -> str:
+    return f"inr_{secrets.token_hex(8)}"
+
+
+class IncidentParty(Base):
+    """A person involved in, or a witness to, an incident. Contact details and
+    injury notes are personal data: shown only with the private key."""
+
+    __tablename__ = "party"
+    __table_args__ = (
+        sa.CheckConstraint(f"kind IN ({_values(IncidentPartyKind)})", name="kind"),
+        sa.CheckConstraint(
+            f"affiliation IN ({_values(IncidentAffiliation)})", name="affiliation"
+        ),
+        sa.CheckConstraint("char_length(name) BETWEEN 1 AND 120", name="name"),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True, default=new_party_id)
+    incident_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.incident.id", ondelete="CASCADE"),
+        index=True,
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(10))
+    name: Mapped[str] = mapped_column(String(120))
+    affiliation: Mapped[str] = mapped_column(String(12))
+    #: The company, airline or tenant the person is with, when it matters.
+    company: Mapped[str | None] = mapped_column(String(120))
+    contact_phone: Mapped[str | None] = mapped_column(String(40))
+    contact_email: Mapped[str | None] = mapped_column(String(320))
+    injured: Mapped[bool] = mapped_column(default=False)
+    injury_notes: Mapped[str | None] = mapped_column(String(1000))
+    statement: Mapped[str | None] = mapped_column(Text)
+    added_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class IncidentDamage(Base):
+    """Damage to an asset, vehicle, aircraft or area. Insert only."""
+
+    __tablename__ = "damage"
+    __table_args__ = (
+        sa.CheckConstraint(
+            "char_length(description) BETWEEN 1 AND 2000", name="description"
+        ),
+        sa.CheckConstraint(
+            "estimated_cost_minor IS NULL OR estimated_cost_minor >= 0", name="cost"
+        ),
+        sa.CheckConstraint("char_length(currency) = 3", name="currency"),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_damage_id
+    )
+    incident_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.incident.id", ondelete="CASCADE"),
+        index=True,
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    #: What was damaged, for example "Stand 3 jet bridge" or "Tug 12".
+    item: Mapped[str | None] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text)
+    estimated_cost_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    currency: Mapped[str] = mapped_column(String(3), default="XCD")
+    added_by: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class IncidentResource(Base):
+    """A resource used in the response (a fire tender, a sweeper, a team). Insert only."""
+
+    __tablename__ = "resource"
+    __table_args__ = (
+        sa.CheckConstraint("char_length(name) BETWEEN 1 AND 200", name="name"),
+        sa.CheckConstraint("quantity BETWEEN 1 AND 10000", name="quantity"),
+        sa.CheckConstraint(
+            "ended_at IS NULL OR started_at IS NULL OR ended_at >= started_at",
+            name="times",
+        ),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(100), primary_key=True, default=new_resource_id
+    )
+    incident_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.incident.id", ondelete="CASCADE"),
+        index=True,
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    quantity: Mapped[int] = mapped_column(default=1)
+    started_at: Mapped[datetime | None]
+    ended_at: Mapped[datetime | None]
+    notes: Mapped[str | None] = mapped_column(String(1000))
     added_by: Mapped[uuid.UUID]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

@@ -542,9 +542,10 @@ class Customer(Base):
     organisation_id: Mapped[str] = mapped_column(
         String(100), ForeignKey("org.organisation.id"), index=True
     )
-    #: The person, in the organisation's contact book (ADR-0028). Name, email,
-    #: phone and consent live only there; this row keeps booking facts. A merge
-    #: re-points it (``contacts.references``); erasure blanks the contact in place.
+    #: The person, in the organisation's contact book (ADR-0028). Email, phone
+    #: and consent live only there; this row keeps booking facts. A merge
+    #: re-points it and an erasure clears ``booked_name``, both through
+    #: ``contacts.references`` hooks registered at the bottom of this module.
     contact_id: Mapped[str] = mapped_column(
         String(100), ForeignKey("org.contact.id"), index=True
     )
@@ -605,6 +606,14 @@ class Booking(Base):
     customer_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("bookings.customer.id"), index=True
     )
+    #: The name typed on this booking. It is what this booking shows everywhere
+    #: (mail, manage page, agenda, studio detail); the contact keeps its own name
+    #: for matching and the customer list, so a second booking under one email
+    #: never shows the first booking's name. Null for rows made before the
+    #: column existed and for a staff entry with no name: the contact's name
+    #: then shows, as it always did. An erasure nulls it, because every view
+    #: prefers it and an erased contact must show no name.
+    booked_name: Mapped[str | None] = mapped_column(String(120), default=None)
     starts_at: Mapped[datetime]
     ends_at: Mapped[datetime]
     blocked_from: Mapped[datetime]
@@ -636,6 +645,16 @@ class Booking(Base):
     #: ``pending_payment``: the business's value, capped for an online checkout. Null
     #: for a booking made before the snapshot existed (the sweeper then computes it).
     hold_minutes: Mapped[int | None] = mapped_column(default=None)
+    #: A request paid by card only after the business accepts it (the business
+    #: confirms by hand, or the service is new clients only, with online collection).
+    #: While ``pending`` nothing has been asked or paid; ``deposit_minor`` is what
+    #: becomes due on acceptance.
+    pay_after_acceptance: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: When the business accepted the request. For a ``pay_after_acceptance`` booking
+    #: the payment hold runs from here, not from ``created_at``.
+    accepted_at: Mapped[datetime | None] = mapped_column(default=None)
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
@@ -702,4 +721,27 @@ async def _merge_customers(session: AsyncSession, from_id: str, to_id: str) -> N
         await session.execute(sa.delete(Customer).where(Customer.id.in_(dropped)))
 
 
-contact_references.register(cast(sa.Table, Customer.__table__), merge=_merge_customers)
+async def _erase_booked_names(session: AsyncSession, contact_id: str) -> None:
+    """A contact erasure: drop the names typed on that person's bookings.
+
+    ``booking.booked_name`` is the only copy of a contact's personal data this
+    domain keeps, and every view prefers it (``public.booked_name``), so the
+    copy has to go with the contact's own name. Each booking then reads as the
+    blanked contact does: no name at all.
+    """
+    await session.execute(
+        sa.update(Booking)
+        .where(
+            Booking.customer_id.in_(
+                sa.select(Customer.id).where(Customer.contact_id == contact_id)
+            )
+        )
+        .values(booked_name=None)
+    )
+
+
+contact_references.register(
+    cast(sa.Table, Customer.__table__),
+    merge=_merge_customers,
+    erase=_erase_booked_names,
+)

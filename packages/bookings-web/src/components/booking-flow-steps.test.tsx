@@ -8,6 +8,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BookingFlowActions } from "../lib/booking-types";
 import { BookingFlow } from "./booking-flow";
 
+const THIRTY_MIN = /30 min/u;
+const SUMMARY_TITLE = /^Classic lashes$/u;
+const SUMMARY_DETAIL = /^1 hr · EC\$70$/u;
+
 const loadSlots = vi.fn<BookingFlowActions["loadSlots"]>();
 const submitBooking = vi.fn<BookingFlowActions["submitBooking"]>();
 const actions: BookingFlowActions = {
@@ -31,13 +35,12 @@ const LASHES_NAME = /Classic lashes/u;
 const BROWS_NAME = /Brow shaping/u;
 const CONTINUE = { name: "Continue" };
 const BOOK = { name: "Request my booking" };
+// The emailed-code step is asked for neutrally, never as a booking failure.
+const CODE_ASK = /One more step: we email a 6-digit code/u;
+const RED_SUMMARY = /We couldn't book that/u;
 const CHOOSE_SERVICE = /Choose a service to continue/u;
 const CHOOSE_TIME = /Choose a day and time to continue/u;
-const RECAP_LASHES = /Classic lashes · EC\$70/u;
-const RECAP_TIME = /Classic lashes · .*9:30 am · EC\$70/u;
 const EXTRA_LASH = /Extra lash/u;
-const RECAP_BROWS = /Brow shaping · EC\$30/u;
-const RECAP_WITH_EXTRA = /Classic lashes · EC\$80/u;
 
 const addOn: BookingPublicAddOn = {
   id: "7a6c0a52-7c12-4c53-9e0f-9d8f2b2f0001",
@@ -129,8 +132,33 @@ function activePanes(): string[] {
 const heading = (text: string) =>
   screen.getByRole("heading", { name: text, level: 2 });
 
-async function chooseLashes(user: User) {
+/** Chooses lashes without moving on: choosing a service never changes the step. */
+async function pickLashes(user: User) {
   await user.click(screen.getByRole("radio", { name: LASHES_NAME }));
+}
+
+/** Chooses lashes and presses Continue, as a customer does on a phone. */
+async function chooseLashes(user: User) {
+  await pickLashes(user);
+  await user.click(screen.getByRole("button", CONTINUE));
+}
+
+/** The line above steps 2 and 3: service · day and time, with its Edit link. */
+function trail(): HTMLElement {
+  const found = document.querySelector<HTMLElement>(".book-recap-trail");
+  if (!found) {
+    throw new Error("no trail line");
+  }
+  return found;
+}
+
+/** The foot bar on a phone: its summary (name, then length and price) and Continue. */
+function bar(): HTMLElement {
+  const found = document.querySelector<HTMLElement>(".book-bar");
+  if (!found) {
+    throw new Error("no foot bar");
+  }
+  return found;
 }
 
 async function chooseTime(user: User) {
@@ -168,14 +196,35 @@ describe("phone steps", () => {
     ]);
   });
 
-  it("goes to the time step on choosing a service, then gates on a time", async () => {
+  it("does not change the step when a service is chosen", async () => {
     const user = userEvent.setup();
     renderFlow();
-    await chooseLashes(user);
+    await pickLashes(user);
+
+    expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
+    expect(activePanes()).toEqual(["1"]);
+    // The bar's two lines: the name, then the length and price.
+    expect(bar().querySelector(".book-recap-title")).toHaveTextContent(
+      SUMMARY_TITLE
+    );
+    expect(bar().querySelector(".book-recap-detail")).toHaveTextContent(
+      SUMMARY_DETAIL
+    );
+    expect(screen.getByRole("button", CONTINUE)).toHaveAttribute(
+      "aria-disabled",
+      "false"
+    );
+  });
+
+  it("goes to the time step only on Continue, then gates on a time", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await pickLashes(user);
+    await user.click(screen.getByRole("button", CONTINUE));
 
     expect(heading("Step 2 of 3: Time")).toBeInTheDocument();
     expect(activePanes()).toEqual(["2"]);
-    expect(screen.getByText(RECAP_LASHES)).toBeInTheDocument();
+    expect(trail()).toHaveTextContent("Classic lashes");
     const next = screen.getByRole("button", CONTINUE);
     expect(next).toHaveAttribute("aria-disabled", "true");
     expect(next).toHaveAccessibleDescription(CHOOSE_TIME);
@@ -183,7 +232,6 @@ describe("phone steps", () => {
     expect(activePanes()).toEqual(["2"]);
 
     await chooseTime(user);
-    expect(screen.getByText(RECAP_TIME)).toBeInTheDocument();
     expect(screen.getByRole("button", CONTINUE)).toHaveAttribute(
       "aria-disabled",
       "false"
@@ -193,7 +241,6 @@ describe("phone steps", () => {
     expect(heading("Step 3 of 3: Details")).toBeInTheDocument();
     expect(activePanes()).toEqual(["3"]);
     expect(screen.queryByRole("button", CONTINUE)).toBeNull();
-    expect(screen.getByText(RECAP_TIME)).toBeInTheDocument();
   });
 
   it("has exactly one Book button, on every step", async () => {
@@ -240,11 +287,11 @@ describe("phone steps", () => {
   it("stays on the service step until Continue when add-ons are offered", async () => {
     const user = userEvent.setup();
     renderFlow(shop([addOn]));
-    await chooseLashes(user);
+    await pickLashes(user);
     expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
     expect(activePanes()).toEqual(["1"]);
     await user.click(screen.getByRole("checkbox", { name: EXTRA_LASH }));
-    expect(screen.getByText(RECAP_WITH_EXTRA)).toBeInTheDocument();
+    expect(bar()).toHaveTextContent("1 hr · EC$80");
     await user.click(screen.getByRole("button", CONTINUE));
     expect(heading("Step 2 of 3: Time")).toBeInTheDocument();
   });
@@ -322,12 +369,18 @@ describe("phone steps", () => {
 });
 
 describe("?service= preselect", () => {
-  it("starts on the time step with the service in the summary and a way back", async () => {
+  it("opens step 1 with the service chosen and its details shown", async () => {
     const user = userEvent.setup();
     renderFlow(shop(), BROWS);
-    expect(heading("Step 2 of 3: Time")).toBeInTheDocument();
+    expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
+    expect(activePanes()).toEqual(["1"]);
     expect(screen.getByRole("radio", { name: BROWS_NAME })).toBeChecked();
-    expect(screen.getByText(RECAP_BROWS)).toBeInTheDocument();
+    expect(bar()).toHaveTextContent("Brow shaping");
+    expect(bar()).toHaveTextContent("30 min · EC$30");
+    const radio = screen.getByRole("radio", { name: BROWS_NAME });
+    expect(radio).toHaveAccessibleDescription(THIRTY_MIN);
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(heading("Step 2 of 3: Time")).toBeInTheDocument();
     expect(await screen.findByRole("radio", { name: "9:30 am" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Back" }));
     expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
@@ -484,9 +537,8 @@ describe("phone path to a booking", () => {
     renderFlow();
     await reachDetails(user);
     await user.click(screen.getByRole("button", BOOK));
-    expect(
-      await screen.findByText("We need to confirm your email again.")
-    ).toBeVisible();
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
+    expect(screen.queryByText(RED_SUMMARY)).toBeNull();
     expect(activePanes()).toEqual(["3"]);
     expect(
       screen.getByRole("button", { name: "Email me a verification code" })
@@ -542,11 +594,12 @@ describe("implicit submit on a phone", () => {
       expect(activePanes()).toEqual(["1"]);
       expect(screen.queryByRole("alert")).toBeNull();
 
-      await chooseLashes(user);
+      await pickLashes(user);
       expect(activePanes()).toEqual(["1"]);
+      // Enter on the chosen radio is the one keyboard path that moves the step.
       fireEvent.submit(screen.getByRole("form"));
-      expect(await screen.findByText(RECAP_LASHES)).toBeInTheDocument();
       expect(activePanes()).toEqual(["2"]);
+      expect(trail()).toHaveTextContent("Classic lashes");
       expect(screen.queryByRole("alert")).toBeNull();
 
       fireEvent.submit(screen.getByRole("form"));

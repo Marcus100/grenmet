@@ -77,8 +77,14 @@ export function holdLengthText(minutes: number): string {
 export function holdEndsLine(
   holdEndsAt: string,
   timeZone: string,
-  holdMinutes?: number | null
+  holdMinutes?: number | null,
+  accepted = false
 ): string {
+  if (accepted) {
+    // The business accepted the request: the customer answers an email, so the
+    // line states the deadline, not a length that started when they were away.
+    return `Pay by ${formatDateTime(holdEndsAt, timeZone)}. Your time is held until then; after that it is released and the booking is cancelled.`;
+  }
   const length = holdMinutes == null ? "" : ` (${holdLengthText(holdMinutes)})`;
   return `Your time is held until ${formatDateTime(holdEndsAt, timeZone)}${length} while we wait for your deposit.`;
 }
@@ -128,6 +134,11 @@ export interface BookingRulesInput {
    * payment route the deposit is settled at the salon.
    */
   ownDepositMinor?: number;
+  /**
+   * The booking is a request and its payment (online, or the deposit to the
+   * business) is made only after the business accepts: nothing at booking.
+   */
+  payAfterAcceptance?: boolean;
   priceMinor?: number;
 }
 
@@ -168,12 +179,21 @@ function paidOnlineLine(input: BookingRulesInput, dueMinor: number): string {
     // Nothing has been captured yet, so no refund claim is made.
     return `No deposit has been taken yet. ${changeClause(input)}`;
   }
+  if (input.payAfterAcceptance && input.bookingStatus === "pending") {
+    // A request the business has not accepted: nothing was asked for.
+    return `Nothing to pay yet. ${changeClause(input)}`;
+  }
   const amount = formatMoney(dueMinor, input.currency);
   const paidInFull =
     input.priceMinor !== undefined && dueMinor >= input.priceMinor;
-  const noun = paidInFull
-    ? `${amount} paid when you book`
+  // On the form of a request: the amount is asked for only after acceptance.
+  const later =
+    input.payAfterAcceptance === true && input.bookingStatus === undefined;
+  const whenPaid = later ? "after your request is accepted" : "when you book";
+  const deposit = later
+    ? `${amount} deposit, paid ${whenPaid}`
     : `${amount} deposit`;
+  const noun = paidInFull ? `${amount} paid ${whenPaid}` : deposit;
   return `${noun}, ${refundClause(input)} ${changeClause(input)}`;
 }
 
@@ -181,7 +201,14 @@ function paidOnlineLine(input: BookingRulesInput, dueMinor: number): string {
 function moneyClause(input: BookingRulesInput): string {
   const { currency, dueMinor } = input;
   if ((input.businessDepositMinor ?? 0) > 0) {
-    return `${formatMoney(input.businessDepositMinor ?? 0, currency)} deposit, paid to the business.`;
+    const amount = formatMoney(input.businessDepositMinor ?? 0, currency);
+    // A request: the business is paid only once it has accepted.
+    const notYetAccepted =
+      input.payAfterAcceptance === true &&
+      (input.bookingStatus === undefined || input.bookingStatus === "pending");
+    return notYetAccepted
+      ? `${amount} deposit, paid to the business after your request is accepted.`
+      : `${amount} deposit, paid to the business.`;
   }
   if (dueMinor === undefined) {
     return "";

@@ -66,6 +66,10 @@ const BUSINESS_BUTTON = /Business deposit/u;
 const CAN_MARK = /can-mark=true/u;
 const CANNOT_MARK = /can-mark=false/u;
 
+const NOTHING_PAID =
+  /Nothing has been paid yet\. When you confirm this request/u;
+const ACCEPTED_NOTE =
+  /You accepted this request\s+and the customer was emailed/u;
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),
 });
@@ -153,6 +157,57 @@ describe("studio booking detail", () => {
       screen.getByText("Awaiting deposit to Confirmed")
     ).toBeInTheDocument();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("titles a deposit event by what happened, not as a status change", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        events: [
+          {
+            from_status: "confirmed",
+            to_status: "confirmed",
+            actor_user_id: null,
+            note: "Deposit received by cash",
+            created_at: "2026-10-18T12:05:00Z",
+          },
+          {
+            from_status: "confirmed",
+            to_status: "confirmed",
+            actor_user_id: null,
+            note: "Deposit receipt undone",
+            created_at: "2026-10-18T12:06:00Z",
+          },
+        ],
+      })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Deposit received")).toBeInTheDocument();
+    expect(screen.getByText("By cash")).toBeInTheDocument();
+    expect(screen.getByText("Deposit marked not received")).toBeInTheDocument();
+    expect(screen.queryByText("Confirmed to Confirmed")).toBeNull();
+  });
+
+  it("titles a reschedule Time changed and never shows a raw ISO time", async () => {
+    const moved = {
+      from_status: "confirmed" as const,
+      to_status: "confirmed" as const,
+      actor_user_id: null,
+      note: "Rescheduled from 2026-10-20T14:00Z by the business",
+      created_at: "2026-10-18T12:05:00Z",
+    };
+    // Two entries with the same time and status: the list keys must not collide.
+    const errors = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    vi.mocked(getBooking).mockResolvedValue(detail({ events: [moved, moved] }));
+    const { container } = render(await StudioBookingPage(props()));
+    expect(screen.getAllByText("Time changed")).toHaveLength(2);
+    expect(container.textContent).not.toContain("2026-10-20T14:00Z");
+    expect(container.textContent).not.toContain("Confirmed to Confirmed");
+    expect(
+      errors.mock.calls.some((call) => String(call[0]).includes("same key"))
+    ).toBe(false);
+    errors.mockRestore();
   });
 
   it("shows the action buttons to an admin and an owner, not a member", async () => {
@@ -539,5 +594,41 @@ describe("deposit paid to the business (#1869)", () => {
     render(await StudioBookingPage(props()));
     expect(screen.queryByRole("button", { name: BUSINESS_BUTTON })).toBeNull();
     expect(screen.getByRole("button", { name: RECORD })).toBeInTheDocument();
+  });
+});
+
+describe("request paid after acceptance", () => {
+  it("says nothing is paid yet while the request needs confirming", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending", pay_after_acceptance: true, events: [] })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText(NOTHING_PAID)).toBeVisible();
+    expect(screen.queryByText("Accepted, awaiting payment")).toBeNull();
+  });
+
+  it("shows Accepted, awaiting payment once the business accepted", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        status: "pending_payment",
+        pay_after_acceptance: true,
+        accepted_at: "2026-10-19T12:00:00Z",
+        events: [],
+      })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.getByText("Accepted, awaiting payment")).toBeVisible();
+    expect(screen.getByText(ACCEPTED_NOTE)).toBeVisible();
+    expect(screen.queryByText(NOTHING_PAID)).toBeNull();
+  });
+
+  it("says neither for a payment taken at booking", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({ status: "pending_payment", events: [] })
+    );
+    render(await StudioBookingPage(props()));
+    expect(screen.queryByText("Accepted, awaiting payment")).toBeNull();
+    expect(screen.queryByText(NOTHING_PAID)).toBeNull();
+    expect(screen.getByText("Awaiting deposit")).toBeVisible();
   });
 });
