@@ -69,8 +69,15 @@ def _backfill() -> None:
     ).all()
     if not rows:
         return
+    # Re-check the row in the UPDATE itself. A contact erased after the SELECT above
+    # must NOT get a variant hash written back: erasure clears it, and a stored
+    # variant would be a derived identifier that outlives the erasure. Do not
+    # simplify this back to "WHERE id = :id".
     bind.execute(
-        sa.text("UPDATE org.contact SET email_variant_hash = :variant WHERE id = :id"),
+        sa.text(
+            "UPDATE org.contact SET email_variant_hash = :variant "
+            "WHERE id = :id AND erased_at IS NULL AND email IS NOT NULL"
+        ),
         [{"id": row.id, "variant": _variant_hash(row.email, pepper)} for row in rows],
     )
 
