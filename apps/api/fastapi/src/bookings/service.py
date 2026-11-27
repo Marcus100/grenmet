@@ -161,10 +161,10 @@ async def upsert_profile(
     if "logo_file_id" in values:
         # JSON gives a string; the column takes the UUID the request validated.
         values["logo_file_id"] = payload.logo_file_id
-        await _require_logo(organisation_id, payload.logo_file_id, profile)
+        await _require_logo(session, organisation_id, payload.logo_file_id, profile)
     if "cover_file_id" in values:
         values["cover_file_id"] = payload.cover_file_id
-        await _require_cover(organisation_id, payload.cover_file_id, profile)
+        await _require_cover(session, organisation_id, payload.cover_file_id, profile)
     if profile is None:
         if "pending_expiry_hours" in values and values["pending_expiry_hours"] is None:
             # The ORM leaves a None out of an INSERT, so the column's server default
@@ -211,10 +211,14 @@ def _require_deposit_rule(
 
 
 async def _require_logo(
-    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+    session: AsyncSession,
+    organisation_id: str,
+    file_id: uuid.UUID | None,
+    profile: BookingProfile | None,
 ) -> None:
     """A new logo must be a finished upload of this business."""
     await _require_image(
+        session,
         organisation_id,
         file_id,
         current=profile.logo_file_id if profile is not None else None,
@@ -224,10 +228,14 @@ async def _require_logo(
 
 
 async def _require_cover(
-    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+    session: AsyncSession,
+    organisation_id: str,
+    file_id: uuid.UUID | None,
+    profile: BookingProfile | None,
 ) -> None:
     """A new cover photo must be a finished upload of this business."""
     await _require_image(
+        session,
         organisation_id,
         file_id,
         current=profile.cover_file_id if profile is not None else None,
@@ -237,6 +245,7 @@ async def _require_cover(
 
 
 async def _require_image(
+    session: AsyncSession,
     organisation_id: str,
     file_id: uuid.UUID | None,
     *,
@@ -245,11 +254,12 @@ async def _require_image(
     noun: str,
 ) -> None:
     """An unchanged image is not checked again, so one stored before a later rule
-    stays valid."""
+    stays valid. The upload is locked until this request's transaction ends, so the
+    sweep cannot delete it before the reference is saved (src/storage/sweep.py)."""
     if file_id is None or current == file_id:
         return
-    if not await uploads.file_is_usable(
-        file_id, organisation_id=organisation_id, purpose=purpose
+    if not await uploads.lock_usable(
+        session, file_id, organisation_id=organisation_id, purpose=purpose
     ):
         raise BookingConflictError(
             f"That {noun} is not a finished upload for this business"

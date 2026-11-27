@@ -80,6 +80,7 @@ JOBS = frozenset(
         "expire_pending_bookings",
         "complete_finished_bookings",
         "evaluate_paused_businesses",
+        "sweep_booking_uploads",
     }
 )
 

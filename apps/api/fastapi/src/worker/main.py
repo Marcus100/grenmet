@@ -824,6 +824,32 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
     return result.total
 
 
+@monitored(schedule="20 * * * *", checkin_margin=30, max_runtime=300)
+async def sweep_booking_uploads(ctx: dict[str, Any]) -> int:
+    """Hourly sweep of unreferenced booking uploads, 24 hours after upload (#1972).
+
+    Removal in Studio is therefore permanent within 25 hours at most. Batched and
+    idempotent; see src/storage/sweep.py."""
+    from src.database import async_session_factory
+    from src.storage import sweep
+
+    async with async_session_factory() as session:
+        try:
+            result = await sweep.sweep_unreferenced(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "sweep_booking_uploads",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "sweep_booking_uploads", str(ctx.get("job_id", "")), True
+    )
+    return result.swept
+
+
 @monitored(schedule="25 4 * * *", checkin_margin=30, max_runtime=60)
 async def purge_superuser_invitations(ctx: dict[str, Any]) -> int:
     """Delete superuser invitations that ended more than 90 days ago (ADR-0059).
@@ -982,6 +1008,7 @@ class WorkerSettings:
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
+        sweep_booking_uploads,
         purge_superuser_invitations,
         clear_former_staff_personal_details,
         check_nhc_failures,
@@ -1085,6 +1112,8 @@ class WorkerSettings:
         cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
+        # Unreferenced booking uploads, hourly at :20 (#1972); see src/storage/sweep.py.
+        cron(sweep_booking_uploads, minute=20, run_at_startup=False),
         # Superuser invitations ended over 90 days ago, 04:25 UTC (00:25 Grenada).
         cron(purge_superuser_invitations, hour=4, minute=25, run_at_startup=False),
         # Former staff date of birth and address, 6 years after employment ends

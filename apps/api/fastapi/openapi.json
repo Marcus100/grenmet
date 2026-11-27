@@ -11513,7 +11513,7 @@
           "bookings"
         ],
         "summary": "Remove a gallery photograph",
-        "description": "Take one photograph out of the gallery. The photographs that are left keep their order with no gap in it.",
+        "description": "Take one photograph out of the gallery. The photographs that are left keep their order with no gap in it. The file is permanently deleted within 25 hours; until then its address still opens it.",
         "operationId": "bookingsRemoveGalleryPhoto",
         "security": [
           {
@@ -89403,7 +89403,7 @@
               }
             ],
             "title": "Logo File Id",
-            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it, and the old file is permanently deleted within 25 hours; until then its address still opens it. Left out, the stored logo is kept."
           },
           "cover_file_id": {
             "anyOf": [
@@ -89416,7 +89416,7 @@
               }
             ],
             "title": "Cover File Id",
-            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it, and the old file is permanently deleted within 25 hours; until then its address still opens it. Left out, the stored photo is kept."
           },
           "business_type": {
             "anyOf": [
@@ -89857,7 +89857,7 @@
               }
             ],
             "title": "Logo File Id",
-            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it, and the old file is permanently deleted within 25 hours; until then its address still opens it. Left out, the stored logo is kept."
           },
           "cover_file_id": {
             "anyOf": [
@@ -89870,7 +89870,7 @@
               }
             ],
             "title": "Cover File Id",
-            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it, and the old file is permanently deleted within 25 hours; until then its address still opens it. Left out, the stored photo is kept."
           },
           "business_type": {
             "anyOf": [
