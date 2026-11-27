@@ -137,9 +137,10 @@ gh command in the same command line.
 
 **Read the sha; never reconstruct one.** Take the head from
 `gh pr view <num> --json headRefOid --jq .headRefOid` (cloud:
-`gh api repos/Marcus100/grenmet/pulls/<num> --jq .headRefOid`). An agent that
-extended a 9-character prefix to 40 characters instead got it wrong and the hook
-refused the merge; a sha is never retyped, extended or inferred.
+`gh api repos/Marcus100/grenmet/pulls/<num> --jq .head.sha`), and check it is
+still the sha CI and the review named. An agent that extended a 9-character
+prefix to 40 characters instead got it wrong and the hook refused the merge; a
+sha is never retyped, extended or inferred.
 
 Files fall into three groups:
 
