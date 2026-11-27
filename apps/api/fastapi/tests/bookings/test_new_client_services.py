@@ -14,11 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bookings.models import BookingStatus, Customer
 from src.contacts.models import Contact
 from tests.bookings.booking_day import MONDAY, utc_iso
+from tests.bookings.email_code_helpers import book_known
 from tests.bookings.test_public_bookings import (
     API,
     DAY,
     Studio,
-    _book,
     _booking_for,
     _emails,
     _slots,
@@ -42,10 +42,10 @@ async def _patch(
 
 
 async def _book_first_free(
-    client: httpx.AsyncClient, studio: Studio, email: str
+    db: AsyncSession, client: httpx.AsyncClient, studio: Studio, email: str
 ) -> httpx.Response:
     slots = await _slots(client, studio)
-    return await _book(client, studio, slots[0], customer_email=email)
+    return await book_known(db, client, studio, slots[0], customer_email=email)
 
 
 async def _flag_on(client: httpx.AsyncClient, studio: Studio, **extra: object) -> None:
@@ -71,7 +71,7 @@ async def _returning(
 ) -> str:
     """An email with one earlier booking in ``status``, made before the flag is on."""
     email = _email()
-    first = await _book_first_free(client, studio, email)
+    first = await _book_first_free(db, client, studio, email)
     assert first.status_code == 201, first.text
     booking = await _booking_for(db, first.json()["booking"]["id"])
     booking.status = status.value
@@ -90,8 +90,8 @@ async def test_a_returning_and_a_new_client_get_identical_public_answers(
     await _flag_on(async_client, studio)
 
     new_email = _email()
-    new = await _book_first_free(async_client, studio, new_email)
-    returning = await _book_first_free(async_client, studio, old)
+    new = await _book_first_free(db_async, async_client, studio, new_email)
+    returning = await _book_first_free(db_async, async_client, studio, old)
     assert new.status_code == returning.status_code == 201, returning.text
     assert new.json().keys() == returning.json().keys()
     assert new.json()["booking"].keys() == returning.json()["booking"].keys()
@@ -140,8 +140,8 @@ async def test_the_returning_client_is_flagged_for_staff_and_the_new_one_is_not(
     studio = await _studio(db_async, async_client, providers=3)
     old = await _returning(db_async, async_client, studio)
     await _flag_on(async_client, studio)
-    returning = (await _book_first_free(async_client, studio, old)).json()
-    new = (await _book_first_free(async_client, studio, _email())).json()
+    returning = (await _book_first_free(db_async, async_client, studio, old)).json()
+    new = (await _book_first_free(db_async, async_client, studio, _email())).json()
 
     flagged = await _studio_detail(async_client, studio, returning)
     plain = await _studio_detail(async_client, studio, new)
@@ -168,7 +168,7 @@ async def test_the_flag_never_reaches_a_public_surface(
     studio = await _studio(db_async, async_client, providers=3)
     old = await _returning(db_async, async_client, studio)
     await _flag_on(async_client, studio)
-    receipt = (await _book_first_free(async_client, studio, old)).json()
+    receipt = (await _book_first_free(db_async, async_client, studio, old)).json()
 
     manage = await async_client.get(f"{API}/public/bookings/{receipt['manage_token']}")
     storefront = await async_client.get(f"{API}/public/{studio.slug}")
@@ -184,10 +184,10 @@ async def test_a_business_that_auto_confirms_still_holds_the_request(
     studio = await _studio(
         db_async, async_client, providers=2, requires_confirmation=False
     )
-    open_service = await _book_first_free(async_client, studio, _email())
+    open_service = await _book_first_free(db_async, async_client, studio, _email())
     assert open_service.json()["booking"]["status"] == "confirmed"
     await _flag_on(async_client, studio)
-    held = await _book_first_free(async_client, studio, _email())
+    held = await _book_first_free(db_async, async_client, studio, _email())
     assert held.status_code == 201, held.text
     assert held.json()["booking"]["status"] == "pending"
 
@@ -238,7 +238,9 @@ async def test_only_confirmed_and_completed_bookings_make_a_client_returning(
     studio = await _studio(db_async, async_client, providers=2)
     email = await _returning(db_async, async_client, studio, status)
     await _flag_on(async_client, studio)
-    receipt = (await _book_first_free(async_client, studio, email.upper())).json()
+    receipt = (
+        await _book_first_free(db_async, async_client, studio, email.upper())
+    ).json()
     assert (await _studio_detail(async_client, studio, receipt))[FLAG] is flagged
 
 
@@ -249,7 +251,7 @@ async def test_a_booking_at_another_business_does_not_count(
     email = await _returning(db_async, async_client, other)
     studio = await _studio(db_async, async_client, providers=2)
     await _flag_on(async_client, studio)
-    receipt = (await _book_first_free(async_client, studio, email)).json()
+    receipt = (await _book_first_free(db_async, async_client, studio, email)).json()
     assert (await _studio_detail(async_client, studio, receipt))[FLAG] is False
 
 
@@ -272,7 +274,9 @@ async def test_another_contact_linked_to_the_same_account_counts(
     )
     await db_async.commit()
     await _flag_on(async_client, studio)
-    receipt = (await _book_first_free(async_client, studio, other_email)).json()
+    receipt = (
+        await _book_first_free(db_async, async_client, studio, other_email)
+    ).json()
     assert (await _studio_detail(async_client, studio, receipt))[FLAG] is True
     # Nothing else was created for the booking beyond its own customer row.
     customers = await db_async.scalars(
@@ -377,7 +381,7 @@ async def test_the_storefront_and_the_booking_expose_the_rule(
     assert svc["first_visit_lead_days"] == 2
     assert svc["first_visit_categories"] == ["Lashes"]
 
-    booked = await _book_first_free(async_client, studio, _email())
+    booked = await _book_first_free(db_async, async_client, studio, _email())
     assert booked.status_code == 201, booked.text
     detail = booked.json()["booking"]
     assert detail["new_clients_only"] is True

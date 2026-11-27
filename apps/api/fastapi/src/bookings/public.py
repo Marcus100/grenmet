@@ -704,6 +704,23 @@ def _binding(
     )
 
 
+# #1969: a free booking from an address the business already has needs the emailed
+# code (see create_booking). The rule is recorded here, not in src/bookings/AGENTS.md,
+# because that file is at the Codex byte budget (issue #1971). Test:
+# tests/bookings/test_known_email_proof.py.
+async def _is_known_contact(
+    session: AsyncSession, profile: BookingProfile, email: str
+) -> bool:
+    """True when ``email`` already belongs to a contact of this business (#1969).
+
+    The exact-hash lookup of the contacts domain, read only: it never creates or
+    changes a contact, so a refused booking leaves no trace."""
+    contact = await contacts_service.find_by_email(
+        session, profile.organisation_id, email
+    )
+    return contact is not None
+
+
 async def request_email_code(
     session: AsyncSession,
     profile: BookingProfile,
@@ -711,8 +728,8 @@ async def request_email_code(
     *,
     payer: User | None,
 ) -> BookingEmailCodeSent:
-    """Email a code when a deposit is due and the caller is not exempt; else do
-    nothing (bookings without a deposit have no step)."""
+    """Email a code when a deposit is due, or the address is already a contact of
+    this business (#1969), and the caller is not exempt; else do nothing."""
     email = str(payload.customer_email)
     priced = await price_booking(
         session,
@@ -720,7 +737,9 @@ async def request_email_code(
         service_id=payload.service_id,
         add_on_ids=payload.add_on_ids,
     )
-    if not priced.email_code_required:
+    if not priced.email_code_required and not await _is_known_contact(
+        session, profile, email
+    ):
         return BookingEmailCodeSent(required=False)
     if await email_code.is_exempt(session, payer, email):
         return BookingEmailCodeSent(required=False)
@@ -758,7 +777,8 @@ async def create_booking(
     payer: User | None = None,
     now: datetime | None = None,
 ) -> tuple[int, dict[str, Any]]:
-    """Book a slot. When a deposit is due the caller needs an emailed-code proof
+    """Book a slot. When a deposit is due, or the booking email is already a contact
+    of this business (#1969), the caller needs an emailed-code proof
     (``payload.email_proof``) unless a signed-in ``payer`` already vouches for the
     booking email (ADR-0018, #471); otherwise 403 ``email_verification_required``
     and nothing is stored. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
@@ -774,14 +794,21 @@ async def create_booking(
     svc, chosen, deposit = priced.service, priced.add_ons, priced.due_minor
     to_business = priced.to_business_minor
     use = email_code.ProofUse(None)
-    if deposit > 0:
-        email = str(payload.customer_email)
+    email = str(payload.customer_email)
+    # A free booking needs the proof only for an address the business already has
+    # (#1969): otherwise anyone could book a slot in a stranger's name. The refusal
+    # is the same 403 and body for every such address, whatever its history, and
+    # it carries nothing about the address. It cannot be a second channel for
+    # "is this a customer": a new address still books in one pass (owner decision,
+    # #1969), so the 201/403 split is accepted, and this code must not add to it.
+    if deposit > 0 or await _is_known_contact(session, profile, email):
         use = await email_code.require_proof(
             session,
             _binding(profile, email, svc.id, payload.starts_at),
             payer=payer,
             email=email,
             proof=payload.email_proof,
+            action="pay a deposit" if deposit > 0 else "book this appointment",
         )
     try:
         return await _create_booking(

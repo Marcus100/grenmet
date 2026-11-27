@@ -19,7 +19,8 @@ from src.rewards import service as rewards_service
 from src.rewards.models import Entry
 from src.rewards.schemas import ProgramCreate
 from src.utils.datetime import utc_now
-from tests.bookings.test_public_bookings import API, Studio, _book, _slots, _studio
+from tests.bookings.email_code_helpers import book_known
+from tests.bookings.test_public_bookings import API, Studio, _slots, _studio
 from tests.factories import make_user
 
 FULL = ("bookings", "contacts", "rewards")
@@ -35,13 +36,14 @@ async def _customer(db: AsyncSession, receipt: dict) -> Customer:
 
 
 async def _book_one(
+    db: AsyncSession,
     client: httpx.AsyncClient,
     studio: Studio,
     slot: int = 0,
     **overrides: object,
 ) -> dict:
     slots = await _slots(client, studio)
-    resp = await _book(client, studio, slots[slot], **overrides)
+    resp = await book_known(db, client, studio, slots[slot], **overrides)
     assert resp.status_code == 201, resp.text
     return resp.json()
 
@@ -52,6 +54,7 @@ async def test_customer_is_linked_to_a_contact_with_consent(
     studio = await _studio(db_async, async_client, apps=FULL)
     email = f"linked-{uuid.uuid4().hex[:6]}@example.com"
     receipt = await _book_one(
+        db_async,
         async_client,
         studio,
         customer_email=email,
@@ -69,7 +72,9 @@ async def test_customer_is_linked_to_a_contact_with_consent(
     assert consents[ConsentPurpose.MARKETING].granted is True
 
     # A second booking by the same person reuses the contact.
-    again = await _book_one(async_client, studio, slot=2, customer_email=email)
+    again = await _book_one(
+        db_async, async_client, studio, slot=2, customer_email=email
+    )
     second = await _customer(db_async, again)
     assert second.contact_id == contact_id
     consents = await contacts_service.current_consents(db_async, contact_id)
@@ -80,7 +85,7 @@ async def test_every_customer_has_a_contact_in_a_bookings_only_organisation(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, apps=("bookings",))
-    receipt = await _book_one(async_client, studio, marketing_consent=True)
+    receipt = await _book_one(db_async, async_client, studio, marketing_consent=True)
     customer = await _customer(db_async, receipt)
     contacts = (
         await db_async.scalars(
@@ -97,7 +102,7 @@ async def test_erasing_or_merging_a_contact_does_not_break_bookings(
 ) -> None:
     studio = await _studio(db_async, async_client, apps=FULL)
     email = f"erase-{uuid.uuid4().hex[:6]}@example.com"
-    receipt = await _book_one(async_client, studio, customer_email=email)
+    receipt = await _book_one(db_async, async_client, studio, customer_email=email)
     customer = await _customer(db_async, receipt)
     assert customer.contact_id is not None
     customer_id = customer.id
@@ -119,7 +124,9 @@ async def test_erasing_or_merging_a_contact_does_not_break_bookings(
     )
     assert studio_list.status_code == 200
     # Booking again revives the contact and keeps the link.
-    again = await _book_one(async_client, studio, slot=2, customer_email=email)
+    again = await _book_one(
+        db_async, async_client, studio, slot=2, customer_email=email
+    )
     revived = await _customer(db_async, again)
     assert revived.contact_id == contact_id
 
@@ -159,7 +166,7 @@ async def _rewards_setup(
         ),
     )
     email = f"member-{uuid.uuid4().hex[:6]}@example.com"
-    receipt = await _book_one(client, studio, customer_email=email)
+    receipt = await _book_one(db, client, studio, customer_email=email)
     customer = await _customer(db, receipt)
     contact = await db.get(Contact, customer.contact_id)
     assert contact is not None
@@ -238,7 +245,7 @@ async def test_completion_without_a_linked_account_earns_nothing(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, apps=FULL)
-    receipt = await _book_one(async_client, studio)
+    receipt = await _book_one(db_async, async_client, studio)
     booking = await _complete(db_async, receipt)
     rows = (
         await db_async.scalars(
@@ -277,9 +284,13 @@ async def test_merging_two_contacts_with_customers_keeps_one_customer(
 ) -> None:
     studio = await _studio(db_async, async_client, apps=FULL)
     first = await _book_one(
-        async_client, studio, customer_email=f"a-{uuid.uuid4().hex[:6]}@example.com"
+        db_async,
+        async_client,
+        studio,
+        customer_email=f"a-{uuid.uuid4().hex[:6]}@example.com",
     )
     second = await _book_one(
+        db_async,
         async_client,
         studio,
         slot=2,

@@ -19,6 +19,7 @@ from src.contacts import service as contacts_service
 from src.contacts.models import Contact
 from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import DAY
+from tests.bookings.email_code_helpers import book_known
 from tests.bookings.test_public_bookings import (
     API,
     Studio,
@@ -56,7 +57,8 @@ async def test_a_second_booking_shows_the_name_typed_on_it(
     studio = await _studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     email = f"ada-{uuid.uuid4().hex[:8]}@example.com"
-    first = await _book(
+    first = await book_known(
+        db_async,
         async_client,
         studio,
         slots[0],
@@ -64,7 +66,8 @@ async def test_a_second_booking_shows_the_name_typed_on_it(
         customer_name="TEST verify",
     )
     assert first.status_code == 201, first.text
-    second = await _book(
+    second = await book_known(
+        db_async,
         async_client,
         studio,
         slots[-1],
@@ -102,14 +105,16 @@ async def test_the_studio_sees_each_bookings_own_name(
     studio = await _studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     email = f"ada-{uuid.uuid4().hex[:8]}@example.com"
-    first = await _book(
+    first = await book_known(
+        db_async,
         async_client,
         studio,
         slots[0],
         customer_email=email,
         customer_name="TEST verify",
     )
-    second = await _book(
+    second = await book_known(
+        db_async,
         async_client,
         studio,
         slots[-1],
@@ -141,14 +146,16 @@ async def test_the_studio_mail_names_the_person_who_made_that_booking(
     studio = await _studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     email = f"ada-{uuid.uuid4().hex[:8]}@example.com"
-    first = await _book(
+    first = await book_known(
+        db_async,
         async_client,
         studio,
         slots[0],
         customer_email=email,
         customer_name="TEST verify",
     )
-    second = await _book(
+    second = await book_known(
+        db_async,
         async_client,
         studio,
         slots[-1],
@@ -205,14 +212,16 @@ async def test_erasing_the_contact_clears_the_names_typed_on_its_bookings(
     studio = await _studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     email = f"gone-{uuid.uuid4().hex[:8]}@example.com"
-    first = await _book(
+    first = await book_known(
+        db_async,
         async_client,
         studio,
         slots[0],
         customer_email=email,
         customer_name="TEST verify",
     )
-    second = await _book(
+    second = await book_known(
+        db_async,
         async_client,
         studio,
         slots[-1],

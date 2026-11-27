@@ -60,3 +60,27 @@ async def get_proof(
     )
     assert done.status_code == 200, done.text
     return done.json()["proof"]
+
+
+async def book_known(
+    db: AsyncSession,
+    client: httpx.AsyncClient,
+    studio: Studio,
+    starts_at: str,
+    **overrides: object,
+) -> httpx.Response:
+    """``_book``, but a free booking from an address the business already has (#1969)
+    is refused for want of a proof: then the emailed code is fetched and the same
+    booking is sent again with it. Any other answer is returned as it is."""
+    # Imported here: test_public_bookings imports nothing from this module.
+    from tests.bookings.test_public_bookings import _body, _book
+
+    response = await _book(client, studio, starts_at, **overrides)
+    if (
+        response.status_code != 403
+        or "email_verification_required" not in response.text
+    ):
+        return response
+    email = str(_body(studio, starts_at, **overrides)["customer_email"])
+    proof = await get_proof(db, client, studio, starts_at, email)
+    return await _book(client, studio, starts_at, email_proof=proof, **overrides)
