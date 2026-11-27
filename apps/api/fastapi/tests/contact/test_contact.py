@@ -169,6 +169,8 @@ async def test_site_defaults_to_mbia_and_routes_to_its_own_inbox(
         ).all()
     )
     assert [mail.to_email for mail in mails] == ["mbia@example.com"]
+    # The environment fallback is a platform address, not the business's: never tagged.
+    assert [mail.organisation_id for mail in mails] == [None]
 
 
 async def test_barrels_message_goes_to_barrels_inbox_only(
