@@ -28,6 +28,19 @@ class BookingExceptionKind(str, Enum):
     EXTRA_HOURS = "extra_hours"
 
 
+class BookingEventReason(str, Enum):
+    """Why staff declined or cancelled a booking, recorded on its history row
+    (``booking_event.reason``). Set by the Studio decline and cancel actions; a
+    row written by anything else keeps it null. The free-text reason typed for the
+    customer's email is not stored here."""
+
+    CUSTOMER_REQUEST = "customer_request"
+    BUSINESS_CLOSED = "business_closed"
+    STAFF_UNAVAILABLE = "staff_unavailable"
+    WEATHER = "weather"
+    OTHER = "other"
+
+
 class BookingStatus(str, Enum):
     PENDING_PAYMENT = "pending_payment"
     PENDING = "pending"
@@ -713,7 +726,11 @@ class BookingEvent(Base):
     from_status: Mapped[str | None] = mapped_column(String(20))
     to_status: Mapped[str] = mapped_column(String(20))
     actor_user_id: Mapped[uuid.UUID | None]
+    #: Staff-written or system text. Erasure clears it (``_erase_booking_copies``).
     note: Mapped[str | None] = mapped_column(String(300))
+    #: Reason code from ``BookingEventReason``; null for rows written before it existed
+    #: and for rows no decline or cancel action gave one. Not personal data: kept on erasure.
+    reason: Mapped[str | None] = mapped_column(String(40))
     #: A staff-only note that changes no status. Customer calendar feeds count
     #: only the other rows (their ICS SEQUENCE), so this never sends an update.
     staff_note: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
@@ -758,17 +775,27 @@ async def _erase_booking_copies(session: AsyncSession, contact_id: str) -> None:
     ``booking.booked_name`` is the name typed on each booking, and every view prefers
     it (``public.booked_name``), so the copy has to go with the contact's own name.
     ``booking.notes`` is free text the customer typed, which can hold anything, so it
-    goes too (#1963). Each booking row survives, and reads as the blanked contact
-    does: no name and no notes.
+    goes too (#1963). ``booking_event.note`` is the staff timeline, which can hold
+    the same kind of detail, so its text goes (the timeline's rows, kinds, times and
+    reason codes stay). ``booking.cancel_reason`` is free text too: the reason staff
+    gave for a decline or cancellation, or the one the customer gave when cancelling
+    themselves. It goes as well. Each booking row survives, and reads as the blanked
+    contact does: no name, no notes and no reason text.
     """
+    customer_bookings = sa.select(Booking.id).where(
+        Booking.customer_id.in_(
+            sa.select(Customer.id).where(Customer.contact_id == contact_id)
+        )
+    )
     await session.execute(
         sa.update(Booking)
-        .where(
-            Booking.customer_id.in_(
-                sa.select(Customer.id).where(Customer.contact_id == contact_id)
-            )
-        )
-        .values(booked_name=None, notes=None)
+        .where(Booking.id.in_(customer_bookings))
+        .values(booked_name=None, notes=None, cancel_reason=None)
+    )
+    await session.execute(
+        sa.update(BookingEvent)
+        .where(BookingEvent.booking_id.in_(customer_bookings))
+        .values(note=None)
     )
 
 

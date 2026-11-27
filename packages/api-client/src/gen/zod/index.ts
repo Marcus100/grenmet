@@ -1253,6 +1253,7 @@ export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.j
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";
 export { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
+export { bookingEventReasonSchema } from "./bookingEventReasonSchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";

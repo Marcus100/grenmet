@@ -1267,6 +1267,7 @@ async def decline_studio_booking(
         booking_id,
         actor_user_id=org.actor_id,
         reason=payload.reason,
+        reason_code=payload.reason_code,
     )
     await session.commit()
     return result
@@ -1299,6 +1300,7 @@ async def cancel_studio_booking(
         actor_user_id=org.actor_id,
         reason=payload.reason,
         refund_deposit=payload.refund_deposit,
+        reason_code=payload.reason_code,
     )
     await session.commit()
     return result

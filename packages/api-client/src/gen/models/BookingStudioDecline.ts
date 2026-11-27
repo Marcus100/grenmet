@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingEventReason } from "./BookingEventReason.js";
+
 export type BookingStudioDecline = {
   /**
    * @description Why the request is declined. Shown to the customer in the email.
@@ -11,4 +13,8 @@ export type BookingStudioDecline = {
    * @type string
    */
   reason: string;
+  /**
+   * @description The reason for the business's history, from a fixed list. Staff only; the customer does not see it. Left out, the history has no reason.
+   */
+  reason_code?: BookingEventReason | null;
 };

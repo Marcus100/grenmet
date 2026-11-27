@@ -88363,6 +88363,18 @@
         ],
         "title": "BookingEmailProof"
       },
+      "BookingEventReason": {
+        "type": "string",
+        "enum": [
+          "customer_request",
+          "business_closed",
+          "staff_unavailable",
+          "weather",
+          "other"
+        ],
+        "title": "BookingEventReason",
+        "description": "Why staff declined or cancelled a booking, recorded on its history row\n(``booking_event.reason``). Set by the Studio decline and cancel actions; a\nrow written by anything else keeps it null. The free-text reason typed for the\ncustomer's email is not stored here."
+      },
       "BookingExceptionCreate": {
         "properties": {
           "kind": {
@@ -91993,6 +92005,17 @@
             "title": "Reason",
             "description": "Why the booking is cancelled. Shown to the customer in the email."
           },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingEventReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The reason for the business's history, from a fixed list. Staff only; the customer does not see it. Left out, the history has no reason."
+          },
           "refund_deposit": {
             "anyOf": [
               {
@@ -92140,6 +92163,17 @@
             "minLength": 1,
             "title": "Reason",
             "description": "Why the request is declined. Shown to the customer in the email."
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingEventReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The reason for the business's history, from a fixed list. Staff only; the customer does not see it. Left out, the history has no reason."
           }
         },
         "type": "object",
@@ -92443,6 +92477,17 @@
               }
             ],
             "title": "Note"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingEventReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why staff declined or cancelled, from a fixed list; null when not given."
           },
           "created_at": {
             "type": "string",

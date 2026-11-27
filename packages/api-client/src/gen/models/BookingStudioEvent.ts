@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingEventReason } from "./BookingEventReason.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
 export type BookingStudioEvent = {
@@ -13,6 +14,10 @@ export type BookingStudioEvent = {
    */
   actor_user_id: string | null;
   note: string | null;
+  /**
+   * @description Why staff declined or cancelled, from a fixed list; null when not given.
+   */
+  reason?: BookingEventReason | null;
   /**
    * @description
    * Format: `date-time`

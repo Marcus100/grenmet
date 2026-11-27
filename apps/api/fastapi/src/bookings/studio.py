@@ -37,6 +37,7 @@ from .models import (
     Booking,
     BookingDepositReceivedMethod,
     BookingEvent,
+    BookingEventReason,
     BookingSource,
     BookingStatus,
     Customer,
@@ -139,6 +140,7 @@ async def _detail(
                 to_status=BookingStatus(e.to_status),
                 actor_user_id=e.actor_user_id,
                 note=e.note,
+                reason=BookingEventReason(e.reason) if e.reason else None,
                 created_at=e.created_at,
             )
             for e in events
@@ -430,6 +432,7 @@ async def decline(
     *,
     actor_user_id: uuid.UUID | None,
     reason: str,
+    reason_code: BookingEventReason | None = None,
     now: datetime | None = None,
     defer_refund: bool = False,
 ) -> BookingStudioDetail:
@@ -444,6 +447,7 @@ async def decline(
         managed,
         actor_user_id=actor_user_id,
         reason=reason,
+        reason_code=reason_code,
         refund=True,
         note="Declined by the business",
         email=emails.customer_declined,
@@ -461,6 +465,7 @@ async def cancel(
     actor_user_id: uuid.UUID | None,
     reason: str,
     refund_deposit: bool | None,
+    reason_code: BookingEventReason | None = None,
     now: datetime | None = None,
 ) -> BookingStudioDetail:
     """The business cancels an active booking. A captured deposit follows the
@@ -471,6 +476,7 @@ async def cancel(
         managed,
         actor_user_id=actor_user_id,
         reason=reason,
+        reason_code=reason_code,
         refund=refund_deposit,
         note="Cancelled by the business",
         email=emails.customer_cancelled_by_studio,
@@ -485,6 +491,7 @@ async def _cancel(
     *,
     actor_user_id: uuid.UUID | None,
     reason: str,
+    reason_code: BookingEventReason | None,
     refund: bool | None,
     note: str,
     email: Callable[[emails.BookingEmail, str | None], layout.EmailCard],
@@ -501,6 +508,7 @@ async def _cancel(
         BookingStatus.CANCELLED,
         actor_user_id=actor_user_id,
         note=note,
+        reason=reason_code,
         now=now,
     )
     money = await deposit_payments.settle_cancellation(
