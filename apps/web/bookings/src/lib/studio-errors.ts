@@ -272,7 +272,7 @@ export function settingsFailure(error: unknown): StudioFailure {
  */
 export function logoUploadFailure(
   error: unknown,
-  what: "logo" | "cover photo" = "logo"
+  what: "logo" | "cover photo" | "photograph" = "logo"
 ): StudioFailure {
   const retry: StudioFailure = {
     kind: "unavailable",
@@ -308,7 +308,7 @@ export function logoUploadFailure(
     case 503:
       return {
         kind: "unavailable",
-        message: `${what === "logo" ? "Logo" : "Cover photo"} uploads are not available right now.`,
+        message: `${what.charAt(0).toUpperCase()}${what.slice(1)} uploads are not available right now.`,
         nextStep: `Save the profile without a new ${what}, or try again later.`,
       };
     default:

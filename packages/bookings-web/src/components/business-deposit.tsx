@@ -10,13 +10,24 @@ import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
 
 const NEW_TAB_HINT = "(opens in a new tab)";
+/** The warning under payment instructions that carry a web address. */
+const CHECK_THE_ADDRESS = "Check the web address before you pay.";
 
 /**
  * The business's own text, as plain text: React escapes it and the host's CSS
  * keeps its line breaks. Only plain http(s) addresses become links, shown as
  * typed, in a new tab with no referrer and no search credit.
+ *
+ * `linkNote` is the line under the text when it carries a link; null for text
+ * that asks for no payment, such as what a business says about itself.
  */
-export function PlainText({ text }: { text: string }) {
+export function PlainText({
+  linkNote = CHECK_THE_ADDRESS,
+  text,
+}: {
+  linkNote?: string | null;
+  text: string;
+}) {
   const parts = splitLinks(text);
   const hasLink = parts.some((part) => part.kind === "link");
   return (
@@ -39,9 +50,7 @@ export function PlainText({ text }: { text: string }) {
           )
         )}
       </p>
-      {hasLink ? (
-        <p className="muted">Check the web address before you pay.</p>
-      ) : null}
+      {hasLink && linkNote ? <p className="muted">{linkNote}</p> : null}
     </>
   );
 }

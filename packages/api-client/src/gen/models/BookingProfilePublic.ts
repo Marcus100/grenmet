@@ -142,6 +142,10 @@ export type BookingProfilePublic = {
    */
   booking_policy?: string | null;
   /**
+   * @description What the business says about itself, up to 1000 characters of plain text. Shown above the services on its public booking page. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept.
+   */
+  about?: string | null;
+  /**
    * @description Who collects the deposit. `online` (the default): Barrels, through payments, as before. `business`: the customer pays the business by hand (PayPal, bank transfer, cash), outside Barrels. Booking then shows the amount and `deposit_instructions`, takes no online payment and needs no payments entitlement. The amount follows the usual deposit rules. Left out, the stored value is kept.
    * @default 'online'
    * @type string | undefined

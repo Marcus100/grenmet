@@ -344,6 +344,15 @@ class BookingProfileUpdate(BaseModel):
             "the stored value is kept."
         ),
     )
+    about: Annotated[str, Field(max_length=1000)] | None = Field(
+        default=None,
+        description=(
+            "What the business says about itself, up to 1000 characters of plain "
+            "text. Shown above the services on its public booking page. Never HTML; "
+            "line breaks are kept. Blank clears it. Left out, the stored value is "
+            "kept."
+        ),
+    )
     deposit_collection: BookingDepositCollection = Field(
         default=BookingDepositCollection.ONLINE,
         description=(
@@ -469,7 +478,7 @@ class BookingProfileUpdate(BaseModel):
             return value.strip() or None
         return value
 
-    @field_validator("booking_policy", "deposit_instructions", mode="before")
+    @field_validator("booking_policy", "deposit_instructions", "about", mode="before")
     @classmethod
     def _policy_text(cls, value: object) -> object:
         return normalise_policy(value)
@@ -538,6 +547,32 @@ class BookingProfilePublic(BookingProfileUpdate):
     )
     created_at: UtcDateTime
     updated_at: UtcDateTime
+
+
+# --- gallery ---------------------------------------------------------------------
+
+
+class BookingGalleryPhotoCreate(BaseModel):
+    """Add one photograph of the business's work to its gallery."""
+
+    file_id: uuid.UUID = Field(
+        description=(
+            "A completed `booking-gallery` upload of this business (see "
+            "`POST /storage/uploads`). Adding the same file twice answers the row "
+            "that is already there."
+        )
+    )
+
+
+class BookingGalleryPhotoPublic(BaseModel):
+    """One gallery photograph as the studio sees it."""
+
+    id: uuid.UUID
+    file_id: uuid.UUID
+    sort_order: int = Field(
+        description="The position the business arranged, from 0, with no gaps."
+    )
+    created_at: UtcDateTime
 
 
 # --- services --------------------------------------------------------------------
@@ -1223,6 +1258,16 @@ class BookingLateFee(BaseModel):
     grace_min: int = Field(description="Minutes of lateness allowed first (0 = none).")
 
 
+class BookingGalleryImage(BaseModel):
+    """One photograph of the business's work, in the order it arranged them. The
+    photographs are decorative: there is no caption and no alternative text."""
+
+    id: uuid.UUID
+    url: str = Field(
+        description="Public https address of the photograph. Load it as an image."
+    )
+
+
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
@@ -1245,6 +1290,21 @@ class BookingStorefront(BaseModel):
     booking_policy: str | None = Field(
         default=None,
         description="The business's plain-text booking policy, or null when it has none.",
+    )
+    about: str | None = Field(
+        default=None,
+        description=(
+            "What the business says about itself, as plain text, or null when it has "
+            "written nothing. Show it above the services, with its line breaks kept "
+            "and escaped as text; it is never HTML."
+        ),
+    )
+    gallery: list[BookingGalleryImage] = Field(
+        default_factory=list,
+        description=(
+            "The business's photographs of its work, at most 12, in its own order. "
+            "Empty when it has uploaded none: show no gallery at all then."
+        ),
     )
     deposit_collection: BookingDepositCollection = Field(
         default=BookingDepositCollection.ONLINE,

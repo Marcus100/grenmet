@@ -13,9 +13,15 @@ vi.mock("@/lib/studio-api", () => ({
   getSettings: vi.fn(),
   listClosures: vi.fn(),
   listExceptions: vi.fn(),
+  listGallery: vi.fn(),
 }));
 vi.mock("./actions", () => ({
+  addGalleryPhotoAction: vi.fn(),
   createCalendarFeedAction: vi.fn(),
+  finishGalleryUploadAction: vi.fn(),
+  removeGalleryPhotoAction: vi.fn(),
+  reorderGalleryAction: vi.fn(),
+  startGalleryUploadAction: vi.fn(),
   reopenClosureAction: vi.fn(),
   saveClosureAction: vi.fn(),
   removeTimeOffAction: vi.fn(),
@@ -41,6 +47,7 @@ import {
   getSettings,
   listClosures,
   listExceptions,
+  listGallery,
 } from "@/lib/studio-api";
 import SettingsPage from "./page";
 
@@ -131,6 +138,7 @@ beforeEach(() => {
   role("admin");
   vi.mocked(listExceptions).mockResolvedValue([]);
   vi.mocked(listClosures).mockResolvedValue([]);
+  vi.mocked(listGallery).mockResolvedValue([]);
 });
 
 describe("settings page", () => {

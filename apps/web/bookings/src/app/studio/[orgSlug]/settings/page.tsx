@@ -19,6 +19,7 @@ import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
 import {
   loadClosures,
+  loadGallery,
   loadSettings,
   loadTimeOffByProvider,
 } from "@/lib/settings-load";
@@ -80,6 +81,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     here
   );
   const closures = await loadClosures(session, org.id, here, todayIn(zone));
+  const gallery = await loadGallery(session, org.id, here);
   // Only owners and admins may read the feed status; members never call it.
   const calendarStatus = editable
     ? await loadCalendarStatus(session.accessToken, org.id)
@@ -101,6 +103,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
         <ProfileSection
           editable={editable}
+          gallery={gallery}
           orgSlug={orgSlug}
           profile={data.profile}
           suggestedName={org.name}

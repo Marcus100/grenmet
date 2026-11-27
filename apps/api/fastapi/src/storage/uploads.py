@@ -68,6 +68,9 @@ PUBLIC_CACHE_SECONDS = 120
 BOOKING_LOGO_MAX_PIXELS = 4_000_000
 #: A home page cover is a wide photo shown across a card; 8 megapixels is generous.
 BOOKING_COVER_MAX_PIXELS = 8_000_000
+#: A gallery photograph of the business's work is shown in a strip on its booking
+#: page, no larger than a cover, so it keeps the cover's cap.
+BOOKING_GALLERY_MAX_PIXELS = BOOKING_COVER_MAX_PIXELS
 ORGANISER_LOGO_MAX_PIXELS = 16_000_000
 #: Operational photos (log entries, incidents) are phone photos: 12 megapixels is the
 #: usual size, 24 leaves room for larger sensors without unbounded decoding.
@@ -109,6 +112,13 @@ PURPOSES: dict[str, Purpose] = {
         public=True,
         strip_metadata=True,
         max_pixels=BOOKING_COVER_MAX_PIXELS,
+    ),
+    "booking-gallery": Purpose(
+        app="bookings",
+        max_bytes=5 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=BOOKING_GALLERY_MAX_PIXELS,
     ),
     # Airport operations (ADR-0067): private evidence photos. Metadata is stripped
     # (a phone photo carries its GPS position and camera serial); the place is

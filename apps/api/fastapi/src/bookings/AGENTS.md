@@ -108,6 +108,7 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 ## Tests
 `tests/bookings/` per feature (`test_public_bookings.py` is the flow base); `tests/worker/test_platform_jobs.py` for jobs.
 
+- About text and gallery (12 photos, public): `gallery.py`, `bookingabout20261127`.
 - Brand (#1622): `brand_color`, `logo_file_id`. Type and cover (`bookingtypecover20261124`): `business_type`, `cover_file_id`.
 - **Turnstile and replays:** Turnstile is verified *inside* the idempotent handler (`create_once`, `router.py`): tokens are single-use, so a retry with the same `Idempotency-Key` and body replays the stored receipt without a second token; a new key must pass, and a failed check is not stored and releases the key (tests in `test_public_bookings.py`).
 - `deposit_collection` `business`: display only; `deposit_to_business_minor` = `planned_deposit`, `deposit_minor` 0; `deposit_instructions` (public in this mode only), `late_fee_minor`, `late_grace_min`. Tests: `test_deposit_to_business.py`.

@@ -19,6 +19,7 @@ import {
   type BookingDepositReceivedMethod,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
+  type BookingGalleryPhotoPublic,
   type BookingMyOrganisation,
   type BookingProfilePublic,
   type BookingProfileUpdate,
@@ -36,6 +37,7 @@ import {
   type BookingWorkingPeriodPublic,
   billingCreateAppSubscriptionCheckout,
   billingListAppSubscriptions,
+  bookingsAddGalleryPhoto,
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
@@ -56,12 +58,15 @@ import {
   bookingsListClosures,
   bookingsListCustomers,
   bookingsListExceptions,
+  bookingsListGallery,
   bookingsListMyOrganisations,
   bookingsListProviders,
   bookingsListServices,
   bookingsMarkDepositReceived,
   bookingsNoShowStudioBooking,
   bookingsRecordManualDeposit,
+  bookingsRemoveGalleryPhoto,
+  bookingsReorderGallery,
   bookingsReplaceWorkingHours,
   bookingsRescheduleStudioBooking,
   bookingsRotateCalendarFeed,
@@ -86,6 +91,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 const DEFAULT_CURRENCY = "XCD";
 const LOGO_PURPOSE = "booking-logo";
 const COVER_PURPOSE = "booking-cover";
+const GALLERY_PURPOSE = "booking-gallery";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -598,6 +604,75 @@ export function createLogoUpload(
   return storageCreateUpload({
     client: studioClient(accessToken, organisationId),
     body: { app: "bookings", purpose: LOGO_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** The business's gallery photographs, in the order it arranged them. */
+export function listGallery(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingGalleryPhotoPublic[]> {
+  return bookingsListGallery({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Puts one finished `booking-gallery` upload at the end of the gallery. */
+export function addGalleryPhoto(
+  accessToken: string,
+  organisationId: string,
+  fileId: string
+): Promise<BookingGalleryPhotoPublic> {
+  return bookingsAddGalleryPhoto({
+    client: studioClient(accessToken, organisationId),
+    body: { file_id: fileId },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Sets the gallery order: each photograph's `sort_order` becomes its position. */
+export function reorderGallery(
+  accessToken: string,
+  organisationId: string,
+  ids: string[]
+): Promise<BookingGalleryPhotoPublic[]> {
+  return bookingsReorderGallery({
+    client: studioClient(accessToken, organisationId),
+    body: { ids },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Takes one photograph out; the API closes the gap it leaves in the order. */
+export function removeGalleryPhoto(
+  accessToken: string,
+  organisationId: string,
+  photoId: string
+): Promise<void> {
+  return bookingsRemoveGalleryPhoto({
+    client: studioClient(accessToken, organisationId),
+    path: { photo_id: photoId },
+  })
+    .unwrap()
+    .then(() => undefined)
+    .catch(redactRequest);
+}
+
+/** Step 1 of a gallery photograph upload: a presigned PUT for `booking-gallery`. */
+export function createGalleryUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: GALLERY_PURPOSE, ...body },
   })
     .unwrap()
     .catch(redactRequest);

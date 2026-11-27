@@ -114,6 +114,13 @@ checks each value against the shared globals.
   See "Studio" below.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
+- Business page, above the services: "About <name>" (h2, the business's own
+  plain text with its line breaks kept, rendered through the package's
+  `PlainText`) then "Our work", a strip of its photographs that scrolls inside
+  itself (`aspect-[4/5]` frames, 160 px wide on phones and 192 px from `sm` up,
+  corners `rounded.lg` 12 px, 16 px gutter, scroll snap, each photograph lazy
+  and decorative). Neither section renders when the business has nothing there,
+  and neither shows while it is paused.
 
 ## Booking page on phones (below `md`, 768 px)
 

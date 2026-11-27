@@ -223,6 +223,7 @@ describe("profile", () => {
       contact_whatsapp: null,
       contact_instagram: null,
       contact_email: null,
+      about: null,
       brand_color: null,
       logo_file_id: null,
       cover_file_id: null,
