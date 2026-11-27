@@ -202,6 +202,7 @@ async def request_refund(
         # Re-arm a refund the outbox gave up on, so a re-cancel retries it. The amount
         # stays the one fixed when it was requested: the provider's idempotency key is
         # bound to it, so another amount under this refund id would be refused.
+        # The re-arm is counted and capped at outbox.MAX_REARMS (see outbox.rearm).
         try:
             outbox.rearm(row, utc_now())
         except outbox.RearmRefused:
