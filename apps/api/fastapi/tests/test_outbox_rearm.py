@@ -1,6 +1,7 @@
 """The declared dead-to-pending move (``outbox.rearm``) and its cap on re-arms."""
 
 import uuid
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy import select
@@ -30,7 +31,9 @@ def _row(status: OutboxStatus, *, attempts: int = 5, rearms: int = 0) -> Outbox:
     )
 
 
-async def _dead_row(db: AsyncSession, topic: str, *, rearms: int = 0) -> uuid.UUID:
+async def _dead_row(
+    db: AsyncSession, topic: str, *, rearms: int = 0, due_at: datetime | None = None
+) -> uuid.UUID:
     row = Outbox(
         id=uuid.uuid4(),
         topic=topic,
@@ -39,7 +42,7 @@ async def _dead_row(db: AsyncSession, topic: str, *, rearms: int = 0) -> uuid.UU
         status=OutboxStatus.DEAD.value,
         attempts=5,
         rearms=rearms,
-        next_attempt_at=utc_now(),
+        next_attempt_at=due_at or utc_now(),
     )
     db.add(row)
     await db.commit()
@@ -96,6 +99,10 @@ def test_the_cap_is_reached_after_max_rearms_and_counts_across_rearms() -> None:
 async def test_a_re_armed_row_is_picked_up_by_the_drain(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # The row is seeded an hour out, so only the next_attempt_at reset in rearm makes
+    # the drain take it: remove that reset and this test fails.
+    # It does not guard the attempt reset: a succeeding handler is drained either way.
+    # test_a_re_armed_row_gets_a_full_attempt_budget covers that.
     topic = _topic()
     calls: list[OutboxMessage] = []
 
@@ -103,7 +110,7 @@ async def test_a_re_armed_row_is_picked_up_by_the_drain(
         calls.append(message)
 
     monkeypatch.setitem(outbox._HANDLERS, topic, succeed)
-    row_id = await _dead_row(db_async, topic)
+    row_id = await _dead_row(db_async, topic, due_at=utc_now() + timedelta(hours=1))
     row = await _reload(db_async, row_id)
     outbox.rearm(row, utc_now())
     await db_async.commit()

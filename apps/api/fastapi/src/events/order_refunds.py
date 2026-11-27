@@ -61,8 +61,11 @@ _REASONS: dict[str, str] = {
 }
 
 
-#: Operator-facing. The words name ``outbox.MAX_REARMS`` (3); change both together.
-_REARM_REFUSED = "This refund has been retried three times and has not succeeded, it needs looking at."
+#: Operator-facing refusal once a dead refund has used its re-arms.
+_REARM_REFUSED = (
+    f"This refund has been retried {outbox.MAX_REARMS} times and has not succeeded, "
+    "it needs looking at."
+)
 
 
 class RefundAlreadyPending(EventsConflict):

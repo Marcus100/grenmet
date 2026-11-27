@@ -37,10 +37,10 @@ def test_the_row_is_re_armed_at_most_three_times() -> None:
     assert outbox.MAX_REARMS == 3
 
 
-@pytest.mark.parametrize(
-    "target", [t for t in outbox.OutboxStatus if t is not outbox.OutboxStatus.PENDING]
-)
+@pytest.mark.parametrize("target", list(outbox.OutboxStatus))
 def test_a_done_row_never_moves_again(target: outbox.OutboxStatus) -> None:
+    # Every target, including pending: the whole DONE row of the guard is asserted here.
+    assert not outbox.STATUS_MOVES.allows(outbox.OutboxStatus.DONE, target)
     with pytest.raises(RetryTransitionError):
         outbox.STATUS_MOVES.require(outbox.OutboxStatus.DONE, target)
 

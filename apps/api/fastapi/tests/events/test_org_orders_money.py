@@ -851,13 +851,14 @@ async def test_a_re_arm_past_the_cap_is_refused_with_a_reason(
         await ask()
     await db_async.rollback()
     assert str(refused.value) == (
-        "This refund has been retried three times and has not succeeded, "
-        "it needs looking at."
+        f"This refund has been retried {outbox.MAX_REARMS} times and has not "
+        "succeeded, it needs looking at."
     )
     kept = await row()
     assert (kept.status, kept.rearms) == ("dead", outbox.MAX_REARMS)
 
 
+@pytest.mark.asyncio
 async def test_a_second_card_refund_waits_for_the_first_and_status_trusts_the_ledger(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
