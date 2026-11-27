@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-27
 
 Detail behind the short rules in the root `AGENTS.md`. Read the matching section
 before parallel work, integrating or pushing, a cross-layer change, or editing
@@ -39,6 +39,13 @@ agent instructions. Nothing here relaxes a root rule.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).
+- **The migration chain moves under you.** When your branch adds an Alembic
+  revision, read `alembic heads` immediately before pushing rather than trusting
+  the revision you were told, and expect to re-point `down_revision` and bump the
+  head-pinning tests after any other branch lands. Three branches were sent back
+  in one day for this on 27 November 2026, one of them leaving two heads so the
+  merge could not be created at all. Those tests exist to catch exactly this, so
+  bumping them is the intended response, not a workaround.
 - **Shared stashes:** git stashes are shared across worktrees. Record and apply
   the exact stash SHA; never use an implicit latest stash during parallel work.
 - **Worktree cleanup:** a clean worktree may still back another live session.
@@ -127,6 +134,13 @@ Every PR, in this order:
 The merge command names the repository (`--repo Marcus100/grenmet`), pins the
 full 40-character sha of the PR's current head, and runs alone: no other git or
 gh command in the same command line.
+
+**Read the sha; never reconstruct one.** Take the head from
+`gh pr view <num> --json headRefOid --jq .headRefOid` (cloud:
+`gh api repos/Marcus100/grenmet/pulls/<num> --jq .head.sha`), and check it is
+still the sha CI and the review named. An agent that extended a 9-character
+prefix to 40 characters instead got it wrong and the hook refused the merge; a
+sha is never retyped, extended or inferred.
 
 Files fall into three groups:
 
