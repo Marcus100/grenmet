@@ -68,8 +68,23 @@ agent instructions. Nothing here relaxes a root rule.
   names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
   no open finding first. Unattended routines do the same from their own branch.
   A PR that changes an agent-rules or enforcement file follows [Merging into dev](#merging-into-dev)
-  below. If `origin/dev` advances, integrate it and revalidate.
-  With `CI_PATH_SELECTION=on`, a skipped job on a `dev` PR is intended when the
+  below. If `origin/dev` advances, integrate it and revalidate only when it
+  conflicts, touches files the PR also changes, or changes a generated contract
+  (`openapi.json`, `packages/api-client/src/gen/`, migrations); see the next item.
+- Keep CI load low: every push to a PR starts a full round (about 60 jobs), and
+  the account runs 40 jobs at once, so extra pushes make every agent wait.
+  - Push when the change is ready, not after each commit: run the targeted tests
+    and lint locally first, and batch review fixes into one push.
+  - Do not push "update with dev" merges only to be current. The `dev` run after
+    the merge checks the combination.
+  - Land PRs that touch the same generated files one at a time.
+  - Do not re-run a failed check before reading its log; `auto-rerun.yml`
+    already retries infrastructure failures once.
+  - Never watch CI from a background shell on the shared machine: it holds the
+    heavy slot. Check with a short `gh pr checks <num>` instead.
+  - A test that fails at random goes on the quarantine list with an issue
+    (`docs/testing.md`, Flaky tests), not into a re-run loop.
+- With `CI_PATH_SELECTION=on`, a skipped job on a `dev` PR is intended when the
   path map did not select it (`scripts/ci/select-checks.mjs`); the `ci:full` label runs every check.
 - Promotion to staging: the owner decides when a `dev → staging` PR is opened
   (owner, 14 Nov 2026). Agents keep landing work on `dev` and do not open the
