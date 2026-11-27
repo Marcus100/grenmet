@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingListingNotShownReason } from "./BookingListingNotShownReason.js";
+
 /**
  * @description Staff view of one business's home page listing and the flags staff review.
  * @type object
@@ -17,4 +19,15 @@ export type BookingListingReview = {
   self_created: boolean;
   owner_left_at: string | null;
   sender_name_flagged_at?: string | null;
+  /**
+   * @description True when the business is shown on the public home page now: every condition of the public listing holds, not only staff approval.
+   * @default false
+   * @type boolean | undefined
+   */
+  on_home_page?: boolean;
+  /**
+   * @description Why the business is not on the home page; empty when it is.
+   * @type array | undefined
+   */
+  not_shown_reasons?: BookingListingNotShownReason[];
 };

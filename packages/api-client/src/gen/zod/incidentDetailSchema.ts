@@ -6,9 +6,13 @@
 import * as z from "zod";
 import { incidentAttachmentPublicSchema } from "./incidentAttachmentPublicSchema.js";
 import { incidentCheckPublicSchema } from "./incidentCheckPublicSchema.js";
+import { incidentDamagePublicSchema } from "./incidentDamagePublicSchema.js";
 import { incidentNotePublicSchema } from "./incidentNotePublicSchema.js";
+import { incidentPartyPublicSchema } from "./incidentPartyPublicSchema.js";
+import { incidentResourcePublicSchema } from "./incidentResourcePublicSchema.js";
 import { incidentStatusSchema } from "./incidentStatusSchema.js";
 import { incidentTimelinePublicSchema } from "./incidentTimelinePublicSchema.js";
+import { incidentWeatherSchema } from "./incidentWeatherSchema.js";
 
 export const incidentDetailSchema = z
   .object({
@@ -23,6 +27,7 @@ export const incidentDetailSchema = z
     status: incidentStatusSchema,
     reported_by: z.uuid(),
     reported_by_name: z.union([z.string(), z.null()]),
+    weather: z.union([incidentWeatherSchema, z.null()]).optional(),
     opened_at: z.union([z.iso.datetime(), z.null()]),
     closed_at: z.union([z.iso.datetime(), z.null()]),
     closed_by: z.union([z.uuid(), z.null()]),
@@ -32,6 +37,9 @@ export const incidentDetailSchema = z
     timeline: z.array(incidentTimelinePublicSchema),
     notes: z.array(incidentNotePublicSchema),
     attachments: z.array(incidentAttachmentPublicSchema).optional().default([]),
+    parties: z.array(incidentPartyPublicSchema).optional().default([]),
+    damage: z.array(incidentDamagePublicSchema).optional().default([]),
+    resources: z.array(incidentResourcePublicSchema).optional().default([]),
   })
   .describe(
     "Checks in order, the timeline oldest first, notes oldest first. Private\nnotes appear only for holders of ``incidents.incidents.private``."

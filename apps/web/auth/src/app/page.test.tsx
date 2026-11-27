@@ -16,21 +16,42 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/components/SignInForm", () => ({
   SignInForm: ({
+    appName,
     codeHref,
     returnTo,
   }: {
+    appName: string | null;
     codeHref: string | null;
     returnTo: string | null;
   }) => (
-    <div data-code-href={codeHref ?? ""} data-testid="fresh-sign-in">
+    <div
+      data-app-name={appName ?? ""}
+      data-code-href={codeHref ?? ""}
+      data-testid="fresh-sign-in"
+    >
       {returnTo}
     </div>
   ),
 }));
 vi.mock("@/components/EmailCodeForm", () => ({
-  EmailCodeForm: ({ passwordHref }: { passwordHref: string | null }) => (
-    <div data-testid="code-first-sign-in">{passwordHref}</div>
+  EmailCodeForm: ({ returnTo }: { returnTo: string | null }) => (
+    <div data-testid="code-first-sign-in">{returnTo}</div>
   ),
+}));
+const directoryName = vi.hoisted(() =>
+  vi.fn(() => "GAA Admin" as string | null)
+);
+const fetchAppLabel = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/handoff", () => ({
+  APP_LABEL_TIMEOUT_MS: 1500,
+  fetchAppLabel,
+  handoffRequestFromReturnTo: (returnTo: string | null) => {
+    if (!returnTo?.startsWith("/continue?")) return null;
+    const query = new URLSearchParams(returnTo.slice("/continue?".length));
+    const app = query.get("app");
+    const state = query.get("state") ?? "";
+    return app && state.length >= 16 ? { app, state } : null;
+  },
 }));
 vi.mock("@/components/account-layout", () => ({
   AccountLayout: vi.fn(),
@@ -39,7 +60,7 @@ vi.mock("@/components/account-layout", () => ({
   StatusBadge: vi.fn(),
 }));
 vi.mock("@/components/app-directory", () => ({
-  getAppDisplayName: () => "GAA Admin",
+  getAppDisplayName: directoryName,
 }));
 vi.mock("@/components/auth-shell", () => ({
   AuthShell: ({ children }: { children: React.ReactNode }) => (
@@ -72,7 +93,7 @@ it("shows a fresh sign-in despite an existing session when MFA reauthentication 
   ).toBeInTheDocument();
 });
 
-it("leads with the emailed code and links to the password form", async () => {
+it("is one screen for a new and a returning person: email, Google, more ways", async () => {
   render(
     await Home({
       searchParams: Promise.resolve({
@@ -82,10 +103,73 @@ it("leads with the emailed code and links to the password form", async () => {
     })
   );
   expect(screen.queryByTestId("fresh-sign-in")).toBeNull();
-  const code = screen.getByTestId("code-first-sign-in");
-  expect(code).toHaveTextContent(
+  expect(
+    screen.getByRole("heading", {
+      name: "Sign in or create an account for GAA Admin",
+    })
+  ).toBeInTheDocument();
+  expect(screen.getByTestId("code-first-sign-in")).toHaveTextContent(
+    "/dashboard"
+  );
+  expect(
+    screen.getByRole("link", { name: "Continue with Google" })
+  ).toBeInTheDocument();
+  // No separate sign-up path: the same code creates the account.
+  expect(screen.queryByRole("link", { name: "Create an account" })).toBeNull();
+});
+
+it("keeps the password route behind 'More ways to sign in', after the code and Google", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        app: "gaa-admin",
+        returnTo: "/dashboard",
+      }),
+    })
+  );
+  const more = screen.getByText("More ways to sign in");
+  expect(more.tagName).toBe("SUMMARY");
+  expect(more.closest("details")).not.toHaveAttribute("open");
+  const password = screen.getByRole("link", {
+    hidden: true,
+    name: "Sign in with a password",
+  });
+  expect(password).toHaveAttribute(
+    "href",
     "/?app=gaa-admin&method=password&returnTo=%2Fdashboard"
   );
+  const google = screen.getByRole("link", { name: "Continue with Google" });
+  const controls = Array.from(document.querySelectorAll("a, summary"));
+  expect(controls.indexOf(google)).toBeLessThan(controls.indexOf(more));
+});
+
+it("has a plain heading when no app is named", async () => {
+  directoryName.mockReturnValueOnce(null);
+  render(await Home({ searchParams: Promise.resolve({}) }));
+  expect(
+    screen.getByRole("heading", { name: "Sign in or create an account" })
+  ).toBeInTheDocument();
+  expect(fetchAppLabel).not.toHaveBeenCalled();
+});
+
+it("names the app a handoff is for, from the registry and not from ?app=", async () => {
+  directoryName.mockReturnValueOnce(null);
+  fetchAppLabel.mockResolvedValueOnce("Barrels Bookings");
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        app: "gaa-admin",
+        returnTo: `/continue?app=bookings&state=${"s".repeat(32)}`,
+      }),
+    })
+  );
+  expect(directoryName).toHaveBeenLastCalledWith("bookings");
+  expect(fetchAppLabel).toHaveBeenCalledWith("bookings", 1500);
+  expect(
+    screen.getByRole("heading", {
+      name: "Sign in or create an account for Barrels Bookings",
+    })
+  ).toBeInTheDocument();
 });
 
 it("hides the emailed-code link on a reauthentication step", async () => {
@@ -149,6 +233,51 @@ it("shows nothing for an unknown notice code and never echoes it", async () => {
   expect(screen.queryByRole("status")).toBeNull();
   expect(document.body.textContent).not.toContain("alert(1)");
 });
+
+it("falls back to the plain heading when the registry is slow or down", async () => {
+  directoryName.mockReturnValueOnce(null);
+  // fetchAppLabel answers null on a timeout or an error (lib/handoff.test.ts).
+  fetchAppLabel.mockResolvedValueOnce(null);
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        returnTo: `/continue?app=bookings&state=${"s".repeat(32)}`,
+      }),
+    })
+  );
+  expect(
+    screen.getByRole("heading", { name: "Sign in or create an account" })
+  ).toBeInTheDocument();
+  expect(screen.getByTestId("code-first-sign-in")).toBeInTheDocument();
+});
+
+it.each([
+  ["password", { method: "password" }],
+  ["reauthentication", { reauth: "1" }],
+])(
+  "names the app from returnTo, not ?app=, on the %s screen too",
+  async (_name, mode) => {
+    render(
+      await Home({
+        searchParams: Promise.resolve({
+          ...mode,
+          app: "events",
+          returnTo: `/continue?app=gaa-admin&state=${"s".repeat(32)}`,
+        }),
+      })
+    );
+    expect(directoryName).toHaveBeenLastCalledWith("gaa-admin");
+    expect(screen.getByTestId("fresh-sign-in")).toHaveAttribute(
+      "data-app-name",
+      "gaa-admin"
+    );
+    expect(
+      screen.getByRole("heading", { name: "Sign in to GAA Admin" })
+    ).toBeInTheDocument();
+    // These screens use the sign-in page's own names only, never the registry.
+    expect(fetchAppLabel).not.toHaveBeenCalled();
+  }
+);
 
 describe("sign-in page title", () => {
   it("is 'Sign in to <app>' for a signed-out visitor, the same wording as the heading", async () => {

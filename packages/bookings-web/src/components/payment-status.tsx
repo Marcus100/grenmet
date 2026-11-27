@@ -8,6 +8,11 @@ import {
 } from "../lib/booking-payment";
 
 export interface PaymentStatusProps {
+  /**
+   * Set when the business accepted a request that is paid after acceptance (its
+   * name): the line then says so and asks for the payment.
+   */
+  acceptedBy?: string | undefined;
   bookingId: string;
   /**
    * Where this booking is managed (with its token), for the way back from
@@ -22,6 +27,7 @@ export interface PaymentStatusProps {
  * due. Card payments run in Stripe test mode only.
  */
 export function PaymentStatus({
+  acceptedBy,
   bookingId,
   managePath,
   payment,
@@ -34,7 +40,12 @@ export function PaymentStatus({
       className={`notice payment payment-${payment.status}`}
     >
       <h3 id={`payment-${bookingId}`}>Payment</h3>
-      <p>{paymentLine(payment)}</p>
+      <p>
+        {paymentLine(
+          payment,
+          acceptedBy === undefined ? undefined : { businessName: acceptedBy }
+        )}
+      </p>
       {due && checkoutUrl && (
         <p>
           <a

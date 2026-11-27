@@ -30,6 +30,8 @@ from src.auth.constants import (
 from src.auth.exceptions import SuperuserByInvitationError
 from src.auth.models import User
 from src.auth.schemas import (
+    AccountProfilePublic,
+    AccountProfileUpdate,
     UpdatePassword,
     UserCreate,
     UserPublic,
@@ -40,7 +42,9 @@ from src.auth.schemas import (
 from src.dependencies import (
     AccountUser,
     CurrentUser,
+    OwnAccountUser,
     RateLimitedAccountUser,
+    RateLimitedOwnAccountUser,
     SessionDep,
     TokenDep,
     get_current_user_manager,
@@ -182,6 +186,69 @@ async def update_user_me(
     return await service.update_user_me(
         session=session, current_user=current_user, user_in=user_in
     )
+
+
+def _account_profile(user: User) -> AccountProfilePublic:
+    return AccountProfilePublic(
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        name_is_placeholder=service.name_is_placeholder(user),
+        phone=user.contact_phone,
+    )
+
+
+@router.get(
+    "/me/profile",
+    response_model=AccountProfilePublic,
+    summary="Get my profile",
+    description=(
+        "The signed-in person's own name, email and phone number, for the account "
+        "app's profile checklist. Accepts an account token or the account app's "
+        "session; other apps' tokens are refused."
+    ),
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Profile returned"},
+    },
+)
+async def read_my_profile(*, current_user: OwnAccountUser) -> Any:
+    return _account_profile(current_user)
+
+
+@router.patch(
+    "/me/profile",
+    response_model=AccountProfilePublic,
+    summary="Update my profile",
+    description=(
+        "Save the signed-in person's own first name, last name and phone number. A "
+        "field left out is not changed. The phone number is a contact detail: it is "
+        "normalised to E.164, nothing is sent, and it is not a sign-in factor; a "
+        "blank or null phone removes it. "
+        "Accepts an account token or the account app's session."
+    ),
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Profile saved"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Too many changes; try again later",
+        },
+    },
+)
+@limiter.limit("10/minute", key_func=account_address)
+async def update_my_profile(
+    *,
+    request: Request,
+    session: SessionDep,
+    profile_in: AccountProfileUpdate,
+    current_user: RateLimitedOwnAccountUser,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    user = await service.update_account_profile(
+        session=session, user=current_user, profile_in=profile_in
+    )
+    return _account_profile(user)
 
 
 @router.post(

@@ -635,7 +635,11 @@ async def _bookings_inside(
     """Active bookings overlapping ``[window_start, window_end)``: id, start and
     the customer's first name only. Filtered and ordered in SQL."""
     rows = await session.execute(
-        select(Booking.id, Booking.starts_at, Contact.name)
+        select(
+            Booking.id,
+            Booking.starts_at,
+            func.coalesce(Booking.booked_name, Contact.name),
+        )
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
         .where(
@@ -691,12 +695,20 @@ async def create_closure(
 
 
 async def list_closures(
-    session: AsyncSession, organisation_id: str, *, skip: int, limit: int
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    skip: int,
+    limit: int,
+    ends_on_from: date | None = None,
 ) -> list[BusinessClosure]:
+    query = select(BusinessClosure).where(
+        BusinessClosure.organisation_id == organisation_id
+    )
+    if ends_on_from is not None:
+        query = query.where(BusinessClosure.ends_on >= ends_on_from)
     query = (
-        select(BusinessClosure)
-        .where(BusinessClosure.organisation_id == organisation_id)
-        .order_by(BusinessClosure.starts_on, BusinessClosure.id)
+        query.order_by(BusinessClosure.starts_on, BusinessClosure.id)
         .offset(skip)
         .limit(limit)
     )
@@ -736,7 +748,11 @@ async def list_bookings(
     ends_before: datetime,
 ) -> list[dict[str, Any]]:
     rows = await session.execute(
-        select(Booking, Service.name, func.coalesce(Contact.name, ""))
+        select(
+            Booking,
+            Service.name,
+            func.coalesce(Booking.booked_name, Contact.name, ""),
+        )
         .join(Service, Service.id == Booking.service_id)
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
@@ -762,6 +778,8 @@ async def list_bookings(
             "price_minor": booking.price_minor,
             "deposit_minor": booking.deposit_minor,
             "currency": booking.currency,
+            "pay_after_acceptance": booking.pay_after_acceptance,
+            "accepted_at": booking.accepted_at,
         }
         for booking, service_name, customer_name in rows
     ]
@@ -956,6 +974,7 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
                     svc, from_attributes=True
                 ).model_dump(),
                 "due_at_booking_minor": due[svc.id],
+                "pay_after_acceptance": deposit_payments.needs_acceptance(profile, svc),
                 "deposit_to_business_minor": deposit_payments.deposit_to_business(
                     profile, svc
                 ),
@@ -1016,17 +1035,20 @@ def _contains_pattern(text: str) -> str:
     return f"%{escaped}%"
 
 
-def _open_for_listing() -> list[ColumnElement[bool]]:
-    """Filters for a business that may appear on the home page: it opted in, Barrels
-    approved the listing (ADR-0066), it is enabled, holds the bookings entitlement,
-    sits in an active organisation and has at least one active service. Evaluated in
-    SQL."""
+def listing_conditions() -> dict[str, ColumnElement[bool]]:
+    """What a business needs to appear on the home page, each condition under the
+    name staff see when it is not met (``BookingListingNotShownReason``): it opted
+    in, Barrels approved the listing (ADR-0066), it is enabled and not paused, holds
+    the bookings entitlement, sits in an active organisation and has at least one
+    active service. Evaluated in SQL. Each subquery correlates to the profile
+    only, so it also works as a selected column beside a joined organisation."""
     has_service = (
         select(Service.id)
         .where(
             Service.organisation_id == BookingProfile.organisation_id,
             Service.active.is_(True),
         )
+        .correlate(BookingProfile)
         .exists()
     )
     entitled = (
@@ -1036,6 +1058,7 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
             OrganisationApp.app_key == "bookings",
             OrganisationApp.enabled.is_(True),
         )
+        .correlate(BookingProfile)
         .exists()
     )
     active_organisation = (
@@ -1044,17 +1067,24 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
             PlatformOrganisation.id == BookingProfile.organisation_id,
             PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
         )
+        .correlate(BookingProfile)
         .exists()
     )
-    return [
-        BookingProfile.listed.is_(True),
-        BookingProfile.listing_approved_at.is_not(None),
-        BookingProfile.enabled.is_(True),
-        BookingProfile.paused_at.is_(None),
-        has_service,
-        entitled,
-        active_organisation,
-    ]
+    return {
+        "not_listed": BookingProfile.listed.is_(True),
+        "not_approved": BookingProfile.listing_approved_at.is_not(None),
+        "booking_closed": BookingProfile.enabled.is_(True),
+        "paused": BookingProfile.paused_at.is_(None),
+        "no_active_service": has_service,
+        "not_entitled": entitled,
+        "organisation_inactive": active_organisation,
+    }
+
+
+def _open_for_listing() -> list[ColumnElement[bool]]:
+    """Filters for a business that may appear on the home page: every one of
+    ``listing_conditions``."""
+    return list(listing_conditions().values())
 
 
 def _https_or_none(file_id: uuid.UUID | None) -> str | None:
@@ -1470,7 +1500,9 @@ async def my_choices(
     picked in SQL. Only pending, confirmed and completed bookings count
     (``SUGGESTED_STATUSES``). ``phone`` is the number of the person's most
     recently booked contact in that business that has one (ties by id), else the
-    account's. An unknown or switched-off slug is the public 404.
+    account's own: the number typed into the profile (``contact_phone``) before
+    the sign-in number (``phone_e164``), which only phone sign-in ever sets.
+    An unknown or switched-off slug is the public 404.
     """
     profile = await get_public_profile(session, slug)
     linked = (
@@ -1485,7 +1517,8 @@ async def my_choices(
         .order_by(Customer.last_booked_at.desc().nulls_last(), Customer.id)
     )
     customers = (await session.execute(linked)).all()
-    phone = next((phone for _, phone in customers if phone), None) or user.phone_e164
+    account_phone = user.contact_phone or user.phone_e164
+    phone = next((phone for _, phone in customers if phone), None) or account_phone
     if not customers:
         return phone, []
     # The latest booking of each service (DISTINCT ON), then the newest three.

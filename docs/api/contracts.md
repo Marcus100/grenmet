@@ -1318,7 +1318,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `POST /api/v1/bookings/me/organisations` | Account token or the bookings app session with `app.bookings.access` (other apps 401); verified email; `Idempotency-Key` required (replays with `Idempotency-Replayed: true`); Turnstile inside the handler, always enforced outside local; 3 a visitor address an hour (429); 404 while `BOOKINGS_SELF_SIGNUP_ENABLED` is off | Creates the caller's business (ADR-0066): closed for booking and unlisted, a 30-day trial (`trial_ends_at`), the owner, starter services from `template` (`null` for none). One self-created business per account (409). Body: `name`, `business_type`, optional `town`, `template`, `turnstile_token`. Answers `BookingSignupReceipt` (201) |
-| `GET /api/v1/bookings/admin/listing-reviews` | Barrels staff with `bookings.listing.approve` (403 otherwise); no organisation header | Staff queue of business listings (ADR-0066), oldest business first, paged with `page` and `size`: `queue=pending` (default; listed and not approved), `approved`, `flagged` (owner left, or the sign-up name was refused for email) or `all`. Answers `BookingListingReviewList` of `BookingListingReview` (now with `sender_name_flagged_at`) |
+| `GET /api/v1/bookings/admin/listing-reviews` | Barrels staff with `bookings.listing.approve` (403 otherwise); no organisation header | Staff queue of business listings (ADR-0066), oldest business first, paged with `page` and `size`: `queue=pending` (default; listed and not approved), `approved`, `flagged` (owner left, or the sign-up name was refused for email) or `all`. Answers `BookingListingReviewList` of `BookingListingReview` (now with `sender_name_flagged_at`, and `on_home_page` with `not_shown_reasons`: whether the business meets every condition of the public home page list and, if not, which fail) |
 | `GET /api/v1/bookings/admin/businesses/{organisation_id}/listing` · `POST …/listing/approve` · `POST …/listing/withdraw` | Barrels staff with `bookings.listing.approve` | One business's listing review; approve and withdraw are audited and answer 409 on a repeat. Approval gates only the public home page list |
 | `GET /api/v1/bookings/me/business-templates` | Account token or the bookings app session with `app.bookings.access`; no organisation header | The fixed starter templates (`BookingStarterTemplate`): key, label, business type and suggested services with `price_minor` (XCD minor units). Never a deposit or a policy |
 | `GET /api/v1/bookings/me/bookings?upcoming&cancelled&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. `cancelled` true: only cancelled bookings; false: every other status; omitted: all. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking) and `manage_url` (a signed link to the booking's manage page on the bookings app, null once it lapses a week after the booking ends or the stored token was cleared; minted per read, not stored). No stored manage token, notes or other customers' details |
@@ -1334,8 +1334,8 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/org/calendar-feed` | Admin member only (no API key) | Whether the business has its private calendar feed, with `created_at` and `rotated_at`. The address is never returned here (only the SHA-256 of its token is stored) |
 | `POST /api/v1/bookings/org/calendar-feed` | Admin member only (no API key) | Creates the feed, one per business (409 when it exists). 201 returns `url` (the https address to subscribe to; webcal:// on iPhone), `created_at` and `rotated_at`: the only time the address is shown |
 | `POST /api/v1/bookings/org/calendar-feed/rotate` | Admin member only (no API key) | Replaces the address and returns the new `url` once; the old address answers 404 at once (404 when no feed exists) |
-| `GET /api/v1/bookings/public/calendar/{token}.ics` | Public: the token in the path is the only credential; 60 a minute (429); unknown, malformed, rotated, disabled or unentitled feeds 404 | `text/calendar` of the business's bookings from 7 days ago to the booking horizon: pending (TENTATIVE), confirmed, completed and no-show as events; cancelled ones as CANCELLED for 14 days after cancellation. Each event: service name and the customer's first name only (no phone, e-mail, notes or manage link), provider in the description, profile city as location, stable UID `booking-<id>@barrels.gd`, `X-WR-CALNAME` the business name, `Cache-Control: private, max-age=300`. Rules in `apps/api/fastapi/src/bookings/calendar_feed.py` |
-| `GET /api/v1/bookings/org/closures?page&size` | Member or API key `bookings.read` | Whole-business closures (BK-20): local days closed for every provider, both ends inclusive, earliest first |
+| `GET /api/v1/bookings/public/calendar/{token}.ics` | Public: the token in the path is the only credential; 60 a minute (429); unknown, malformed, rotated, disabled or unentitled feeds 404 | `text/calendar` of the business's bookings from 7 days ago to the booking horizon: pending and accepted requests awaiting payment (TENTATIVE; a deposit awaited before acceptance is not listed), confirmed, completed and no-show as events; cancelled ones as CANCELLED for 14 days after cancellation. Each event: service name and the customer's first name only (no phone, e-mail, notes or manage link), provider in the description, profile city as location, stable UID `booking-<id>@barrels.gd`, `X-WR-CALNAME` the business name, `Cache-Control: private, max-age=300`. Rules in `apps/api/fastapi/src/bookings/calendar_feed.py` |
+| `GET /api/v1/bookings/org/closures?page&size&ends_on_from` | Member or API key `bookings.read` | Whole-business closures (BK-20): local days closed for every provider, both ends inclusive, earliest first. Optional `ends_on_from` (date) keeps only closures ending on or after that day, filtered in SQL |
 | `POST /api/v1/bookings/org/closures` | Admin member only (no API key) | Close local days (at most 366, end not before start, reason up to 200 characters). Removes every provider's slots for those days; a customer's create into them answers the plain 409. The 201 body lists the active bookings inside the closure as `affected_bookings` (`id`, `starts_at`, `customer_first_name` only); none is cancelled |
 | `DELETE /api/v1/bookings/org/closures/{id}` | Admin member only (no API key) | Reopen by removing one closure; deleting one already gone answers 204 again; another business's closure 404 |
 | `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range; items carry `deposit_to_business_minor` (due only while `status` is `pending` or `confirmed`), `hold_expires_at` and `hold_expires_soon` as the agenda does |
@@ -1345,9 +1345,12 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset`. Each item has `expires_at`: for a `pending` request, when it cancels itself if not confirmed (the earlier of `pending_expiry_hours` after it was made and its start, the expiry job's own rule); null otherwise.; `hold_expires_at` (a `pending_payment` booking: when its unpaid deposit hold releases) and `hold_expires_soon` (true within two hours of it), and `deposit_to_business_minor` (a business-collected deposit still unpaid; due only while `status` is `pending` or `confirmed`) |
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state (`payment_kind`: `deposit` or `payment`, the latter when the booking asked for the full price; the agenda items carry it too; history notes follow it: "Payment paid", "Payment refunded"); another organisation's id 404 |
+| `GET /api/v1/bookings/org/customers[?q&limit&offset]` | Signed-in member only (`BookingsOrgMember`), never an API key (decision 26 Nov 2026: a leaked `bookings.read` key must not pull every customer's email and phone); 30/minute (429) | `BookingCustomerList` (`total`, `limit`, `offset`, `customers`): one row per customer of the organisation with at least one booking that was not cancelled. Each row has `id`, `name`, `email`, `phone` (from the contact, ADR-0028; the phone as typed), `bookings_count` (cancelled bookings left out), `last_visit_at` (latest past `confirmed` or `completed` booking), `next_booking_at` (next `pending_payment`, `pending` or `confirmed` booking) and `returning` (more than one counted booking). `q` (at most 100 characters) matches name, email or phone in any case, and a phone on its digits alone. Whoever has a booking coming up is first (soonest first), then the most recent visit. `limit` 1 to 200 (default 50). A search of three or more digits (no letter or `@`) also matches phone numbers on their digits alone. An erased contact is left out. Every join repeats `organisation_id`. Read only; tests `tests/bookings/test_studio_customers.py` |
 | `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
-| `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+| `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409. Confirm accepts a `pending` request: a request paid by card after acceptance (`pay_after_acceptance`, deposit not yet paid) moves to `pending_payment`, its payment hold starts then (`accepted_at`; 24 hours unless the business set `deposit_hold_minutes`, never under 30 minutes) and paying confirms it. A card checkout ends when the hold does (Stripe `expires_at`). A checkout ends at least 31 minutes after acceptance (Stripe's minimum is 30), or at the hold when that is longer, and never after 24 hours. Accepting less than 30 minutes before the start is 409 "Too close to the start" (cancel the request, or the customer books a later time). If online payment is off by then (the `payments` entitlement or the deposit collection changed), the request is confirmed with no card payment: the deposit becomes one paid to the business (`deposit_to_business_minor`, `deposit_minor` 0, `pay_after_acceptance` false), the response sets `accepted_without_payment: true`, and the booking follows the direct-payment path (Mark deposit received). If the payment cannot start (a Stripe failure is never replaced by a manual payment at acceptance), the answer is 409 "The payment could not be started" and the request stays `pending` (nothing is kept, so Confirm can be retried); every other request becomes `confirmed` |
 | `POST /api/v1/bookings/org/bookings/{id}/reschedule` | Admin member or API key `bookings.write` | Staff move a `pending` or `confirmed` booking to a new `starts_at` (same provider and service): ignores hours, lead time and horizon like staff entry, but the time must be in the future and on a whole minute (422) and an overlap is 409; any other status 409; the same time is a no-op; the customer is emailed (no manage link) and `booking.rescheduled` is emitted |
+
+Customer reschedule (`/bookings/public/bookings/{token}/reschedule`) answers 409 "Pay first, then you can change the time" while a request the business accepted is `pending_payment`; cancelling stays open. For these requests the unpaid hold runs from `accepted_at` (`hold_ends_at` on the manage page, `hold_expires_at` in the studio agenda); the calendar feed shows them as TENTATIVE, not confirmed.
 | `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque, optional `reference`) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
 | `POST /api/v1/bookings/org/bookings/{id}/deposit-received`, `DELETE …/deposit-received` | Session only: owner, admin, or a member granted `bookings.deposits.manage` (no API key); `X-Barrels-Organisation` | Marks (POST: `method` cash, bank_transfer, paypal or other, optional `reference` up to 100, optional `received_at`, default now, 422 when in the future) or undoes (DELETE) a deposit paid to the business by hand (`deposit_to_business_minor`), with no ledger entry. Only a pending, confirmed or completed booking with such a deposit (cancelled, declined and no-show are refused); 409 with `code` (`NO_BUSINESS_DEPOSIT`, `BOOKING_NOT_OPEN`, `DEPOSIT_ALREADY_RECEIVED`, `DEPOSIT_NOT_RECEIVED`). Audited; a staff-only history note that sends no calendar update. Answers `BookingStudioDetail` |
 
@@ -3339,6 +3342,17 @@ completed upload of that organiser's organisation and purpose, else 409.
 
 Brand (#1622): `PATCH /events/manage/organiser` takes `brand_color` (`#rrggbb`, null or blank clears; returned as `OrganiserPublic.brand_color`). Booking profiles take `brand_color` and `logo_file_id` (a completed `booking-logo` upload of the business, else 409) on `PUT /bookings/org/profile`; left out keeps the stored value. Booking and event mail use both; see `docs/email-design.md`.
 
+## Own profile (account app checklist)
+
+`GET` and `PATCH /api/v1/auth/users/me/profile` (`AccountProfilePublic`, `AccountProfileUpdate`) are the signed-in person's own name, email and phone number, for the account app's "Finish your profile" checklist. Like the photo `/me` routes they accept an account token or a session of the account app (`OwnAccountUser`); other apps' tokens get 401. `PATCH /auth/users/me` is unchanged and still refuses app sessions.
+
+| Call | Behaviour |
+| --- | --- |
+| `GET /auth/users/me/profile` | `{email, first_name, last_name, name_is_placeholder, phone}`. `name_is_placeholder` is true while the first name is blank, or is the stand-in a nameless sign-up stores (the part of the email before the @, compared without case) with no last name; any other first name counts as a name, with or without a last name. `phone` is the contact number in E.164, or null |
+| `PATCH /auth/users/me/profile` | Any of `first_name` (1 to 100 characters after trimming; 422 when empty or null), `last_name` (up to 100; blank or null stores an empty last name, so a one-word name is allowed) and `phone`; control and invisible characters are removed from names. A field left out is not changed; any other field is refused (422, `additionalProperties: false`). A value that is not text is a 422. `phone` is normalised to E.164 (spaces, dots, dashes and brackets removed, `00` read as `+`; 422 with a sentence for the person otherwise) and a blank or null value removes it. At most 10 a minute per account (429) |
+
+`phone` is `user.contact_phone`: a contact detail the person typed. It is not unique (two accounts may hold the same number, so there is no conflict answer), never verified, and nothing is sent. It is separate from the sign-in number (`phone_e164`, `phone_verified_at`), which these routes never read or write. Account deletion clears it.
+
 ## Profile photos (#1303)
 
 The `/me` routes accept an account token or a session of the account app
@@ -3567,3 +3581,80 @@ Another organisation's records are 404.
   log entries return `record.title` and `record.available`; the title is filled only
   for a viewer who may see the record (for `incidents.incident`, a holder of
   `incidents.incidents.read`), otherwise `available` is false.
+
+- Incidents slice 2 (#1876): `POST /incidents/org/incidents/{incident_id}/parties` and
+  `PATCH .../parties/{party_id}` (persons involved and witnesses; `contact_phone`,
+  `contact_email` and `injury_notes` are returned only with `incidents.incidents.private`
+  and are sensitive in the audit), `POST .../damage` (optional cost in minor units,
+  default XCD) and `POST .../resources` (optional start and end times). All refused on a
+  closed incident (409). Opening and reopening an incident alert the category's manager
+  (`incidents.opened`, urgent; `incidents.reopened`), unless they caused it.
+- Incident weather (#1876): `PUT /incidents/org/incidents/{incident_id}/weather` with
+  `station` (ICAO, four letters). Without `report` it stores the METAR or SPECI nearest
+  the incident's time from Met Service observations (90 minutes before to 30 after; 404
+  when none); with `report` it stores the typed text as `manual`. Incidents return
+  `weather` (`station`, `observed_at`, `report`, `source`). Closed incidents refuse (409).
+- Operations log daily summary (#1875): `GET|PUT /opslog/org/logs/{log_id}/summary-subscription`
+  (`subscribed`; needs `opslog.entries.read`). Once a day (10:05 UTC) each subscriber who
+  is still an active member with the read key is told, by bell and email
+  (`opslog.daily_summary`), how many entries were written in the last 24 hours, the
+  busiest categories and the latest lines. Private entries are never included; a log
+  with no new entries sends nothing.
+
+## Case engine, safety programme (ADR-0069, issue #1877)
+
+Organisation zone only, under `/api/v1/cases/org/{programme}/`, acting for
+`X-Barrels-Organisation`. Only `safety` exists; other programme values are 404. The
+organisation needs the `safety` entitlement and the caller a key: `safety.cases.read`,
+`safety.cases.write`, `safety.cases.approve` or `safety.settings.manage` (bundles
+`safety-officer` and `safety-manager`; owners and admins hold all).
+
+- Risk grid: `GET|PUT /risk-grid`. The default is the ICAO Doc 9859 example grid
+  (`custom: false`). A custom grid has 2 to 7 levels each way and one band
+  (`acceptable`, `tolerable`, `intolerable`) per cell.
+- Cases: `GET|POST /cases`, `GET|PATCH /cases/{case_id}`. References are
+  `SAF-<year>-<nnnn>`. `source` names the record a case came from; it must be visible to
+  the reporter (422 otherwise) and is returned with `title` and `available`.
+- Stages: `POST /cases/{case_id}/status` (`status`, `no_risk`, `reason`): reported,
+  assessing, investigating, actions, monitoring, closed. Closing and reopening need the
+  approve key. Closing is 409 unless every action is verified and the latest residual
+  risk is acceptable, or tolerable and accepted; `no_risk` with a `reason` closes a
+  report with no hazard. Closed cases refuse every write (409).
+- Risk: `POST /cases/{case_id}/risk-assessments` (`kind` initial or residual,
+  `likelihood`, `severity`); `POST .../risk-assessments/{assessment_id}/acceptance`
+  (approve key, `note`; only the latest residual, only `tolerable`).
+- Corrective actions: `POST /cases/{case_id}/actions`, `PATCH .../actions/{action_id}`,
+  `POST .../actions/{action_id}/status` (open, done, verified; verifying needs the
+  approve key and someone other than the owner). The owner is notified
+  (`cases.action_assigned`). `overdue` is true for an open action past its due date.
+- Contributing factors: `GET|POST /contributing-factors`,
+  `PATCH /contributing-factors/{factor_id}` (`category`, `name`, `is_active`). Reading
+  never writes: until the organisation first writes a factor or an investigation, the
+  list is the ICAO Doc 9859 starting suggestions (`is_default_suggestion` true, `id`
+  null, not choosable). The first write stores the starting list, then applies the
+  write. Names are unique per programme, ignoring case (409). Managing the list needs
+  `settings.manage`; reading needs `cases.read`. `factor_id` is `cfa_` and 16 hex
+  characters (422 otherwise). Retired factors (`is_active` false) cannot be newly
+  chosen; a factor already chosen on an investigation stays valid.
+- Investigation (one per case): `GET|PATCH /cases/{case_id}/investigation`. PATCH creates
+  it on first use and needs the case in `investigating` and a draft. Fields:
+  `what_happened`, `unsafe_acts`, `unsafe_conditions`, `root_cause`, `why_steps` (up
+  to 5 `{question, answer}`, a blank question is 422, replaced whole) and
+  `contributing_factor_ids` (factors of this programme, replaced whole; a newly added one
+  must be active, another organisation's or programme's factor is 422). The first write
+  also seeds the starting factor list.
+  `POST .../investigation/submit` (`cases.write`) needs what happened, a root cause and
+  at least one why with every answer. `POST .../investigation/approve` and
+  `.../return` (`reason`) need `cases.approve`. Neither may be done by anyone who
+  created, edited (at any point) or submitted the investigation (403). `POST
+  .../investigation/waiver` (`reason`, `cases.approve`) records that no investigation is
+  needed; it is 409 when the draft already has content, 403 for those parties, and it is
+  allowed while the case is assessing or investigating. Approved and not-needed
+  investigations are read-only (409). Their factor names and categories are as they were
+  at approval. Reopening the case returns the investigation to a clean draft (decision,
+  waiver reason, return and submission cleared; the audit history keeps them).
+- Moving a case to `actions` needs an approved or not-needed investigation (409
+  otherwise); other moves are unchanged. Case detail carries `investigation` (null until
+  written).
+- API keys: the `safety.read` and `safety.write` scopes exist, but the case routes take
+  a signed-in session only, so a key is refused (401/403).

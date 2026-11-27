@@ -8,6 +8,7 @@ import uuid
 from collections.abc import Callable, Mapping
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Protocol
 
@@ -100,7 +101,12 @@ class PaymentProvider(Protocol):
     key: str
 
     async def create_payment(
-        self, intent: Intent, /, *, title: str | None = None
+        self,
+        intent: Intent,
+        /,
+        *,
+        title: str | None = None,
+        expires_at: datetime | None = None,
     ) -> PaymentStart: ...
 
     def verify_callback(

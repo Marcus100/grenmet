@@ -33,6 +33,7 @@ import {
 import {
   ADMIN_REQUIRED,
   actionFailure,
+  detailText,
   type StudioFailure,
 } from "@/lib/studio-errors";
 import {
@@ -94,6 +95,8 @@ async function run(
   done: string,
   call: Call,
   options: {
+    /** Says something else when the result is not the usual one; null keeps `done`. */
+    doneFor?: (detail: BookingStudioDetail) => string | null;
     /** Words the API's refusal; null leaves it to the shared wording. */
     failure?: (error: unknown) => StudioFailure | null;
     warnOnFailedRefund?: boolean;
@@ -147,7 +150,64 @@ async function run(
       message: `${done} The deposit refund failed; refund it by hand.`,
     };
   }
-  return { status: "success", message: done };
+  return { status: "success", message: options.doneFor?.(detail) ?? done };
+}
+
+/**
+ * Accepting a request that is paid afterwards does not confirm it yet: say what
+ * happens next and how to back out.
+ */
+const ACCEPTED_AWAITING_PAYMENT =
+  "Request accepted. The customer was emailed to pay; the booking is confirmed when the payment arrives and released if it does not. To take the acceptance back, use Cancel booking.";
+
+/** Accepted, but no online pay link exists (the provider could not make one). */
+const ACCEPTED_NO_PAY_LINK =
+  "Accepted, but the online payment link could not be created. Tell the customer how to pay.";
+
+/** Accepted and confirmed, but online payment was off by then: nothing was asked. */
+const ACCEPTED_WITHOUT_PAYMENT =
+  "Confirmed. Online payment is not on for this business any more, so the customer was not asked to pay. Agree how the deposit is paid, then use Mark deposit received once it is.";
+
+/** What accepting did, when it did not simply confirm the booking. */
+function acceptedMessage(detail: BookingStudioDetail): string | null {
+  if (detail.accepted_without_payment) {
+    return ACCEPTED_WITHOUT_PAYMENT;
+  }
+  if (detail.status !== "pending_payment") {
+    return null;
+  }
+  return detail.deposit_payment_link
+    ? ACCEPTED_AWAITING_PAYMENT
+    : ACCEPTED_NO_PAY_LINK;
+}
+
+/** The two refusals of an accept that staff can act on, in the API's own words. */
+const ACCEPT_REFUSALS: readonly { nextStep: string; start: string }[] = [
+  {
+    start: "This request is already accepted",
+    nextStep:
+      "The customer has been emailed to pay. To take the acceptance back, use Cancel booking.",
+  },
+  {
+    start: "Too close to the start",
+    nextStep: "Cancel the request, or let the customer book a later time.",
+  },
+  {
+    start: "The payment could not be started",
+    nextStep:
+      "The request is still pending. Press Confirm again; if it keeps failing, cancel the request.",
+  },
+];
+
+function acceptFailure(error: unknown): StudioFailure | null {
+  if (!(ResponseError.is(error) && error.status === 409)) {
+    return null;
+  }
+  const detail = detailText(error.data);
+  const known = ACCEPT_REFUSALS.find((item) => detail.startsWith(item.start));
+  return known
+    ? { kind: "conflict", message: detail, nextStep: known.nextStep }
+    : null;
 }
 
 /** The API records a failed refund as a timeline note on the cancelled booking. */
@@ -168,7 +228,10 @@ export async function confirmBookingAction(
   orgSlug: string,
   bookingId: string
 ): Promise<ActionState> {
-  return await run(orgSlug, bookingId, "Booking confirmed.", confirmBooking);
+  return await run(orgSlug, bookingId, "Booking confirmed.", confirmBooking, {
+    doneFor: acceptedMessage,
+    failure: acceptFailure,
+  });
 }
 
 export async function noShowBookingAction(
@@ -311,14 +374,6 @@ const depositSchema = z.object({
 const IDEMPOTENCY_409 = /idempotency|still being processed/iu;
 const IN_PROGRESS_409 = /still being processed/iu;
 const ENTITLEMENT_403 = /entitle/iu;
-
-function detailText(data: unknown): string {
-  try {
-    return typeof data === "string" ? data : (JSON.stringify(data) ?? "");
-  } catch {
-    return "";
-  }
-}
 
 const DEPOSIT_409: { match: RegExp; message: string; nextStep: string }[] = [
   {

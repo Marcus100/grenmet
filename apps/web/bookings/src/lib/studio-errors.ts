@@ -128,6 +128,10 @@ const VALIDATION_FALLBACK = "Validation error";
  * (the app's own validation handler). Nothing else is matched.
  */
 export function detailText(data: unknown): string {
+  // A plain-text body (a proxy's 403 or 409) is the message itself.
+  if (typeof data === "string") {
+    return data;
+  }
   if (typeof data !== "object" || data === null) {
     return "";
   }

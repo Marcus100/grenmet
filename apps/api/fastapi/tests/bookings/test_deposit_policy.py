@@ -17,8 +17,8 @@ from tests.bookings.booking_day import utc_iso
 from tests.bookings.test_deposits import (
     DEPOSIT,
     _book_deposit,
+    _book_paying_first,
     _cancel,
-    _deposit_studio,
     _drain,
     _intent,
     _pay_manually,
@@ -41,9 +41,9 @@ PRICE = 21000
 async def _paid(
     db: AsyncSession, client: httpx.AsyncClient, **profile: object
 ) -> tuple[Studio, dict]:
-    """A paid deposit booking (the receipt carries the manage token)."""
-    studio = await _deposit_studio(db, client, **profile)
-    receipt = await _book_deposit(client, studio, db=db)
+    """A paid deposit booking (the receipt carries the manage token). With
+    ``requires_confirmation`` it was paid before the business accepted it."""
+    studio, receipt = await _book_paying_first(db, client, **profile)
     intent = await _intent(db, receipt["booking"]["id"])
     assert intent is not None
     await _pay_manually(client, studio, intent.id)

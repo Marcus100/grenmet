@@ -79,6 +79,17 @@ export function formatDateTime(
 }
 
 /**
+ * The same moment with a short date ("Thu 26 Nov, 2:00 pm"): for a line that
+ * must keep the time on a phone, where the long date would push it out.
+ */
+export function formatDateTimeShort(
+  instant: Date | string,
+  timeZone: string
+): string {
+  return `${formatDay(localDay(instant, timeZone))}, ${formatTime(instant, timeZone)}`;
+}
+
+/**
  * Short prefixes for the currencies these bookings use, so a bare "$" never
  * reads as the wrong dollar. Other codes print as the code.
  */

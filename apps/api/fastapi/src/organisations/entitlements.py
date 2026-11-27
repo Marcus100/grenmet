@@ -19,6 +19,7 @@ PRODUCTS: dict[str, str] = {
     "webhooks": "Barrels Webhooks",
     "opslog": "Barrels Operations Log",
     "incidents": "Barrels Incidents",
+    "safety": "Barrels Safety",
 }
 
 

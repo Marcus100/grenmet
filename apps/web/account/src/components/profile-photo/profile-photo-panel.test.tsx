@@ -8,8 +8,19 @@ import {
 } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { initialsFor, ProfilePhotoPanel } from "./profile-photo-panel";
+
+const { refresh } = vi.hoisted(() => ({ refresh: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 
 const BASE = "http://localhost";
 const ME = `${BASE}/api/v1/profile-images/me`;

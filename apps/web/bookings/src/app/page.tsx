@@ -26,9 +26,11 @@ export default async function HomePage({
 }>) {
   const query = listingQuery(await searchParams);
   const listing = await getPublicBusinesses(query);
+  // The nav's "Types of business" link jumps to a block shown only with types.
+  const showTypes = (listing?.types_available?.length ?? 0) > 0;
   return (
     <div className="bg-ground text-foreground min-h-screen overflow-x-clip md:pl-24">
-      <SideRail />
+      <SideRail showTypes={showTypes} />
       <main
         className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:gap-8 md:px-8 md:pt-4 md:pb-12"
         id="main-content"
@@ -110,7 +112,7 @@ export default async function HomePage({
           .
         </p>
       </main>
-      <BottomNav />
+      <BottomNav showTypes={showTypes} />
     </div>
   );
 }

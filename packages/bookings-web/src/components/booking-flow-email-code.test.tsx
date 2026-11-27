@@ -40,7 +40,10 @@ const NO_CODE = /No email code is needed/u;
 const RESEND_IN = /Resend code in \d+s/u;
 const RESEND_NOW = /^Resend code$/u;
 const NEW_CODE = /We sent you a new code/u;
-const CONFIRM_AGAIN = /confirm your email again/u;
+// Asking for a code is a normal step, so the ask is neutral and sits above
+// the button; nothing red is shown (issue #1951, item 4).
+const CODE_ASK = /One more step: we email a 6-digit code/u;
+const RED_SUMMARY = /We couldn't book that/u;
 const FREE_BROWS = /Free brows/u;
 const NO_CONTACT = {
   phone: null,
@@ -181,6 +184,28 @@ afterEach(() => {
 });
 
 describe("BookingFlow emailed code", () => {
+  it("says a code is coming before the first press, not after a refusal", async () => {
+    // The ask is up front for every booking that needs a code, guests included,
+    // so nobody meets the step for the first time as a failed submit.
+    const user = userEvent.setup();
+    renderFlow();
+    await fill(user);
+
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
+    expect(screen.queryByText(RED_SUMMARY)).toBeNull();
+    expect(submitBooking).not.toHaveBeenCalled();
+    expect(requestEmailCode).not.toHaveBeenCalled();
+  });
+
+  it("does not ask for a code when none is needed", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await fill(user, "Free brows");
+
+    expect(screen.queryByText(CODE_ASK)).toBeNull();
+    expect(screen.getByRole("button", { name: BOOK })).toBeVisible();
+  });
+
   it("asks for a code, not a booking, when a deposit is due", async () => {
     const user = userEvent.setup();
     renderFlow();
@@ -434,7 +459,7 @@ describe("BookingFlow emailed code", () => {
     renderFlow();
     await fill(user, "Free brows");
     await user.click(screen.getByRole("button", { name: BOOK }));
-    expect(await screen.findByText(CONFIRM_AGAIN)).toBeVisible();
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: SEND }));
     expect(requestEmailCode).toHaveBeenCalledTimes(1);
@@ -453,7 +478,7 @@ describe("BookingFlow emailed code", () => {
     await verify(user);
     await user.click(await screen.findByRole("button", { name: BOOK }));
 
-    expect(await screen.findByText(CONFIRM_AGAIN)).toBeVisible();
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
     expect(screen.queryByText(VERIFIED)).toBeNull();
     await user.click(screen.getByRole("button", { name: SEND }));
     expect(requestEmailCode).toHaveBeenCalledTimes(2);
@@ -602,8 +627,36 @@ describe("BookingFlow signed-in visitor on a deposit service", () => {
     renderSignedInFlow(SIGNED_IN_ADA);
     await chooseDepositTime(user);
     await user.click(screen.getByRole("button", { name: BOOK }));
-    expect(await screen.findByText(CONFIRM_AGAIN)).toBeVisible();
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
     expect(await screen.findByRole("button", { name: SEND })).toBeVisible();
+  });
+
+  it("asks for the code in neutral wording, never as a booking failure", async () => {
+    // Issue #1951, item 4: a signed-in person whose address still needs
+    // confirming was told "We couldn't book that" in red. Confirming an address
+    // is a normal step, so the ask sits above the button and nothing is red.
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderSignedInFlow(SIGNED_IN_ADA);
+    await chooseDepositTime(user);
+    await user.click(screen.getByRole("button", { name: BOOK }));
+
+    const ask = await screen.findByText(CODE_ASK);
+    expect(ask).toBeVisible();
+    expect(ask.className).toBe("notice");
+    expect(ask).toHaveAttribute("role", "status");
+    expect(screen.queryByText(RED_SUMMARY)).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+    // The ask comes before the button it names.
+    const button = screen.getByRole("button", { name: SEND });
+    const inOrder = Array.from(
+      document.querySelectorAll(".notice, button[type='submit']")
+    );
+    expect(inOrder.indexOf(ask)).toBeLessThan(inOrder.indexOf(button));
   });
 });
 

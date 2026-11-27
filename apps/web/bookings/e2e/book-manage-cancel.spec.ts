@@ -47,10 +47,14 @@ async function bookManageAndCancel(
 
   // 1. Service. The radio is controlled by React, so `toPass` retries until the
   // page has hydrated and the choice sticks. On a phone, choosing a service
-  // moves to the time step and hides the list, so a retry must not look for it.
+  // does not move on: Continue does, so the retry presses it once the list is
+  // showing.
   await expect(async () => {
     if (!(await times.isVisible())) {
       await chooseService(form, CATEGORY, SERVICE);
+      if (phone) {
+        await form.getByRole("button", { name: "Continue" }).click();
+      }
     }
     await expect(times).toBeVisible({ timeout: 5000 });
   }).toPass();

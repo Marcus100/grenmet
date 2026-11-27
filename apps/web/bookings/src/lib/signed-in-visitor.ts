@@ -28,7 +28,7 @@ export interface Visitor {
  * and is reported, because it must not stop anyone booking (the booking action
  * does the same).
  */
-async function sessionOrNull(): Promise<StudioSession | null> {
+export async function sessionOrNull(): Promise<StudioSession | null> {
   try {
     return await getSession();
   } catch (error) {

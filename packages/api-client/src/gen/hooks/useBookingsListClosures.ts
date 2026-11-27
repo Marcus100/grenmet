@@ -67,7 +67,7 @@ export function bookingsListClosuresQueryOptions(
 }
 
 /**
- * @description Days the business is closed for every provider, earliest first.
+ * @description Days the business is closed for every provider, earliest first. Pass `ends_on_from` to list only closures that have not yet ended.
  * @summary List whole-business closures
  * {@link /api/v1/bookings/org/closures}
  */

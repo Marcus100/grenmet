@@ -79,7 +79,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     data.providers,
     here
   );
-  const closures = await loadClosures(session, org.id, here);
+  const closures = await loadClosures(session, org.id, here, todayIn(zone));
   // Only owners and admins may read the feed status; members never call it.
   const calendarStatus = editable
     ? await loadCalendarStatus(session.accessToken, org.id)
@@ -126,6 +126,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           editable={editable}
           orgSlug={orgSlug}
           profile={data.profile}
+          providers={data.providers}
           services={data.services}
         />
         <PeopleSection

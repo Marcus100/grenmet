@@ -224,3 +224,21 @@ class OpsLogAttachment(Base):
     caption: Mapped[str | None] = mapped_column(String(200))
     added_by: Mapped[uuid.UUID]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class OpsLogSummarySubscriber(Base):
+    """A member who asked for a log's daily summary (bell and email)."""
+
+    __tablename__ = "summary_subscriber"
+    __table_args__ = ({"schema": SCHEMA},)
+
+    log_id: Mapped[str] = mapped_column(
+        String(100),
+        ForeignKey(f"{SCHEMA}.log.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

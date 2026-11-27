@@ -47,6 +47,7 @@ from src.auth.roles import (
     update_role,
 )
 from src.auth.schemas import (
+    AccountProfileUpdate,
     UserCreate,
     UserUpdate,
     UserUpdateMe,
@@ -264,6 +265,44 @@ async def update_user_me(
     await session.commit()
     await session.refresh(current_user)
     return current_user
+
+
+def name_is_placeholder(user: User) -> bool:
+    """True while the account has no name the person gave.
+
+    A sign-up with no name (``app_service._create_member``) stores the part of the
+    email before the @ as the first name and an empty last name. A blank first name
+    counts too. Any first name that differs from that part of the email is a real
+    name, with or without a last name (one-word names are allowed).
+    """
+    first = (user.first_name or "").strip()
+    if not first:
+        return True
+    if first.lower() != user.email.split("@", 1)[0][:100].lower():
+        return False
+    return not (user.last_name or "").strip()
+
+
+async def update_account_profile(
+    *, session: AsyncSession, user: User, profile_in: AccountProfileUpdate
+) -> User:
+    """Save the person's own name and contact phone (the account app's checklist).
+
+    The number goes in ``contact_phone``: a contact detail, not unique and never
+    verified. The sign-in number (``phone_e164``, ``phone_verified_at``) is not
+    read or written here.
+    """
+    fields = profile_in.model_fields_set
+    if "first_name" in fields and profile_in.first_name is not None:
+        user.first_name = profile_in.first_name
+    if "last_name" in fields and profile_in.last_name is not None:
+        user.last_name = profile_in.last_name
+    if "phone" in fields:
+        user.contact_phone = profile_in.phone
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
 
 
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
@@ -492,6 +531,7 @@ def _anonymise_fields(user: User, token: str, now: datetime) -> None:
     user.title = None
     user.phone_e164 = None
     user.phone_verified_at = None
+    user.contact_phone = None
     user.email_verified_at = None
     user.email_verification_required = False
     user.password_setup_pending = False

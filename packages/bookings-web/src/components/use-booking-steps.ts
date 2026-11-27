@@ -142,6 +142,28 @@ export function useBookingSteps({
     move(from === 3 ? 2 : 1);
   }, [move]);
 
+  // The Edit links on the chosen-so-far line: back to an earlier step. On a
+  // phone the entries this flow pushed are walked back, so the phone's Back
+  // stays in step with the screen; elsewhere the step just changes.
+  const editTo = useCallback(
+    (target: BookingStep) => {
+      const from = latest.current.step;
+      if (target >= from) {
+        return;
+      }
+      if (
+        onPhone() &&
+        stepOfEntry(window.history.state) === from &&
+        target >= baseStep.current
+      ) {
+        window.history.go(-(from - target));
+        return;
+      }
+      move(target);
+    },
+    [move]
+  );
+
   // After a booking: step entries would make Back do nothing twice before it
   // leaves, so go back to the entry the flow started on (same document, no
   // reload) and stop listening. Nothing can be submitted from there.
@@ -173,5 +195,14 @@ export function useBookingSteps({
     return () => window.removeEventListener("popstate", onPop);
   }, [move]);
 
-  return { direction, enhanced, finish, goBack, goTo, headingRef, step };
+  return {
+    direction,
+    editTo,
+    enhanced,
+    finish,
+    goBack,
+    goTo,
+    headingRef,
+    step,
+  };
 }

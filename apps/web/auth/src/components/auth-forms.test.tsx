@@ -60,9 +60,11 @@ describe("SignInForm (password)", () => {
   it("hides the authenticator code until the account asks for it", () => {
     render(<SignInForm appName={null} codeHref={CODE_HREF} returnTo={null} />);
     expect(screen.queryByLabelText("Authenticator code")).toBeNull();
+    // No "create an account" link: it would loop back to the code screen, which
+    // "Email me a code instead" already reaches.
     expect(
-      screen.getByRole("link", { name: "Create an account" })
-    ).toHaveAttribute("href", "/signup");
+      screen.queryByRole("link", { name: "Create an account" })
+    ).toBeNull();
   });
 
   it("offers Google before the email form", () => {
@@ -182,44 +184,49 @@ describe("EmailCodeForm (code first)", () => {
     vi.useRealTimers();
   });
 
-  it("puts the emailed-code button before the password link", () => {
-    render(
-      <EmailCodeForm
-        passwordHref={"/?method=password" as Route}
-        returnTo={null}
-      />
-    );
-    const button = screen.getByRole("button", { name: "Email me a code" });
-    const password = screen.getByRole("link", { name: "Use password instead" });
-    const controls = Array.from(document.querySelectorAll("button, a"));
-    expect(controls.indexOf(button)).toBeLessThan(controls.indexOf(password));
-  });
-
-  it("offers the password link with the return address kept", () => {
-    render(
-      <EmailCodeForm
-        passwordHref={"/?method=password&returnTo=%2Fapps%2Fx" as Route}
-        returnTo="/apps/x"
-      />
-    );
+  it("asks one question first: the email, with a Continue button", () => {
+    render(<EmailCodeForm returnTo={null} />);
+    expect(screen.getByLabelText("Email address")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Use password instead" })
-    ).toHaveAttribute("href", "/?method=password&returnTo=%2Fapps%2Fx");
-  });
-
-  it("hides the password link when there is no password (sign-up)", () => {
-    render(<EmailCodeForm purpose="sign-up" returnTo={null} />);
-    expect(
-      screen.queryByRole("link", { name: "Use password instead" })
-    ).toBeNull();
-  });
-
-  it("names the final button for sign-up", () => {
-    setState({ email: "jane@example.com", step: "code" });
-    render(<EmailCodeForm purpose="sign-up" returnTo={null} />);
-    expect(
-      screen.getByRole("button", { name: "Create account" })
+      screen.getByRole("button", { name: "Continue" })
     ).toBeInTheDocument();
+    // The password route lives on the page, behind "More ways to sign in".
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("shows the same code step whether or not the address has an account", () => {
+    setState({ email: "jane@example.com", step: "code" });
+    render(<EmailCodeForm returnTo={null} />);
+    const status = screen.getAllByRole("status")[0];
+    expect(status).toHaveTextContent(
+      "Check jane@example.com for a 6-digit code and enter it here."
+    );
+    // No wording that depends on the account existing, and one button name.
+    expect(document.body.textContent).not.toContain("can sign in");
+    expect(document.body.textContent).not.toContain("Create account");
+    expect(
+      screen.getByRole("button", { name: "Continue" })
+    ).toBeInTheDocument();
+  });
+
+  it("sends one request when the code submits itself and Continue is tapped at once", () => {
+    setState({ email: "jane@example.com", step: "code" });
+    const { container, rerender } = render(<EmailCodeForm returnTo={null} />);
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    // The sixth digit submits the form; the tap lands before `pending` renders.
+    fireEvent.submit(form);
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.submit(form);
+    expect(formAction).toHaveBeenCalledTimes(1);
+
+    // Once that request has settled (a wrong code, say) the next try goes out.
+    pendingNow.current = true;
+    rerender(<EmailCodeForm returnTo={null} />);
+    pendingNow.current = false;
+    rerender(<EmailCodeForm returnTo={null} />);
+    fireEvent.submit(form);
+    expect(formAction).toHaveBeenCalledTimes(2);
   });
 
   it("holds 'Send a new code' until the server's cooldown has passed", () => {
@@ -286,7 +293,7 @@ describe("EmailCodeForm (code first)", () => {
     expect(screen.queryByText("Email code")).toBeNull();
     expect(screen.getByLabelText("Email address")).toHaveValue("");
     expect(
-      screen.getByRole("button", { name: "Email me a code" })
+      screen.getByRole("button", { name: "Continue" })
     ).toBeInTheDocument();
   });
 

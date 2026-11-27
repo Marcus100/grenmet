@@ -1,8 +1,10 @@
 # Airport operations programme
 
-**Status:** Planning; nothing below is built unless the table says so  
+**Status:** Phase 1 in progress. The first API slices of `opslog`, `incidents`
+and `cases` are merged on `dev` (API only, no screens yet, not in a production
+release); everything else below is planned  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-11-25
+**Last updated:** 2026-11-26
 
 Architecture: ADR-0067.
 
@@ -13,7 +15,7 @@ incidents, safety management, work orders, inspections, passes, public request
 forms and more) per airport, each with a setup fee and a monthly fee. Most of
 the same capabilities are already listed in the GAA plan
 (`docs/exec-plans/gaa-modular-monolith-implementation.md`, GAA-10 to GAA-19)
-and none is built. The owner wants as many of these features as possible built
+and none was built when this programme started. The owner wants as many of these features as possible built
 into this repository, on the FastAPI platform that already exists.
 
 Whether the modules are sold as Barrels products or stay modules for the
@@ -48,9 +50,9 @@ airport authority is simply the first organisation switched on.
 
 | Capability | What exists | Module and phase | GAA plan |
 | --- | --- | --- | --- |
-| Operations logbook, shift handover report | nothing | `opslog`, phase 1 | GAA-13 |
-| Incidents (occurrence, response timeline, checklists, review) | nothing | `incidents`, phase 1 | GAA-12, GAA-14 |
-| Safety, security, occupational health and safety, environmental management | nothing | `cases` engine, phase 1 | GAA-12 |
+| Operations logbook, shift handover report | `opslog` API on `dev`: logs, categories, entries, comments, automatic entries, photos, daily summary (#1911, #1924, #1941) | `opslog`, phase 1 | GAA-13 |
+| Incidents (occurrence, response timeline, checklists, review) | `incidents` API on `dev`: lifecycle, timeline, notes, checklists, lock on close, persons, witnesses, damage, resources, manager alert, weather at the time, photos, record links (#1915, #1924, #1935, #1936) | `incidents`, phase 1 | GAA-12, GAA-14 |
+| Safety, security, occupational health and safety, environmental management | `cases` safety core API on `dev`: risk grid, assessments, corrective actions, investigation with contributing factors, 5 whys and approval (ADR-0069, #1919, #1942) | `cases` engine, phase 1 | GAA-12 |
 | Work orders, assets, preventive maintenance | nothing | `workorders`, phase 2 | GAA-10 |
 | Inspections (quality, pre-operational, ad hoc) | janitorial plans only | `inspections`, phase 2 | GAA-10 |
 | QR codes for any record | janitorial area labels | shared helper, phase 2 | — |
@@ -125,7 +127,9 @@ One engine, several programmes, each its own entitlement and permissions.
 - Risk assessments on a configurable likelihood × severity grid (5 × 5 by
   default), before and after controls, with acceptance recorded.
 - Investigation: what happened, unsafe acts or conditions, contributing
-  factors list, "5 whys" root cause, management approval.
+  factors list, "5 whys" root cause, management approval. Built in the API
+  (draft, submit, approve or return with a reason, waiver, per-programme
+  factor list). Not yet: confidential investigations, the web screens.
 - Corrective actions, short and long term, each with owner, due date,
   progress, evidence and an optional work order; plan approval and reminders.
 - Hazard register with controls and responsible people; copy the last

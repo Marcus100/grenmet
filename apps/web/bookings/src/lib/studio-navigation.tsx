@@ -3,6 +3,7 @@ import {
   filterNavigation,
 } from "@barrelsgd/admin-kit/lib/navigation";
 import {
+  BookUser,
   CalendarDays,
   CalendarPlus,
   CreditCard,
@@ -85,6 +86,12 @@ export function studioNavigation({
           url: `${base}/people`,
           icon: <Users />,
           tab: true,
+        },
+        {
+          id: "customers",
+          title: "Customers",
+          url: `${base}/customers`,
+          icon: <BookUser />,
         },
         {
           id: "settings",

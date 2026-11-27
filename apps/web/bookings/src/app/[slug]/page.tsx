@@ -1,6 +1,8 @@
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import { PausedNotice } from "@barrelsgd/bookings-web/components/paused-notice";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
+import { dayParam, timeParam } from "@barrelsgd/bookings-web/lib/booking-link";
+import { AccountMenu } from "@barrelsgd/ui/components/account-menu";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { cn } from "@barrelsgd/ui/lib/utils";
@@ -8,6 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
+import { CoverPhoto } from "@/components/cover-photo";
 import { ReportListingLink } from "@/components/report-listing-link";
 import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
@@ -17,7 +20,7 @@ import { serviceIdFromQuery } from "@/lib/service-link";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
-import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
+import { brandStyle, safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
 import { businessTransitionStyle } from "@/lib/view-transition";
 import {
@@ -48,13 +51,34 @@ export async function generateMetadata({
   if (!storefront) {
     return { title: "Booking page not found", robots: { index: false } };
   }
-  const title = `Book at ${storefront.display_name}`;
-  const description = `Book an appointment online with ${storefront.display_name}. Choose a service and a time.`;
+  const name = storefront.display_name;
+  const title = `Book at ${name}`;
+  const description = `Book an appointment online with ${name}. Choose a service and a time.`;
+  // The share preview: the cover photo, else the logo, else the app default.
+  const cover = safeCoverUrl(storefront.cover_url);
+  const image = cover ?? safeLogoUrl(storefront.logo_url);
   return {
     title,
     description,
     alternates: { canonical: `/${slug}` },
-    openGraph: { title, description, url: `/${slug}`, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url: `/${slug}`,
+      type: "website",
+      ...(image ? { images: [{ url: image, alt: name }] } : {}),
+    },
+    ...(image
+      ? {
+          twitter: {
+            // A cover photo is wide enough for the large card; a logo is not.
+            card: cover ? "summary_large_image" : "summary",
+            title,
+            description,
+            images: [image],
+          },
+        }
+      : {}),
     robots: { index: true, follow: true },
   };
 }
@@ -66,7 +90,12 @@ export default async function BusinessBookingPage({
   const { slug } = await params;
   // `?service=<id>` preselects a service; anything malformed is ignored, and
   // the flow ignores an id the business does not offer.
-  const initialServiceId = serviceIdFromQuery((await searchParams).service);
+  // `?day=` and `?time=` remember the day and time chosen with that service;
+  // the flow checks them against the live times and clears any that are gone.
+  const query = await searchParams;
+  const initialServiceId = serviceIdFromQuery(query.service);
+  const initialDay = dayParam(query.day);
+  const initialStartsAt = timeParam(query.time);
   const storefront = await loadStorefront(slug);
   if (!storefront) {
     notFound();
@@ -78,6 +107,8 @@ export default async function BusinessBookingPage({
   // Older cached payloads may lack these fields: both fall back to the shared
   // tokens and no logo. The accent is checked for contrast before it is used.
   const logo = safeLogoUrl(storefront.logo_url);
+  // The cover photo is a banner above the name. No safe cover: no banner.
+  const cover = safeCoverUrl(storefront.cover_url);
   const transition = businessTransitionStyle(slug);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
@@ -105,7 +136,26 @@ export default async function BusinessBookingPage({
           storefront
         )}
       />
+      {cover ? (
+        <CoverPhoto
+          className="relative aspect-[2/1] max-h-[220px] w-full rounded-2xl md:max-h-[280px]"
+          eager
+          src={cover}
+        />
+      ) : null}
       <header className="space-y-2">
+        {visitor ? (
+          <div className="flex justify-end">
+            <AccountMenu
+              accountUrl={env.ACCOUNT_APP_URL}
+              signOut={{ href: visitor.signedIn.signOutAction }}
+              user={{
+                email: visitor.signedIn.email,
+                name: visitor.signedIn.name || null,
+              }}
+            />
+          </div>
+        ) : null}
         {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
         <h1
           className={cn(
@@ -194,7 +244,9 @@ export default async function BusinessBookingPage({
               submitBooking: submitBooking.bind(null, slug),
             }}
             bookAgain={visitor?.bookAgain}
+            initialDay={initialDay}
             initialServiceId={initialServiceId}
+            initialStartsAt={initialStartsAt}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}

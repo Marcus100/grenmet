@@ -1,8 +1,6 @@
 "use client";
 
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
-import type { Route } from "next";
-import Link from "next/link";
 import {
   startTransition,
   useActionState,
@@ -25,17 +23,16 @@ import { env } from "@/lib/env";
 import { useHydrated } from "@/lib/use-hydrated";
 
 interface EmailCodeFormProps {
-  /** Where "Use password instead" goes. Null hides the link (sign-up has no password). */
-  readonly passwordHref?: Route | null;
-  /** Sign-up names its final button for what it does. */
-  readonly purpose?: "sign-in" | "sign-up";
   readonly returnTo: string | null;
 }
 
 /**
- * Passwordless sign-in and sign-up: one email, then the 6-digit code. The same
- * code creates the account on first use. Submits through onSubmit and waits for
- * hydration, so the email never travels in a URL.
+ * Passwordless sign-in and sign-up in one form: one email, then the 6-digit
+ * code. The same code signs a returning person in and creates the account on
+ * first use, so nothing here (wording, steps, buttons) depends on whether the
+ * address already has an account. Submits through onSubmit and waits for
+ * hydration, so the email never travels in a URL. The code step submits itself
+ * when the sixth digit is in.
  *
  * "Use a different email" remounts the step, so it starts from an empty form,
  * and focus moves to the email field.
@@ -65,8 +62,6 @@ interface EmailCodeStepProps extends EmailCodeFormProps {
 function EmailCodeStep({
   focusEmail,
   onChangeEmail,
-  passwordHref = null,
-  purpose = "sign-in",
   returnTo,
 }: EmailCodeStepProps) {
   const [state, formAction, pending] = useActionState(
@@ -79,6 +74,10 @@ function EmailCodeStep({
   const emailRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLDivElement>(null);
   const resendRequested = useRef(false);
+  // Set the moment a request is handed to the action. `pending` only turns true
+  // on the next render, so a pasted code that submits itself followed by a
+  // quick tap on Continue would otherwise send two requests.
+  const inFlight = useRef(false);
   const [notice, setNotice] = useState("");
   const check = useTurnstileCheck();
 
@@ -96,10 +95,17 @@ function EmailCodeStep({
     codeRef.current?.querySelector("input")?.focus();
   }, [pending, state.error, state.step]);
 
+  useEffect(() => {
+    if (!pending) inFlight.current = false;
+  }, [pending]);
+
   // React resets an uncontrolled form after its action settles, which would
   // wipe the typed email on a refusal. Passing FormData keeps the values.
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // The code field submits on its sixth digit; one request at a time.
+    if (pending || inFlight.current) return;
+    inFlight.current = true;
     const data = new FormData(event.currentTarget);
     if (!sent) check.attachToken(data);
     startTransition(() => {
@@ -109,6 +115,8 @@ function EmailCodeStep({
 
   // A new code for the same address: the email only, so the action sends one.
   function resendCode() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     const data = new FormData();
     data.set("email", state.email);
     data.set("returnTo", returnTo ?? "");
@@ -121,8 +129,6 @@ function EmailCodeStep({
   }
 
   const canResend = hydrated && !pending && secondsLeft === 0 && !check.waiting;
-  let submitLabel = "Email me a code";
-  if (sent) submitLabel = purpose === "sign-up" ? "Create account" : "Sign in";
 
   return (
     <form className="space-y-5" onSubmit={submit}>
@@ -137,13 +143,19 @@ function EmailCodeStep({
         <>
           <input name="email" type="hidden" value={state.email} />
           <p className="text-muted-foreground text-sm" role="status">
-            If{" "}
+            Check{" "}
             <span className="text-foreground font-medium">{state.email}</span>{" "}
-            can sign in, we’ve sent it a 6-digit code. It expires in 10 minutes.
+            for a 6-digit code and enter it here. It expires in 10 minutes.
             Check your spam or junk folder if it does not arrive.
           </p>
           <div ref={codeRef}>
-            <CodeField autoFocus id="code" label="Email code" name="code" />
+            <CodeField
+              autoFocus
+              id="code"
+              label="Email code"
+              name="code"
+              submitOnComplete={state.step === "code"}
+            />
           </div>
           {state.step === "mfa" ? (
             <CodeField
@@ -151,6 +163,7 @@ function EmailCodeStep({
               id="totp_code"
               label="Authenticator code"
               name="totp_code"
+              submitOnComplete
             />
           ) : null}
         </>
@@ -183,7 +196,7 @@ function EmailCodeStep({
         disabled={pending || !hydrated || (!sent && check.waiting)}
         type="submit"
       >
-        {pending ? "Please wait…" : submitLabel}
+        {pending ? "Please wait…" : "Continue"}
       </button>
 
       {sent ? (
@@ -216,14 +229,6 @@ function EmailCodeStep({
             </button>
           </p>
         </div>
-      ) : null}
-
-      {!sent && passwordHref ? (
-        <p className="text-center">
-          <Link className={`${textLinkClass} text-body-sm`} href={passwordHref}>
-            Use password instead
-          </Link>
-        </p>
       ) : null}
     </form>
   );

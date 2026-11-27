@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListClosuresQuery = {
   /**
+   * @description Only closures that end on or after this date (the business's today for upcoming closures). Omit: every closure.
+   */
+  ends_on_from?: string | null;
+  /**
    * @description Page number (1-indexed)
    * @minimum 1
    * @maximum 1000000

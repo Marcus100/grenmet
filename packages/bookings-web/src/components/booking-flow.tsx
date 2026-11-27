@@ -14,11 +14,16 @@ import {
   useState,
 } from "react";
 import {
-  addOnsFor,
   addOnTotals,
   amountDueForSelection,
   selectionKey,
 } from "../lib/add-ons";
+import {
+  clearBookingDetails,
+  readBookingDetails,
+  type SavedDetails,
+  saveBookingDetails,
+} from "../lib/booking-details-store";
 import {
   ADD_ONS_GONE_MESSAGE,
   ADD_ONS_TIMES_MESSAGE,
@@ -26,7 +31,11 @@ import {
   type Outcome,
   tellsToContact,
 } from "../lib/booking-errors";
-import { businessDepositOf, lateFeeLine } from "../lib/booking-extras";
+import {
+  businessDepositLaterLine,
+  businessDepositOf,
+  lateFeeLine,
+} from "../lib/booking-extras";
 import {
   type BookingFields,
   type FieldErrors,
@@ -40,9 +49,16 @@ import {
   formatDateTime,
   formatDuration,
   formatMoney,
+  localDay,
   timeZonePlace,
 } from "../lib/booking-format";
-import { payNowLine } from "../lib/booking-payment";
+import { withChoices } from "../lib/booking-link";
+import {
+  awaitsAcceptance,
+  payAfterAcceptanceLine,
+  payLaterLine,
+  payNowLine,
+} from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type {
   Booked,
@@ -53,7 +69,14 @@ import { contactEnding } from "../lib/business-contact";
 import { AddOnStep, BookedAddOns } from "./add-on-step";
 import { BookedExtras } from "./booking-extras";
 import { BookingRules } from "./booking-policy-text";
-import { recapLine, StepBar, StepHeader, StepPane } from "./booking-steps";
+import {
+  ChosenTrail,
+  chosenSummary,
+  chosenTrail,
+  StepBar,
+  StepHeader,
+  StepPane,
+} from "./booking-steps";
 import { ContactLinks } from "./business-contact";
 import { DepositToBusiness } from "./business-deposit";
 import { NewClientsNote } from "./new-clients-note";
@@ -151,10 +174,22 @@ export interface BookingFlowProps {
    */
   bookAgain?: BookAgainChoice[];
   /**
+   * The day (YYYY-MM-DD) from the page's `?day=` link. Used only with a linked
+   * service; a day in the past is ignored by the picker.
+   */
+  initialDay?: string;
+  /**
    * A service to start with (the page's `?service=` link). Ignored unless the
-   * business offers it; on phones the flow then starts at the time step.
+   * business offers it. It is chosen and expanded on step 1; nothing moves on
+   * by itself.
    */
   initialServiceId?: string;
+  /**
+   * The start (ISO 8601) from the page's `?time=` link. Used only with a linked
+   * service; if the business no longer has that time, the flow clears it and
+   * says so.
+   */
+  initialStartsAt?: string;
   /** Link used for the manage link on the confirmation. Defaults to an anchor. */
   ManageLink?: BookingLink;
   /** Path the manage link goes to; the token is appended as `/<token>`. */
@@ -184,6 +219,10 @@ export interface BookingFlowProps {
 const NETWORK_MESSAGE =
   "We couldn't reach the booking service. Nothing was lost: press Book again to retry safely.";
 
+/** Said when a time remembered from the page's link is no longer offered. */
+const TIME_GONE_MESSAGE =
+  "Your earlier time is no longer available. Choose another time.";
+
 const FIELD_IDS: Record<FieldKey, string> = {
   service: "book-service",
   time: "book-time",
@@ -209,7 +248,10 @@ function buttonLabel(
   return needsCode ? "Email me a verification code" : "Request my booking";
 }
 
-function statusLine(status: string): string {
+function statusLine(status: string, payLater: string | null = null): string {
+  if (payLater) {
+    return `Your request is in. ${payLater}`;
+  }
   if (status === "confirmed") {
     return "Your appointment is confirmed.";
   }
@@ -266,7 +308,14 @@ function BookingDone({
         <h2 id="book-done" ref={headingRef} tabIndex={-1}>
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
-        <p>{statusLine(booking.status)}</p>
+        <p>
+          {statusLine(
+            booking.status,
+            awaitsAcceptance(booking)
+              ? payLaterLine(booking.deposit_minor, currency, studioName)
+              : null
+          )}
+        </p>
         {booking.status === "pending_payment" && booking.hold_ends_at ? (
           <p>
             {holdEndsLine(
@@ -683,12 +732,15 @@ function ErrorSummary({
 
 /** Step 1: the service choice. */
 function ServicesStep({
+  addOnsChosen,
   bookAgain,
   errors,
   onPick,
   selectedId,
   storefront,
 }: {
+  /** Add-ons are ticked: the total is only known on step 3, so the details say no amount. */
+  addOnsChosen: boolean;
   bookAgain: BookAgainChoice[];
   errors: FieldErrors;
   onPick: (serviceId: string) => void;
@@ -710,20 +762,13 @@ function ServicesStep({
         storefront={storefront}
       />
       <ServiceList
+        addOnsChosen={addOnsChosen}
         bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
-        currency={storefront.currency}
-        depositCollection={storefront.deposit_collection}
         onPick={onPick}
         selectedId={selectedId}
         services={storefront.services}
+        storefront={storefront}
       />
-      <div aria-live="polite" role="status">
-        <NewClientsNote
-          service={
-            storefront.services.find((item) => item.id === selectedId) ?? null
-          }
-        />
-      </div>
       {storefront.services.length === 0 && (
         <div className="muted">
           <p>
@@ -742,10 +787,12 @@ function TimeStep({
   actions,
   addOnIds,
   errors,
+  initialDay,
   onAddOnsGone,
   onBusyChange,
   currentKey,
   onChange,
+  onDayChange,
   onQuote,
   onUnavailable,
   reloadKey,
@@ -757,11 +804,14 @@ function TimeStep({
   actions: BookingFlowActions;
   addOnIds: readonly string[];
   errors: FieldErrors;
+  /** The day the flow remembers for this service (YYYY-MM-DD), or null. */
+  initialDay: string | null;
   onAddOnsGone: (message: string) => void;
   onBusyChange: (busy: boolean) => void;
   /** The key of the selection on screen now, read when an answer arrives. */
   currentKey: () => string;
   onChange: (value: string | null) => void;
+  onDayChange: (day: string | null) => void;
   onQuote: (quote: Quote) => void;
   onUnavailable: () => void;
   reloadKey: number;
@@ -783,6 +833,7 @@ function TimeStep({
       <GroupError errors={errors} field="time" />
       {service ? (
         <SlotPicker
+          initialDay={initialDay}
           key={service.id}
           load={async (firstDay) => {
             const sentKey = selectionKey(service.id, addOnIds);
@@ -812,6 +863,7 @@ function TimeStep({
           }}
           onBusyChange={onBusyChange}
           onChange={onChange}
+          onDayChange={onDayChange}
           onUnavailable={onUnavailable}
           reloadKey={reloadKey}
           timeZone={storefront.timezone}
@@ -829,6 +881,24 @@ function TimeStep({
         </p>
       )}
     </fieldset>
+  );
+}
+
+/**
+ * Asked above the book button whenever this booking still needs an emailed
+ * code: before the first press when the service says so, and as soon as the API
+ * says the signed-in person's address needs confirming. Confirming an address is
+ * a normal step, so this is never styled as a failure (issue #1951, item 4).
+ */
+function CodeAsk({ email }: { email: string }) {
+  const address = email.trim();
+  return (
+    <p className="notice" role="status">
+      One more step: we email a {CODE_LENGTH}-digit code to{" "}
+      {address ? <strong>{address}</strong> : "the address above"} to check it
+      reaches you. Press Email me a verification code, then type the code in.
+      Nothing is booked or charged until you do.
+    </p>
   );
 }
 
@@ -897,6 +967,23 @@ function depositRuleFields(
   };
 }
 
+/** What the form says about money online: paid now, or after the business accepts. */
+function moneyLine(
+  payLater: boolean,
+  dueMinor: number,
+  priceMinor: number,
+  storefront: BookingStorefront
+): string | null {
+  return payLater
+    ? payAfterAcceptanceLine(
+        dueMinor,
+        priceMinor,
+        storefront.currency,
+        storefront.display_name
+      )
+    : payNowLine(dueMinor, priceMinor, storefront.currency);
+}
+
 /** What is paid online for the chosen service, and its description. */
 function ServiceNotes({
   businessDeposit,
@@ -917,7 +1004,17 @@ function ServiceNotes({
       <div aria-live="polite" role="status">
         {service && payNow && <p className="notice payment-notice">{payNow}</p>}
       </div>
-      {service && businessDeposit && (
+      {service && businessDeposit && service.pay_after_acceptance && (
+        <p className="notice payment-notice deposit-business">
+          {businessDepositLaterLine(
+            businessDeposit.amountNote ? null : businessDeposit.minor,
+            storefront.currency,
+            storefront.display_name,
+            false
+          )}
+        </p>
+      )}
+      {service && businessDeposit && !service.pay_after_acceptance && (
         <DepositToBusiness
           amountNote={businessDeposit.amountNote}
           businessName={storefront.display_name}
@@ -971,7 +1068,9 @@ function BookingFlowBody({
   accountInvite,
   actions,
   bookAgain = [],
+  initialDay,
   initialServiceId,
+  initialStartsAt,
   managePath,
   ManageLink = PlainLink,
   signedIn,
@@ -986,16 +1085,31 @@ function BookingFlowBody({
       ? initialServiceId
       : null
   );
-  const [startsAt, setStartsAt] = useState<string | null>(null);
+  // The day and time come from the page's link only with a service that is
+  // still offered; the picker then checks the time against the live list.
+  // A remembered time without a day names its own day, so the picker opens there.
+  const [day, setDay] = useState<string | null>(() => {
+    if (!serviceId) {
+      return null;
+    }
+    if (initialDay) {
+      return initialDay;
+    }
+    return initialStartsAt
+      ? localDay(initialStartsAt, storefront.timezone)
+      : null;
+  });
+  const [startsAt, setStartsAt] = useState<string | null>(() =>
+    serviceId ? (initialStartsAt ?? null) : null
+  );
+  // A remembered time the business no longer has: cleared, and said so.
+  const [timeGone, setTimeGone] = useState(false);
   const service = storefront.services.find((s) => s.id === serviceId) ?? null;
   const steps = useBookingSteps({
     hasService: service !== null,
     hasTime: startsAt !== null,
-    // A linked service starts at the time step, unless it has add-ons to offer.
-    initialStep:
-      service === null || addOnsFor(storefront.add_ons, service.id).length > 0
-        ? 1
-        : 2,
+    // A linked service is chosen and expanded on step 1; nothing moves on by itself.
+    initialStep: 1,
   });
   const { step } = steps;
   const addOns = useAddOns({
@@ -1008,6 +1122,49 @@ function BookingFlowBody({
   const [phone, setPhone] = useState(signedIn?.phone ?? "");
   const [notes, setNotes] = useState("");
   const [marketing, setMarketing] = useState(false);
+
+  // The choices live in the page's own link (`?service=`, `?day=`, `?time=`),
+  // so a reload or a shared link keeps them. Written in place: no history entry.
+  // Back and Edit (popstate) can land on an entry whose link was written before
+  // the latest choice, so the link is written again then, from the choices held
+  // in state.
+  useEffect(() => {
+    const sync = () => {
+      const here = window.location.href;
+      const there = withChoices(here, {
+        day,
+        service: serviceId,
+        time: startsAt,
+      });
+      if (there !== here) {
+        window.history.replaceState(window.history.state, "", there);
+      }
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, [day, serviceId, startsAt]);
+
+  // What was typed comes back after a reload or a trip to sign in (this tab only).
+  // Filled fields are left alone, so a signed-in visitor keeps their own details.
+  // A signed-in visitor only gets details saved for their own account: on a
+  // shared tab, anyone else's are cleared, not shown.
+  const signedInEmail = signedIn?.email;
+  useEffect(() => {
+    const saved = readBookingDetails(storefront.slug);
+    if (!saved) {
+      return;
+    }
+    if (signedInEmail !== undefined && !sameEmail(saved.email, signedInEmail)) {
+      clearBookingDetails(storefront.slug);
+      return;
+    }
+    setName((value) => value || saved.name);
+    setEmail((value) => value || saved.email);
+    setPhone((value) => value || saved.phone);
+    setNotes((value) => value || saved.notes);
+    setMarketing((value) => value || saved.marketing);
+  }, [storefront.slug, signedInEmail]);
   const [website, setWebsite] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
@@ -1024,6 +1181,12 @@ function BookingFlowBody({
   const [quote, setQuote] = useState<Quote | null>(null);
   const keyRef = useRef("");
   const [booked, setBooked] = useState<Booked | null>(null);
+  // Once booked, the typed details are no longer needed in this tab.
+  useEffect(() => {
+    if (booked) {
+      clearBookingDetails(storefront.slug);
+    }
+  }, [booked, storefront.slug]);
   const summaryRef = useRef<HTMLDivElement>(null);
   // One key per submission: a retry of the same request replays it.
   const attempt = useRef<{ print: string; key: string } | null>(null);
@@ -1041,41 +1204,61 @@ function BookingFlowBody({
   };
   const reviseErrors = (change: Partial<BookingFields>) =>
     setErrors((previous) => stillWrong(previous, { ...fieldsNow, ...change }));
+  // What is typed so far, kept for this tab (see booking-details-store.ts).
+  const keepDetails = (change: Partial<SavedDetails>) =>
+    saveBookingDetails(storefront.slug, {
+      email,
+      marketing,
+      name,
+      notes,
+      phone,
+      ...change,
+    });
+  // Choosing a service never moves the step: the person presses Continue.
+  // A different service has its own days and times, so the day is cleared too.
   const pickService = (id: string) => {
     track?.("service_selected", { service_id: id });
     setServiceId(id);
+    setDay(null);
     setStartsAt(null);
+    setTimeGone(false);
     addOns.reset();
     reviseErrors({ serviceId: id, startsAt: null });
-    // With add-ons to tick the person stays on this step until they press Continue.
-    if (addOnsFor(storefront.add_ons, id).length === 0) {
-      steps.goTo(2);
-    }
   };
   const pickStart = (value: string | null) => {
     if (value && serviceId) {
       track?.("slot_selected", { service_id: serviceId });
     }
     setStartsAt(value);
+    // Clearing a time the business no longer offers keeps the note saying so;
+    // only a time actually chosen (or a new day) takes it away.
     if (value) {
+      setTimeGone(false);
       addOns.clearNote();
+      // The day of a time is the day it was picked from, even when the
+      // visitor never pressed a day (the first day with times is the default).
+      setDay(localDay(value, storefront.timezone));
     }
     reviseErrors({ startsAt: value });
   };
   const editName = (value: string) => {
     setName(value);
+    keepDetails({ name: value });
     reviseErrors({ name: value });
   };
   const editEmail = (value: string) => {
     setEmail(value);
+    keepDetails({ email: value });
     reviseErrors({ email: value });
   };
   const editPhone = (value: string) => {
     setPhone(value);
+    keepDetails({ phone: value });
     reviseErrors({ phone: value });
   };
   const editNotes = (value: string) => {
     setNotes(value);
+    keepDetails({ notes: value });
     reviseErrors({ notes: value });
   };
 
@@ -1115,9 +1298,11 @@ function BookingFlowBody({
   const needsCode =
     ((selection?.emailCodeRequired ?? false) && !ownAccountEmail) ||
     (serviceId !== null && codeForced === serviceId);
+  // A request (the business accepts by hand): nothing is paid when it is made.
+  const payLater = service?.pay_after_acceptance === true;
   const payNow =
     service && knownDue !== null && totals
-      ? payNowLine(knownDue, totals.priceMinor, storefront.currency)
+      ? moneyLine(payLater, knownDue, totals.priceMinor, storefront)
       : null;
   const businessDeposit = businessDepositFor(
     storefront,
@@ -1146,12 +1331,17 @@ function BookingFlowBody({
   };
 
   const onBookingFailed = (outcome: Failure) => {
-    setFormError(outcome.message);
     if (outcome.code === "email_unverified") {
-      // The proof was used, expired or never accepted: ask for a new code.
+      // The proof was used, expired or never accepted, or a signed-in person's
+      // own address still needs confirming. Asking for a code is a normal step,
+      // not a failure: the ask above the button says so and nothing red shows
+      // (issue #1951, item 4). The typed details are all kept.
       emailCode.dropProof();
       setCodeForced(serviceId);
+      setFormError(null);
+      return;
     }
+    setFormError(outcome.message);
     if (outcome.code === "add_ons_unavailable") {
       addOns.gone(outcome.message);
       setStartsAt(null);
@@ -1284,14 +1474,17 @@ function BookingFlowBody({
     );
   }
 
-  const recap = recapLine({
+  const chosen = {
     currency: storefront.currency,
     dueMinor: knownDue,
+    durationMin: service?.duration_min,
     priceMinor: totals?.priceMinor,
     serviceName: service?.name,
     startsAt,
     timeZone: storefront.timezone,
-  });
+  };
+  const summary = chosenSummary(chosen);
+  const trail = chosenTrail(chosen);
 
   return (
     <>
@@ -1323,6 +1516,7 @@ function BookingFlowBody({
 
         <StepPane active={step === 1} step={1}>
           <ServicesStep
+            addOnsChosen={addOns.ids.length > 0}
             bookAgain={bookAgain}
             errors={errors}
             onPick={pickService}
@@ -1345,30 +1539,49 @@ function BookingFlowBody({
         </StepPane>
 
         <StepPane active={step === 2} step={2}>
+          {steps.enhanced && (
+            <ChosenTrail
+              editLabel="service"
+              onEdit={() => steps.editTo(1)}
+              text={trail}
+            />
+          )}
           <TimeStep
             actions={actions}
             addOnIds={addOns.ids}
             currentKey={() => keyRef.current}
             errors={errors}
+            initialDay={day}
             onAddOnsGone={(message) => {
               addOns.gone(message);
               setStartsAt(null);
             }}
             onBusyChange={setTimesBusy}
             onChange={pickStart}
+            onDayChange={(next) => {
+              setDay(next);
+              setTimeGone(false);
+            }}
             onQuote={setQuote}
-            onUnavailable={addOns.timeNoLongerFits}
+            onUnavailable={() => {
+              addOns.timeNoLongerFits();
+              setTimeGone(true);
+            }}
             reloadKey={reloadKey + addOns.reloads}
             service={service}
             startsAt={startsAt}
             storefront={storefront}
-            timeNote={addOns.note}
+            timeNote={addOns.note ?? (timeGone ? TIME_GONE_MESSAGE : null)}
           />
         </StepPane>
 
         <StepPane active={step === 3} step={3}>
           {steps.enhanced && step === 3 && (
-            <p className="book-recap book-phone-only">{recap}</p>
+            <ChosenTrail
+              editLabel="time"
+              onEdit={() => steps.editTo(2)}
+              text={trail}
+            />
           )}
           <fieldset className="step">
             <legend>3. Your details</legend>
@@ -1422,7 +1635,10 @@ function BookingFlowBody({
               <input
                 checked={marketing}
                 name="marketing"
-                onChange={(e) => setMarketing(e.target.checked)}
+                onChange={(e) => {
+                  setMarketing(e.target.checked);
+                  keepDetails({ marketing: e.target.checked });
+                }}
                 type="checkbox"
               />
               <span>
@@ -1486,6 +1702,7 @@ function BookingFlowBody({
           {isVerified && needsCode && (
             <VerifiedNotice proof={emailCode.proof} />
           )}
+          {needsCode && !isVerified && !stepOpen && <CodeAsk email={email} />}
 
           <ServiceNotes
             businessDeposit={businessDeposit}
@@ -1511,6 +1728,7 @@ function BookingFlowBody({
               dueMinor: ruleMoney.dueMinor,
               nonRefundable: storefront.deposit_non_refundable,
               ownDepositMinor: service?.deposit_minor,
+              payAfterAcceptance: payLater,
               priceMinor: totals?.priceMinor,
             }}
           />
@@ -1542,8 +1760,8 @@ function BookingFlowBody({
           <StepBar
             canContinue={step === 1 ? service !== null : startsAt !== null}
             onContinue={() => steps.goTo(step === 1 ? 2 : 3)}
-            recap={recap}
             step={step}
+            summary={summary}
           />
         )}
       </form>

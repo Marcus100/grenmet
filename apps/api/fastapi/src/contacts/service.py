@@ -411,7 +411,11 @@ async def merge_contacts(
 async def erase_contact(
     session: AsyncSession, contact: Contact, *, actor: User | None = None
 ) -> Contact:
-    """Blank personal details, keep the hash tombstone, revoke all consent."""
+    """Blank personal details, keep the hash tombstone, revoke all consent.
+
+    Registered domains clear their own copies of those details in the same
+    transaction (``references.erase_all``).
+    """
     if contact.erased_at is not None:
         return contact
     audit_service.set_actor(session, actor.id if actor else None)
@@ -424,6 +428,10 @@ async def erase_contact(
     contact.phone = None
     contact.user_id = None
     contact.erased_at = utc_now()
+    # A domain may hold a copy of these details beside its role row (bookings
+    # keeps the name typed on each booking, which its views prefer), so the
+    # copies go in the same transaction: blanking the contact is not enough.
+    await references.erase_all(session, contact_id=contact.id)
     await audit_service.record_change(
         session,
         entity_type=SUBJECT,
