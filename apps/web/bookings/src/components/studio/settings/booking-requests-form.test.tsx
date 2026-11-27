@@ -59,7 +59,7 @@ describe("BookingRequestsForm", () => {
     ).toBeVisible();
     expect(
       screen.getByText(
-        "A customer may hold 3 upcoming bookings at once. Beyond that, online booking is refused: the customer is told how many they hold and that they can change or cancel one from the link in their booking email."
+        "A customer may hold 3 upcoming bookings at once. Beyond that, online booking is refused and the customer is asked to change or cancel one from the link in their booking email, or to contact you. The refusal never tells them the limit."
       )
     ).toBeVisible();
   });

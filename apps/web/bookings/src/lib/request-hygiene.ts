@@ -61,7 +61,7 @@ export function maxOpenSentence(text: string): string | null {
     check.value === 1
       ? "1 upcoming booking"
       : `${check.value} upcoming bookings`;
-  return `A customer may hold ${held} at once. Beyond that, online booking is refused: the customer is told how many they hold and that they can change or cancel one from the link in their booking email.`;
+  return `A customer may hold ${held} at once. Beyond that, online booking is refused and the customer is asked to change or cancel one from the link in their booking email, or to contact you. The refusal never tells them the limit.`;
 }
 
 /**

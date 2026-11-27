@@ -50,7 +50,7 @@ Storefront extras (public pages only): `accepting_bookings: false` renders `Paus
 - Money and create actions carry an `Idempotency-Key` made on mount, kept after a timeout or server fault and rotated after a refusal (`rotatesKey` in `studio-view.ts`).
 - The Settings forms keep typed values with `keepTyped` (`components/studio/settings/settings-ui.tsx`). Forms that are driven by `useActionState` and whose success redirects or unmounts submit through `keepValuesOnSubmit` (`src/lib/keep-values.ts`) so a refusal keeps what was typed. A form with only an `onSubmit` handler disables its submit until `useHydrated()` (`src/lib/use-hydrated.ts`) is true: New booking and the Settings forms that render at page load (profile, services, providers, hours, the time-off add form). The Settings time-off remove form is not gated: it exists only inside a dialog that a click opens, which is after hydration. Rules: `docs/agents/extended-rules.md`, Form patterns.
 
-- Setup guardrails (27 Nov 2026): a service offered to customers that no active person does warns in its own form (`NobodyDoesNotice`; read-only viewers get it in the list), an empty booking policy offers `lib/suggested-policy.ts` text that only fills the box, and the open-booking limit reads `maxOpenSentence`.
+- Setup guardrails (27 Nov 2026): a service offered to customers that no active person does warns in its own form (`NobodyDoesNotice`; read-only viewers get it in the list), an empty booking policy offers `lib/suggested-policy.ts` text that only fills the box, and the open-booking limit reads `maxOpenSentence` (the refusal itself names no count).
 
 - Closed days (`closed-days.tsx`, `lib/closures.ts`): whole-business closures under Settings > Hours; the API never cancels bookings inside one.
 

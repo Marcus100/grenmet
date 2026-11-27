@@ -137,8 +137,10 @@ describe("maxOpenSentence", () => {
 
   it("says what the customer is told, so a business is not surprised", () => {
     const text = maxOpenSentence("3") ?? "";
-    expect(text).toContain("told how many they hold");
     expect(text).toContain("link in their booking email");
+    // The refusal is deliberately silent about the count and the limit.
+    expect(text).toContain("never tells them the limit");
+    expect(text).not.toContain("how many they hold");
   });
 
   it("is null for a value the API would refuse", () => {

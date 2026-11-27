@@ -812,28 +812,21 @@ OPEN_CAP_STATUSES = tuple(
 )
 
 
-def open_cap_message(open_count: int) -> str:
-    """The refusal for a customer who already holds the business's
-    ``max_open_per_customer`` future bookings (owner decision, 27 Nov 2026: the old
-    one wording left a legitimate customer with nothing to act on). It names only
-    the caller's own count and where to change a booking: never another customer's
-    or another booking's name, time, address or reference.
-
-    The earlier rule (security review, MEDIUM-2) was one text whatever the count, so
-    that a refusal would not say that bookings exist for an address. The refusal
-    itself already says the address is at the cap, and the count is the caller's own
-    number, so naming it tells a prober nothing new about anybody else. The cap
-    limits careless repeat bookings; it is not abuse protection (the rate limit and
-    Turnstile are).
-    """
-    one = open_count == 1
-    return (
-        f"You already have {open_count} upcoming "
-        f"{'booking' if one else 'bookings'} with this business, "
-        "which is as many as we can hold online for one email address. "
-        f"To book another time, change or cancel {'it' if one else 'one of them'} "
-        "from the link in your booking email, or contact the business."
-    )
+#: The refusal for a customer who already holds the business's
+#: ``max_open_per_customer`` future bookings. It says what to do next (owner
+#: decision, 27 Nov 2026: the old wording left a legitimate customer with nothing to
+#: act on) and still keeps one text whatever the count (security review, MEDIUM-2).
+#:
+#: Naming the count was tried and withdrawn on review: it would disclose bookings
+#: staff entered by phone above the cap, and a count equal to the cap discloses the
+#: cap itself. Neither is needed to tell the customer what to do. The cap limits
+#: careless repeat bookings; it is not abuse protection (the rate limit and
+#: Turnstile are).
+OPEN_CAP_MESSAGE = (
+    "This email address already has as many upcoming bookings with this business "
+    "as we can hold online. To book another time, change or cancel one from the "
+    "link in your booking email, or contact the business."
+)
 
 
 async def _require_under_open_cap(
@@ -856,9 +849,8 @@ async def _require_under_open_cap(
             Booking.starts_at > now,
         )
     )
-    held = open_count or 0
-    if held >= profile.max_open_per_customer:
-        raise BookingConflictError(open_cap_message(held))
+    if (open_count or 0) >= profile.max_open_per_customer:
+        raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
 #: A booking that makes its customer a returning client of the business.
