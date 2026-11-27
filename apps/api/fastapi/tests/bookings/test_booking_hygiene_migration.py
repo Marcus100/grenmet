@@ -63,10 +63,14 @@ def _checks(connection) -> set[str]:
     return {row[0] for row in rows}
 
 
-def test_there_is_a_single_alembic_head() -> None:
-    # Later slices stack on this one; the head moves with each new revision.
-    heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["eventsordercontact20261127"]
+def test_the_hygiene_revision_is_in_the_chain() -> None:
+    # Ancestry, not equality: later revisions stack on top, so the head moves. The
+    # single-head guard lives in tests/test_main_migration_head.py.
+    script = ScriptDirectory.from_config(Config("alembic.ini"))
+    chain = {
+        rev.revision for rev in script.iterate_revisions(script.get_heads(), "base")
+    }
+    assert REVISION in chain
 
 
 def test_upgrade_adds_both_columns_with_their_defaults(rehearsal):
