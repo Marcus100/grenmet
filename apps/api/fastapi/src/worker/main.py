@@ -378,7 +378,7 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
 
 
 @monitored(schedule="*/10 * * * *", checkin_margin=5, max_runtime=5)
-async def backfill_event_buyer_contacts(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+async def backfill_event_buyer_contacts(ctx: dict[str, Any]) -> int:
     """Link a bounded batch of cash walk-ins to contacts (#1986). Idempotent: a run
     that dies before its commit is redone, and an empty backlog costs one query."""
     from src.database import async_session_factory
@@ -387,6 +387,11 @@ async def backfill_event_buyer_contacts(ctx: dict[str, Any]) -> int:  # noqa: AR
     async with async_session_factory() as session:
         linked = await buyer_contacts.backfill_batch(session, limit=200)
         await session.commit()
+    logger.info(
+        "backfill_event_buyer_contacts linked=%s job_id=%s",
+        linked,
+        ctx.get("job_id", ""),
+    )
     return linked
 
 

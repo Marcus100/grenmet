@@ -23,6 +23,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine.default import DefaultExecutionContext
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.contacts import references as contact_references
@@ -450,7 +451,7 @@ class Refund(EventsModel):
 
 # Precise scope (#1986): erasure clears cash walk-in copies only. Online buyers
 # have an account and are not contacts yet, so their order rows are not reached.
-async def _erase_walk_in_copies(session: Any, contact_id: str) -> None:
+async def _erase_walk_in_copies(session: AsyncSession, contact_id: str) -> None:
     """Erasure of a walk-in clears the name and phone kept on its cash orders (#1986)."""
     await session.execute(
         sa.update(cast(sa.Table, Order.__table__))

@@ -8,10 +8,11 @@ an opt-in. Bookings does not gate on the contacts product either, so this
 creates the contact whatever the organisation holds: erasure must reach it.
 """
 
-from typing import Any, cast
+from typing import cast
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 
 from src.contacts import service as contacts_service
 
@@ -26,7 +27,9 @@ def _blank_to_none(value: str | None) -> str | None:
     return stripped or None
 
 
-def _nonblank(column: Any) -> Any:
+def _nonblank(
+    column: ColumnElement[str | None] | InstrumentedAttribute[str | None],
+) -> ColumnElement[bool]:
     """SQL: the column holds a value after trimming (NULL, '' and spaces do not)."""
     return func.nullif(func.trim(column), "").is_not(None)
 
