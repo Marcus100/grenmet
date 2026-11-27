@@ -276,6 +276,10 @@ TOO_CLOSE_TO_PAY_ONLINE = (
     "the customer book a later time."
 )
 ALREADY_ACCEPTED = "This request is already accepted and is waiting for payment"
+PAID_WHILE_ACCEPTING = (
+    "The deposit was paid while this request was being accepted. Open the booking "
+    "again to see where it stands."
+)
 
 
 async def confirm(
@@ -312,7 +316,11 @@ async def confirm(
         # deposit becomes one paid to the business: nothing is held or refunded by
         # Barrels, and the booking follows the direct-payment path from here on.
         waived = True
-        await deposit_payments.cancel_unpaid_deposit(session, booking)
+        # Never convert a deposit that turned out to be paid. The booking row lock
+        # makes that unreachable today, but zeroing a real payment is not worth
+        # risking if a capture ever lands outside this transaction.
+        if not await deposit_payments.cancel_unpaid_deposit(session, booking):
+            raise BookingConflictError(PAID_WHILE_ACCEPTING)
         booking.deposit_to_business_minor = booking.deposit_minor
         booking.deposit_minor = 0
         booking.pay_after_acceptance = False
