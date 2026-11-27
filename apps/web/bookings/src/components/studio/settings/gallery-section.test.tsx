@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const actions = vi.hoisted(() => ({
   addGalleryPhotoAction: vi.fn(),
   finishGalleryUploadAction: vi.fn(),
+  loadGalleryAction: vi.fn(),
   removeGalleryPhotoAction: vi.fn(),
   reorderGalleryAction: vi.fn(),
   startGalleryUploadAction: vi.fn(),
@@ -168,12 +169,14 @@ describe("the gallery section", () => {
     expect(screen.getAllByRole("img").length).toBe(1);
   });
 
-  it("shows a refusal from the API and keeps the photographs it had", async () => {
+  it("shows a refusal and reads the stored gallery back", async () => {
     actions.removeGalleryPhotoAction.mockResolvedValue({
       ok: false,
-      message: "Only an owner or admin can change this.",
+      message: "We could not find that photograph.",
     });
-    draw([ONE]);
+    // Someone else had already removed it: the stored gallery is the other one.
+    actions.loadGalleryAction.mockResolvedValue({ ok: true, photos: [TWO] });
+    draw([ONE, TWO]);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Remove photograph 1" })
@@ -181,10 +184,38 @@ describe("the gallery section", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(
+        "could not find that photograph"
+      );
+    });
+    expect(actions.loadGalleryAction).toHaveBeenCalledWith("sea-salt-spa");
+    expect(
+      screen.getAllByRole("img").map((img) => img.getAttribute("src"))
+    ).toEqual(["/files/f2"]);
+  });
+
+  it("keeps the photographs it had when the read back also fails", async () => {
+    actions.reorderGalleryAction.mockResolvedValue({
+      ok: false,
+      message: "Only an owner or admin can change this.",
+    });
+    actions.loadGalleryAction.mockResolvedValue({
+      ok: false,
+      message: "Try again in a moment.",
+    });
+    draw([ONE, TWO]);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Move photograph 2 earlier" })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toContain(
         "Only an owner or admin"
       );
     });
-    expect(screen.getAllByRole("img").length).toBe(1);
+    expect(
+      screen.getAllByRole("img").map((img) => img.getAttribute("src"))
+    ).toEqual(["/files/f1", "/files/f2"]);
   });
 
   it("stops at twelve photographs", () => {

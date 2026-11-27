@@ -8,14 +8,18 @@ order the business arranged; removing one closes the gap it leaves. The storefro
 complete upload, and is empty when there is none.
 """
 
+import asyncio
 import uuid
 
 import httpx
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings import gallery
+from src.bookings.exceptions import BookingConflictError
 from src.config import settings
+from src.database import async_session_factory
 from src.organisations import service as organisation_service
 from src.organisations.models import MembershipRole
 from src.storage.models import OrgUpload
@@ -438,3 +442,80 @@ async def test_a_failing_gallery_read_fails_closed_on_the_storefront(
     assert storefront.status_code == 200, storefront.text
     assert storefront.json()["gallery"] == []
     assert storefront.json()["display_name"] == "Babydoll Beauty Bar"
+
+
+# --- one business's gallery writes are serialised ---------------------------------------
+
+
+async def test_a_second_add_waits_for_the_first_and_the_limit_still_holds(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Two real transactions, so the lock is exercised rather than described: with
+    11 photographs stored, two concurrent adds must not both get a place."""
+    studio = await _studio(db_async, async_client)
+    for _ in range(gallery.MAX_PHOTOS - 1):
+        await _photo(async_client, studio, await _gallery_file(db_async, studio.org_id))
+    files = [await _gallery_file(db_async, studio.org_id) for _ in range(2)]
+
+    async def add(file_id: uuid.UUID) -> None:
+        async with async_session_factory() as session:
+            await gallery.add_photo(
+                session, organisation_id=studio.org_id, file_id=file_id
+            )
+            await session.commit()
+
+    async with async_session_factory() as holder:
+        # Hold this business's gallery lock, so both adds queue behind it.
+        await holder.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+            {"key": gallery.lock_key(studio.org_id)},
+        )
+        tasks = [asyncio.create_task(add(file_id)) for file_id in files]
+        await asyncio.sleep(0.5)
+        assert not any(task.done() for task in tasks), (
+            "an add did not wait for the gallery lock"
+        )
+        await holder.rollback()
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    refused = [r for r in results if isinstance(r, BookingConflictError)]
+    assert len(refused) == 1, results
+    assert "at most 12 photographs" in str(refused[0])
+    listed = await async_client.get(GALLERY, headers=studio.headers)
+    photos = listed.json()
+    assert len(photos) == gallery.MAX_PHOTOS
+    # No two photographs share a place, and the order has no hole.
+    assert [photo["sort_order"] for photo in photos] == list(range(gallery.MAX_PHOTOS))
+
+
+async def test_a_lost_race_on_the_same_file_replays_instead_of_failing(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The savepoint and re-select, exercised at the one point where the lock cannot
+    help: the duplicate read misses a row that is already stored, so the insert hits
+    the unique constraint. The caller must still get the stored photograph."""
+    studio = await _studio(db_async, async_client)
+    file_id = await _gallery_file(db_async, studio.org_id)
+    first = await _photo(async_client, studio, file_id)
+
+    real = gallery._by_file
+    calls = {"n": 0}
+
+    async def blind_first_read(session, organisation_id, wanted):  # type: ignore[no-untyped-def]
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return None  # as if the row were committed after this read
+        return await real(session, organisation_id, wanted)
+
+    monkeypatch.setattr(gallery, "_by_file", blind_first_read)
+
+    response = await async_client.post(
+        GALLERY, headers=studio.headers, json={"file_id": str(file_id)}
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["id"] == first["id"]
+    listed = await async_client.get(GALLERY, headers=studio.headers)
+    assert len(listed.json()) == 1

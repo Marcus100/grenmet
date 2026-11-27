@@ -14,6 +14,7 @@ import uuid
 from typing import Any
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.storage import uploads
@@ -29,6 +30,44 @@ logger = logging.getLogger(__name__)
 GALLERY_PURPOSE = "booking-gallery"
 #: How many photographs one business may show.
 MAX_PHOTOS = 12
+
+
+def lock_key(organisation_id: str) -> str:
+    """The advisory-lock key that serialises one business's gallery writes."""
+    return f"bookings-gallery:{organisation_id}"
+
+
+async def _lock(session: AsyncSession, organisation_id: str) -> None:
+    """Serialise this business's gallery writes for the rest of the transaction.
+
+    Counting, inserting and renumbering are read-then-write, so two requests for
+    one business would otherwise interleave: both could read 11 photographs and
+    insert a twelfth and a thirteenth sharing a position, and a reorder racing a
+    removal could write a gap or fail on a row another transaction had deleted.
+    One transaction-scoped advisory lock per organisation (the pattern in
+    ``src/organisations/grants.py``) makes each write read the gallery it changes.
+    Another business is a different key, so businesses never wait on each other.
+    """
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtextextended(lock_key(organisation_id), 0)
+            )
+        )
+    )
+
+
+async def _by_file(
+    session: AsyncSession, organisation_id: str, file_id: uuid.UUID
+) -> GalleryPhoto | None:
+    """This business's photograph for that file, or None."""
+    found: GalleryPhoto | None = await session.scalar(
+        select(GalleryPhoto).where(
+            GalleryPhoto.organisation_id == organisation_id,
+            GalleryPhoto.file_id == file_id,
+        )
+    )
+    return found
 
 
 async def list_photos(
@@ -52,12 +91,8 @@ async def add_photo(
     Adding a file that is already in the gallery answers the row that is there, so
     a retried request never makes a second copy.
     """
-    existing = await session.scalar(
-        select(GalleryPhoto).where(
-            GalleryPhoto.organisation_id == organisation_id,
-            GalleryPhoto.file_id == file_id,
-        )
-    )
+    await _lock(session, organisation_id)
+    existing = await _by_file(session, organisation_id, file_id)
     if existing is not None:
         return existing
     if not await uploads.file_is_usable(
@@ -75,11 +110,24 @@ async def add_photo(
         raise BookingConflictError(
             f"A business can show at most {MAX_PHOTOS} photographs. Remove one first."
         )
-    photo = GalleryPhoto(
-        organisation_id=organisation_id, file_id=file_id, sort_order=count or 0
-    )
-    session.add(photo)
-    await session.flush()
+    try:
+        # A savepoint: a unique violation would otherwise poison the request's
+        # transaction, and the caller is owed the row, not a 500.
+        async with session.begin_nested():
+            photo = GalleryPhoto(
+                organisation_id=organisation_id, file_id=file_id, sort_order=count or 0
+            )
+            session.add(photo)
+            await session.flush()
+    except IntegrityError:
+        # The file is already in this business's gallery: a request that got past
+        # the read above (a writer this transaction's lock cannot cover, such as a
+        # retry whose first attempt committed after the read) still replays as the
+        # docstring promises.
+        duplicate = await _by_file(session, organisation_id, file_id)
+        if duplicate is None:
+            raise
+        return duplicate
     return photo
 
 
@@ -87,6 +135,7 @@ async def remove_photo(
     session: AsyncSession, *, organisation_id: str, photo_id: uuid.UUID
 ) -> None:
     """Take one photograph out and close the gap it leaves in the order."""
+    await _lock(session, organisation_id)
     photo = await session.scalar(
         select(GalleryPhoto).where(
             GalleryPhoto.id == photo_id,
@@ -105,6 +154,7 @@ async def reorder(
     """Set each named photograph's position. Every id must belong to the business
     (404 otherwise); any photograph left out keeps its place after the named ones,
     and the stored order is renumbered so it has no gaps."""
+    await _lock(session, organisation_id)
     photos = await list_photos(session, organisation_id)
     by_id = {photo.id: photo for photo in photos}
     if set(ids) - by_id.keys():

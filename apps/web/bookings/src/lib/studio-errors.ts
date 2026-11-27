@@ -306,9 +306,18 @@ export function logoUploadFailure(
       };
     }
     case 503:
+      // A gallery photograph is its own record, saved the moment it is added, so
+      // "save the profile without it" would be wrong advice for one.
+      if (what === "photograph") {
+        return {
+          kind: "unavailable",
+          message: "Photo uploads are not available right now.",
+          nextStep: "Try again later. Your other settings are not affected.",
+        };
+      }
       return {
         kind: "unavailable",
-        message: `${what.charAt(0).toUpperCase()}${what.slice(1)} uploads are not available right now.`,
+        message: `${what === "logo" ? "Logo" : "Cover photo"} uploads are not available right now.`,
         nextStep: `Save the profile without a new ${what}, or try again later.`,
       };
     default:

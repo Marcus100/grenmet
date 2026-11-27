@@ -19,6 +19,7 @@ vi.mock("./actions", () => ({
   addGalleryPhotoAction: vi.fn(),
   createCalendarFeedAction: vi.fn(),
   finishGalleryUploadAction: vi.fn(),
+  loadGalleryAction: vi.fn(),
   removeGalleryPhotoAction: vi.fn(),
   reorderGalleryAction: vi.fn(),
   startGalleryUploadAction: vi.fn(),

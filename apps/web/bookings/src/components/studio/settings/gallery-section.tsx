@@ -7,6 +7,7 @@ import {
   addGalleryPhotoAction,
   finishGalleryUploadAction,
   type GalleryResult,
+  loadGalleryAction,
   removeGalleryPhotoAction,
   reorderGalleryAction,
   startGalleryUploadAction,
@@ -53,14 +54,22 @@ export function GallerySection({
   const input = useRef<HTMLInputElement>(null);
   const full = photos.length >= GALLERY_MAX_PHOTOS;
 
-  const apply = (result: GalleryResult, done: string): boolean => {
+  /**
+   * A refused write leaves this list guessing: a photograph someone else removed
+   * makes the whole reorder 404. Read the stored gallery back, so the person sees
+   * what is really there under the refusal.
+   */
+  const apply = async (result: GalleryResult, done: string): Promise<void> => {
     if (result.ok) {
       setPhotos(result.photos);
       setMessage({ tone: "status", text: done });
-      return true;
+      return;
     }
     setMessage({ tone: "error", text: result.message });
-    return false;
+    const stored = await loadGalleryAction(orgSlug);
+    if (stored.ok) {
+      setPhotos(stored.photos);
+    }
   };
 
   const upload = async (file: File) => {
@@ -97,7 +106,7 @@ export function GallerySection({
         setMessage({ tone: "error", text: finished.message });
         return;
       }
-      apply(
+      await apply(
         await addGalleryPhotoAction(orgSlug, finished.fileId),
         "Photograph added. It is on your booking page now."
       );
@@ -114,7 +123,7 @@ export function GallerySection({
     setBusy(true);
     setMessage(null);
     try {
-      apply(
+      await apply(
         await reorderGalleryAction(
           orgSlug,
           wanted.map((photo) => photo.id)
@@ -133,7 +142,7 @@ export function GallerySection({
     setBusy(true);
     setMessage(null);
     try {
-      apply(
+      await apply(
         await removeGalleryPhotoAction(orgSlug, photo.id),
         "Photograph removed."
       );

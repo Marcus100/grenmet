@@ -1034,7 +1034,11 @@ export async function reorderGalleryAction(
   }
 }
 
-/** The stored gallery after a change, so the section and the page agree. */
+/**
+ * The stored gallery after a change, so the section and the page agree. Only the
+ * studio path is revalidated: the public booking page is `force-dynamic` and
+ * reads the storefront on every request, so a new photograph is there at once.
+ */
 async function currentGallery(
   orgSlug: string,
   auth: Granted
@@ -1042,6 +1046,26 @@ async function currentGallery(
   const photos = await listGallery(auth.accessToken, auth.organisationId);
   revalidatePath(`/studio/${orgSlug}/settings`);
   return { ok: true, photos: galleryView(photos) };
+}
+
+/**
+ * The stored gallery, for the section to fall back to when a write is refused
+ * (a stale id makes the whole reorder 404, and the person must see what is
+ * really there). A failed read answers nothing, and the section keeps what it has.
+ */
+export async function loadGalleryAction(
+  orgSlug: string
+): Promise<GalleryResult> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  try {
+    const photos = await listGallery(auth.accessToken, auth.organisationId);
+    return { ok: true, photos: galleryView(photos) };
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
 }
 
 /** The refusal a logo step shows when the session or role check fails first. */
