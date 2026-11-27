@@ -503,7 +503,9 @@ async def test_a_lost_race_on_the_same_file_replays_instead_of_failing(
     real = gallery._by_file
     calls = {"n": 0}
 
-    async def blind_first_read(session, organisation_id, wanted):  # type: ignore[no-untyped-def]
+    async def blind_first_read(
+        session: AsyncSession, organisation_id: str, wanted: uuid.UUID
+    ) -> object:
         calls["n"] += 1
         if calls["n"] == 1:
             return None  # as if the row were committed after this read

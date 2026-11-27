@@ -167,6 +167,34 @@ describe("settings page", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the rest of Settings when the gallery cannot be read", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listGallery).mockRejectedValue(apiError(500));
+    render(await SettingsPage({ params }));
+    expect(screen.getByText("No photographs yet.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save profile" })
+    ).toBeInTheDocument();
+  });
+
+  it("shows the business's photographs in the Profile section", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listGallery).mockResolvedValue([
+      {
+        id: "88888888-8888-4888-8888-888888888888",
+        file_id: "99999999-9999-4999-8999-999999999999",
+        sort_order: 0,
+        created_at: "2026-11-27T00:00:00Z",
+      },
+    ] as never);
+    render(await SettingsPage({ params }));
+    expect(
+      screen.getByRole("button", { name: "Remove photograph 1" })
+    ).toBeInTheDocument();
+  });
+
   it("gives a member a read-only view with no forms", async () => {
     role("member");
     vi.mocked(getSettings).mockResolvedValue(FULL);

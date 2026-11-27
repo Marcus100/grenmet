@@ -218,6 +218,104 @@ describe("the gallery section", () => {
     ).toEqual(["/files/f1", "/files/f2"]);
   });
 
+  it("stops at the presigned step when the API refuses it", async () => {
+    actions.startGalleryUploadAction.mockResolvedValue({
+      ok: false,
+      message: "Photo uploads are not available right now.",
+    });
+    draw([]);
+
+    pick(new File(["x"], "work.jpg", { type: "image/jpeg" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toContain(
+        "Photo uploads are not available"
+      );
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(actions.addGalleryPhotoAction).not.toHaveBeenCalled();
+  });
+
+  it("says so when the bytes do not reach storage", async () => {
+    actions.startGalleryUploadAction.mockResolvedValue({
+      ok: true,
+      target: { id: "up-1", url: "https://store.example/put", headers: {} },
+    });
+    vi.mocked(fetch).mockResolvedValue({ ok: false } as Response);
+    draw([]);
+
+    pick(new File(["x"], "work.jpg", { type: "image/jpeg" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toContain(
+        "did not go through"
+      );
+    });
+    expect(actions.finishGalleryUploadAction).not.toHaveBeenCalled();
+  });
+
+  it("shows the refusal when confirming the upload fails", async () => {
+    actions.startGalleryUploadAction.mockResolvedValue({
+      ok: true,
+      target: { id: "up-1", url: "https://store.example/put", headers: {} },
+    });
+    vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
+    actions.finishGalleryUploadAction.mockResolvedValue({
+      ok: false,
+      message: "That image has too many pixels.",
+    });
+    draw([]);
+
+    pick(new File(["x"], "work.jpg", { type: "image/jpeg" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toContain(
+        "too many pixels"
+      );
+    });
+    expect(actions.addGalleryPhotoAction).not.toHaveBeenCalled();
+  });
+
+  it("reports a fault and says to try again", async () => {
+    actions.startGalleryUploadAction.mockRejectedValue(new Error("offline"));
+    draw([]);
+
+    pick(new File(["x"], "work.jpg", { type: "image/jpeg" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toContain(
+        "did not go through"
+      );
+    });
+    expect(reportError).toHaveBeenCalled();
+    // The button is usable again: the upload is not left looking busy.
+    expect(screen.getByRole("button", { name: ADD })).not.toBeDisabled();
+  });
+
+  it("reports a fault from a move or a removal", async () => {
+    actions.reorderGalleryAction.mockRejectedValue(new Error("offline"));
+    actions.removeGalleryPhotoAction.mockRejectedValue(new Error("offline"));
+    draw([ONE, TWO]);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Move photograph 1 later" })
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeTruthy();
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove photograph 1" })
+    );
+    await waitFor(() => {
+      expect(actions.removeGalleryPhotoAction).toHaveBeenCalled();
+    });
+    expect(reportError).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getAllByRole("img").map((img) => img.getAttribute("src"))
+    ).toEqual(["/files/f1", "/files/f2"]);
+  });
+
   it("stops at twelve photographs", () => {
     draw(
       Array.from({ length: GALLERY_MAX_PHOTOS }, (_, index) => ({
