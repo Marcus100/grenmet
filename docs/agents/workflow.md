@@ -133,7 +133,7 @@ Files fall into three groups:
 | Group | Files | Who merges |
 | --- | --- | --- |
 | Ordinary | everything not listed below | the agent, under steps 0 to 5 |
-| Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the owner, after the security review below; the hook refuses an agent merge |
+| Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the owner, after the security review below |
 | Enforcement | `.claude/hooks/`, `.claude/settings.json`, `.codex/`, `.agents/` settings, `.github/` (workflows, dependabot, CODEOWNERS), `infra/github/`, any `CODEOWNERS`, `.husky/`, `.devcontainer/`, `.vscode/`, `.mcp.json`, `.gitleaks.toml`, `skills-lock.json`, the root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `pnpm-lock.yaml`, `scripts/agents/`, `scripts/ci/`, `scripts/production/`, `scripts/ops/`, `scripts/monitoring/`, `scripts/verification/`, the guardrail scripts that are not tests | the owner, always; the hook refuses an agent merge whatever the PR body says |
 
 The lockfile and workspace files are owner-merge on their own, so dependency
@@ -167,7 +167,12 @@ that line could never be obtained — every agent-rules PR was silently
 unmergeable (#1991, #1853). The owner is the second reviewer until the Codex app
 is connected; connecting it and reverting this section restores the two-reviewer
 bar. The merge hook still asks an agent for both lines, so it refuses an agent
-merge here either way, which is what owner-merge means.
+merge here either way — but that refusal is not proof: the lines are the agent's
+own statement (see the backstop note below), so it only holds for an agent that
+does not write a line it did not earn. Moving the agent-rules paths into the
+hook's `OWNER_ONLY_PATHS` would make this lane owner-merge unconditionally, as
+the enforcement lane already is. That is an enforcement-file change, so it is
+the owner's to make.
 
 **Phone alert.** Use the session's push-notification tool when it has one
 (Claude Code: `PushNotification`). Where there is none, post the same text as a

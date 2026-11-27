@@ -231,8 +231,13 @@ GitHub's branch rulesets are the backstop meanwhile.
   git or gh.
 - **Self-attested review lines.** The `Security review` line on an agent-rules
   PR is written by the agent itself; the hook checks its shape and sha, not that
-  a review happened. The owner merging that lane is the current backstop; making
-  the review a required GitHub status from a pinned App would close it properly.
+  a review happened, and an agent that wrote both lines could still merge the
+  lane the docs now call owner-merge. Two fixes, both the owner's: add the
+  agent-rules paths to `OWNER_ONLY_PATHS` in
+  `.claude/hooks/block-dangerous-git.mjs` (and update its comments and
+  `agent-hook-behavior.test.mjs` with it) to make owner-merge unconditional, and
+  make the review a required GitHub status from a pinned App so the line stops
+  being a claim.
 - **Rulesets not re-verified.** The protections the factory relies on
   (required CI on `dev`, `staging` and `main` protected, no bypass actors) are
   read from the committed snapshot `infra/github/rulesets.json`; nobody has
