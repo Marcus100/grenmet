@@ -52,6 +52,7 @@ from .models import (
     Booking,
     BookingAddOn,
     BookingEvent,
+    BookingEventReason,
     BookingProfile,
     BookingSource,
     BookingStatus,
@@ -172,6 +173,7 @@ async def transition(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
+    reason: BookingEventReason | None = None,
     now: datetime | None = None,
     earns_reward: bool = True,
 ) -> None:
@@ -191,7 +193,13 @@ async def transition(
     if target is BookingStatus.CANCELLED:
         booking.cancelled_at = moment
     record_event(
-        session, booking, current, target, actor_user_id=actor_user_id, note=note
+        session,
+        booking,
+        current,
+        target,
+        actor_user_id=actor_user_id,
+        note=note,
+        reason=reason,
     )
     await session.flush()
     if target is BookingStatus.COMPLETED and earns_reward:
@@ -263,6 +271,7 @@ def record_event(
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
     staff_note: bool = False,
+    reason: BookingEventReason | None = None,
 ) -> BookingEvent:
     """Add a history row and return it. Its id exists at once, so a caller can
     key an email or webhook to this one change. A ``staff_note`` row is left out
@@ -276,6 +285,7 @@ def record_event(
         actor_user_id=actor_user_id,
         note=note[:300] if note else None,
         staff_note=staff_note,
+        reason=reason.value if reason else None,
     )
     session.add(event)
     return event

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingEventReasonSchema } from "./bookingEventReasonSchema.js";
 
 export const bookingStudioDeclineSchema = z.object({
   reason: z
@@ -12,5 +13,11 @@ export const bookingStudioDeclineSchema = z.object({
     .max(300)
     .describe(
       "Why the request is declined. Shown to the customer in the email."
+    ),
+  reason_code: z
+    .union([bookingEventReasonSchema, z.null()])
+    .optional()
+    .describe(
+      "The reason for the business's history, from a fixed list. Staff only; the customer does not see it. Left out, the history has no reason."
     ),
 });

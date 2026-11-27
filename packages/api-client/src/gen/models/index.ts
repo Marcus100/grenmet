@@ -1296,6 +1296,8 @@ export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
 export type { BookingEmailProof } from "./BookingEmailProof.js";
+export type { BookingEventReason } from "./BookingEventReason.js";
+export { bookingEventReason } from "./BookingEventReason.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingEventReasonSchema } from "./bookingEventReasonSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
 export const bookingStudioEventSchema = z.object({
@@ -15,5 +16,11 @@ export const bookingStudioEventSchema = z.object({
       "The member who acted; null for the customer, an API key or the system."
     ),
   note: z.union([z.string(), z.null()]),
+  reason: z
+    .union([bookingEventReasonSchema, z.null()])
+    .optional()
+    .describe(
+      "Why staff declined or cancelled, from a fixed list; null when not given."
+    ),
   created_at: z.iso.datetime(),
 });
