@@ -53,21 +53,19 @@ Claude Code fills these in; in Codex, run the commands.
       answer each finding. A `risk:high` PR also needs a clean
       `security-reviewer` pass, named in the PR body. For a cross-tool review,
       post the block from `pnpm agents:handoff` as a PR comment the same way.
-   4. Enforcement files (hooks, `.claude/settings.json`, `.codex`, Codex
-      rules, `.github`, rulesets, `.husky`, root `package.json`, guardrail
-      scripts that are not tests): stop after CI and review; the owner merges
-      the PR (the hook refuses an agent merge). Agent-rules files (skills, role
-      briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`): run the
-      `security-reviewer` on the head, and read Codex's GitHub review of that
-      exact head. Only when both are clean, add both lines to the PR body
-      (`gh pr edit <num> --body-file <file>`), each alone on its line with the
-      full 40-character head sha:
-      `Security review: no open findings (<reviewer>, <sha>)` and
-      `Codex review: no blocking findings (<sha>)`. A new push means both
-      reviews and both lines again. No Codex review of that head: stop and say
-      so; do not merge.
-   5. Once CI is green on the head and the review has no open blocking finding,
-      merge it yourself, alone in its command:
+   4. Both owner-merge groups stop after CI and review; the hook refuses an
+      agent merge of either. Enforcement files (hooks, `.claude/settings.json`,
+      `.codex`, Codex rules, `.github`, rulesets, `.husky`, root `package.json`,
+      guardrail scripts that are not tests): stop there. Agent-rules files
+      (skills, role briefs, `docs/agents`, guardrail tests, the root
+      `AGENTS.md`): also run the `security-reviewer` on the head and, once it is
+      clean, add this line to the PR body (`gh pr edit <num> --body-file <file>`)
+      alone on its line with the full 40-character head sha:
+      `Security review: no open findings (<reviewer>, <sha>)`. A new push means
+      a new review and a new line. Then stop and leave the merge to the owner,
+      who is the second reviewer (`docs/agents/workflow.md` → Merging into dev).
+   5. Otherwise, once CI is green on the head and the review has no open
+      blocking finding, merge it yourself, alone in its command:
       `gh pr merge <num> --repo Marcus100/grenmet --merge --match-head-commit <full head sha>`.
    6. Send the owner a phone alert: the PR number, title and link. For a
       agent-rules PR send a separate alert that lists the files changed.

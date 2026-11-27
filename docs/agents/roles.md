@@ -4,11 +4,12 @@
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-11-21
 
-Agents merge PRs into `dev` (owner, 21 Nov 2026): skills, role briefs,
-`docs/agents`, guardrail tests and the root `AGENTS.md` after both reviews,
-that is a clean Claude `security-reviewer` pass and a clean Codex review of the
-exact head recorded in the PR body, followed by a separate phone alert to the
-owner. The enforcement files (hooks, settings, `.codex`, Codex rules, CI,
+Agents merge PRs into `dev` (owner, 21 Nov 2026), with two exceptions. The
+agent-rules files (skills, role briefs, `docs/agents`, guardrail tests and the
+root `AGENTS.md`) are owner-merge: the agent gets CI green, gets the review,
+records a clean Claude `security-reviewer` pass for the exact head in the PR
+body, then stops and sends a phone alert to the owner. The enforcement files
+(hooks, settings, `.codex`, Codex rules, CI,
 rulesets, `.husky`, the root `package.json`, guardrail scripts) are
 owner-merge, and agents do not edit the hooks, settings or Codex rules
 ([workflow.md](workflow.md) → Merging into dev). Staging and production merges
@@ -17,8 +18,11 @@ with $0 extra spending: the Claude cloud is the primary home and local runs
 are the fallback. Extra API spending requires owner approval.
 
 Claude builds and Codex reviews. Codex is advisory: its findings are claims to
-check and never block a Claude merge on their own, with one exception, the
-agent-rules lane above, where a clean Codex review of the head is required.
+check and never block a Claude merge on their own. The agent-rules lane used to
+require a clean Codex review as a second, *different* model — two Claude
+reviewers share most of their blind spots — but the Codex GitHub connector is
+not connected to this repository, so that review cannot be obtained and the lane
+is owner-merge instead (#1991).
 
 The subscription-backed worker (`node scripts/agents/review-worker.mjs --once`)
 is advisory too: it reviews dev PRs labelled `factory-review` in this
@@ -68,8 +72,8 @@ request → planner (spec, slices)
         → qa-engineer (failing tests from the acceptance criteria)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
-        → /commit (gates) → PR → CI + fresh-context review (+ Codex review)
-        → agent merges into dev → phone alert → dev → staging PR (when the owner asks) → owner merges into staging
+        → /commit (gates) → PR → CI + fresh-context review
+        → agent merges into dev (owner merges agent-rules and enforcement files) → phone alert → dev → staging PR (when the owner asks) → owner merges into staging
 ```
 
 Use it for work that spans roles. A small fix needs one role or none. Name the
@@ -94,7 +98,7 @@ in [routines.md](routines.md) (`docs/agents/routing.json`).
 | Fresh-context review of Codex's diff | Claude `code-reviewer` / `security-reviewer` | Same reason, reversed |
 | Unattended routines, every area an agent may take | Claude cloud scheduled tasks | The factory's primary home; Codex builds only when the owner assigns it a task ([routines.md](routines.md)) |
 | Needs Sentry, PostHog, Cloudflare or the owner's browser | Claude Code | Codex has none of these |
-| Skills, role briefs, `docs/agents`, root `AGENTS.md` | The agent writes and merges | Needs a clean `security-reviewer` pass and a clean Codex review of the head, then a phone alert to the owner |
+| Skills, role briefs, `docs/agents`, root `AGENTS.md` | The agent writes; the owner merges | Agent-rules files: the agent records a clean `security-reviewer` pass for the head, then stops and sends a phone alert to the owner |
 | Hooks, settings, Codex rules, CI, rulesets, guardrail scripts | The owner edits and merges; an agent may propose the change | Enforcement files: `protect-files.mjs` refuses agent edits and the merge hook refuses agent merges |
 
 Rules: one author per branch at a time; the author never counts its own review
@@ -166,9 +170,9 @@ unresolved goes to the owner.
    its own PR into `dev` once CI is green on the PR head and a fresh-context
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
-   fresh-context one. A PR that changes an agent-rules file needs a clean
-   `security-reviewer` pass and a clean Codex review of its head, both recorded
-   in the PR body; the hook blocks the merge without them, and always blocks a
+   fresh-context one. A PR that changes an agent-rules file records a clean
+   `security-reviewer` pass for its head in the PR body and is then left for the
+   owner to merge; the hook blocks an agent merge of it, and always blocks a
    PR that changes an enforcement file. This is the
    factory-flow rule in `AGENTS.md` and [workflow.md](workflow.md). The
    `Protect dev` ruleset requires CI; the worker's review statuses are advisory.
@@ -181,8 +185,8 @@ unresolved goes to the owner.
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
    repository (named with `--repo`), pinned to the PR's current full head, alone
-   in its command, never for an enforcement file, and, for an agent-rules file,
-   with both review lines for that head in the PR body.
+   in its command, and never for an enforcement or agent-rules file: those two
+   groups are owner-merge.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;
@@ -213,14 +217,15 @@ per client by triggering a blocked action in a safe context. Likewise, a workflo
 file in `.github/workflows/` is not a required merge check until branch
 protection or the ruleset lists it; check the ruleset, not the file.
 
-**Automatic Codex PR review is the plan.** Codex's GitHub integration reviews
-each pull request into `dev` automatically, and the author reads that review
-before merging. It is advisory for ordinary PRs. For an agent-rules PR it is
-required: the agent adds the `Codex review: no blocking findings (<head sha>)`
-line only after reading Codex's review of that exact head. Until the
-integration is confirmed on this repository (GitHub and Codex settings), run
-`pnpm agents:codex-review -- --post <pr>` for that review instead; a PR with no
-Codex review of its head does not get the line.
+**Automatic Codex PR review is still the plan, and still not connected.** The
+Codex GitHub app is meant to review each pull request into `dev` automatically,
+and the author reads that review before merging. It is advisory. Today the
+connector is not installed on this repository: `@codex review` answers "create a
+Codex account and connect to github" (#1991, replies on #1853). So the
+agent-rules lane is owner-merge rather than Codex-gated. For a local Codex
+opinion in the meantime, run `pnpm agents:codex-review -- --post <pr>`. If the
+owner connects the app, reverting the agent-rules section of
+[workflow.md](workflow.md) restores the two-reviewer bar.
 
 If a reviewer cannot see a branch, run `git ls-remote origin <branch>` before
 changing access settings: the branch may not have been pushed.

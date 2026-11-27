@@ -84,7 +84,7 @@ Owner decisions, 21 Nov 2026:
   only when every check is green on that head and the independent review
   has no open blocking finding; a `risk:high` PR also needs a `security-reviewer`
   pass with no open finding, named in the PR body. Never merge into `staging` or
-  `main`. A PR that changes an agent-rules file (skills, role briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) merges only with both review lines for its exact head in the PR body, after a clean Claude `security-reviewer` pass and a clean Codex review, and is followed by a separate phone alert to the owner naming the PR and the files. A PR that changes an enforcement file (hooks, settings, Codex rules, CI, rulesets, guardrail scripts) is left for the owner to merge; routines do not edit those files ([workflow.md](workflow.md) → Merging into dev).
+  `main`. A PR that changes an agent-rules file (skills, role briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) is owner-merge: get CI green, get the review, add the `Security review: no open findings (<reviewer>, <head sha>)` line after a clean Claude `security-reviewer` pass, then stop and send a phone alert to the owner naming the PR and the files. A PR that changes an enforcement file (hooks, settings, Codex rules, CI, rulesets, guardrail scripts) is left for the owner to merge; routines do not edit those files ([workflow.md](workflow.md) → Merging into dev).
 - After every merge into `dev`, send the owner a phone alert with the PR number,
   title and link (the mechanism is in [workflow.md](workflow.md) → Merging into
   dev).
@@ -143,7 +143,7 @@ without one, and never takes a human-only area.
 
 Agents may implement factory-control changes through the
 `factory-improve` skill on a `factory/<slug>` branch labelled `risk:high` and
-`factory`. A PR that changes an agent-rules file (skills, role briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) merges only with both review lines for its exact head in the PR body, after a clean Claude `security-reviewer` pass and a clean Codex review, and is followed by a separate phone alert to the owner naming the PR and the files. A PR that changes an enforcement file (hooks, settings, Codex rules, CI, rulesets, guardrail scripts) is left for the owner to merge; routines do not edit those files ([workflow.md](workflow.md) → Merging into dev). A routine that must lower a baseline for its own fix says so in the
+`factory`. A PR that changes an agent-rules file (skills, role briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) is owner-merge: the agent gets CI green, gets the review, adds the `Security review: no open findings (<reviewer>, <head sha>)` line after a clean Claude `security-reviewer` pass, then stops and sends a phone alert to the owner naming the PR and the files. A PR that changes an enforcement file (hooks, settings, Codex rules, CI, rulesets, guardrail scripts) is left for the owner to merge; routines do not edit those files ([workflow.md](workflow.md) → Merging into dev). A routine that must lower a baseline for its own fix says so in the
 PR and the PR is high risk.
 
 The source of truth is [routing.json](routing.json), written by

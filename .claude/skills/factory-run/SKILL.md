@@ -78,8 +78,8 @@ Record the raw error, label the issue `needs-info`, release the claim, move on.
 ## 4. Land and notify
 
 Run the `commit` skill. It opens the PR into `dev`, waits for CI and the
-fresh-context review, applies the agent-rules and enforcement-file rules, merges, and sends the phone
-alert. Put `Fixes #<n>` in the commit so the issue closes when it reaches `dev`.
+fresh-context review, applies the agent-rules and enforcement-file owner-merge
+rules, merges what it may, and sends the phone alert. Put `Fixes #<n>` in the commit so the issue closes when it reaches `dev`.
 
 ## 5. Record
 

@@ -142,11 +142,12 @@ only with `--repo`, the PR's current full head sha and a complete
 changed-file list, alone in its command. It refuses an agent merge of a PR
 that changes an enforcement file (hooks, settings, Codex rules, CI, rulesets,
 guardrail scripts). A PR that changes an agent-rules file (skills, role
-briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) also needs both
-review lines for its exact head in the PR body (a clean Claude
-`security-reviewer` pass and a clean Codex review), and the agent sends the
-owner a phone alert after the merge (`docs/agents/workflow.md` → Merging into
-dev). `protect-files.mjs` refuses agent edits to the hooks, settings and Codex
+briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`) is owner-merge
+too: the agent records a clean Claude `security-reviewer` pass for the exact
+head in the PR body, then stops and sends the owner a phone alert naming the PR
+and the files (`docs/agents/workflow.md` → Merging into dev). The hook still
+asks an agent for a Codex review line as well, which cannot be obtained, so it
+refuses an agent merge of that lane either way. `protect-files.mjs` refuses agent edits to the hooks, settings and Codex
 rules. It refuses pushes to `dev`,
 `staging` and `main`, tag pushes and remote deletes. `protect-files.mjs` blocks edits to `.env*`
 and generated-client files. Claude Code's `PostToolUse` hook formats the
