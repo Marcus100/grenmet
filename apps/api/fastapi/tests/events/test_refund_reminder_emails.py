@@ -474,3 +474,93 @@ async def test_pages_cover_every_recipient_and_the_domain_guard_applies(
     start = NOW + timedelta(days=2, hours=23, minutes=30)
     await _rsvp_shop(db_async, events_db, start)
     assert await _run(db_async, NOW + timedelta(days=2)) == 0
+
+
+# --- erasure reaches reminders (#2002) -----------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_erasing_a_contact_removes_the_reminder_queued_to_them(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from src.contacts import service as contacts
+
+    shop, user_id = await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=10))
+    user = await db_async.get(User, user_id)
+    assert user is not None and user.email
+    contact = await contacts.upsert_contact(
+        db_async,
+        shop.organisation_id,
+        email=user.email,
+        name="Ann",
+        phone=None,
+        source="bookings",
+    )
+    contact_id = contact.id
+    await db_async.commit()
+
+    assert await _run(db_async) == 1
+    (row,) = await _emails(db_async, "events-reminder:")
+    # The reminder carries the organiser's organisation, so erasure can match it.
+    assert row.organisation_id == shop.organisation_id
+    row_id = row.id
+
+    contact = await contacts.get_contact(db_async, shop.organisation_id, contact_id)
+    await contacts.erase_contact(db_async, contact)
+    await db_async.commit()
+    db_async.expire_all()
+    assert await db_async.get(Outbox, row_id) is None
+
+
+@pytest.mark.asyncio
+async def test_an_unlinked_organiser_reminder_has_no_organisation_and_is_left_alone(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from src.contacts import service as contacts
+    from src.events.models import Organiser
+
+    shop = await _shop(db_async, events_db)
+    order_id = await _paid_order(db_async, shop, 1)
+    (ticket,) = await _tickets(events_db, order_id)
+    assert ticket.user_id is not None
+    await _set_start(events_db, shop.listing_id, NOW + timedelta(hours=10))
+    # A legacy organiser: not linked to any organisation.
+    async with events_db() as events:
+        await events.execute(
+            update(Organiser)
+            .where(
+                Organiser.id
+                == select(Listing.organiser_id)
+                .where(Listing.id == shop.listing_id)
+                .scalar_subquery()
+            )
+            .values(organisation_id=None)
+        )
+        await events.commit()
+    user = await db_async.get(User, ticket.user_id)
+    assert user is not None and user.email
+    contact = await contacts.upsert_contact(
+        db_async,
+        shop.organisation_id,
+        email=user.email,
+        name="Ann",
+        phone=None,
+        source="bookings",
+    )
+    contact_id = contact.id
+    await db_async.commit()
+
+    assert await _run(db_async) == 1
+    (row,) = await _emails(db_async, "events-reminder:")
+    # The organiser is not linked to an organisation: NULL, not a guessed one.
+    assert row.organisation_id is None
+    row_id = row.id
+    address = row.payload["to_email"]
+
+    contact = await contacts.get_contact(db_async, shop.organisation_id, contact_id)
+    await contacts.erase_contact(db_async, contact)
+    await db_async.commit()
+    db_async.expire_all()
+    kept = await db_async.get(Outbox, row_id)
+    assert kept is not None
+    assert kept.payload["to_email"] == address

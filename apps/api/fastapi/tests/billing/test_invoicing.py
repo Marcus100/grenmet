@@ -266,6 +266,8 @@ async def test_issue_assigns_number_dates_pdf_and_queues_email(
     assert emails[0].transactional is True
     assert emails[0].template == "card"
     assert emails[0].html is None
+    # The billing address is the customer organisation's contact: erasure must reach it.
+    assert emails[0].organisation_id == customer["organisation_id"]
     issued_html = payload_html({"props": emails[0].props})
     assert "XCD 1,150.00" in issued_html
     assert "Due date" in issued_html
@@ -663,6 +665,7 @@ async def test_reminders_are_idempotent_per_invoice_and_stage(
     ).all()
     reminder_mails = mails[baseline:]
     assert len(reminder_mails) == 3
+    assert {m.organisation_id for m in reminder_mails} == {customer["organisation_id"]}
     assert "due in 7 days" in reminder_mails[0].subject
     assert "due today" in reminder_mails[1].subject
     assert "7 days ago" in reminder_mails[2].subject

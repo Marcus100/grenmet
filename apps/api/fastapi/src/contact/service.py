@@ -24,7 +24,12 @@ def site_recipient(site_key: str, site: ResolvedSite | None) -> str | None:
     return recipient_for(site_key)
 
 
-def _queue(session: AsyncSession, to_email: str, card: layout.EmailCard) -> None:
+def _queue(
+    session: AsyncSession,
+    to_email: str,
+    card: layout.EmailCard,
+    organisation_id: str | None = None,
+) -> None:
     notification_service.enqueue_email(
         session=session,
         to_email=to_email,
@@ -32,6 +37,7 @@ def _queue(session: AsyncSession, to_email: str, card: layout.EmailCard) -> None
         transactional=True,
         template=layout.CARD_TEMPLATE,
         props=layout.to_props(card),
+        organisation_id=organisation_id,
     )
 
 
@@ -64,6 +70,13 @@ async def submit_message(
                 email=message.email,
                 subject=message.subject,
                 message=message.message,
+            ),
+            # Only the site's own inbox belongs to the business; the deprecated
+            # environment recipient is a platform address.
+            organisation_id=(
+                site.organisation_id
+                if site is not None and site.contact_recipient
+                else None
             ),
         )
     else:
