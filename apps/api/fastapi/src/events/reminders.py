@@ -114,6 +114,8 @@ async def enqueue_due_reminders(
                 props=layout.to_props(message),
                 transactional=False,  # a reminder: skips suppressed addresses
                 dedupe_key=reminder_key(listing.id, user.id, listing.starts_at),
+                # NULL for a legacy organiser not yet linked to an organisation.
+                organisation_id=organiser.organisation_id,
                 from_name=business_sender_name(organiser.name) or None,
             ):
                 queued += 1

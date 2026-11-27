@@ -98,6 +98,8 @@ async def test_invite_accept_creates_membership_and_spends_the_token(
     )
     assert mail.template == "organisation-invitation"
     assert mail.transactional is True
+    # The invitee may be one of the organisation's contacts: erasure must reach it.
+    assert mail.organisation_id == org.id
     assert mail.props["organisationName"] == "Invite Co"
 
     accepted = await _accept(async_client, guest, token)

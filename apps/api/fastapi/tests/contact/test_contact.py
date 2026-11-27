@@ -169,6 +169,8 @@ async def test_site_defaults_to_mbia_and_routes_to_its_own_inbox(
         ).all()
     )
     assert [mail.to_email for mail in mails] == ["mbia@example.com"]
+    # The environment fallback is a platform address, not the business's: never tagged.
+    assert [mail.organisation_id for mail in mails] == [None]
 
 
 async def test_barrels_message_goes_to_barrels_inbox_only(
@@ -269,6 +271,14 @@ async def test_site_route_mails_the_site_inbox(
         )
     ).all()
     assert [m.to_email for m in mails] == ["site-inbox@example.com"]
+    # The site's own inbox belongs to the site's organisation.
+    from src.organisations.models import PublicSite
+
+    site_org = await db_async.scalar(
+        select(PublicSite.organisation_id).where(PublicSite.key == key)
+    )
+    assert site_org is not None
+    assert [m.organisation_id for m in mails] == [site_org]
 
 
 async def test_site_route_refuses_unknown_and_subscription_only_sites(

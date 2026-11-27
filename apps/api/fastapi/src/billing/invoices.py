@@ -421,6 +421,7 @@ async def issue(
         invoice=invoice,
         to_email=invoice.customer.billing_email,
         pdf_url=download_url(invoice),
+        organisation_id=invoice.customer.organisation_id,
     )
     await session.flush()
     logger.info(

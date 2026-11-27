@@ -512,6 +512,7 @@ async def invite(
         to_email=clean,
         subject=f"You are invited to join {context.organisation.name}",
         transactional=True,
+        organisation_id=context.organisation_id,
         template=INVITATION_TEMPLATE,
         props={
             "projectName": email_settings.PROJECT_NAME,
