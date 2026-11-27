@@ -1,4 +1,4 @@
-"""Global admin audit log: GET /audit/admin/entries (ADR-0065 step 4).
+"""Global admin audit log: GET /audit/admin/entries (ADR-0070 step 4).
 
 Covers the permission gate, filters, keyset pagination with equal timestamps,
 the limit cap and sensitive-value masking.
