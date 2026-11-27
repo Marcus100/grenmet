@@ -154,7 +154,11 @@ def hold_ends_at(booking: Booking, hold_minutes: int | None) -> datetime | None:
     return started + timedelta(minutes=hold_minutes)
 
 
-def _single_line(value: str) -> str:
+def single_line(value: str) -> str:
+    """One line of whitespace-collapsed text, for a name typed into a form.
+
+    Shared: ``studio.py`` cleans a staff-entered name the same way.
+    """
     return " ".join(value.split())
 
 
@@ -345,7 +349,7 @@ def detail(
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
         timezone=profile.timezone,
-        customer_name=display_name(managed.contact),
+        customer_name=booked_name(managed.booking, managed.contact),
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
         currency=booking.currency,
@@ -401,7 +405,7 @@ def decoy_receipt(
             starts_at=starts_at,
             ends_at=starts_at + timedelta(hours=1),
             timezone=profile.timezone,
-            customer_name=_single_line(payload.customer_name),
+            customer_name=single_line(payload.customer_name),
             price_minor=0,
             deposit_minor=0,
             currency=profile.currency,
@@ -452,7 +456,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
     profile = managed.profile
     return emails.BookingEmail(
         business=profile.display_name,
-        customer_name=display_name(managed.contact),
+        customer_name=booked_name(managed.booking, managed.contact),
         service_name=managed.service.name,
         provider_name=managed.provider.name,
         starts_at=managed.booking.starts_at,
@@ -608,6 +612,18 @@ def display_name(contact: Contact) -> str:
     return contact.name or ""
 
 
+def booked_name(booking: Booking, contact: Contact) -> str:
+    """The name one booking shows: the name typed on it, else the contact's.
+
+    A second booking under the same email must show the name typed on it, not
+    the first booking's (issue #1951, item 7). The contact keeps its own
+    curated name for matching and the customer list, so a public form never
+    rewrites it. A row made before the column existed falls back to the
+    contact, so nothing already booked changes.
+    """
+    return booking.booked_name or display_name(contact)
+
+
 async def _upsert_customer(
     session: AsyncSession,
     profile: BookingProfile,
@@ -621,7 +637,7 @@ async def _upsert_customer(
         session,
         profile.organisation_id,
         email=str(payload.customer_email).strip(),
-        name=_single_line(payload.customer_name),
+        name=single_line(payload.customer_name),
         phone=phone,
         source="bookings",
         consents={ConsentPurpose.MARKETING: payload.marketing_consent},
@@ -897,10 +913,11 @@ async def _create_booking(
             booking_email=str(payload.customer_email),
             user_id=payer.id,
         )
-        # The name typed on the booking is the name the booking, the confirmation
-        # and My bookings show. A stored name would otherwise win over it.
+        # A verified account owns its own contact's name, so the contact book
+        # follows what the person last called themselves. What each booking
+        # shows is its own ``booked_name``, set below.
         contacts_service.take_name_from_linked_account(
-            contact, name=_single_line(payload.customer_name), user_id=payer.id
+            contact, name=single_line(payload.customer_name), user_id=payer.id
         )
     flag_returning = svc.new_clients_only and await _is_returning_client(
         session, profile, contact
@@ -931,6 +948,8 @@ async def _create_booking(
             provider_id=provider_id,
             service_id=svc.id,
             customer_id=customer.id,
+            # What this booking shows, whatever name the contact already holds.
+            booked_name=single_line(payload.customer_name) or None,
             starts_at=starts_at,
             ends_at=ends_at,
             blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),

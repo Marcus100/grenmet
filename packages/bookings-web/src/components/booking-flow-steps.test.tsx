@@ -35,6 +35,9 @@ const LASHES_NAME = /Classic lashes/u;
 const BROWS_NAME = /Brow shaping/u;
 const CONTINUE = { name: "Continue" };
 const BOOK = { name: "Request my booking" };
+// The emailed-code step is asked for neutrally, never as a booking failure.
+const CODE_ASK = /One more step: we email a 6-digit code/u;
+const RED_SUMMARY = /We couldn't book that/u;
 const CHOOSE_SERVICE = /Choose a service to continue/u;
 const CHOOSE_TIME = /Choose a day and time to continue/u;
 const EXTRA_LASH = /Extra lash/u;
@@ -534,9 +537,8 @@ describe("phone path to a booking", () => {
     renderFlow();
     await reachDetails(user);
     await user.click(screen.getByRole("button", BOOK));
-    expect(
-      await screen.findByText("We need to confirm your email again.")
-    ).toBeVisible();
+    expect(await screen.findByText(CODE_ASK)).toBeVisible();
+    expect(screen.queryByText(RED_SUMMARY)).toBeNull();
     expect(activePanes()).toEqual(["3"]);
     expect(
       screen.getByRole("button", { name: "Email me a verification code" })

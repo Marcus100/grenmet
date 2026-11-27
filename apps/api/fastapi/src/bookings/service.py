@@ -635,7 +635,11 @@ async def _bookings_inside(
     """Active bookings overlapping ``[window_start, window_end)``: id, start and
     the customer's first name only. Filtered and ordered in SQL."""
     rows = await session.execute(
-        select(Booking.id, Booking.starts_at, Contact.name)
+        select(
+            Booking.id,
+            Booking.starts_at,
+            func.coalesce(Booking.booked_name, Contact.name),
+        )
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
         .where(
@@ -744,7 +748,11 @@ async def list_bookings(
     ends_before: datetime,
 ) -> list[dict[str, Any]]:
     rows = await session.execute(
-        select(Booking, Service.name, func.coalesce(Contact.name, ""))
+        select(
+            Booking,
+            Service.name,
+            func.coalesce(Booking.booked_name, Contact.name, ""),
+        )
         .join(Service, Service.id == Booking.service_id)
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
@@ -1492,7 +1500,9 @@ async def my_choices(
     picked in SQL. Only pending, confirmed and completed bookings count
     (``SUGGESTED_STATUSES``). ``phone`` is the number of the person's most
     recently booked contact in that business that has one (ties by id), else the
-    account's. An unknown or switched-off slug is the public 404.
+    account's own: the number typed into the profile (``contact_phone``) before
+    the sign-in number (``phone_e164``), which only phone sign-in ever sets.
+    An unknown or switched-off slug is the public 404.
     """
     profile = await get_public_profile(session, slug)
     linked = (
@@ -1507,7 +1517,8 @@ async def my_choices(
         .order_by(Customer.last_booked_at.desc().nulls_last(), Customer.id)
     )
     customers = (await session.execute(linked)).all()
-    phone = next((phone for _, phone in customers if phone), None) or user.phone_e164
+    account_phone = user.contact_phone or user.phone_e164
+    phone = next((phone for _, phone in customers if phone), None) or account_phone
     if not customers:
         return phone, []
     # The latest booking of each service (DISTINCT ON), then the newest three.
