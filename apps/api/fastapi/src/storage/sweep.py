@@ -30,7 +30,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from botocore.exceptions import BotoCoreError, ClientError
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import ColumnElement, and_, delete, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +86,16 @@ def _unreferenced() -> ColumnElement[bool]:
 async def _still_referenced(
     session: AsyncSession, ids: Sequence[uuid.UUID]
 ) -> set[uuid.UUID]:
-    """The ids, of those given, that some reference column points at right now."""
+    """The ids, of those given, that some reference column points at right now.
+
+    This check is only correct under READ COMMITTED (the PostgreSQL default). Each
+    statement then takes a fresh snapshot, so once the candidate rows are locked, any
+    reference committed before the lock was released is visible here. Under REPEATABLE
+    READ the snapshot would be taken at the first statement of the transaction, before
+    the lock, and a reference committed in between would be missed, so a file could be
+    deleted despite a committed reference, with no error. Do not raise the isolation
+    level of the sweep's session without moving this check into its own transaction.
+    """
     found: set[uuid.UUID] = set()
     for column in reference_columns():
         found.update(
@@ -160,10 +168,14 @@ async def sweep_unreferenced(
                 await run_in_threadpool(
                     storage.storage_service.delete_object, object_key
                 )
-            except (BotoCoreError, ClientError) as error:
+            except Exception as error:
+                # Broad on purpose: the batch is committed, so one unexpected error must
+                # not abandon the rest of its objects. Log the key, the only record of
+                # the object once its row is gone, so an operator can delete it by hand.
                 failed += 1
                 logger.warning(
-                    "Could not delete the object of swept upload %s; the row is gone",
+                    "Could not delete object %s of swept upload %s; the row is gone",
+                    object_key,
                     upload_id,
                     extra={"area": "storage", "error_type": type(error).__name__},
                 )

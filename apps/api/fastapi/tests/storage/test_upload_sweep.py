@@ -134,6 +134,41 @@ async def test_an_unreferenced_old_booking_upload_is_swept(
     assert row.object_key in store.deleted
 
 
+async def test_a_reference_removed_just_inside_the_window_keeps_the_file(
+    db_async: AsyncSession, store: FakeStore
+) -> None:
+    """The 24-hour boundary: a file uploaded just under a day ago, whose reference is
+    removed now, is kept; the same file just over a day old is taken."""
+    org = await make_org(db_async, "Boundary")
+    row = await _upload(
+        db_async,
+        org.id,
+        purpose="booking-gallery",
+        created_ago=sweep.MIN_AGE - timedelta(minutes=1),
+        completed_ago=sweep.MIN_AGE - timedelta(minutes=1),
+    )
+    db_async.add(GalleryPhoto(organisation_id=org.id, file_id=row.id, sort_order=0))
+    await db_async.commit()
+    await _detach_gallery(db_async, row.id)()
+
+    await _sweep()
+    assert await _exists(db_async, row.id), "a file inside the window was taken"
+    assert row.object_key not in store.deleted
+
+    async with async_session_factory() as aging:
+        await aging.execute(
+            update(OrgUpload)
+            .where(OrgUpload.id == row.id)
+            .values(
+                created_at=utc_now() - sweep.MIN_AGE - timedelta(minutes=1),
+                completed_at=utc_now() - sweep.MIN_AGE - timedelta(minutes=1),
+            )
+        )
+        await aging.commit()
+    await _sweep()
+    assert not await _exists(db_async, row.id)
+
+
 async def test_a_pending_upload_older_than_the_window_is_swept(
     db_async: AsyncSession,
 ) -> None:
@@ -369,6 +404,10 @@ def _detach_profile_column(
     return clear
 
 
+def _detach_gallery(db: AsyncSession, file_id: uuid.UUID) -> Callable[[], Any]:
+    return _delete_gallery_rows(db, file_id)
+
+
 def _delete_gallery_rows(db: AsyncSession, file_id: uuid.UUID) -> Callable[[], Any]:
     async def clear() -> None:
         await db.execute(delete(GalleryPhoto).where(GalleryPhoto.file_id == file_id))
@@ -541,6 +580,44 @@ async def test_a_failed_object_delete_is_counted_and_does_not_fail_the_run(
 
     assert result.objects_failed == 1
     assert not await _exists(db_async, row.id)
+
+
+async def test_an_unexpected_delete_error_skips_one_object_and_logs_its_key(
+    db_async: AsyncSession,
+    store: FakeStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A non-storage error on one object must not abandon the committed batch: the
+    other objects are still deleted, and the failed key is logged for a human."""
+    org = await make_org(db_async, "Odd error")
+    rows = [await _upload(db_async, org.id, purpose="booking-logo") for _ in range(3)]
+    doomed = rows[1].object_key
+    real_delete = store.delete_object
+
+    def delete(key: str) -> None:
+        if key == doomed:
+            raise RuntimeError("unexpected")
+        real_delete(key)
+
+    warnings: list[tuple[object, ...]] = []
+
+    class Recorder:
+        def warning(self, message: str, *args: object, **_kwargs: object) -> None:
+            warnings.append(args)
+
+        def info(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+    # Capture on the module logger itself (the repo's convention; caplog depends on order).
+    monkeypatch.setattr(sweep, "logger", Recorder())
+    monkeypatch.setattr(store, "delete_object", delete)
+    result = await _sweep(batch_size=10)
+
+    assert result.swept == 3
+    assert result.objects_failed == 1
+    assert {r.object_key for r in rows} - {doomed} <= set(store.deleted)
+    assert doomed not in store.deleted
+    assert any(doomed in args for args in warnings), "the failed key was not logged"
 
 
 async def test_without_storage_the_sweep_does_nothing(
