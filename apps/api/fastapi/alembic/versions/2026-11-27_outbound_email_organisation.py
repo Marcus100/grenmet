@@ -2,13 +2,14 @@
 
 Additive, nothing backfilled. ``outbound_email.organisation_id`` is nullable: rows
 written before this column keep NULL, because nothing records which business queued
-them, and contact erasure leaves NULL rows to the retention purge rather than guess.
+them, and contact erasure leaves NULL rows alone rather than guess. No retention purge
+reaches ``outbound_email`` yet, so they persist until a retention decision covers them.
 The index serves the erasure lookup by organisation.
 
 The index is built concurrently: ``outbound_email`` is written on every send.
 
 Revision ID: outboundemailorg20261127
-Revises: bookingabout20261127
+Revises: contactvariant20261127
 """
 
 import sqlalchemy as sa
@@ -16,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "outboundemailorg20261127"
-down_revision = "bookingabout20261127"
+down_revision = "contactvariant20261127"
 branch_labels = None
 depends_on = None
 
