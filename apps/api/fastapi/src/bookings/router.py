@@ -539,7 +539,8 @@ async def reorder_gallery(
     summary="Remove a gallery photograph",
     description=(
         "Take one photograph out of the gallery. The photographs that are left keep "
-        "their order with no gap in it."
+        "their order with no gap in it. The file is permanently deleted within 25 "
+        "hours; until then its address still opens it."
     ),
     operation_id="bookingsRemoveGalleryPhoto",
     responses=WRITE_ERRORS,

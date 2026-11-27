@@ -412,7 +412,8 @@ class BookingProfileUpdate(BaseModel):
         description=(
             "A completed `booking-logo` upload of this business (see "
             "`POST /storage/uploads`), shown at the top of its emails. Null clears "
-            "it. Left out, the stored logo is kept."
+            "it, and the old file is permanently deleted within 25 hours; until then "
+            "its address still opens it. Left out, the stored logo is kept."
         ),
     )
     cover_file_id: uuid.UUID | None = Field(
@@ -420,7 +421,9 @@ class BookingProfileUpdate(BaseModel):
         description=(
             "A completed `booking-cover` upload of this business (see "
             "`POST /storage/uploads`): the wide photo on its home page card and "
-            "storefront. Null clears it. Left out, the stored photo is kept."
+            "storefront. Null clears it, and the old file is permanently deleted "
+            "within 25 hours; until then its address still opens it. Left out, the "
+            "stored photo is kept."
         ),
     )
     business_type: BookingBusinessType | None = Field(
