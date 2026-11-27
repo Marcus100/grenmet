@@ -11,11 +11,21 @@ from collections.abc import Mapping
 from datetime import date, datetime
 from typing import Any, cast
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Integer, Text
+import sqlalchemy as sa
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine.default import DefaultExecutionContext
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src.contacts import references as contact_references
 from src.orm import Base
 from src.utils.datetime import utc_now
 
@@ -348,6 +358,12 @@ class Order(EventsModel):
     collected_minor: Mapped[int] = mapped_column(Integer, default=0)
     buyer_name: Mapped[str | None] = mapped_column(Text)
     buyer_phone: Mapped[str | None] = mapped_column(Text)
+    #: The walk-in contact of a cash buyer (``org.contact``, #1986). NULL for online
+    #: orders and for cash orders with no name or phone. buyer_name and buyer_phone
+    #: stay the copy the reads use until the contract slice; erasure clears them.
+    contact_id: Mapped[str | None] = mapped_column(
+        String(100), ForeignKey("org.contact.id"), index=True
+    )
     sold_by: Mapped[uuid.UUID | None]
     till_session_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("events.till_sessions.id")
@@ -430,3 +446,19 @@ class Refund(EventsModel):
     till_session_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("events.till_sessions.id")
     )
+
+
+# Precise scope (#1986): erasure clears cash walk-in copies only. Online buyers
+# have an account and are not contacts yet, so their order rows are not reached.
+async def _erase_walk_in_copies(session: Any, contact_id: str) -> None:
+    """Erasure of a walk-in clears the name and phone kept on its cash orders (#1986)."""
+    await session.execute(
+        sa.update(cast(sa.Table, Order.__table__))
+        .where(cast(sa.Table, Order.__table__).c.contact_id == contact_id)
+        .values(buyer_name=None, buyer_phone=None)
+    )
+
+
+contact_references.register(
+    cast(sa.Table, Order.__table__), erase=_erase_walk_in_copies
+)
