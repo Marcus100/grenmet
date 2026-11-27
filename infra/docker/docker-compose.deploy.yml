@@ -1064,7 +1064,7 @@ services:
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:
     logging: *bounded-logging
-    image: adminer:6.3.0@sha256:3a07decd833c2375ea749aa8018250c1db4859a78bd55354f797bfb591733233
+    image: adminer:6.3.1@sha256:7fee0b5a0992f5641b47d4dc788468dbf044fd0487a57500b349f135dbd65886
     restart: always
     profiles: ["staging"]
     environment:
