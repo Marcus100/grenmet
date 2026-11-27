@@ -9,8 +9,13 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
+  addGalleryPhoto: vi.fn(),
   completeLogoUpload: vi.fn(),
   createCoverUpload: vi.fn(),
+  createGalleryUpload: vi.fn(),
+  listGallery: vi.fn(),
+  removeGalleryPhoto: vi.fn(),
+  reorderGallery: vi.fn(),
   createLogoUpload: vi.fn(),
   createClosure: vi.fn(),
   createException: vi.fn(),
@@ -31,10 +36,12 @@ import { redirect } from "next/navigation";
 import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
+  addGalleryPhoto,
   completeLogoUpload,
   createClosure,
   createCoverUpload,
   createException,
+  createGalleryUpload,
   createLogoUpload,
   createProvider,
   createService,
@@ -43,16 +50,24 @@ import {
   findOrganisation,
   getBusinessTimezone,
   getProfile,
+  listGallery,
+  removeGalleryPhoto,
+  reorderGallery,
   replaceHours,
   saveProfile,
   updateProvider,
   updateService,
 } from "@/lib/studio-api";
 import {
+  addGalleryPhotoAction,
   finishCoverUploadAction,
+  finishGalleryUploadAction,
   finishLogoUploadAction,
+  loadGalleryAction,
+  removeGalleryPhotoAction,
   removeTimeOffAction,
   reopenClosureAction,
+  reorderGalleryAction,
   saveClosureAction,
   saveHoursAction,
   saveProfileAction,
@@ -60,6 +75,7 @@ import {
   saveServiceAction,
   saveTimeOffAction,
   startCoverUploadAction,
+  startGalleryUploadAction,
   startLogoUploadAction,
 } from "./actions";
 
@@ -223,6 +239,7 @@ describe("profile", () => {
       contact_whatsapp: null,
       contact_instagram: null,
       contact_email: null,
+      about: null,
       brand_color: null,
       logo_file_id: null,
       cover_file_id: null,
@@ -2416,5 +2433,178 @@ describe("closed days", () => {
       await reopenClosureAction(SLUG, CLOSURE_ID, IDLE, form({}))
     ).toMatchObject({ status: "error", kind: "unavailable" });
     expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+});
+
+describe("gallery", () => {
+  const PHOTO = "88888888-8888-4888-8888-888888888888";
+  const FILE = "99999999-9999-4999-8999-999999999999";
+  const STORED_PHOTO = { id: PHOTO, file_id: FILE };
+
+  beforeEach(() => {
+    org("admin");
+  });
+
+  it("starts a booking-gallery upload with the 5 MB limit", async () => {
+    vi.mocked(createGalleryUpload).mockResolvedValue({
+      id: FILE,
+      url: "https://storage.test/put",
+      headers: {},
+    } as never);
+
+    expect(
+      await startGalleryUploadAction(SLUG, {
+        contentType: "image/webp",
+        sizeBytes: 4 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: true, target: { id: FILE } });
+    expect(createGalleryUpload).toHaveBeenCalledWith("tok", ORG_ID, {
+      content_type: "image/webp",
+      size_bytes: 4 * 1024 * 1024,
+    });
+    expect(
+      await startGalleryUploadAction(SLUG, {
+        contentType: "image/webp",
+        sizeBytes: 6 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: false, message: expect.stringContaining("5 MB") });
+    expect(
+      await startGalleryUploadAction(SLUG, {
+        contentType: "image/svg+xml",
+        sizeBytes: 10,
+      })
+    ).toMatchObject({ ok: false });
+    expect(createGalleryUpload).toHaveBeenCalledTimes(1);
+  });
+
+  it("words a refused photograph without pointing at the profile save", async () => {
+    vi.mocked(createGalleryUpload).mockRejectedValue(apiError(503, {}));
+    expect(
+      await startGalleryUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 10,
+      })
+    ).toEqual({
+      ok: false,
+      message:
+        "Photo uploads are not available right now. Try again later. Your other settings are not affected.",
+    });
+  });
+
+  it("confirms a finished photograph upload and refuses a malformed id", async () => {
+    vi.mocked(completeLogoUpload).mockResolvedValue({ id: FILE } as never);
+    expect(await finishGalleryUploadAction(SLUG, FILE)).toEqual({
+      ok: true,
+      fileId: FILE,
+    });
+    expect(await finishGalleryUploadAction(SLUG, "nope")).toMatchObject({
+      ok: false,
+    });
+    vi.mocked(completeLogoUpload).mockRejectedValue(apiError(409, {}));
+    expect(await finishGalleryUploadAction(SLUG, FILE)).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("adds a photograph and answers the stored gallery", async () => {
+    vi.mocked(addGalleryPhoto).mockResolvedValue(STORED_PHOTO as never);
+    vi.mocked(listGallery).mockResolvedValue([STORED_PHOTO] as never);
+
+    expect(await addGalleryPhotoAction(SLUG, FILE)).toEqual({
+      ok: true,
+      photos: [{ id: PHOTO, fileId: FILE }],
+    });
+    expect(addGalleryPhoto).toHaveBeenCalledWith("tok", ORG_ID, FILE);
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("refuses a malformed file id or photograph id before any call", async () => {
+    expect(await addGalleryPhotoAction(SLUG, "nope")).toMatchObject({
+      ok: false,
+    });
+    expect(await removeGalleryPhotoAction(SLUG, "nope")).toMatchObject({
+      ok: false,
+    });
+    expect(await reorderGalleryAction(SLUG, [])).toMatchObject({ ok: false });
+    expect(await reorderGalleryAction(SLUG, [PHOTO, "nope"])).toMatchObject({
+      ok: false,
+    });
+    expect(addGalleryPhoto).not.toHaveBeenCalled();
+    expect(removeGalleryPhoto).not.toHaveBeenCalled();
+    expect(reorderGallery).not.toHaveBeenCalled();
+  });
+
+  it("removes a photograph and answers what is left", async () => {
+    vi.mocked(removeGalleryPhoto).mockResolvedValue(undefined as never);
+    vi.mocked(listGallery).mockResolvedValue([] as never);
+
+    expect(await removeGalleryPhotoAction(SLUG, PHOTO)).toEqual({
+      ok: true,
+      photos: [],
+    });
+    expect(removeGalleryPhoto).toHaveBeenCalledWith("tok", ORG_ID, PHOTO);
+  });
+
+  it("saves the order and answers it", async () => {
+    vi.mocked(reorderGallery).mockResolvedValue([STORED_PHOTO] as never);
+
+    expect(await reorderGalleryAction(SLUG, [PHOTO])).toEqual({
+      ok: true,
+      photos: [{ id: PHOTO, fileId: FILE }],
+    });
+    expect(reorderGallery).toHaveBeenCalledWith("tok", ORG_ID, [PHOTO]);
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("words a stale photograph in a reorder as not found", async () => {
+    vi.mocked(reorderGallery).mockRejectedValue(apiError(404, {}));
+    expect(await reorderGalleryAction(SLUG, [PHOTO])).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("reads the stored gallery back, and words a failed read", async () => {
+    vi.mocked(listGallery).mockResolvedValue([STORED_PHOTO] as never);
+    expect(await loadGalleryAction(SLUG)).toEqual({
+      ok: true,
+      photos: [{ id: PHOTO, fileId: FILE }],
+    });
+
+    vi.mocked(listGallery).mockRejectedValue(apiError(500));
+    expect(await loadGalleryAction(SLUG)).toMatchObject({ ok: false });
+  });
+
+  it("refuses a member before any gallery call", async () => {
+    org("member");
+    for (const result of [
+      await startGalleryUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 10,
+      }),
+      await finishGalleryUploadAction(SLUG, FILE),
+      await addGalleryPhotoAction(SLUG, FILE),
+      await removeGalleryPhotoAction(SLUG, PHOTO),
+      await reorderGalleryAction(SLUG, [PHOTO]),
+      await loadGalleryAction(SLUG),
+    ]) {
+      expect(result).toEqual({
+        ok: false,
+        message: expect.stringMatching(ADMIN_ACCESS),
+      });
+    }
+    expect(createGalleryUpload).not.toHaveBeenCalled();
+    expect(addGalleryPhoto).not.toHaveBeenCalled();
+    expect(listGallery).not.toHaveBeenCalled();
+  });
+
+  it("answers the refusal when adding or removing is refused", async () => {
+    vi.mocked(addGalleryPhoto).mockRejectedValue(apiError(409, {}));
+    expect(await addGalleryPhotoAction(SLUG, FILE)).toMatchObject({
+      ok: false,
+    });
+    vi.mocked(removeGalleryPhoto).mockRejectedValue(apiError(404, {}));
+    expect(await removeGalleryPhotoAction(SLUG, PHOTO)).toMatchObject({
+      ok: false,
+    });
   });
 });

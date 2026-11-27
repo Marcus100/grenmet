@@ -7,6 +7,7 @@ import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingDepositCollectionSchema } from "./bookingDepositCollectionSchema.js";
+import { bookingGalleryImageSchema } from "./bookingGalleryImageSchema.js";
 import { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 import { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
@@ -36,6 +37,18 @@ export const bookingStorefrontSchema = z
       .optional()
       .describe(
         "The business's plain-text booking policy, or null when it has none."
+      ),
+    about: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "What the business says about itself, as plain text, or null when it has written nothing. Show it above the services, with its line breaks kept and escaped as text; it is never HTML."
+      ),
+    gallery: z
+      .array(bookingGalleryImageSchema)
+      .optional()
+      .describe(
+        "The business's photographs of its work, at most 12, in its own order. Empty when it has uploaded none: show no gallery at all then."
       ),
     deposit_collection: bookingDepositCollectionSchema
       .optional()

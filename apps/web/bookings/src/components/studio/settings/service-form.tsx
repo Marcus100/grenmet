@@ -17,6 +17,7 @@ import { useHydrated } from "@/lib/use-hydrated";
 import {
   INPUT,
   keepTyped,
+  NobodyDoesNotice,
   SettingsCheck,
   SettingsField,
   SettingsResult,
@@ -41,6 +42,7 @@ export function ServiceForm({
   currency,
   depositCollection = "online",
   depositsAvailable,
+  nobodyDoes = false,
   orgSlug,
   service,
   serviceCategories = [],
@@ -53,6 +55,8 @@ export function ServiceForm({
   /** Who collects deposits; `business` needs no payments entitlement. */
   depositCollection?: BookingDepositCollection;
   depositsAvailable: boolean;
+  /** This service is offered to customers but no active person is set to do it. */
+  nobodyDoes?: boolean;
   orgSlug: string;
   service?: BookingServicePublic;
   /** Every category the business's services use, to choose a new-client lead time's categories. */
@@ -241,6 +245,7 @@ export function ServiceForm({
         prefixId={prefix}
         selected={service?.add_on_categories ?? []}
       />
+      {nobodyDoes ? <NobodyDoesNotice orgSlug={orgSlug} /> : null}
       <SettingsCheck
         defaultChecked={service?.active ?? true}
         label="Offered to customers (untick to stop new bookings)"

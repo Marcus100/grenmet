@@ -34,7 +34,7 @@ from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
-from . import add_ons, availability, deposit_payments, go_live
+from . import add_ons, availability, deposit_payments, gallery, go_live
 from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
@@ -114,6 +114,7 @@ KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "deposit_min_price_minor",
     "deposit_non_refundable",
     "booking_policy",
+    "about",
     "deposit_collection",
     "deposit_instructions",
     "deposit_hold_minutes",
@@ -954,6 +955,10 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
         "deposit_non_refundable": profile.deposit_non_refundable,
         "booking_policy": profile.booking_policy,
+        "about": profile.about,
+        # Photographs of the business's work. Paused: nothing to book, so nothing
+        # to show off either.
+        "gallery": [] if paused else await gallery.public_gallery(session, profile),
         "deposit_collection": profile.deposit_collection,
         # Only while the business takes deposits itself: old bank details must not
         # stay public after it switches back to online collection.

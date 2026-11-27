@@ -17,6 +17,6 @@
 - Ops: the bucket needs a CORS rule allowing `PUT` with `Content-Type` from the web origins, or browser uploads fail.
 - The one status move (pending to complete) is declared in `transitions.py` and written through `move_upload`.
 - A purpose's `app` is a registered sign-in app or a platform product (`entitlements.PRODUCTS`); for a product the organisation must hold it (`create_upload`). Operations photos `opslog-photo` and `incident-photo` (ADR-0067) are private, 10 MB, metadata stripped, 24 megapixels at most.
-- Logos are public purposes: `booking-logo`, `booking-cover` and `organiser-logo` set `strip_metadata`, so completion re-encodes the file without metadata (`image_metadata.py`, `max_pixels` per purpose).
+- Logos are public purposes: `booking-logo`, `booking-cover`, `booking-gallery` (a business's photographs of its work, 5 MB, 8 megapixels) and `organiser-logo` set `strip_metadata`, so completion re-encodes the file without metadata (`image_metadata.py`, `max_pixels` per purpose).
 - Completion copies the validated bytes to a new server-chosen key (`org/.../{new uuid}.{ext}`), points the row at it and deletes the original on a best-effort basis (#1679). The presigned PUT can still overwrite the original key for 15 minutes, but a served object is never under a presigned key. Every purpose is copied: stripped purposes are re-encoded, the others pass a type-signature check.
 - Tests: `tests/storage/test_uploads.py` (fake store: real signing, in-memory HEAD/DELETE), `tests/storage/test_upload_transitions.py`.

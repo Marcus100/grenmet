@@ -93,7 +93,7 @@ export default async function AuditPage({
               ) : null}
               {event.alert_id ? (
                 <Link
-                  className="text-body-sm text-info underline"
+                  className="text-body-sm text-info inline-flex min-h-11 items-center underline"
                   href={`/desk/alerts/${event.alert_id}` as Route}
                 >
                   Open alert
@@ -106,7 +106,7 @@ export default async function AuditPage({
       <nav aria-label="Audit pages" className="text-body-sm flex gap-4">
         {query.page > 1 ? (
           <Link
-            className="text-info underline"
+            className="text-info inline-flex min-h-11 items-center underline"
             href={auditHref(query.alertId, query.page - 1)}
           >
             Previous
@@ -114,7 +114,7 @@ export default async function AuditPage({
         ) : null}
         {query.page < lastPage ? (
           <Link
-            className="text-info underline"
+            className="text-info inline-flex min-h-11 items-center underline"
             href={auditHref(query.alertId, query.page + 1)}
           >
             Next
@@ -153,14 +153,14 @@ function AuditShell({
         >
           Alert ID (optional, a full UUID)
           <input
-            className="bg-background min-w-80 rounded-md border px-3 py-2 font-mono"
+            className="bg-background min-h-11 min-w-80 rounded-md border px-3 py-2 font-mono"
             defaultValue={alertId}
             id="audit-alert"
             name="alert_id"
           />
         </label>
         <button
-          className="bg-primary text-body-sm text-primary-foreground rounded-md px-3 py-2 font-medium"
+          className="bg-primary text-body-sm text-primary-foreground inline-flex min-h-11 items-center rounded-md px-3 py-2 font-medium"
           type="submit"
         >
           Filter history

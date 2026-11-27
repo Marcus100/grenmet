@@ -13,9 +13,16 @@ vi.mock("@/lib/studio-api", () => ({
   getSettings: vi.fn(),
   listClosures: vi.fn(),
   listExceptions: vi.fn(),
+  listGallery: vi.fn(),
 }));
 vi.mock("./actions", () => ({
+  addGalleryPhotoAction: vi.fn(),
   createCalendarFeedAction: vi.fn(),
+  finishGalleryUploadAction: vi.fn(),
+  loadGalleryAction: vi.fn(),
+  removeGalleryPhotoAction: vi.fn(),
+  reorderGalleryAction: vi.fn(),
+  startGalleryUploadAction: vi.fn(),
   reopenClosureAction: vi.fn(),
   saveClosureAction: vi.fn(),
   removeTimeOffAction: vi.fn(),
@@ -41,6 +48,7 @@ import {
   getSettings,
   listClosures,
   listExceptions,
+  listGallery,
 } from "@/lib/studio-api";
 import SettingsPage from "./page";
 
@@ -131,6 +139,7 @@ beforeEach(() => {
   role("admin");
   vi.mocked(listExceptions).mockResolvedValue([]);
   vi.mocked(listClosures).mockResolvedValue([]);
+  vi.mocked(listGallery).mockResolvedValue([]);
 });
 
 describe("settings page", () => {
@@ -155,6 +164,34 @@ describe("settings page", () => {
     expect(screen.getByText(SALT_ZONE)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Save weekly hours" })
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the rest of Settings when the gallery cannot be read", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listGallery).mockRejectedValue(apiError(500));
+    render(await SettingsPage({ params }));
+    expect(screen.getByText("No photographs yet.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save profile" })
+    ).toBeInTheDocument();
+  });
+
+  it("shows the business's photographs in the Profile section", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listGallery).mockResolvedValue([
+      {
+        id: "88888888-8888-4888-8888-888888888888",
+        file_id: "99999999-9999-4999-8999-999999999999",
+        sort_order: 0,
+        created_at: "2026-11-27T00:00:00Z",
+      },
+    ] as never);
+    render(await SettingsPage({ params }));
+    expect(
+      screen.getByRole("button", { name: "Remove photograph 1" })
     ).toBeInTheDocument();
   });
 

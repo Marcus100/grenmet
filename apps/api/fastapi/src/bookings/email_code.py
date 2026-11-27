@@ -1,8 +1,10 @@
 """Emailed-code verification before a booking deposit (ADR-0018, issue #471).
 
 A person who pays a deposit proves they control the booking email with a
-6-digit code. Sign-in and browsing are never gated, and a booking without a
-deposit has no step.
+6-digit code. Sign-in and browsing are never gated. A booking without a deposit
+needs the same proof only when its email is already a contact of the business
+(#1969), so nobody can book a slot in a stranger's name; a new address books in
+one pass.
 
 Flow: ``request_code`` (emails a code) -> ``confirm_code`` (returns a signed
 proof) -> ``require_proof`` at booking create. Rules:
@@ -374,22 +376,23 @@ async def require_proof(
     payer: User | None,
     email: str,
     proof: str | None,
+    action: str = "pay a deposit",
     now: float | None = None,
 ) -> ProofUse:
-    """Allow a deposit booking: exempt payer, or a valid unused proof (consumed).
+    """Allow a booking: exempt payer, or a valid unused proof (consumed).
 
     Raises ``EmailNotVerifiedError`` (403, ``email_verification_required``)
-    otherwise."""
+    otherwise. ``action`` completes "verify your email address before you ..."."""
     if await is_exempt(session, payer, email):
         return ProofUse(None)
     if not proof:
-        raise EmailNotVerifiedError("pay a deposit")
+        raise EmailNotVerifiedError(action)
     moment = now if now is not None else time.time()
     nonce = _read_proof(proof, binding, moment)
     if nonce is None:
-        raise EmailNotVerifiedError("pay a deposit")
+        raise EmailNotVerifiedError(action)
     if not await _Current.store.put_if_absent(
         f"{_PREFIX}used:{nonce}", "1", PROOF_TTL + 60
     ):
-        raise EmailNotVerifiedError("pay a deposit")
+        raise EmailNotVerifiedError(action)
     return ProofUse(nonce)

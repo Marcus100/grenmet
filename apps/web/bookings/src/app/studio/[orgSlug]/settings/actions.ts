@@ -17,6 +17,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { cleanAbout } from "@/lib/about-text";
 import {
   BOOKING_POLICY_MAX,
   cleanPolicy,
@@ -38,6 +39,11 @@ import {
 import { depositHoldField } from "@/lib/deposit-hold";
 import { DEPOSIT_INSTRUCTIONS_MAX } from "@/lib/deposit-instructions";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
+import {
+  GALLERY_MAX_BYTES,
+  GALLERY_MAX_LABEL,
+  type GalleryPhotoView,
+} from "@/lib/gallery-photo";
 import { graceMinutes, lateFeeMinor } from "@/lib/late-fee";
 import { reportError } from "@/lib/report-error";
 import { checkExpiry, checkMaxOpen } from "@/lib/request-hygiene";
@@ -45,11 +51,13 @@ import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
+  addGalleryPhoto,
   completeLogoUpload,
   createCalendarFeed,
   createClosure,
   createCoverUpload,
   createException,
+  createGalleryUpload,
   createLogoUpload,
   createProvider,
   createService,
@@ -58,6 +66,9 @@ import {
   findOrganisation,
   getBusinessTimezone,
   getProfile,
+  listGallery,
+  removeGalleryPhoto,
+  reorderGallery,
   replaceHours,
   rotateCalendarFeed,
   saveProfile,
@@ -91,6 +102,7 @@ const BRAND_INVALID = "Use a colour like #0b63ee: a # and six hex digits.";
 const LOGO_INVALID = "That logo is not a valid upload. Upload it again.";
 const COVER_INVALID =
   "That cover photo is not a valid upload. Upload it again.";
+const GALLERY_INVALID = "That photograph is not valid. Upload it again.";
 const TYPE_INVALID = "That type of business is not one we offer. Choose again.";
 const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/u;
 
@@ -473,6 +485,7 @@ async function saveProfileSection(
       requires_confirmation: formData.get("requiresConfirmation") === "on",
       notify_email: input.notifyEmail || null,
       manage_url_template: input.manageUrlTemplate || null,
+      about: cleanAbout(field(formData, "about")),
       brand_color: brandColor,
       logo_file_id: logoFileId,
       cover_file_id: coverFileId,
@@ -876,6 +889,185 @@ export async function finishCoverUploadAction(
   }
 }
 
+const GALLERY_UPLOAD = z.object({
+  contentType: LOGO_UPLOAD.shape.contentType,
+  sizeBytes: z.number().int().positive().max(GALLERY_MAX_BYTES),
+});
+
+export type GalleryResult =
+  | { ok: true; photos: GalleryPhotoView[] }
+  | { ok: false; message: string };
+
+const galleryView = (
+  photos: { id: string; file_id: string }[]
+): GalleryPhotoView[] =>
+  photos.map((photo) => ({ id: photo.id, fileId: photo.file_id }));
+
+/** A gallery step's failure as one line for the section. */
+function galleryFailed(orgSlug: string, error: unknown): string {
+  return logoFailed(orgSlug, error, "photograph");
+}
+
+/** Step 1 of a gallery upload: the presigned PUT (purpose `booking-gallery`). */
+export async function startGalleryUploadAction(
+  orgSlug: string,
+  upload: { contentType: string; sizeBytes: number }
+): Promise<LogoStart> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  const parsed = GALLERY_UPLOAD.safeParse(upload);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: `Choose a JPEG, PNG or WebP image up to ${GALLERY_MAX_LABEL}.`,
+    };
+  }
+  try {
+    const ticket = await createGalleryUpload(
+      auth.accessToken,
+      auth.organisationId,
+      {
+        content_type: parsed.data.contentType,
+        size_bytes: parsed.data.sizeBytes,
+      }
+    );
+    return {
+      ok: true,
+      target: { id: ticket.id, url: ticket.url, headers: ticket.headers },
+    };
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
+/** Step 3 of a gallery upload: the API confirms the file and returns its id. */
+export async function finishGalleryUploadAction(
+  orgSlug: string,
+  uploadId: string
+): Promise<LogoFinish> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (!isUuid(uploadId)) {
+    return { ok: false, message: "That upload is not valid. Upload it again." };
+  }
+  try {
+    const stored = await completeLogoUpload(
+      auth.accessToken,
+      auth.organisationId,
+      uploadId
+    );
+    return { ok: true, fileId: stored.id };
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
+/**
+ * Step 4 of a gallery upload: the finished file joins the end of the gallery.
+ * The gallery saves straight away, so each change answers the new order.
+ */
+export async function addGalleryPhotoAction(
+  orgSlug: string,
+  fileId: string
+): Promise<GalleryResult> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (!isUuid(fileId)) {
+    return { ok: false, message: GALLERY_INVALID };
+  }
+  try {
+    await addGalleryPhoto(auth.accessToken, auth.organisationId, fileId);
+    return await currentGallery(orgSlug, auth);
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
+/** Takes one photograph out; the API closes the gap it leaves in the order. */
+export async function removeGalleryPhotoAction(
+  orgSlug: string,
+  photoId: string
+): Promise<GalleryResult> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (!isUuid(photoId)) {
+    return { ok: false, message: GALLERY_INVALID };
+  }
+  try {
+    await removeGalleryPhoto(auth.accessToken, auth.organisationId, photoId);
+    return await currentGallery(orgSlug, auth);
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
+/** Saves the order the business arranged. */
+export async function reorderGalleryAction(
+  orgSlug: string,
+  ids: string[]
+): Promise<GalleryResult> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (ids.length === 0 || !ids.every((id) => isUuid(id))) {
+    return { ok: false, message: GALLERY_INVALID };
+  }
+  try {
+    const photos = await reorderGallery(
+      auth.accessToken,
+      auth.organisationId,
+      ids
+    );
+    revalidatePath(`/studio/${orgSlug}/settings`);
+    return { ok: true, photos: galleryView(photos) };
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
+/**
+ * The stored gallery after a change, so the section and the page agree. Only the
+ * studio path is revalidated: the public booking page is `force-dynamic` and
+ * reads the storefront on every request, so a new photograph is there at once.
+ */
+async function currentGallery(
+  orgSlug: string,
+  auth: Granted
+): Promise<GalleryResult> {
+  const photos = await listGallery(auth.accessToken, auth.organisationId);
+  revalidatePath(`/studio/${orgSlug}/settings`);
+  return { ok: true, photos: galleryView(photos) };
+}
+
+/**
+ * The stored gallery, for the section to fall back to when a write is refused
+ * (a stale id makes the whole reorder 404, and the person must see what is
+ * really there). A failed read answers nothing, and the section keeps what it has.
+ */
+export async function loadGalleryAction(
+  orgSlug: string
+): Promise<GalleryResult> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  try {
+    const photos = await listGallery(auth.accessToken, auth.organisationId);
+    return { ok: true, photos: galleryView(photos) };
+  } catch (error) {
+    return { ok: false, message: galleryFailed(orgSlug, error) };
+  }
+}
+
 /** The refusal a logo step shows when the session or role check fails first. */
 function refusalMessage(state: ActionState): string {
   return state.status === "error" ? state.message : "Try again in a moment.";
@@ -885,7 +1077,7 @@ function refusalMessage(state: ActionState): string {
 function logoFailed(
   orgSlug: string,
   error: unknown,
-  what: "logo" | "cover photo" = "logo"
+  what: "logo" | "cover photo" | "photograph" = "logo"
 ): string {
   // `failed` ends a lapsed session (redirect) and reports faults; it is called
   // for those effects, and the upload's own wording is shown.

@@ -449,6 +449,33 @@ describe("BookingFlow emailed code", () => {
     expect(confirmEmailCode).not.toHaveBeenCalled();
   });
 
+  it("requests the code by itself when a booking is refused for want of a proof", async () => {
+    // #1969: a free booking from an address the business already has is refused
+    // with email_verification_required. The flow asks for the code at once.
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderFlow();
+    await fill(user, "Free brows");
+    await user.click(screen.getByRole("button", { name: BOOK }));
+
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
+    expect(requestEmailCode).toHaveBeenCalledTimes(1);
+    expect(requestEmailCode).toHaveBeenCalledWith({
+      serviceId: FREE_ID,
+      startsAt: TUE,
+      email: EMAIL,
+      turnstileToken: "",
+    });
+    expect(submitBooking).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(SENT_TO)).toHaveTextContent(EMAIL);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(RED_SUMMARY)).toBeNull();
+  });
+
   it("forces the code step when a stale page shows no deposit but the API wants a code", async () => {
     const user = userEvent.setup();
     submitBooking.mockResolvedValueOnce({
@@ -459,12 +486,10 @@ describe("BookingFlow emailed code", () => {
     renderFlow();
     await fill(user, "Free brows");
     await user.click(screen.getByRole("button", { name: BOOK }));
-    expect(await screen.findByText(CODE_ASK)).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: SEND }));
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
     expect(requestEmailCode).toHaveBeenCalledTimes(1);
     expect(submitBooking).toHaveBeenCalledTimes(1);
-    expect(await screen.findByLabelText("Verification code")).toBeVisible();
   });
 
   it("sends the visitor back to the code step when the proof is refused", async () => {
@@ -478,9 +503,8 @@ describe("BookingFlow emailed code", () => {
     await verify(user);
     await user.click(await screen.findByRole("button", { name: BOOK }));
 
-    expect(await screen.findByText(CODE_ASK)).toBeVisible();
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
     expect(screen.queryByText(VERIFIED)).toBeNull();
-    await user.click(screen.getByRole("button", { name: SEND }));
     expect(requestEmailCode).toHaveBeenCalledTimes(2);
   });
 });
@@ -531,6 +555,24 @@ describe("BookingFlow emailed code and Turnstile", () => {
     await user.click(await screen.findByRole("button", { name: BOOK }));
     await waitFor(() => expect(submitBooking).toHaveBeenCalledTimes(1));
     expect(submitBooking.mock.calls[0]?.[0].turnstileToken).toBe("token-2");
+  });
+
+  it("requests the code after a refusal with a fresh Turnstile token, not the spent one", async () => {
+    const user = clock();
+    submitBooking.mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderFlow("site-key");
+    await waitFor(() => expect(widget.callback).not.toBeNull());
+    await fill(user, "Free brows");
+    await user.click(screen.getByRole("button", { name: BOOK }));
+
+    await screen.findByLabelText("Verification code");
+    expect(submitBooking.mock.calls[0]?.[0].turnstileToken).toBe("token-0");
+    expect(requestEmailCode).toHaveBeenCalledTimes(1);
+    expect(requestEmailCode.mock.calls[0]?.[0].turnstileToken).toBe("token-1");
   });
 
   it("waits for the widget instead of sending an empty token", async () => {
@@ -627,11 +669,11 @@ describe("BookingFlow signed-in visitor on a deposit service", () => {
     renderSignedInFlow(SIGNED_IN_ADA);
     await chooseDepositTime(user);
     await user.click(screen.getByRole("button", { name: BOOK }));
-    expect(await screen.findByText(CODE_ASK)).toBeVisible();
-    expect(await screen.findByRole("button", { name: SEND })).toBeVisible();
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
+    expect(requestEmailCode).toHaveBeenCalledTimes(1);
   });
 
-  it("asks for the code in neutral wording, never as a booking failure", async () => {
+  it("moves to the code step in neutral wording, never as a booking failure", async () => {
     // Issue #1951, item 4: a signed-in person whose address still needs
     // confirming was told "We couldn't book that" in red. Confirming an address
     // is a normal step, so the ask sits above the button and nothing is red.
@@ -645,18 +687,10 @@ describe("BookingFlow signed-in visitor on a deposit service", () => {
     await chooseDepositTime(user);
     await user.click(screen.getByRole("button", { name: BOOK }));
 
-    const ask = await screen.findByText(CODE_ASK);
-    expect(ask).toBeVisible();
-    expect(ask.className).toBe("notice");
-    expect(ask).toHaveAttribute("role", "status");
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
+    expect(screen.getByText(SENT_TO)).toHaveTextContent(EMAIL);
     expect(screen.queryByText(RED_SUMMARY)).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
-    // The ask comes before the button it names.
-    const button = screen.getByRole("button", { name: SEND });
-    const inOrder = Array.from(
-      document.querySelectorAll(".notice, button[type='submit']")
-    );
-    expect(inOrder.indexOf(ask)).toBeLessThan(inOrder.indexOf(button));
   });
 });
 

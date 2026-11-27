@@ -1,4 +1,5 @@
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
+import { PlainText } from "@barrelsgd/bookings-web/components/business-deposit";
 import { PausedNotice } from "@barrelsgd/bookings-web/components/paused-notice";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { dayParam, timeParam } from "@barrelsgd/bookings-web/lib/booking-link";
@@ -11,6 +12,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
 import { CoverPhoto } from "@/components/cover-photo";
+import { GalleryStrip } from "@/components/gallery-strip";
 import { ReportListingLink } from "@/components/report-listing-link";
 import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
@@ -109,6 +111,8 @@ export default async function BusinessBookingPage({
   const logo = safeLogoUrl(storefront.logo_url);
   // The cover photo is a banner above the name. No safe cover: no banner.
   const cover = safeCoverUrl(storefront.cover_url);
+  // What the business says about itself; older cached payloads lack the field.
+  const about = storefront.about?.trim() || null;
   const transition = businessTransitionStyle(slug);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
@@ -206,6 +210,19 @@ export default async function BusinessBookingPage({
           Online booking is not open for this business yet.
         </p>
       )}
+
+      {/* What the business says about itself, as plain text with its line breaks
+          kept: the same rendering as its payment instructions. */}
+      {accepting && about && (
+        <section aria-labelledby="about-title" className="space-y-3">
+          <h2 className="text-lg font-semibold" id="about-title">
+            About {storefront.display_name}
+          </h2>
+          <PlainText linkNote={null} text={about} />
+        </section>
+      )}
+
+      {accepting && <GalleryStrip images={storefront.gallery ?? []} />}
 
       {accepting && providers.length > 0 && (
         <section aria-labelledby="providers-title" className="space-y-3">
