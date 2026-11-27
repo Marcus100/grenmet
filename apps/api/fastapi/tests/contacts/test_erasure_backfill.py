@@ -6,7 +6,9 @@ everything today), then puts the copies back with direct writes, which is the st
 an earlier erasure left. Assertions read the database.
 """
 
+import logging
 import uuid
+from collections.abc import Iterator
 
 import httpx
 import pytest
@@ -17,6 +19,8 @@ from src.bookings.models import Booking
 from src.contacts import erasure_backfill, references
 from src.contacts import service as contacts_service
 from src.contacts.erasure_backfill import ErasureBackfillError
+from src.contacts.models import Contact
+from src.database import async_session_factory
 from src.notifications.models import OutboundEmail
 from src.outbox import Outbox, OutboxStatus
 from tests.bookings.test_erasure_clears_event_notes import _book_next, _contact_for
@@ -31,6 +35,35 @@ from tests.contacts.test_erasure_reaches_mail import (
     _sent_row,
     _token,
 )
+
+
+@pytest.fixture
+def records() -> Iterator[list[logging.LogRecord]]:
+    """Capture on the backfill's own logger. caplog depends on test order (another test
+    can switch propagation off), as tests/test_provider_health.py notes."""
+    captured: list[logging.LogRecord] = []
+
+    class _Collect(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            captured.append(record)
+
+    target = logging.getLogger(erasure_backfill.__name__)
+    handler = _Collect(level=logging.DEBUG)
+    was_disabled, old_level = target.disabled, target.level
+    target.disabled = False
+    target.setLevel(logging.DEBUG)
+    target.addHandler(handler)
+    try:
+        yield captured
+    finally:
+        target.removeHandler(handler)
+        target.disabled = was_disabled
+        target.setLevel(old_level)
+
+
+def _messages(records: list[logging.LogRecord]) -> str:
+    return " ".join(record.getMessage() for record in records)
+
 
 LEFT_NAME = "Typed Name"
 LEFT_NOTE = "Customer says the back door sticks"
@@ -393,3 +426,62 @@ async def test_mail_is_walked_page_by_page_past_addresses_that_match_nothing(
     ).all()
     assert sorted(row.to_email for row in rows) == sorted(bystanders)
     assert result.mail_addresses == 1
+
+
+#: Every table whose rows carry an erase hook. A new hook must add its table here AND
+#: extend ``_holds_copy`` in erasure_backfill.py, or the backfill cannot reach its copies
+#: and its post-batch check passes vacuously.
+EXPECTED_ERASE_HOOK_TABLES = {"bookings.customer", "events.orders"}
+
+
+def test_every_erase_hook_table_is_known_to_the_backfill() -> None:
+    assert {table.fullname for table in references.erasing()} == (
+        EXPECTED_ERASE_HOOK_TABLES
+    )
+
+
+async def test_a_mail_pass_that_matches_nothing_is_reported(
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+    records: list[logging.LogRecord],
+) -> None:
+    """A rotated pepper matches no address. The run must say so, not report success."""
+    org = await _org(db_async)
+    email = f"pepper-bf-{_token()}@example.com"
+    erased = await _contact(db_async, org, email, "Gone", _phone())
+    await contacts_service.erase_contact(db_async, erased)
+    await db_async.commit()
+    db_async.add(_sent_row(org, email, name="Gone", phone=_phone()))
+    await db_async.commit()
+    monkeypatch.setattr(erasure_backfill, "hash_email", lambda _address: "0" * 64)
+
+    result = await erasure_backfill.backfill_erased_copies(db_async)
+
+    assert result.mail_addresses == 0
+    assert "matched no mail for erased contacts" in _messages(records)
+
+
+async def test_a_contact_locked_by_another_session_is_left_and_reported(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    records: list[logging.LogRecord],
+) -> None:
+    studio = await _studio(db_async, async_client, providers=3)
+    gone = f"locked-bf-{uuid.uuid4().hex[:8]}@example.com"
+    gone_booking = await _book_next(db_async, async_client, studio, gone, "TEST locked")
+    await _erase_before_the_rules(db_async, studio, gone, gone_booking)
+    contact = await _contact_for(db_async, studio.org_id, gone)
+
+    async with async_session_factory() as holder:
+        await holder.execute(
+            select(Contact.id).where(Contact.id == contact.id).with_for_update()
+        )
+        result = await erasure_backfill.backfill_erased_copies(db_async)
+        await holder.rollback()
+
+    assert result.contacts == 0
+    assert result.contacts_remaining == 1
+    assert "left contacts with copies" in _messages(records)
+    rerun = await erasure_backfill.backfill_erased_copies(db_async)
+    assert rerun.contacts == 1
+    assert rerun.contacts_remaining == 0

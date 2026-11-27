@@ -50,6 +50,11 @@ def registered() -> list[sa.Table]:
     return [ref.table for ref in _REFERENCES]
 
 
+def erasing() -> list[sa.Table]:
+    """The tables whose rows hold an erase hook (what ``erase_all`` clears)."""
+    return [ref.table for ref in _REFERENCES if ref.erase is not None]
+
+
 async def move_all(session: AsyncSession, *, from_id: str, to_id: str) -> None:
     """Move every registered row from one contact to another (no commit)."""
     for ref in _REFERENCES:

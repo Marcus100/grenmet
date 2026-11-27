@@ -26,6 +26,17 @@ Safety rules:
 
 Run once by enqueueing the worker job ``backfill_erased_contact_copies``. Each batch
 commits on its own, so a crash leaves whole batches done and the rest for the next run.
+
+The worker gives a job 300 seconds and no retry. The mail pass cost grows with the
+number of log pages, so a large mail log can time out part way through. That is safe:
+committed pages stay done and the job is idempotent. Re-enqueue it until a run logs
+``contacts_remaining`` 0 and no "matched no mail" warning.
+
+Read ``mail_rows`` for what was purged. ``mail_addresses`` counts matched (organisation,
+address) pairs even when a matched pair had nothing left to clear.
+
+No audit entry is written, unlike ``erase_contact``. This is a repair, not an erasure
+request, and the log lines above are its record.
 """
 
 import logging
@@ -265,5 +276,30 @@ async def backfill_erased_copies(
         if last is None:
             break
         after = last
+    if result.contacts_remaining:
+        logger.warning(
+            "Erased-contact backfill left contacts with copies (locked; rerun)",
+            extra=result.as_dict(),
+        )
+    if result.mail_addresses == 0 and await _has_mail_tombstones(session):
+        # Zeros look like success. A rotated pepper, or a mail log that no longer holds
+        # the addresses, matches nothing, so say so: this is the failure to look for.
+        logger.warning(
+            "Erased-contact backfill matched no mail for erased contacts (check the pepper)",
+            extra=result.as_dict(),
+        )
     logger.info("Erased-contact backfill finished", extra=result.as_dict())
     return result
+
+
+async def _has_mail_tombstones(session: AsyncSession) -> bool:
+    """True when some erased contact keeps a mail tombstone (an ``email_hash``)."""
+    return bool(
+        await session.scalar(
+            select(
+                exists().where(
+                    Contact.erased_at.is_not(None), Contact.email_hash.is_not(None)
+                )
+            )
+        )
+    )
