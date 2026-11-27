@@ -45,7 +45,14 @@ Claude Code fills these in; in Codex, run the commands.
    same from their `agent/<n>-<slug>` branch. Then, one command per call, with
    long text written to a file first (no heredocs, no long inline `--body`):
    1. Write the step 7 recap to a file and open the PR into `dev`:
-      `gh pr create --base dev --title "<title>" --body-file <file>`.
+      `gh pr create --base dev --title "<title>" --body-file <file>`. Then run
+      exactly: `gh pr ready <num>`. A repository or account default can open the
+      PR as a draft, and a draft can never be merged; `gh pr create` has no
+      `--ready` flag, so `gh pr ready` is the only way back, and it exits 0 on a
+      PR that is already ready. A cloud sandbox cannot un-draft (`gh pr` is
+      blocked and REST cannot clear the flag), so read
+      `gh api repos/Marcus100/grenmet/pulls/<num> --jq .draft` there instead and
+      treat `true` as merge-blocked under step 6.
    2. Wait for CI: `gh pr checks <num> --watch --fail-fast` until it exits 0 on
       the PR head.
    3. Get the fresh-context review of that head, write it to a file and post it,
@@ -67,10 +74,14 @@ Claude Code fills these in; in Codex, run the commands.
    5. Otherwise, once CI is green on the head and the review has no open
       blocking finding, merge it yourself, alone in its command:
       `gh pr merge <num> --repo Marcus100/grenmet --merge --match-head-commit <full head sha>`.
-   6. Send the owner a phone alert: the PR number, title and link. For a
-      agent-rules PR send a separate alert that lists the files changed.
-      Use `PushNotification` when the session has it; otherwise comment on the
-      open issue labelled `factory-landed`.
+   6. Send the owner a phone alert: the PR number, title and link. Send one just
+      as loudly when the PR is **not** merged — owner-merge, a draft you could
+      not clear, a refused or failed merge command, a red check you cannot fix:
+      say "not merged", quote the blocker verbatim, and set the step 7 outcome
+      to `blocked` or `manual` with that reason. Never end with an open PR
+      nobody was told about. For an agent-rules PR send a separate alert that
+      lists the files changed. Use `PushNotification` when the session has it;
+      otherwise comment on the open issue labelled `factory-landed`.
 
    In a cloud session `gh pr` is blocked: use the `gh api` forms in
    `docs/agents/tool-usage.md` → GitHub from a cloud session (create the PR,
@@ -90,9 +101,12 @@ Claude Code fills these in; in Codex, run the commands.
 7. End with a recap for the user (and the staging PR body when you promote):
    - **Changed:** one line per commit.
    - **Gates:** each check run and its result.
+   - **Landed:** `merged into dev` with the sha, or `PR #<num> open, not merged`
+     and the blocker verbatim. An open PR is never left unsaid.
    - **Outcome:** `success`, `flawed` (shipped but needed rework or left known gaps),
-     `blocked` (missing credential, service or decision) or `manual` (deliberately
-     left for a human), with the reason.
+     `blocked` (missing credential, service or decision, or a merge you could not
+     make) or `manual` (deliberately left for a human, owner-merge included),
+     with the reason.
    - **Friction:** issue numbers filed or commented, or `none`.
 
 8. When the work was an agent task, post a run record with

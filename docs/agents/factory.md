@@ -193,6 +193,10 @@ Not built yet; each needs its own change:
   "create a Codex account and connect to github", #1991) and confirm its review
   comment names the head commit. Then the agent-rules lane can go back to two
   reviewers instead of owner-merge.
+- Find out why new pull requests are born as drafts (#1990): nothing in the
+  repository passes `--draft`, so it looks like a repository or account default
+  only the owner can see. `gh pr ready` is the workaround, and a cloud sandbox
+  cannot run it.
 - `scripts/agents/routing.mjs` still answers "risk:high needs a human" for
   issue routing and keeps `area:infra` and `area:security` human only; decide
   whether those follow the new merge rule.

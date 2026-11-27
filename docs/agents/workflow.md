@@ -97,6 +97,14 @@ secrets, money and deletions.
 
 Every PR, in this order:
 
+0. The PR is **not a draft**. A repository or account default can open it as
+   one, and a draft can never merge (`gh pr merge` fails with `Pull Request is
+   still a draft`), so run `gh pr ready <num>` right after `gh pr create`:
+   `gh pr create` has no `--ready` flag on the pinned `gh`, and `gh pr ready`
+   exits 0 on a PR that is already ready. A cloud sandbox cannot clear the flag
+   — `gh pr` is blocked there and REST cannot unset `draft` — so read
+   `gh api repos/Marcus100/grenmet/pulls/<num> --jq .draft` and, when it is
+   `true`, stop and report it under step 5 rather than retrying.
 1. CI is green on the PR head.
 2. A fresh-context review of that head has no open blocking finding, posted as
    a PR comment that names the reviewer. A `risk:high` PR also has a clean
@@ -107,6 +115,14 @@ Every PR, in this order:
    `gh api -X PUT repos/Marcus100/grenmet/pulls/<num>/merge -f sha=<full head sha> -f merge_method=merge`.
    The other REST forms are in [tool-usage.md](tool-usage.md) → Cloud sessions.
 4. Send the owner a phone alert: the PR number, title and link.
+5. **If the PR did not merge, say so just as loudly.** Owner-merge, a draft you
+   could not clear, a refused or failed merge command, a check you cannot fix:
+   send the same phone alert marked `not merged`, quote the blocker verbatim,
+   set the run's outcome to `blocked` or `manual` with that reason
+   ([run-records.md](run-records.md)) and name the open PR in the recap. Two
+   routine PRs went green within minutes on 27 November and sat open and
+   unmergeable for seven and a half hours because nothing reported a problem
+   (#1990). A run never ends leaving an open PR nobody was told about.
 
 The merge command names the repository (`--repo Marcus100/grenmet`), pins the
 full 40-character sha of the PR's current head, and runs alone: no other git or
@@ -116,7 +132,7 @@ Files fall into three groups:
 
 | Group | Files | Who merges |
 | --- | --- | --- |
-| Ordinary | everything not listed below | the agent, under steps 1 to 4 |
+| Ordinary | everything not listed below | the agent, under steps 0 to 5 |
 | Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the owner, after the security review below; the hook refuses an agent merge |
 | Enforcement | `.claude/hooks/`, `.claude/settings.json`, `.codex/`, `.agents/` settings, `.github/` (workflows, dependabot, CODEOWNERS), `infra/github/`, any `CODEOWNERS`, `.husky/`, `.devcontainer/`, `.vscode/`, `.mcp.json`, `.gitleaks.toml`, `skills-lock.json`, the root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `pnpm-lock.yaml`, `scripts/agents/`, `scripts/ci/`, `scripts/production/`, `scripts/ops/`, `scripts/monitoring/`, `scripts/verification/`, the guardrail scripts that are not tests | the owner, always; the hook refuses an agent merge whatever the PR body says |
 
@@ -140,7 +156,7 @@ Security review: no open findings (<reviewer>, <full 40-character head sha>)
   line is rewritten with the new sha.
 - Then stop and hand the PR to the owner, with a phone alert that names the PR
   and lists the agent-rules files it changed. Say in the recap that the PR is
-  open and owner-merge, and set the outcome to `manual`.
+  open and owner-merge, and set the outcome to `manual` (step 5 above).
 
 **Why the owner and not a second model.** This lane used to need a second body
 line, `Codex review: no blocking findings (<head sha>)`, and the point of it was

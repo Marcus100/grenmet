@@ -17,11 +17,22 @@ builds and validates the comment; `scripts/agents/run-report.mjs` reads them.
 | `usage` | you | once a week | `agent`, `week` (like `2026-W42`), `percent` of the plan allowance used |
 
 `outcome` is `success`, `flawed` (shipped but needed rework or left gaps), `blocked`
-(missing credential, service or decision) or `manual` (deliberately left for a
-human). `verify` is the result of `pnpm verify:changed`: `pass`, `fail` or `skipped`.
+(missing credential, service or decision, or a merge the agent could not make) or
+`manual` (deliberately left for a human, owner-merge included).
+`verify` is the result of `pnpm verify:changed`: `pass`, `fail` or `skipped`.
 `tier` comes from `node scripts/guardrails/risk-tier.mjs --base origin/dev`.
 `retries` counts repair attempts after the first try. Use `friction: none` when
 there was nothing to report.
+
+**A PR that did not merge is never `success`.** When a run ends with its `pr`
+still open — owner-merge, a draft it could not clear, a refused merge command, a
+check it could not fix — the record carries `blocked`, or `manual` for
+owner-merge, and names the blocker verbatim in `friction`. The run also sends the
+owner the phone alert marked `not merged`
+([workflow.md](workflow.md) → Merging into dev). Two routine PRs went green and
+then sat open and unmergeable for seven and a half hours because every signal a
+run emits assumed the merge had happened (#1990); the outcome field is where that
+shows from now on.
 
 ## Posting a record
 
