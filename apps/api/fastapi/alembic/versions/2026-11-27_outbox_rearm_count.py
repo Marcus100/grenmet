@@ -6,7 +6,7 @@ NULL with a server default, so the release still running against the old schema
 keeps inserting rows and the existing rows read as zero re-arms. Downgrade drops it.
 
 Revision ID: outboxrearm20261127
-Revises: contactvariant20261127
+Revises: outboundemailorg20261127
 """
 
 import sqlalchemy as sa
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "outboxrearm20261127"
-down_revision = "contactvariant20261127"
+down_revision = "outboundemailorg20261127"
 branch_labels = None
 depends_on = None
 

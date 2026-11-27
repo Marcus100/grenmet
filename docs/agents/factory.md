@@ -161,11 +161,12 @@ Once a week, in an attended session:
 2. It picks the top problem with a cause in the repository and makes one small
    change to a skill, an `AGENTS.md` rule, a scorer or a check, with a
    regression case.
-3. Agents implement and merge changes to skills, role briefs, `docs/agents`,
-   guardrail tests and the root `AGENTS.md` into dev once all checks pass, with
-   a clean Claude `security-reviewer` pass and a clean Codex review of the exact
-   head recorded in the PR body, and a separate phone alert to the owner after
-   the merge. Changes to enforcement files (hooks, settings, Codex rules, CI,
+3. Agents implement changes to skills, role briefs, `docs/agents`,
+   guardrail tests and the root `AGENTS.md`, get every check passing and record a
+   clean Claude `security-reviewer` pass for the exact head in the PR body, then
+   stop: these agent-rules files are owner-merge, and the agent sends the owner a
+   phone alert naming the PR and the files.
+   Changes to enforcement files (hooks, settings, Codex rules, CI,
    rulesets, guardrail scripts) go to the owner as a proposal: agents neither
    edit nor merge them ([workflow.md](workflow.md) → Merging into dev).
    Staging and production merges remain owner approved.
@@ -188,8 +189,14 @@ Not built yet; each needs its own change:
 - Set up the Claude cloud scheduled tasks from the prompts in
   [routines.md](routines.md) (nightly intake, daily signal sweep, red-`dev`
   trigger).
-- Turn on Codex's automatic GitHub review for this repository and confirm its
-  review comment names the head commit, which the agent-rules lane reads.
+- Connect the Codex GitHub app to this repository (today `@codex review` answers
+  "create a Codex account and connect to github", #1991) and confirm its review
+  comment names the head commit. Then the agent-rules lane can go back to two
+  reviewers instead of owner-merge.
+- Find out why new pull requests are born as drafts (#1990): nothing in the
+  repository passes `--draft`, so it looks like a repository or account default
+  only the owner can see. `gh pr ready` is the workaround, and a cloud sandbox
+  cannot run it.
 - `scripts/agents/routing.mjs` still answers "risk:high needs a human" for
   issue routing and keeps `area:infra` and `area:security` human only; decide
   whether those follow the new merge rule.
@@ -199,8 +206,8 @@ Not built yet; each needs its own change:
   (today it is a step in the routine prompt and the owner's account does both).
 - Record the issue-body hash in `scripts/agents/claim-issue.mjs` itself
   instead of a skill step.
-- Make the security and Codex reviews required GitHub statuses from a pinned
-  App, so the review-lines lane does not rest on the agent's own statement.
+- Make the security review a required GitHub status from a pinned App, so the
+  agent-rules lane does not rest on the agent's own statement.
 - The vendored `to-prd`, `to-issues` and `implement` skills cannot be edited
   here (see [skill-standard.md](skill-standard.md)); the label trust rule and
   the heavy-command rule for them live in [triage-labels.md](triage-labels.md)
@@ -222,11 +229,15 @@ GitHub's branch rulesets are the backstop meanwhile.
 - **Commands built at run time.** `$(echo git) push origin dev`, `"$G" push`
   and similar names a variable or substitution produces are not recognised as
   git or gh.
-- **Self-attested review lines.** For agent-rules PRs the
-  `Security review` and `Codex review` lines are written by the agent that
-  merges; the hook checks their shape and sha, not that a review happened.
-  Making both reviews required GitHub statuses from a pinned App would close
-  this.
+- **Self-attested review lines.** The `Security review` line on an agent-rules
+  PR is written by the agent itself; the hook checks its shape and sha, not that
+  a review happened, and an agent that wrote both lines could still merge the
+  lane the docs now call owner-merge. Two fixes, both the owner's: add the
+  agent-rules paths to `OWNER_ONLY_PATHS` in
+  `.claude/hooks/block-dangerous-git.mjs` (and update its comments and
+  `agent-hook-behavior.test.mjs` with it) to make owner-merge unconditional, and
+  make the review a required GitHub status from a pinned App so the line stops
+  being a claim.
 - **Rulesets not re-verified.** The protections the factory relies on
   (required CI on `dev`, `staging` and `main` protected, no bypass actors) are
   read from the committed snapshot `infra/github/rulesets.json`; nobody has

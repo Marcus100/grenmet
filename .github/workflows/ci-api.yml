@@ -238,6 +238,8 @@ jobs:
             dpkg -s "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
           done
           if [ ${#missing[@]} -eq 0 ]; then echo "PDF libraries already installed"; exit 0; fi
+          # packages.microsoft.com returns 403 Forbidden and apt-get update fails hard on it; no package below comes from there (#1989).
+          sudo rm -f /etc/apt/sources.list.d/microsoft*.list /etc/apt/sources.list.d/microsoft*.sources
           for attempt in 1 2 3; do
             sudo apt-get update && sudo apt-get install -y --no-install-recommends "${missing[@]}" && exit 0
             sleep $((attempt * 20))

@@ -38,13 +38,14 @@ file, not handled here.
 from datetime import datetime
 from typing import Final
 
-from sqlalchemy import func, select
+from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.sql.elements import ColumnElement
 
 from src import outbox
-from src.outbox import Outbox
+from src.auth import placeholders
+from src.outbox import Outbox, OutboxStatus
 from src.utils.datetime import utc_now
 
 from . import dispatch, outbox_handlers, service
@@ -115,4 +116,97 @@ async def clear_address(session: AsyncSession, *, email: str, placeholder: str) 
     # Safety net: a row that arrived after the first pass (it cannot, once the queued
     # rows above are locked, but the check costs one query) is anonymised too.
     changed += await _clear_log(session, clean, placeholder)
+    return changed
+
+
+CONTACT_ERASED_SUBJECT: Final = "Email to an erased contact"
+
+
+async def clear_contact_mail(
+    session: AsyncSession, *, organisation_id: str, email: str
+) -> int:
+    """Erase one business's mail to a contact who asked it to forget them (#1963), in
+    the caller's transaction. Returns the number of rows changed.
+
+    Scoped to the erasing organisation: rows are matched on the address AND
+    ``organisation_id``. Another business's mail to the same address is that business's
+    record and is never touched. Rows with a NULL organisation (written before the
+    column, or queued by no business) are not attributable and are left to the
+    retention purge.
+
+    A queued mail is deleted outright (not kept as skipped or done): it must never go
+    to this person. A sent or final row keeps its delivery record (status, attempts,
+    timestamps) and loses its address, subject, html and props. The address is the
+    contact's own, matched on the same normalised form the tombstone hash uses, and
+    nothing else (no name, no phone). Locks follow the drain's order (outbox rows, then
+    the delivery log), so a send in flight finishes first and its log row is then
+    redacted. A second run finds nothing."""
+    clean = service.normalise_email(email)
+    now = utc_now()
+    placeholder = placeholders.placeholder_email(placeholders.new_placeholder_token())
+    changed = 0
+    # Delivery-log rows of this organisation at this address.
+    logged_ids = select(cast(OutboundEmail.id, String)).where(
+        _address_is(OutboundEmail.to_email, clean),
+        OutboundEmail.organisation_id == organisation_id,
+    )
+    # The outbox first, the order the drain takes its locks in.
+    deliver_rows = (
+        await session.scalars(
+            select(Outbox)
+            .where(
+                Outbox.topic == service.EMAIL_DELIVER,
+                Outbox.payload["outbound_email_id"].astext.in_(logged_ids),
+            )
+            .order_by(Outbox.id)
+            .with_for_update()
+        )
+    ).all()
+    for message in deliver_rows:
+        if message.status == OutboxStatus.PENDING.value:
+            await session.delete(message)
+            changed += 1
+    send_rows = (
+        await session.scalars(
+            select(Outbox)
+            .where(
+                Outbox.topic == outbox_handlers.EMAIL_SEND,
+                Outbox.organisation_id == organisation_id,
+                _address_is(Outbox.payload["to_email"].astext, clean),
+            )
+            .order_by(Outbox.id)
+            .with_for_update()
+        )
+    ).all()
+    for message in send_rows:
+        if message.status == OutboxStatus.PENDING.value:
+            await session.delete(message)
+        else:
+            outbox.erase_payload(message, now)
+        changed += 1
+    # Then the delivery log: an unsent mail is deleted, a final one redacted.
+    log_rows = (
+        await session.scalars(
+            select(OutboundEmail)
+            .where(
+                _address_is(OutboundEmail.to_email, clean),
+                OutboundEmail.organisation_id == organisation_id,
+            )
+            .with_for_update()
+        )
+    ).all()
+    for row in log_rows:
+        if dispatch.is_unsent(row):
+            await session.delete(row)
+        else:
+            row.to_email = placeholder
+            row.subject = CONTACT_ERASED_SUBJECT
+            row.props = {"erased": "contact"}
+            row.html = None
+            row.last_error = None
+            row.next_retry_at = None
+            if row.dedupe_key is not None:
+                row.dedupe_key = f"erased:{row.id}"
+        changed += 1
+    await session.flush()
     return changed
