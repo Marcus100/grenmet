@@ -1,7 +1,9 @@
 """Rehearse the booking-hygiene migration (bookinghygiene20261124) up and down inside a
 rolled-back transaction: two additive profile columns, server defaults so the previous
 release still inserts profiles, the checks, and a downgrade that drops only what it
-added. Also: a single Alembic head."""
+added. Also: the revision stays in the Alembic chain. The single-head guard is
+tests/test_main_migration_head.py; CI's `alembic upgrade head` step (ci-api.yml, shard 1)
+is a second guard, since it refuses to run on split heads."""
 
 import os
 
@@ -63,10 +65,14 @@ def _checks(connection) -> set[str]:
     return {row[0] for row in rows}
 
 
-def test_there_is_a_single_alembic_head() -> None:
-    # Later slices stack on this one; the head moves with each new revision.
-    heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["eventsordercontact20261127"]
+def test_the_hygiene_revision_is_in_the_chain() -> None:
+    # Ancestry, not equality: later revisions stack on top, so the head moves. The
+    # single-head guard lives in tests/test_main_migration_head.py.
+    script = ScriptDirectory.from_config(Config("alembic.ini"))
+    chain = {
+        rev.revision for rev in script.iterate_revisions(script.get_heads(), "base")
+    }
+    assert REVISION in chain
 
 
 def test_upgrade_adds_both_columns_with_their_defaults(rehearsal):

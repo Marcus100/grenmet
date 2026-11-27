@@ -105,10 +105,3 @@ def test_upgrade_approves_every_existing_business_and_marks_entitlements_manual(
         ).scalars()
     )
     assert sources == {"manual"}
-
-
-def test_the_head_is_the_listing_revision() -> None:
-    scripts = ScriptDirectory.from_config(Config("alembic.ini"))
-    # Later slices stack on this one; the head moves with each new revision.
-    assert scripts.get_heads() == ["eventsordercontact20261127"]
-    assert LISTING == "bookinglisting20261124"
