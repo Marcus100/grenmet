@@ -61,6 +61,13 @@ _REASONS: dict[str, str] = {
 }
 
 
+#: Operator-facing refusal once a dead refund has used its re-arms.
+_REARM_REFUSED = (
+    f"This refund has been retried {outbox.MAX_REARMS} times and has not succeeded, "
+    "it needs looking at."
+)
+
+
 class RefundAlreadyPending(EventsConflict):
     """Another refund of this order is still waiting for the payment provider."""
 
@@ -198,10 +205,11 @@ async def request_refund(
         # Re-arm a refund the outbox gave up on, so a re-cancel retries it. The amount
         # stays the one fixed when it was requested: the provider's idempotency key is
         # bound to it, so another amount under this refund id would be refused.
-        row.status = outbox.OutboxStatus.PENDING.value
-        row.attempts = 0
-        row.next_attempt_at = utc_now()
-        row.last_error = None
+        # The re-arm is counted and capped at outbox.MAX_REARMS (see outbox.rearm).
+        try:
+            outbox.rearm(row, utc_now())
+        except outbox.RearmRefused:
+            raise EventsConflict(_REARM_REFUSED) from None
     return "queued", 0
 
 

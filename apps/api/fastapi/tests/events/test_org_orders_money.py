@@ -797,6 +797,68 @@ async def test_a_queued_refund_reports_its_real_state_and_rearms_a_dead_row(
 
 
 @pytest.mark.asyncio
+async def test_a_re_arm_past_the_cap_is_refused_with_a_reason(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    from src.auth.models import User
+
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    actor = await db_async.get(User, shop.owner.id)
+    assert order is not None
+    assert actor is not None
+
+    async def ask() -> str:
+        outcome, _ = await order_refunds.request_refund(
+            db_async,
+            organisation_id=shop.organisation_id,
+            order=order,
+            actor=actor,
+            reason="Organiser words",
+            reason_code="order_cancelled",
+            key=order_refunds.CANCEL_KEY,
+        )
+        await db_async.commit()
+        return outcome
+
+    async def row() -> outbox.Outbox:
+        found = await db_async.scalar(
+            select(outbox.Outbox)
+            .where(outbox.Outbox.topic == order_refunds.REQUESTED_TOPIC)
+            .execution_options(populate_existing=True)
+        )
+        assert found is not None
+        return found
+
+    assert await ask() == "queued"
+    for _ in range(outbox.MAX_REARMS):
+        dead = await row()
+        dead.status = "dead"
+        dead.attempts = 5
+        await db_async.commit()
+        assert await ask() == "queued"
+
+    dead = await row()
+    dead.status = "dead"
+    dead.attempts = 5
+    await db_async.commit()
+    with pytest.raises(EventsConflict) as refused:
+        await ask()
+    await db_async.rollback()
+    assert str(refused.value) == (
+        f"This refund has been retried {outbox.MAX_REARMS} times and has not "
+        "succeeded, it needs looking at."
+    )
+    kept = await row()
+    assert (kept.status, kept.rearms) == ("dead", outbox.MAX_REARMS)
+
+
+@pytest.mark.asyncio
 async def test_a_second_card_refund_waits_for_the_first_and_status_trusts_the_ledger(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,

@@ -33,10 +33,23 @@ def test_a_pending_row_can_only_finish_or_die() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "finished", [outbox.OutboxStatus.DONE, outbox.OutboxStatus.DEAD]
-)
-def test_a_finished_row_never_moves_again(finished: outbox.OutboxStatus) -> None:
-    for target in outbox.OutboxStatus:
+def test_the_row_is_re_armed_at_most_three_times() -> None:
+    assert outbox.MAX_REARMS == 3
+
+
+@pytest.mark.parametrize("target", list(outbox.OutboxStatus))
+def test_a_done_row_never_moves_again(target: outbox.OutboxStatus) -> None:
+    # Every target, including pending: the whole DONE row of the guard is asserted here.
+    assert not outbox.STATUS_MOVES.allows(outbox.OutboxStatus.DONE, target)
+    with pytest.raises(RetryTransitionError):
+        outbox.STATUS_MOVES.require(outbox.OutboxStatus.DONE, target)
+
+
+def test_a_dead_row_moves_only_back_to_pending() -> None:
+    # The one declared move out of dead: the operator's re-arm (outbox.rearm).
+    assert outbox.STATUS_MOVES.allows(
+        outbox.OutboxStatus.DEAD, outbox.OutboxStatus.PENDING
+    )
+    for target in (outbox.OutboxStatus.DONE, outbox.OutboxStatus.DEAD):
         with pytest.raises(RetryTransitionError):
-            outbox.STATUS_MOVES.require(finished, target)
+            outbox.STATUS_MOVES.require(outbox.OutboxStatus.DEAD, target)

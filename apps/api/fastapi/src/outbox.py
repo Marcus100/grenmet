@@ -18,6 +18,9 @@ done and dead rows after 30 days, and nothing here logs payloads.
 
 Rows whose topic has no registered handler are left alone, so a worker older than
 the API never kills a message it cannot yet read.
+
+A dead row goes back to pending only through ``rearm``: an operator's retry. It
+resets the attempts (so the drain really retries it) and is capped at ``MAX_REARMS``.
 """
 
 import logging
@@ -43,6 +46,9 @@ from src.utils.retry_state import RetryTable, backoff_seconds, is_exhausted
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 5
+# Operator re-arms of one dead row. The count is kept on the row, so a refund that
+# cannot succeed is not handed to its handler (and the provider) forever.
+MAX_REARMS = 3
 
 
 class TerminalFailure(Exception):
@@ -61,13 +67,18 @@ class OutboxStatus(str, Enum):
     DEAD = "dead"
 
 
+class RearmRefused(Exception):
+    """A dead row was not re-armed because it has used its ``MAX_REARMS``."""
+
+
 # A row is pending until its handler finishes (done) or it gives up (dead). A failed
 # attempt that will be retried keeps the row pending, so it is not a status move.
+# Dead to pending is the operator's re-arm (``rearm``), the only move out of dead.
 STATUS_MOVES: RetryTable[OutboxStatus] = RetryTable(
     {
         OutboxStatus.PENDING: frozenset({OutboxStatus.DONE, OutboxStatus.DEAD}),
         OutboxStatus.DONE: frozenset(),
-        OutboxStatus.DEAD: frozenset(),
+        OutboxStatus.DEAD: frozenset({OutboxStatus.PENDING}),
     }
 )
 
@@ -97,6 +108,7 @@ class Outbox(Base):
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     dedupe_key: Mapped[str] = mapped_column(String(200))
     attempts: Mapped[int] = mapped_column(default=0)
+    rearms: Mapped[int] = mapped_column(default=0, server_default="0")
     next_attempt_at: Mapped[datetime] = mapped_column(default=utc_now)
     status: Mapped[str] = mapped_column(String(10), default=OutboxStatus.PENDING.value)
     last_error: Mapped[str | None] = mapped_column(String(300))
@@ -177,6 +189,7 @@ async def enqueue(
             payload=payload,
             dedupe_key=dedupe_key[:200],
             attempts=0,
+            rearms=0,
             next_attempt_at=run_at or now,
             status=OutboxStatus.PENDING.value,
             created_at=now,
@@ -185,6 +198,22 @@ async def enqueue(
         .on_conflict_do_nothing(index_elements=["topic", "dedupe_key"])
     )
     return bool(getattr(result, "rowcount", 0))
+
+
+def rearm(row: Outbox, now: datetime) -> None:
+    """Send a dead row back to pending so the drain retries it (the dead-to-pending
+    move of ``STATUS_MOVES``). Resets the attempts and the backoff, and counts the
+    re-arm. A row that has used ``MAX_REARMS`` stays dead and raises ``RearmRefused``.
+    The caller commits."""
+    STATUS_MOVES.require(row.status, OutboxStatus.PENDING)
+    if row.rearms >= MAX_REARMS:
+        raise RearmRefused(f"dead row already re-armed {MAX_REARMS} times")
+    row.status = OutboxStatus.PENDING.value
+    row.rearms += 1
+    row.attempts = 0
+    row.next_attempt_at = now
+    row.last_error = None
+    row.updated_at = now
 
 
 def erase_payload(row: Outbox, now: datetime) -> None:
