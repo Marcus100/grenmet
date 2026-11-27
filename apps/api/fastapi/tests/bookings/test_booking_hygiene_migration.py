@@ -1,7 +1,9 @@
 """Rehearse the booking-hygiene migration (bookinghygiene20261124) up and down inside a
 rolled-back transaction: two additive profile columns, server defaults so the previous
 release still inserts profiles, the checks, and a downgrade that drops only what it
-added. Also: a single Alembic head."""
+added. Also: the revision stays in the Alembic chain. The single-head guard is
+tests/test_main_migration_head.py; CI's `alembic upgrade head` step (ci-api.yml, shard 1)
+is a second guard, since it refuses to run on split heads."""
 
 import os
 
