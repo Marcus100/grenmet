@@ -14,7 +14,17 @@ export const investigationUpdateSchema = z
     why_steps: z.union([z.array(whyStepSchema).max(5), z.null()]).optional(),
     root_cause: z.union([z.string().max(10000), z.null()]).optional(),
     contributing_factor_ids: z
-      .union([z.array(z.string()).max(50), z.null()])
+      .union([
+        z
+          .array(
+            z
+              .string()
+              .max(20)
+              .regex(/^cfa_[0-9a-f]{16}$/)
+          )
+          .max(50),
+        z.null(),
+      ])
       .optional(),
   })
   .describe(

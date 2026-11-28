@@ -3660,9 +3660,12 @@ organisation needs the `safety` entitlement and the caller a key: `safety.cases.
   it on first use and needs the case in `investigating` and a draft. Fields:
   `what_happened`, `unsafe_acts`, `unsafe_conditions`, `root_cause`, `why_steps` (up
   to 5 `{question, answer}`, a blank question is 422, replaced whole) and
-  `contributing_factor_ids` (factors of this programme, replaced whole; a newly added one
+  `contributing_factor_ids` (at most 50, each `cfa_` and 16 hex characters, otherwise 422
+  at the edge; factors of this programme, replaced whole; a newly added one
   must be active, another organisation's or programme's factor is 422). The first write
-  also seeds the starting factor list.
+  also seeds the starting factor list. Two first writes at the same moment seed it once:
+  the one that loses the race backs out and carries on with its own write, it does not
+  fail.
   `POST .../investigation/submit` (`cases.write`) needs what happened, a root cause and
   at least one why with every answer. `POST .../investigation/approve` and
   `.../return` (`reason`) need `cases.approve`. Neither may be done by anyone who

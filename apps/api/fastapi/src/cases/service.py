@@ -768,11 +768,22 @@ async def seed_default_factors(
     if await is_seeded(session, organisation_id=organisation_id, programme=programme):
         return
     now = utc_now()
-    session.add(
-        FactorSeed(
-            organisation_id=organisation_id, programme=programme.value, seeded_at=now
-        )
-    )
+    # Two first writes can both pass the check above. The marker's primary key lets
+    # exactly one win; the other waits for it, hits the key, and backs out because the
+    # winner seeds the list in its own transaction. A savepoint, not
+    # ON CONFLICT DO NOTHING: the marker is written through the ORM so the audit trail
+    # records it ("Contributing factor list seed"), and a Core insert would skip that.
+    try:
+        async with session.begin_nested():
+            session.add(
+                FactorSeed(
+                    organisation_id=organisation_id,
+                    programme=programme.value,
+                    seeded_at=now,
+                )
+            )
+    except IntegrityError:
+        return
     taken = set(
         (
             await session.scalars(

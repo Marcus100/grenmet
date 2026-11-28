@@ -34,6 +34,7 @@ from .models import (
 )
 from .risk import Grid
 from .schemas import (
+    FACTOR_ID_PATTERN,
     CaseActionCreate,
     CaseActionPublic,
     CaseActionStatusChange,
@@ -180,7 +181,7 @@ async def _links(
 #: A factor id as the service issues it: ``cfa_`` and 16 hex characters.
 FactorId = Annotated[
     str,
-    Path(pattern=r"^cfa_[0-9a-f]{16}$", max_length=20, description="A factor id."),
+    Path(pattern=FACTOR_ID_PATTERN, max_length=20, description="A factor id."),
 ]
 
 

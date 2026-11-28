@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date
+from typing import Annotated
 
 from pydantic import Field, field_validator
 
@@ -17,6 +18,11 @@ from .models import (
 )
 
 # --- risk grid ----------------------------------------------------------------------
+
+
+#: A factor id as the service issues it (``models.new_factor_id``): ``cfa_`` and 16
+#: hex characters. One pattern for the path parameter and the investigation body.
+FACTOR_ID_PATTERN = r"^cfa_[0-9a-f]{16}$"
 
 
 class CaseRiskLikelihood(BaseModel):
@@ -258,7 +264,9 @@ class InvestigationUpdate(BaseModel):
     unsafe_conditions: str | None = Field(default=None, max_length=10000)
     why_steps: list[WhyStep] | None = Field(default=None, max_length=5)
     root_cause: str | None = Field(default=None, max_length=10000)
-    contributing_factor_ids: list[str] | None = Field(default=None, max_length=50)
+    contributing_factor_ids: (
+        list[Annotated[str, Field(pattern=FACTOR_ID_PATTERN, max_length=20)]] | None
+    ) = Field(default=None, max_length=50)
 
 
 class InvestigationReturn(BaseModel):
