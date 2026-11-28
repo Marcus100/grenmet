@@ -235,7 +235,7 @@ unless the table says otherwise. Use `gh variable set <name> --env <environment>
   or the count: the API returns only the first 10 variables by default, which
   cuts the list off before `SENTRY_*` and `TELEMETRY_*` and reads as absent.
 
-  ```
+  ```bash
   gh api 'repos/Marcus100/grenmet/environments/<env>/variables?per_page=100' \
     --jq '.total_count, [.variables[] | "\(.name)=\(.value)"]'
   ```
