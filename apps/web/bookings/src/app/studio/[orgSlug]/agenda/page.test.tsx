@@ -600,7 +600,7 @@ describe("needs confirming", () => {
 });
 
 describe("cancelled booking with an unpaid payment (#1849)", () => {
-  it("keeps the neutral amount on a cancelled online payment, never due", async () => {
+  it("shows no payment chip on a cancelled online payment nothing was taken for", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -623,13 +623,13 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
     );
     const row = screen.getByRole("link", { name: ADA });
     expect(within(row).getByText("Cancelled")).toBeVisible();
-    expect(within(row).getByText("Payment EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Payment EC$25");
     expect(row).not.toHaveTextContent("Payment due");
     expect(row).not.toHaveTextContent("Deposit due");
     expect(row).not.toHaveTextContent("Payment cancelled");
   });
 
-  it("keeps the neutral amount on a cancelled online deposit, never due", async () => {
+  it("shows no deposit chip on a cancelled online deposit nothing was taken for", async () => {
     vi.mocked(getAgenda).mockResolvedValue(
       agenda([
         {
@@ -645,9 +645,35 @@ describe("cancelled booking with an unpaid payment (#1849)", () => {
       })
     );
     const row = screen.getByRole("link", { name: ADA });
-    expect(within(row).getByText("Deposit EC$25")).toBeVisible();
+    expect(row).not.toHaveTextContent("Deposit EC$25");
     expect(row).not.toHaveTextContent("Deposit due");
     expect(row).not.toHaveTextContent("Payment due");
+  });
+
+  it("says the money was taken and not refunded on a cancelled booking", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({
+              status: "cancelled",
+              deposit_minor: 2500,
+              deposit_captured_minor: 2500,
+            }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    const row = screen.getByRole("link", { name: ADA });
+    expect(within(row).getByText("EC$25 taken, not refunded")).toBeVisible();
+    expect(row).not.toHaveTextContent("Deposit EC$25");
   });
 
   it("does not show the returning-client tag once the booking is cancelled", async () => {
