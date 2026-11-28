@@ -7769,6 +7769,7 @@ export type {
   JanitorialUpdateZoneStatus503,
 } from "./JanitorialUpdateZone.js";
 export type { JanitorialZone } from "./JanitorialZone.js";
+export type { JobFreshness } from "./JobFreshness.js";
 export type { JsonValue } from "./JsonValue.js";
 export type { LeavePublic } from "./LeavePublic.js";
 export type { LeaveRequestAction } from "./LeaveRequestAction.js";

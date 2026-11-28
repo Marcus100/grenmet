@@ -28,6 +28,7 @@ from .schemas import (
     FeedFreshness,
     FeedStatus,
     FreshnessReport,
+    JobFreshness,
     ProbeReport,
 )
 
@@ -74,6 +75,69 @@ def feed_rules() -> tuple[FeedRule, ...]:
             lambda: wis2box_settings.sink is not None,
         ),
     )
+
+
+@dataclass(frozen=True)
+class JobRule:
+    """How long a scheduled worker job may go without a success.
+
+    ``alerts`` decides whether staleness turns the probe red. Every tracked job is
+    reported either way, so the monitoring screen shows the lot; only the jobs a
+    customer would notice stopping are worth waking someone for.
+    """
+
+    name: str
+    max_age: timedelta
+    alerts: bool
+
+
+def job_rules() -> tuple[JobRule, ...]:
+    """Windows are about twice each job's interval, so one late or slow run is not
+    an alert. Schedules are in ``src/worker/main.py`` (and ``src/printix/register.py``
+    for ``purge_scan_log``); keep the two in step.
+
+    Nothing watched an individual job before this: ARQ jobs are wrapped for Sentry
+    Crons, but ``SENTRY_CRONS_ENABLED`` is not set in production, and the Better Stack
+    heartbeat notices the worker being down rather than one job failing.
+    """
+    return (
+        # Every minute.
+        JobRule("process_cap_jobs", timedelta(minutes=15), True),
+        JobRule("send_notification_emails", timedelta(minutes=15), True),
+        # Every five minutes.
+        JobRule("ingest_cap_feeds", timedelta(minutes=20), False),
+        JobRule("expire_cap_alerts", timedelta(minutes=20), True),
+        JobRule("expire_unpaid_bookings", timedelta(minutes=20), True),
+        JobRule("expire_pending_bookings", timedelta(minutes=20), True),
+        # Hourly.
+        JobRule("enqueue_booking_reminders", timedelta(minutes=135), True),
+        JobRule("complete_finished_bookings", timedelta(minutes=135), True),
+        JobRule("sweep_booking_uploads", timedelta(minutes=135), True),
+        # Daily.
+        JobRule("run_notification_sweeps", timedelta(hours=26), False),
+        JobRule("evaluate_paused_businesses", timedelta(hours=26), False),
+        JobRule("purge_scan_log", timedelta(hours=26), False),
+    )
+
+
+def job_status(
+    rule: JobRule,
+    *,
+    last_success: datetime | None,
+    now: datetime,
+    telemetry_available: bool,
+) -> FeedStatus:
+    """A job's freshness. ``NEVER`` is not staleness: a job that has not run yet in a
+    fresh environment, or since the last Redis flush, is unknown rather than broken,
+    and ``failing_checks`` treats it that way.
+    """
+    if not telemetry_available:
+        return FeedStatus.UNKNOWN
+    if last_success is None:
+        return FeedStatus.NEVER
+    if now - _naive_utc(last_success) > rule.max_age:
+        return FeedStatus.STALE
+    return FeedStatus.FRESH
 
 
 def feed_status(
@@ -147,8 +211,10 @@ async def freshness_report(
 ) -> FreshnessReport:
     moment = now or utc_now()
     successes = await operational_metrics.feed_successes()
+    job_last = await operational_metrics.job_successes()
     telemetry_available = successes is not None
     seen = successes or {}
+    jobs_seen = job_last or {}
     feeds: list[FeedFreshness] = []
     for rule in feed_rules():
         last = seen.get(rule.name)
@@ -167,17 +233,38 @@ async def freshness_report(
                 max_age_minutes=int(rule.max_age.total_seconds() // 60),
             )
         )
+    jobs: list[JobFreshness] = []
+    for job in job_rules():
+        job_seen = jobs_seen.get(job.name)
+        jobs.append(
+            JobFreshness(
+                name=job.name,
+                status=job_status(
+                    job,
+                    last_success=job_seen,
+                    now=moment,
+                    telemetry_available=telemetry_available,
+                ),
+                alerts=job.alerts,
+                last_success_at=job_seen,
+                max_age_minutes=int(job.max_age.total_seconds() // 60),
+            )
+        )
     backlog = await email_backlog(session, now=moment)
     feeds_ok = all(f.status in {FeedStatus.FRESH, FeedStatus.DISABLED} for f in feeds)
+    # Only a job marked `alerts` can turn the report red, and only when it is STALE:
+    # see job_status on why NEVER and UNKNOWN are not failures.
+    jobs_ok = not any(job.alerts and job.status is FeedStatus.STALE for job in jobs)
     threshold = worker_settings.OUTBOX_ALERT_THRESHOLD
     email_ok = (
         backlog.stale_pending <= threshold and backlog.dead_last_window <= threshold
     )
     return FreshnessReport(
-        healthy=feeds_ok and email_ok,
+        healthy=feeds_ok and jobs_ok and email_ok,
         checked_at=moment,
         telemetry_available=telemetry_available,
         feeds=feeds,
+        jobs=jobs,
         email_outbox=backlog,
     )
 
@@ -190,6 +277,9 @@ def failing_checks(report: FreshnessReport) -> list[str]:
     for feed in report.feeds:
         if feed.status not in {FeedStatus.FRESH, FeedStatus.DISABLED}:
             names.append(f"feed:{feed.name}")
+    for job in report.jobs:
+        if job.alerts and job.status is FeedStatus.STALE:
+            names.append(f"job:{job.name}")
     if report.email_outbox.stale_pending > worker_settings.OUTBOX_ALERT_THRESHOLD:
         names.append("email_outbox.stale_pending")
     if report.email_outbox.dead_last_window > worker_settings.OUTBOX_ALERT_THRESHOLD:

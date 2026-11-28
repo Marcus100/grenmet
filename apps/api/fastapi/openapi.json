@@ -103731,6 +103731,13 @@
             "type": "array",
             "title": "Feeds"
           },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobFreshness"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
           "email_outbox": {
             "$ref": "#/components/schemas/EmailOutboxBacklog"
           }
@@ -103741,6 +103748,7 @@
           "checked_at",
           "telemetry_available",
           "feeds",
+          "jobs",
           "email_outbox"
         ],
         "title": "FreshnessReport"
@@ -109336,6 +109344,47 @@
           "revision"
         ],
         "title": "JanitorialZone"
+      },
+      "JobFreshness": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FeedStatus"
+          },
+          "alerts": {
+            "type": "boolean",
+            "title": "Alerts"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "max_age_minutes": {
+            "type": "integer",
+            "title": "Max Age Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "alerts",
+          "last_success_at",
+          "max_age_minutes"
+        ],
+        "title": "JobFreshness",
+        "description": "A scheduled worker job's last success, against the window its schedule allows.\n\nShares ``FeedStatus`` with the feeds above: the five states mean the same thing\nfor a job, and renaming that enum would break the generated client."
       },
       "JsonValue": {},
       "LeavePublic": {
@@ -122667,7 +122716,7 @@
           "failing_checks"
         ],
         "title": "ProbeReport",
-        "description": "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``telemetry``,\n``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``."
+        "description": "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``job:enqueue_booking_reminders``,\n``telemetry``, ``email_outbox.stale_pending`` or\n``email_outbox.dead_last_window``."
       },
       "ProductAccessCurrent": {
         "properties": {

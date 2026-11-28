@@ -5,6 +5,7 @@
 
 import type { EmailOutboxBacklog } from "./EmailOutboxBacklog.js";
 import type { FeedFreshness } from "./FeedFreshness.js";
+import type { JobFreshness } from "./JobFreshness.js";
 
 export type FreshnessReport = {
   healthy: boolean;
@@ -16,5 +17,6 @@ export type FreshnessReport = {
   checked_at: string;
   telemetry_available: boolean;
   feeds: FeedFreshness[];
+  jobs: JobFreshness[];
   email_outbox: EmailOutboxBacklog;
 };
