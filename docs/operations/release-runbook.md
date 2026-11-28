@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-16
+**Last updated:** 2026-11-28
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) run
 local verification, push their task branch, open a PR into `dev` and merge it
@@ -455,6 +455,46 @@ with the owner (see [restore drill](restore-drill.md) and the backup gate above)
 
 **Web public settings.** A wrong site, API or Sentry value is fixed
 by correcting the GitHub environment variable and redeploying; no rebuild.
+
+### Reverting pay after acceptance (bookings)
+
+Migration `bookingpayafteraccept20261126` adds `bookings.booking.pay_after_acceptance`
+(boolean, default false) and `accepted_at` (nullable). The schema change is additive,
+so the previous image runs against it. The risk is the old **code** reading new rows,
+which makes this a revert you should not do while any such row is in flight. Found by
+the security review of PR #1953 (issue #1961).
+
+Once the feature is on, rows exist with `pay_after_acceptance = true` and `accepted_at`
+set. Reverting to an image from before it means:
+
+- the old expiry worker measures the payment hold from `created_at`, not `accepted_at`,
+  so an accepted booking is cancelled early, immediately if the request is old;
+- a customer who pays after the revert goes through the old `confirm_paid`, which leaves
+  a confirm-every-booking business's booking at `pending`: the customer has paid and
+  the booking is not confirmed;
+- a `pending` row carrying a deposit that was never accepted is read by the old code as
+  a booking to accept without payment;
+- running the migration `down` drops both columns, so the distinction is gone for good.
+  Do not run it in production (see **Database** above).
+
+**Before reverting such a release,** count what is in flight:
+
+```sql
+SELECT status, count(*)
+FROM bookings.booking
+WHERE pay_after_acceptance
+  AND status IN ('pending', 'pending_payment')
+GROUP BY status;
+```
+
+Drain it first: have each business accept or decline its `pending` requests, and let
+`pending_payment` holds be paid or expire. If that is not possible in time, prefer a
+**forward fix** shipped as a new release over a revert. Tell the owner either way: a
+revert here can take a customer's money without confirming their booking.
+
+Checked against the migration and the model on `dev` (revision, columns, `downgrade()`
+and the status values above). The four behaviours of the old code are as reported by
+the review of #1953 and were not re-run against an old image.
 
 ### CMS migrations (Payload, database `gms_cms`)
 
