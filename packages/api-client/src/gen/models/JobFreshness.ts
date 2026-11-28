@@ -18,6 +18,9 @@ export type JobFreshness = {
    * @description fresh: last success within its window. stale: older than the window.
    * never: no success recorded yet. unknown: telemetry off or Redis unreachable.
    * disabled: the feed's flag is off, so it is not expected to run.
+   *
+   * Shared with ``JobFreshness``. A job is never ``disabled``: every tracked job is
+   * scheduled, and whether it alerts is a separate field.
    * @type string
    */
   status: FeedStatus;

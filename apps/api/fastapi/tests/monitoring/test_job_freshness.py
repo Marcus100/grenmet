@@ -179,29 +179,43 @@ async def test_a_job_that_never_ran_leaves_the_report_healthy(
     assert report.healthy is True
 
 
-async def test_job_success_round_trips_through_redis(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class FakeRedis:
-        def __init__(self) -> None:
-            self.hashes: dict[str, dict[bytes, bytes]] = {}
+class FakeRedis:
+    """Enough of the async Redis client for the two writes record_job makes.
 
-        async def hset(self, key: str, field: str, value: str) -> None:
-            self.hashes.setdefault(key, {})[field.encode()] = value.encode()
+    ``eval_fails`` stands in for the counter write timing out while the
+    last-success write still has to happen.
+    """
 
-        async def expire(self, key: str, ttl: int) -> bool:
-            return ttl > 0
+    def __init__(self, *, eval_fails: bool = False) -> None:
+        self.hashes: dict[str, dict[bytes, bytes]] = {}
+        self._eval_fails = eval_fails
 
-        async def hgetall(self, key: str) -> dict[bytes, bytes]:
-            return dict(self.hashes.get(key, {}))
+    async def eval(self, *_args: Any) -> None:
+        if self._eval_fails:
+            raise TimeoutError
+        return None
 
-        async def eval(self, *_args: Any) -> None:
-            return None
+    async def hset(self, key: str, field: str, value: str) -> None:
+        self.hashes.setdefault(key, {})[field.encode()] = value.encode()
 
-    fake = FakeRedis()
+    async def expire(self, key: str, ttl: int) -> bool:
+        return ttl > 0
+
+    async def hgetall(self, key: str) -> dict[bytes, bytes]:
+        return dict(self.hashes.get(key, {}))
+
+
+def _telemetry_on(monkeypatch: pytest.MonkeyPatch, fake: FakeRedis) -> None:
     monkeypatch.setattr(operational_metrics.settings, "ENABLED", True)
     monkeypatch.setattr(operational_metrics.settings, "ENVIRONMENT", "production")
     monkeypatch.setattr(operational_metrics, "_shared_client", lambda: fake)
+
+
+async def test_job_success_round_trips_through_redis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = FakeRedis()
+    _telemetry_on(monkeypatch, fake)
 
     await operational_metrics.record_job(fake, ALERTING_JOB, "job-1", True)
     found = await operational_metrics.job_successes()
@@ -216,27 +230,8 @@ async def test_a_failed_run_does_not_refresh_the_last_success(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The point of the check: a job that keeps failing must still go stale."""
-
-    class FakeRedis:
-        def __init__(self) -> None:
-            self.hashes: dict[str, dict[bytes, bytes]] = {}
-
-        async def hset(self, key: str, field: str, value: str) -> None:
-            self.hashes.setdefault(key, {})[field.encode()] = value.encode()
-
-        async def expire(self, key: str, ttl: int) -> bool:
-            return ttl > 0
-
-        async def hgetall(self, key: str) -> dict[bytes, bytes]:
-            return dict(self.hashes.get(key, {}))
-
-        async def eval(self, *_args: Any) -> None:
-            return None
-
     fake = FakeRedis()
-    monkeypatch.setattr(operational_metrics.settings, "ENABLED", True)
-    monkeypatch.setattr(operational_metrics.settings, "ENVIRONMENT", "production")
-    monkeypatch.setattr(operational_metrics, "_shared_client", lambda: fake)
+    _telemetry_on(monkeypatch, fake)
 
     await operational_metrics.record_job(fake, ALERTING_JOB, "job-1", False)
 
@@ -247,28 +242,35 @@ async def test_a_redis_failure_on_the_counter_still_records_the_success(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The counter and the last-success time are written separately on purpose."""
-
-    class CounterBroken:
-        def __init__(self) -> None:
-            self.hashes: dict[str, dict[bytes, bytes]] = {}
-
-        async def eval(self, *_args: Any) -> None:
-            raise TimeoutError
-
-        async def hset(self, key: str, field: str, value: str) -> None:
-            self.hashes.setdefault(key, {})[field.encode()] = value.encode()
-
-        async def expire(self, key: str, ttl: int) -> bool:
-            return ttl > 0
-
-        async def hgetall(self, key: str) -> dict[bytes, bytes]:
-            return dict(self.hashes.get(key, {}))
-
-    fake = CounterBroken()
-    monkeypatch.setattr(operational_metrics.settings, "ENABLED", True)
-    monkeypatch.setattr(operational_metrics.settings, "ENVIRONMENT", "production")
-    monkeypatch.setattr(operational_metrics, "_shared_client", lambda: fake)
+    fake = FakeRedis(eval_fails=True)
+    _telemetry_on(monkeypatch, fake)
 
     await operational_metrics.record_job(fake, ALERTING_JOB, "job-1", True)
 
     assert set(await operational_metrics.job_successes() or {}) == {ALERTING_JOB}
+
+
+async def test_nothing_is_written_when_telemetry_is_off(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Writing a success time anyway would leak telemetry into an opted-out
+    environment, and would read as healthy once telemetry came back on."""
+    fake = FakeRedis()
+    monkeypatch.setattr(operational_metrics.settings, "ENABLED", False)
+    monkeypatch.setattr(operational_metrics, "_shared_client", lambda: fake)
+
+    await operational_metrics.record_job(fake, ALERTING_JOB, "job-1", True)
+
+    assert fake.hashes == {}
+    assert await operational_metrics.job_successes() is None
+
+
+async def test_an_untracked_job_name_is_not_recorded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = FakeRedis()
+    _telemetry_on(monkeypatch, fake)
+
+    await operational_metrics.record_job(fake, "not-a-tracked-job", "job-1", True)
+
+    assert await operational_metrics.job_successes() == {}

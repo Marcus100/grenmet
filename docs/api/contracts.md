@@ -1278,7 +1278,8 @@ check is proposed in a GitHub issue.
   off), `last_success_at` and `max_age_minutes`.
 - `jobs[]` (28 Nov 2026): every scheduled worker job in `operational_metrics.JOBS`, with
   the same `status` values, `last_success_at`, `max_age_minutes` (about twice the job's
-  schedule) and `alerts`. `alerts: true` means staleness turns `healthy` false; the rest
+  schedule, so an hourly job can be down for a little over two hours, and a job that
+  runs every five minutes for twenty minutes, before the probe goes red) and `alerts`. `alerts: true` means staleness turns `healthy` false; the rest
   are shown but never alert, so a daily cleanup going quiet does not page anyone. The
   alerting set is the jobs a customer would notice stopping: `enqueue_booking_reminders`,
   `expire_unpaid_bookings`, `expire_pending_bookings`, `complete_finished_bookings`,

@@ -10,7 +10,7 @@ export const jobFreshnessSchema = z
   .object({
     name: z.string(),
     status: feedStatusSchema.describe(
-      "fresh: last success within its window. stale: older than the window.\nnever: no success recorded yet. unknown: telemetry off or Redis unreachable.\ndisabled: the feed's flag is off, so it is not expected to run."
+      "fresh: last success within its window. stale: older than the window.\nnever: no success recorded yet. unknown: telemetry off or Redis unreachable.\ndisabled: the feed's flag is off, so it is not expected to run.\n\nShared with ``JobFreshness``. A job is never ``disabled``: every tracked job is\nscheduled, and whether it alerts is a separate field."
     ),
     alerts: z.boolean(),
     last_success_at: z.union([z.iso.datetime(), z.null()]),
