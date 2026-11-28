@@ -16,7 +16,7 @@ the studio has edited since. Run it from ``apps/api/fastapi``::
 sets the studio's notification address, but only when this run creates the
 profile; an existing profile keeps its value and the output says so. The address
 is never defaulted or read from the environment. The site address
-comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``);
+comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydollbeautybar.com``);
 the manage link in emails points at the bookings app (``BOOKINGS_APP_URL``),
 where the manage-booking page lives.
 """
