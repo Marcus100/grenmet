@@ -384,6 +384,26 @@ async def find_deposit(
     )
 
 
+async def deposit_totals(
+    session: AsyncSession, bookings: list[Booking]
+) -> dict[uuid.UUID, tuple[int, int]]:
+    """Captured and refunded minor amounts of each booking's own deposit intent, for
+    many bookings in one query (the totals come from the payments SQL, so nothing is
+    summed in Python). A booking with no intent is absent from the result."""
+    intents = await payments_service.find_by_idempotency_keys(
+        session,
+        organisation_ids={b.organisation_id for b in bookings},
+        source_type=SOURCE_TYPE,
+        idempotency_keys={intent_key(b.id) for b in bookings},
+    )
+    totals: dict[uuid.UUID, tuple[int, int]] = {}
+    for b in bookings:
+        intent = intents.get((b.organisation_id, intent_key(b.id)))
+        if intent is not None:
+            totals[b.id] = (intent.captured_minor, intent.refunded_minor)
+    return totals
+
+
 async def cancel_unpaid_deposit(session: AsyncSession, booking: Booking) -> bool:
     """Cancel the booking's own deposit intent while unpaid; False if it was paid."""
     return await payments_service.cancel_open_intent(

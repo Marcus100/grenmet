@@ -108,37 +108,92 @@ describe("agendaChips", () => {
     ]);
   });
 
-  it("keeps the online amount on a cancelled row that somehow has both amounts", () => {
-    // The API never writes both (one is set by the collection mode), so this is
-    // not a valid state; if it arrives, the online amount (card money may be
-    // captured) is shown rather than hidden.
-    const both = {
-      ...ROW,
-      deposit_minor: 5000,
-      deposit_to_business_minor: 5000,
-      status: "cancelled" as const,
-    };
-    expect(agendaChips(both)).toEqual([
-      { kind: "deposit", view: { label: "Deposit EC$50", tone: "neutral" } },
-    ]);
-  });
-
-  it("keeps the neutral amount on a cancelled online deposit (captured state unknown)", () => {
-    const online = {
+  it("shows no chip on a cancelled row with a deposit amount but nothing taken", () => {
+    // A never-paid online deposit on a cancelled booking: no payment chip.
+    const unpaid = {
       ...ROW,
       deposit_minor: 4500,
       status: "cancelled" as const,
     };
-    expect(agendaChips(online)).toEqual([
-      { kind: "deposit", view: { label: "Deposit EC$45", tone: "neutral" } },
-    ]);
+    expect(agendaChips(unpaid)).toEqual([]);
+    expect(
+      agendaChips({
+        ...unpaid,
+        deposit_minor: 5000,
+        deposit_to_business_minor: 5000,
+      })
+    ).toEqual([]);
+  });
+
+  it("keeps the neutral amount on a no-show online deposit nothing was taken for", () => {
     const pay = {
-      ...online,
+      ...ROW,
+      deposit_minor: 4500,
       payment_kind: "payment" as const,
       status: "no_show" as const,
     };
     expect(agendaChips(pay)).toEqual([
       { kind: "deposit", view: { label: "Payment EC$45", tone: "neutral" } },
+    ]);
+  });
+
+  it("shows Refund owed for a cancelled booking whose captured deposit is not refunded", () => {
+    const held = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_captured_minor: 4500,
+      deposit_refunded_minor: 0,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(held)).toEqual([
+      {
+        kind: "deposit",
+        view: { label: "Refund owed EC$45", tone: "warning" },
+      },
+    ]);
+  });
+
+  it("shows Refunded once a cancelled booking's captured deposit is handed back in full", () => {
+    const refunded = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_captured_minor: 4500,
+      deposit_refunded_minor: 4500,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(refunded)).toEqual([
+      { kind: "deposit", view: { label: "Refunded", tone: "info" } },
+    ]);
+  });
+
+  it("shows the part still owed after a partial refund", () => {
+    const partial = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_captured_minor: 4500,
+      deposit_refunded_minor: 2000,
+      status: "cancelled" as const,
+    };
+    expect(agendaChips(partial)).toEqual([
+      {
+        kind: "deposit",
+        view: { label: "Refund owed EC$25", tone: "warning" },
+      },
+    ]);
+  });
+
+  it("shows the refund state on a no-show whose deposit was taken", () => {
+    const noShow = {
+      ...ROW,
+      deposit_minor: 4500,
+      deposit_captured_minor: 4500,
+      status: "no_show" as const,
+    };
+    expect(agendaChips(noShow)).toEqual([
+      {
+        kind: "deposit",
+        view: { label: "Refund owed EC$45", tone: "warning" },
+      },
     ]);
   });
 

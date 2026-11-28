@@ -411,17 +411,53 @@ export function timelineEntries(
  */
 const CANCELLED_UNPAID = "cancelled";
 
+/** The money the agenda row carries for an online deposit (0 when none was taken). */
+interface AgendaDepositMoney {
+  deposit_captured_minor?: number;
+  deposit_refunded_minor?: number;
+}
+
+/** Statuses where the booking will not happen, so an online deposit taken is settled by refund. */
+const CLOSED_STATUSES: readonly BookingStatus[] = ["cancelled", "no_show"];
+
 /**
- * The agenda lists carry no payment amounts, so they can only say a deposit is
- * still awaited or show its size; the detail page shows paid and refunded.
+ * The refund chip for a cancelled or no-show booking whose online deposit was
+ * taken: "Refunded" once all that was taken is handed back, otherwise "Refund
+ * owed" with the amount still to return. Null when no online money was taken,
+ * so the row shows nothing.
  */
-export function agendaDepositView(booking: {
-  currency: string;
-  deposit_minor: number;
-  deposit_received_at?: string | null;
-  payment_kind?: PaymentKind;
-  status: BookingStatus;
-}): StatusView {
+export function refundView(
+  booking: AgendaDepositMoney & { currency: string }
+): StatusView | null {
+  const captured = booking.deposit_captured_minor ?? 0;
+  if (captured <= 0) {
+    return null;
+  }
+  const refunded = booking.deposit_refunded_minor ?? 0;
+  if (refunded >= captured) {
+    return { label: "Refunded", tone: "info" };
+  }
+  return {
+    label: `Refund owed ${formatMoney(captured - refunded, booking.currency)}`,
+    tone: "warning",
+  };
+}
+
+/**
+ * The agenda row's deposit chip. A booking still awaiting its deposit says so; a
+ * cancelled or no-show booking shows its refund state from the captured and
+ * refunded amounts (nothing when no online money was taken, see
+ * `showsAgendaDeposit`). Otherwise the amount shows, neutral.
+ */
+export function agendaDepositView(
+  booking: AgendaDepositMoney & {
+    currency: string;
+    deposit_minor: number;
+    deposit_received_at?: string | null;
+    payment_kind?: PaymentKind;
+    status: BookingStatus;
+  }
+): StatusView {
   const kind = booking.payment_kind ?? "deposit";
   // Only money the business actually received is marked received, so a received
   // mark is always a paid one, on any status.
@@ -431,10 +467,12 @@ export function agendaDepositView(booking: {
   if (booking.status === "pending_payment") {
     return depositView("due", kind);
   }
-  // TODO(agenda-captured): this neutral amount on a cancelled or no-show booking is
-  // kept only because the agenda item has no captured or refunded amount, so it
-  // cannot tell whether an online payment was taken. Remove the cancelled part
-  // once the agenda item carries captured and refunded amounts.
+  if (CLOSED_STATUSES.includes(booking.status)) {
+    const refund = refundView(booking);
+    if (refund) {
+      return refund;
+    }
+  }
   return {
     label: `${paymentWord(kind)} ${formatMoney(booking.deposit_minor, booking.currency)}`,
     tone: "neutral",
@@ -508,26 +546,25 @@ export function takesDeposit(booking: {
 
 /**
  * Whether the agenda row shows a deposit badge. Received always shows. A
- * cancelled booking whose deposit is business-collected (`deposit_to_business_minor`
- * above 0, `deposit_minor` 0) shows nothing, because Barrels never held it.
- * Anything else shows its amount when `deposit_minor` is above 0, as on `dev`.
- * The API never writes both amounts on one booking (`price_booking` and
- * `deposit_payments` set one by the profile's collection mode), so a row with
- * both keeps the online amount: a card payment may have been captured.
+ * cancelled booking shows only an online deposit that was taken (its refund
+ * state, `refundView`): a never-paid or business-collected deposit shows nothing,
+ * because Barrels never held it. Anything else shows its amount when
+ * `deposit_minor` is above 0, as on `dev`.
  */
-export function showsAgendaDeposit(booking: {
-  deposit_minor: number;
-  deposit_to_business_minor?: number;
-  deposit_received_at?: string | null;
-  status: BookingStatus;
-}): boolean {
+export function showsAgendaDeposit(
+  booking: AgendaDepositMoney & {
+    deposit_minor: number;
+    deposit_to_business_minor?: number;
+    deposit_received_at?: string | null;
+    status: BookingStatus;
+  }
+): boolean {
   if (booking.deposit_received_at) {
     return true;
   }
-  const businessOnly =
-    (booking.deposit_to_business_minor ?? 0) > 0 && booking.deposit_minor <= 0;
-  if (booking.status === CANCELLED_UNPAID && businessOnly) {
-    return false;
+  if (booking.status === CANCELLED_UNPAID) {
+    // The refund state shows only when online money was taken (`refundView`).
+    return (booking.deposit_captured_minor ?? 0) > 0;
   }
   return booking.deposit_minor > 0;
 }

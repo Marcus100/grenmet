@@ -233,11 +233,15 @@ async def agenda(
     holds = await deposit_payments.hold_minutes_for_bookings(
         session, profile, [booking for booking, _, _ in rows]
     )
+    deposit_money = await deposit_payments.deposit_totals(
+        session, [booking for booking, _, _ in rows]
+    )
     days: dict[date, list[BookingAgendaItem]] = {}
     for booking, service_name, customer_name in rows:
         local_day = utc_to_local(booking.starts_at, tz).date()
         hold_until = public.hold_ends_at(booking, holds.get(booking.id))
         expiring = hold_until is not None and hold_until <= moment + HOLD_WARNING
+        captured, refunded = deposit_money.get(booking.id, (0, 0))
         days.setdefault(local_day, []).append(
             BookingAgendaItem(
                 id=booking.id,
@@ -263,6 +267,8 @@ async def agenda(
                 hold_expires_soon=expiring,
                 pay_after_acceptance=booking.pay_after_acceptance,
                 accepted_at=booking.accepted_at,
+                deposit_captured_minor=captured,
+                deposit_refunded_minor=refunded,
             )
         )
     return BookingAgenda(

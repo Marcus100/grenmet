@@ -52,6 +52,20 @@ export const bookingAgendaItemSchema = z.object({
     .describe(
       "When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay."
     ),
+  deposit_captured_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Money taken online for the deposit so far (same meaning as on the booking detail). 0 when no online payment was taken."
+    ),
+  deposit_refunded_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Money handed back or being handed back from the online deposit (same meaning as on the booking detail)."
+    ),
   returning_client: z
     .boolean()
     .optional()
