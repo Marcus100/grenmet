@@ -26,6 +26,7 @@ from tests.bookings.test_deposits import (
     _paid_booking,
     _pay_manually,
 )
+from tests.bookings.test_pay_after_acceptance import _request
 from tests.bookings.test_public_bookings import (
     API,
     Studio,
@@ -185,4 +186,21 @@ async def test_a_booking_inside_the_cutoff_still_reports_its_captured_money(
     item = (await _agenda(async_client, studio))[booking_id]
 
     assert item["deposit_captured_minor"] == DEPOSIT
+    assert item["deposit_refunded_minor"] == 0
+
+
+async def test_a_request_owing_a_deposit_but_with_no_payment_yet_reads_as_zero(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """A request paid by card after the business accepts it owes a deposit but has no
+    payment intent until then: both amounts are 0, and `deposit_minor` still says what
+    becomes due. Pins the `deposit_minor > 0` lookup against a booking with no intent."""
+    studio, receipt = await _request(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+
+    item = (await _agenda(async_client, studio))[booking_id]
+
+    assert item["status"] == "pending"
+    assert item["deposit_minor"] == DEPOSIT
+    assert item["deposit_captured_minor"] == 0
     assert item["deposit_refunded_minor"] == 0
