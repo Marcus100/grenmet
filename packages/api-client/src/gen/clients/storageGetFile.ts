@@ -11,7 +11,7 @@ import type {
 } from "../models/StorageGetFile.js";
 
 /**
- * @description Presigned GET for a completed file of the caller's organisation.
+ * @description Presigned GET for a completed file of the caller's organisation. A file a platform product owns (operations and incident photos) also needs that product's read key, `opslog.entries.read` or `incidents.incidents.read`; without it the answer is the same 404 as for a file that does not exist.
  * @summary Get a short-lived link to a file
  * {@link /api/v1/storage/files/:file_id}
  */

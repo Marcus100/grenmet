@@ -93,7 +93,12 @@ async def complete_upload(
     "/files/{file_id}",
     response_model=FileAccess,
     summary="Get a short-lived link to a file",
-    description="Presigned GET for a completed file of the caller's organisation.",
+    description=(
+        "Presigned GET for a completed file of the caller's organisation. A file a "
+        "platform product owns (operations and incident photos) also needs that "
+        "product's read key, `opslog.entries.read` or `incidents.incidents.read`; "
+        "without it the answer is the same 404 as for a file that does not exist."
+    ),
     responses={**AUTHENTICATED, **NOT_FOUND, **_UNAVAILABLE},
 )
 async def get_file(
