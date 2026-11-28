@@ -19,12 +19,6 @@ from .models import (
 # --- risk grid ----------------------------------------------------------------------
 
 
-#: A factor id as the service issues it (``models.new_factor_id``): ``cfa_`` and 16
-#: hex characters. The path parameter declares it; the service checks the same shape on
-#: the investigation's factor ids (``service.require_factor_id_shape``).
-FACTOR_ID_PATTERN = r"^cfa_[0-9a-f]{16}$"
-
-
 class CaseRiskLikelihood(BaseModel):
     value: int = Field(ge=1, le=9)
     label: str = Field(min_length=1, max_length=60)

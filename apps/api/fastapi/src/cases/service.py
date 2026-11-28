@@ -31,6 +31,7 @@ from . import notifications as case_notifications
 from . import risk, transitions
 from .exceptions import CaseConflictError, CaseForbiddenError, CaseNotFoundError
 from .models import (
+    FACTOR_ID_PATTERN,
     Case,
     CaseAction,
     CaseActionStatus,
@@ -50,7 +51,6 @@ from .models import (
     new_factor_id,
 )
 from .schemas import (
-    FACTOR_ID_PATTERN,
     CaseActionCreate,
     CaseActionUpdate,
     CaseCreate,

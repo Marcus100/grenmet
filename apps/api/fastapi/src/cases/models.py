@@ -109,6 +109,12 @@ def new_investigation_id() -> str:
     return f"civ_{secrets.token_hex(8)}"
 
 
+#: A factor id as ``new_factor_id`` issues it: ``cfa_`` and 16 hex characters. The router
+#: declares the same shape on its path parameter; ``service.require_factor_id_shape``
+#: checks it on the investigation's factor ids, and a test pins the two together.
+FACTOR_ID_PATTERN = r"^cfa_[0-9a-f]{16}$"
+
+
 def new_factor_id() -> str:
     return f"cfa_{secrets.token_hex(8)}"
 

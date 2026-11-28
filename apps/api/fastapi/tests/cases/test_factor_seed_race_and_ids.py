@@ -13,8 +13,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
-from src.cases import service
-from src.cases.models import ContributingFactor, FactorSeed, Programme, new_factor_id
+from src.cases import router, service
+from src.cases.models import (
+    FACTOR_ID_PATTERN,
+    ContributingFactor,
+    FactorSeed,
+    Programme,
+    new_factor_id,
+)
 from src.exceptions import AppValidationError
 from tests.cases.test_cases_investigation import (
     API,
@@ -248,3 +254,14 @@ async def test_the_investigation_write_checks_the_shape_before_looking_ids_up(
     )
 
     assert seen == [["nope"]]
+
+
+def test_the_router_and_the_service_declare_the_same_factor_id_shape() -> None:
+    """The path parameter keeps its own literal (touching the router would demand a
+    regenerated contract that does not change), so pin it to the shared constant."""
+    patterns = [
+        found
+        for constraint in router.FactorId.__metadata__[0].metadata
+        if (found := getattr(constraint, "pattern", None)) is not None
+    ]
+    assert patterns == [FACTOR_ID_PATTERN]
