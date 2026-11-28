@@ -56,7 +56,6 @@ from .schemas import (
     BookingStudioDetail,
     BookingStudioEvent,
 )
-from .service import as_naive_utc
 
 MAX_AGENDA_DAYS = 62
 
@@ -238,8 +237,11 @@ async def list_overlapping(
     ends_before: datetime,
 ) -> list[BookingAgendaItem]:
     """Bookings that overlap ``starts_from..ends_before``, earliest first, as full
-    agenda items. Unlike ``agenda`` it is not grouped by day or paged."""
-    profile = await service.get_profile(session, organisation_id)
+    agenda items. Unlike ``agenda`` it is not grouped by day or paged.
+
+    The profile is read only when there are bookings to describe. An organisation
+    that has not set up Bookings has no profile, and must still get ``[]`` rather than
+    the profile's 404, as it always did (``test_key_with_scope_reads_bookings``)."""
     rows = (
         await session.execute(
             select(
@@ -252,12 +254,15 @@ async def list_overlapping(
             .join(Contact, Contact.id == Customer.contact_id)
             .where(
                 Booking.organisation_id == organisation_id,
-                Booking.starts_at < as_naive_utc(ends_before),
-                Booking.ends_at > as_naive_utc(starts_from),
+                Booking.starts_at < service.as_naive_utc(ends_before),
+                Booking.ends_at > service.as_naive_utc(starts_from),
             )
             .order_by(Booking.starts_at, Booking.id)
         )
     ).all()
+    if not rows:
+        return []
+    profile = await service.get_profile(session, organisation_id)
     return await agenda_items(session, profile, rows)
 
 

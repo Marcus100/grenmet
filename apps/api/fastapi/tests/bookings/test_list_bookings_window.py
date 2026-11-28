@@ -8,8 +8,10 @@ checked the status code, so no item was ever serialised.
 from datetime import date, datetime, timedelta
 
 import httpx
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bookings.models import BookingProfile
 from tests.bookings.booking_day import MONDAY
 from tests.bookings.test_deposits import (
     DEPOSIT,
@@ -143,3 +145,22 @@ async def test_another_organisations_bookings_are_not_listed(
     await _book_one(async_client, theirs)
 
     assert (await _window(async_client, mine)).json() == []
+
+
+async def test_an_organisation_with_no_booking_profile_gets_an_empty_list(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Reading the profile only when there are bookings keeps the old answer for an
+    organisation that has not set up Bookings: 200 and [], not the profile's 404."""
+    studio = await _studio(db_async, async_client)
+    profile = await db_async.scalar(
+        select(BookingProfile).where(BookingProfile.organisation_id == studio.org_id)
+    )
+    assert profile is not None
+    await db_async.delete(profile)
+    await db_async.commit()
+
+    response = await _window(async_client, studio)
+
+    assert response.status_code == 200, response.text
+    assert response.json() == []
