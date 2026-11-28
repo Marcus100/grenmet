@@ -6,11 +6,13 @@
 import * as z from "zod";
 import { emailOutboxBacklogSchema } from "./emailOutboxBacklogSchema.js";
 import { feedFreshnessSchema } from "./feedFreshnessSchema.js";
+import { jobFreshnessSchema } from "./jobFreshnessSchema.js";
 
 export const freshnessReportSchema = z.object({
   healthy: z.boolean(),
   checked_at: z.iso.datetime(),
   telemetry_available: z.boolean(),
   feeds: z.array(feedFreshnessSchema),
+  jobs: z.array(jobFreshnessSchema),
   email_outbox: emailOutboxBacklogSchema,
 });

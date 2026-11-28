@@ -109,7 +109,12 @@ async def record_job(redis: Any, name: str, operation_id: str, success: bool) ->
                 TTL,
             )
     except RedisError, TimeoutError, OSError:
-        return
+        pass
+    if success:
+        # Its own write, so a timeout on the counter above still leaves the job's
+        # last-success time fresh. The counter answers "how often"; this answers
+        # "when last", which is what tells us a job has stopped.
+        await _record_success(redis, _job_success_key(), name)
 
 
 OUTBOXES = frozenset({"platform", "events"})
@@ -241,36 +246,64 @@ def _feed_key() -> str:
     return f"telemetry:v1:{settings.ENVIRONMENT}:feed-success"
 
 
-async def record_feed_success(redis: Any, feed: str) -> None:
-    if redis is None or feed not in FEEDS or not _enabled():
-        return
+def _job_success_key() -> str:
+    return f"telemetry:v1:{settings.ENVIRONMENT}:job-success"
+
+
+async def _record_success(redis: Any, key: str, name: str) -> None:
+    """Write ``name``'s last-success time. Never raises: telemetry must not fail a job."""
     try:
         async with asyncio.timeout(0.25):
-            await redis.hset(_feed_key(), feed, datetime.now(UTC).isoformat())
-            await redis.expire(_feed_key(), TTL)
+            await redis.hset(key, name, datetime.now(UTC).isoformat())
+            await redis.expire(key, TTL)
     except RedisError, TimeoutError, OSError:
         return
 
 
-async def feed_successes() -> dict[str, datetime] | None:
-    """Last success per feed, or None when telemetry is off or Redis is unreachable."""
+async def _successes(key: str, known: frozenset[str]) -> dict[str, datetime] | None:
+    """Last success per name, or None when telemetry is off or Redis is unreachable.
+
+    None and an empty mapping mean different things to the caller: None is "we cannot
+    tell", which must not read as "nothing has ever run".
+    """
     if not _enabled():
         return None
     client = _shared_client()
     try:
         async with asyncio.timeout(0.5):
             # redis-py types hgetall as sync-or-async; this client is the asyncio one.
-            raw = await cast(Awaitable[dict[Any, Any]], client.hgetall(_feed_key()))
+            raw = await cast(Awaitable[dict[Any, Any]], client.hgetall(key))
     except RedisError, TimeoutError, OSError:
         return None
     found: dict[str, datetime] = {}
     for name, value in raw.items():
-        feed = name.decode() if isinstance(name, bytes) else str(name)
+        entry = name.decode() if isinstance(name, bytes) else str(name)
         text = value.decode() if isinstance(value, bytes) else str(value)
-        if feed not in FEEDS:
+        if entry not in known:
             continue
         try:
-            found[feed] = datetime.fromisoformat(text)
+            found[entry] = datetime.fromisoformat(text)
         except ValueError:
             continue
     return found
+
+
+async def record_feed_success(redis: Any, feed: str) -> None:
+    if redis is None or feed not in FEEDS or not _enabled():
+        return
+    await _record_success(redis, _feed_key(), feed)
+
+
+async def feed_successes() -> dict[str, datetime] | None:
+    """Last success per feed, or None when telemetry is off or Redis is unreachable."""
+    return await _successes(_feed_key(), FEEDS)
+
+
+async def job_successes() -> dict[str, datetime] | None:
+    """Last success per worker job, or None when telemetry is off or Redis is down.
+
+    Written by ``record_job`` on every success, so a job that stops running leaves a
+    time that falls behind its schedule. ``src/monitoring/service.py`` turns that into
+    the probe's verdict, which is how a stopped job is noticed at all (#1377).
+    """
+    return await _successes(_job_success_key(), JOBS)

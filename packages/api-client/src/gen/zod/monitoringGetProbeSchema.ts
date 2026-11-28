@@ -13,7 +13,7 @@ export const monitoringGetProbeHeaderAuthorizationSchema = z
   .optional();
 
 export const monitoringGetProbeStatus200Schema = probeReportSchema.describe(
-  "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``telemetry``,\n``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``."
+  "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``job:enqueue_booking_reminders``,\n``telemetry``, ``email_outbox.stale_pending`` or\n``email_outbox.dead_last_window``."
 );
 
 export const monitoringGetProbeStatus401Schema = apiErrorSchema.describe(
@@ -34,7 +34,7 @@ export const monitoringGetProbeStatus429Schema = apiErrorSchema.describe(
 );
 
 export const monitoringGetProbeStatus503Schema = probeReportSchema.describe(
-  "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``telemetry``,\n``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``."
+  "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``job:enqueue_booking_reminders``,\n``telemetry``, ``email_outbox.stale_pending`` or\n``email_outbox.dead_last_window``."
 );
 
 export const monitoringGetProbeResponseSchema =

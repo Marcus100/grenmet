@@ -1276,23 +1276,42 @@ check is proposed in a GitHub issue.
   `model_guidance`, `wis2box_publications`. Each has `status` (`fresh`, `stale`, `never`,
   `unknown` when telemetry is off or Redis is unreachable, `disabled` when its flag is
   off), `last_success_at` and `max_age_minutes`.
+- `jobs[]` (28 Nov 2026): every scheduled worker job in `operational_metrics.JOBS`, with
+  the same `status` values, `last_success_at`, `max_age_minutes` (about twice the job's
+  schedule, so an hourly job can be down for a little over two hours, and a job that
+  runs every five minutes for twenty minutes, before the probe goes red) and `alerts`. `alerts: true` means staleness turns `healthy` false; the rest
+  are shown but never alert, so a daily cleanup going quiet does not page anyone. The
+  alerting set is the jobs a customer would notice stopping: `enqueue_booking_reminders`,
+  `expire_unpaid_bookings`, `expire_pending_bookings`, `complete_finished_bookings`,
+  `sweep_booking_uploads`, `process_cap_jobs`, `send_notification_emails` and
+  `expire_cap_alerts`. `never` and `unknown` are not failures: a fresh environment or a
+  Redis flush leaves no time, which is not the same as a broken job. A failed run does not
+  refresh the time, so a job that keeps failing still goes stale.
 - `email_outbox`: `pending`, `stale_pending` (due more than `OUTBOX_STALE_MINUTES` ago),
   and `dead_last_window` (dead in `OUTBOX_DEAD_WINDOW_HOURS`) for `email.send` and
   `email.deliver` rows.
-- `healthy` is true only when every enabled feed is `fresh` and the email backlog is at or
-  under `OUTBOX_ALERT_THRESHOLD`. `telemetry_available: false` means the success times could
-  not be read, so `healthy` is false.
+- `healthy` is true only when every enabled feed is `fresh`, no alerting job is `stale`,
+  and the email backlog is at or under `OUTBOX_ALERT_THRESHOLD`. `telemetry_available:
+  false` means the success times could not be read, so `healthy` is false.
 
 `GET /api/v1/monitoring/admin/freshness/probe` is the token-free uptime check for
 Better Stack. It takes `Authorization: Bearer <MONITORING_PROBE_TOKEN>` (a header, never a
 query string) and answers 200 `{healthy: true, checked_at, failing_checks: []}` when
 `healthy` above is true, or 503 with the same shape and failing check names such as
-`feed:cap_feeds`, `telemetry`, `email_outbox.stale_pending` or
-`email_outbox.dead_last_window`. A missing or wrong secret gets 401, an unset secret 404,
+`feed:cap_feeds`, `job:enqueue_booking_reminders`, `telemetry`,
+`email_outbox.stale_pending` or `email_outbox.dead_last_window`. A missing or wrong secret gets 401, an unset secret 404,
 and more than 60 calls a minute from one address 429. It carries no counts or recipients.
 
-Success times are written to Redis (`telemetry:v1:<env>:feed-success`) only when
+Success times are written to Redis (`telemetry:v1:<env>:feed-success` for feeds,
+`telemetry:v1:<env>:job-success` for jobs, the latter from inside `record_job`) only when
 `TELEMETRY_ENABLED=true`. Counts and times only: no recipients, payloads or error text.
+
+The job checks sit alongside Sentry Crons, which alerts on a missed run of its own
+(`SENTRY_CRONS_ENABLED=true` in production, and the worker gets a DSN). They exist so job
+health is in the platform's own report, visible to staff without a Sentry login and
+covered by the Better Stack monitor already pointed at this probe, and so the check
+survives a change to the Sentry plan. The Better Stack worker heartbeat is a different
+thing again: it notices the worker being down, not one job failing.
 
 ## Rewards (Barrels ID)
 

@@ -14,8 +14,9 @@ export type MonitoringGetProbeHeaders = {
 /**
  * @description The uptime probe answer: a verdict and failing check names, nothing personal.
  *
- * Failing names look like ``feed:cap_feeds``, ``telemetry``,
- * ``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``.
+ * Failing names look like ``feed:cap_feeds``, ``job:enqueue_booking_reminders``,
+ * ``telemetry``, ``email_outbox.stale_pending`` or
+ * ``email_outbox.dead_last_window``.
  * @type object
  */
 export type MonitoringGetProbeStatus200 = ProbeReport;
@@ -47,8 +48,9 @@ export type MonitoringGetProbeStatus429 = ApiError;
 /**
  * @description The uptime probe answer: a verdict and failing check names, nothing personal.
  *
- * Failing names look like ``feed:cap_feeds``, ``telemetry``,
- * ``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``.
+ * Failing names look like ``feed:cap_feeds``, ``job:enqueue_booking_reminders``,
+ * ``telemetry``, ``email_outbox.stale_pending`` or
+ * ``email_outbox.dead_last_window``.
  * @type object
  */
 export type MonitoringGetProbeStatus503 = ProbeReport;
