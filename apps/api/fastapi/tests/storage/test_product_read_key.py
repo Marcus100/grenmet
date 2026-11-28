@@ -179,6 +179,20 @@ async def test_purposes_without_a_read_key_behave_as_before(
     assert await _read(async_client, a, a.plain, gallery) == 200
 
 
+async def test_a_file_whose_purpose_is_no_longer_known_is_refused_even_to_the_owner(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """Fail closed: a removed or renamed purpose must not turn its private files into
+    "readable by any member"."""
+    a = await _airport(db_async)
+    orphan = await _upload(
+        db_async, a.org_id, a.owner, app="opslog", purpose="a-purpose-that-was-removed"
+    )
+
+    assert await _read(async_client, a, a.owner, orphan) == 404
+    assert await _read(async_client, a, a.plain, orphan) == 404
+
+
 def test_every_private_purpose_names_a_read_key() -> None:
     """A new private purpose with no read key would fall back to "any member", which is
     the gap this closes. Making that a deliberate choice, not an omission."""

@@ -366,12 +366,13 @@ async def private_read_url(
     if row.status != UploadStatus.COMPLETE.value:
         raise NotFoundError("File not found")
     purpose = PURPOSES.get(row.purpose)
-    if (
-        purpose is not None
-        and purpose.read_key is not None
-        and not await grants.has_org_permission(
-            session, membership=context.org.membership, permission_key=purpose.read_key
-        )
+    # An upload whose purpose is no longer known is refused, as `public_read_url` does:
+    # if a purpose were ever removed or renamed, its private files must not fall back to
+    # "any member of the organisation".
+    if purpose is None:
+        raise NotFoundError("File not found")
+    if purpose.read_key is not None and not await grants.has_org_permission(
+        session, membership=context.org.membership, permission_key=purpose.read_key
     ):
         # 404, not 403: the same answer as a file that is not there, so a member
         # who lost the key learns nothing about whether the file exists.
