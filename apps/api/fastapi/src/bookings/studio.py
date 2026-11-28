@@ -8,10 +8,10 @@ id answers 404. Service functions flush; routers commit.
 
 import logging
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import Row, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,6 +38,7 @@ from .models import (
     BookingDepositReceivedMethod,
     BookingEvent,
     BookingEventReason,
+    BookingProfile,
     BookingSource,
     BookingStatus,
     Customer,
@@ -55,6 +56,7 @@ from .schemas import (
     BookingStudioDetail,
     BookingStudioEvent,
 )
+from .service import as_naive_utc
 
 MAX_AGENDA_DAYS = 62
 
@@ -172,6 +174,93 @@ async def _detail(
 HOLD_WARNING = timedelta(hours=2)
 
 
+async def agenda_items(
+    session: AsyncSession,
+    profile: BookingProfile,
+    rows: Sequence[Row[tuple[Booking, str, str]]],
+) -> list[BookingAgendaItem]:
+    """One ``BookingAgendaItem`` per ``(booking, service name, customer name)`` row, in
+    the order given, with the add-ons, payment hold and deposit totals each costing one
+    batched query for the whole page rather than one per booking.
+
+    Both agenda routes use this, so they cannot drift apart: ``GET /org/bookings`` once
+    built its items by hand, left out the required ``payment_kind`` and answered 500 for
+    any window that held a booking (#2039)."""
+    bookings = [booking for booking, _, _ in rows]
+    add_on_lines = await service.booking_add_on_lines(
+        session, [booking.id for booking in bookings]
+    )
+    moment = utc_now()
+    holds = await deposit_payments.hold_minutes_for_bookings(session, profile, bookings)
+    totals = await deposit_payments.deposit_totals(session, bookings)
+    items: list[BookingAgendaItem] = []
+    for booking, service_name, customer_name in rows:
+        captured, refunded = totals.get(booking.id, (0, 0))
+        hold_until = public.hold_ends_at(booking, holds.get(booking.id))
+        expiring = hold_until is not None and hold_until <= moment + HOLD_WARNING
+        items.append(
+            BookingAgendaItem(
+                id=booking.id,
+                provider_id=booking.provider_id,
+                service_id=booking.service_id,
+                service_name=service_name,
+                customer_id=booking.customer_id,
+                customer_name=customer_name,
+                starts_at=booking.starts_at,
+                ends_at=booking.ends_at,
+                status=BookingStatus(booking.status),
+                source=BookingSource(booking.source),
+                price_minor=booking.price_minor,
+                deposit_minor=booking.deposit_minor,
+                deposit_to_business_minor=booking.deposit_to_business_minor,
+                deposit_received_at=booking.deposit_received_at,
+                payment_kind=deposit_payments.payment_kind(booking),
+                deposit_captured_minor=captured,
+                deposit_refunded_minor=refunded,
+                currency=booking.currency,
+                add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
+                returning_client=booking.returning_client_flagged_at is not None,
+                expires_at=lifecycle.pending_expires_at(booking, profile),
+                hold_expires_at=hold_until,
+                hold_expires_soon=expiring,
+                pay_after_acceptance=booking.pay_after_acceptance,
+                accepted_at=booking.accepted_at,
+            )
+        )
+    return items
+
+
+async def list_overlapping(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    starts_from: datetime,
+    ends_before: datetime,
+) -> list[BookingAgendaItem]:
+    """Bookings that overlap ``starts_from..ends_before``, earliest first, as full
+    agenda items. Unlike ``agenda`` it is not grouped by day or paged."""
+    profile = await service.get_profile(session, organisation_id)
+    rows = (
+        await session.execute(
+            select(
+                Booking,
+                Service.name,
+                func.coalesce(Booking.booked_name, Contact.name, ""),
+            )
+            .join(Service, Service.id == Booking.service_id)
+            .join(Customer, Customer.id == Booking.customer_id)
+            .join(Contact, Contact.id == Customer.contact_id)
+            .where(
+                Booking.organisation_id == organisation_id,
+                Booking.starts_at < as_naive_utc(ends_before),
+                Booking.ends_at > as_naive_utc(starts_from),
+            )
+            .order_by(Booking.starts_at, Booking.id)
+        )
+    ).all()
+    return await agenda_items(session, profile, rows)
+
+
 async def agenda(
     session: AsyncSession,
     organisation_id: str,
@@ -226,51 +315,11 @@ async def agenda(
             .offset(offset)
         )
     ).all()
-    add_on_lines = await service.booking_add_on_lines(
-        session, [booking.id for booking, _, _ in rows]
-    )
-    moment = utc_now()
-    holds = await deposit_payments.hold_minutes_for_bookings(
-        session, profile, [booking for booking, _, _ in rows]
-    )
-    totals = await deposit_payments.deposit_totals(
-        session, [booking for booking, _, _ in rows]
-    )
+    items = await agenda_items(session, profile, rows)
     days: dict[date, list[BookingAgendaItem]] = {}
-    for booking, service_name, customer_name in rows:
-        local_day = utc_to_local(booking.starts_at, tz).date()
-        captured, refunded = totals.get(booking.id, (0, 0))
-        hold_until = public.hold_ends_at(booking, holds.get(booking.id))
-        expiring = hold_until is not None and hold_until <= moment + HOLD_WARNING
-        days.setdefault(local_day, []).append(
-            BookingAgendaItem(
-                id=booking.id,
-                provider_id=booking.provider_id,
-                service_id=booking.service_id,
-                service_name=service_name,
-                customer_id=booking.customer_id,
-                customer_name=customer_name,
-                starts_at=booking.starts_at,
-                ends_at=booking.ends_at,
-                status=BookingStatus(booking.status),
-                source=BookingSource(booking.source),
-                price_minor=booking.price_minor,
-                deposit_minor=booking.deposit_minor,
-                deposit_to_business_minor=booking.deposit_to_business_minor,
-                deposit_received_at=booking.deposit_received_at,
-                payment_kind=deposit_payments.payment_kind(booking),
-                deposit_captured_minor=captured,
-                deposit_refunded_minor=refunded,
-                currency=booking.currency,
-                add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
-                returning_client=booking.returning_client_flagged_at is not None,
-                expires_at=lifecycle.pending_expires_at(booking, profile),
-                hold_expires_at=hold_until,
-                hold_expires_soon=expiring,
-                pay_after_acceptance=booking.pay_after_acceptance,
-                accepted_at=booking.accepted_at,
-            )
-        )
+    for item in items:
+        local_day = utc_to_local(item.starts_at, tz).date()
+        days.setdefault(local_day, []).append(item)
     return BookingAgenda(
         timezone=profile.timezone,
         from_date=from_date,

@@ -791,7 +791,7 @@ async def list_bookings(
     starts_from: datetime,
     ends_before: datetime,
 ) -> Any:
-    return await service.list_bookings(
+    return await studio.list_overlapping(
         session,
         org.organisation_id,
         starts_from=starts_from,

@@ -751,51 +751,6 @@ async def delete_closure(
 # --- studio agenda -------------------------------------------------------------------
 
 
-async def list_bookings(
-    session: AsyncSession,
-    organisation_id: str,
-    *,
-    starts_from: datetime,
-    ends_before: datetime,
-) -> list[dict[str, Any]]:
-    rows = await session.execute(
-        select(
-            Booking,
-            Service.name,
-            func.coalesce(Booking.booked_name, Contact.name, ""),
-        )
-        .join(Service, Service.id == Booking.service_id)
-        .join(Customer, Customer.id == Booking.customer_id)
-        .join(Contact, Contact.id == Customer.contact_id)
-        .where(
-            Booking.organisation_id == organisation_id,
-            Booking.starts_at < as_naive_utc(ends_before),
-            Booking.ends_at > as_naive_utc(starts_from),
-        )
-        .order_by(Booking.starts_at)
-    )
-    return [
-        {
-            "id": booking.id,
-            "provider_id": booking.provider_id,
-            "service_id": booking.service_id,
-            "service_name": service_name,
-            "customer_id": booking.customer_id,
-            "customer_name": customer_name,
-            "starts_at": booking.starts_at,
-            "ends_at": booking.ends_at,
-            "status": booking.status,
-            "source": booking.source,
-            "price_minor": booking.price_minor,
-            "deposit_minor": booking.deposit_minor,
-            "currency": booking.currency,
-            "pay_after_acceptance": booking.pay_after_acceptance,
-            "accepted_at": booking.accepted_at,
-        }
-        for booking, service_name, customer_name in rows
-    ]
-
-
 # --- public storefront and availability ---------------------------------------------
 
 
