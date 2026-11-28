@@ -107778,9 +107778,7 @@
             "anyOf": [
               {
                 "items": {
-                  "type": "string",
-                  "maxLength": 20,
-                  "pattern": "^cfa_[0-9a-f]{16}$"
+                  "type": "string"
                 },
                 "type": "array",
                 "maxItems": 50

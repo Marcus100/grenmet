@@ -15,7 +15,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.cases import service
 from src.cases.models import ContributingFactor, FactorSeed, Programme, new_factor_id
-from tests.cases.test_cases_investigation import API, _case, _world
+from src.exceptions import AppValidationError
+from tests.cases.test_cases_investigation import (
+    API,
+    _case,
+    _to_investigating,
+    _world,
+)
 
 DEFAULTS = len(service.DEFAULT_CONTRIBUTING_FACTORS)
 
@@ -171,22 +177,40 @@ async def test_a_conflict_on_other_pending_work_is_not_taken_for_a_lost_race(
         )
 
 
-@pytest.mark.parametrize(
-    "bad",
-    [
-        "x" * 5000,
-        "cfa_" + "0" * 17,
-        "cfa_" + "g" * 16,
-        "CFA_" + "0" * 16,
-        "",
-        "nope",
-    ],
-)
-async def test_a_factor_id_that_is_not_the_issued_shape_is_refused_at_the_edge(
+BAD_FACTOR_IDS = [
+    "x" * 5000,
+    "cfa_" + "0" * 17,
+    "cfa_" + "g" * 16,
+    "CFA_" + "0" * 16,
+    "",
+    "nope",
+]
+
+
+def test_a_factor_id_in_the_issued_shape_passes_the_check() -> None:
+    service.require_factor_id_shape([new_factor_id(), "cfa_" + "0" * 16])
+    service.require_factor_id_shape([])
+
+
+@pytest.mark.parametrize("bad", BAD_FACTOR_IDS)
+def test_a_factor_id_that_is_not_the_issued_shape_is_refused_before_any_lookup(
+    bad: str,
+) -> None:
+    """The shape is checked in plain Python, so a junk or oversized string never reaches
+    the database as a value. The body field stays a plain list of strings in the contract
+    (tightening it there is a breaking change to the request schema)."""
+    with pytest.raises(AppValidationError):
+        service.require_factor_id_shape([new_factor_id(), bad])
+
+
+@pytest.mark.parametrize("bad", BAD_FACTOR_IDS)
+async def test_a_malformed_factor_id_still_answers_422_through_the_api(
     async_client: httpx.AsyncClient, db_async: AsyncSession, bad: str
 ) -> None:
+    """The same 422 a client got before, now without the lookup."""
     world = await _world(db_async)
     case_id = await _case(async_client, world)
+    await _to_investigating(async_client, world, case_id)
 
     response = await async_client.patch(
         f"{API}/cases/{case_id}/investigation",
@@ -195,3 +219,32 @@ async def test_a_factor_id_that_is_not_the_issued_shape_is_refused_at_the_edge(
     )
 
     assert response.status_code == 422, response.text
+    assert response.json()["detail"] == service.FACTOR_NOT_CHOOSABLE
+
+
+async def test_the_investigation_write_checks_the_shape_before_looking_ids_up(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The API answers 422 for a bad id either way (the lookup finds nothing), so only
+    this test notices if the shape check is ever unplugged from the write path."""
+    world = await _world(db_async)
+    case_id = await _case(async_client, world)
+    await _to_investigating(async_client, world, case_id)
+    seen: list[list[str]] = []
+    real = service.require_factor_id_shape
+
+    def spy(factor_ids: list[str]) -> None:
+        seen.append(list(factor_ids))
+        real(factor_ids)
+
+    monkeypatch.setattr(service, "require_factor_id_shape", spy)
+
+    await async_client.patch(
+        f"{API}/cases/{case_id}/investigation",
+        headers=world.h(world.officer),
+        json={"contributing_factor_ids": ["nope"]},
+    )
+
+    assert seen == [["nope"]]
