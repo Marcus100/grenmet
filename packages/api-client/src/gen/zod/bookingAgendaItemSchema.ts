@@ -59,6 +59,20 @@ export const bookingAgendaItemSchema = z.object({
     .describe(
       "Staff only: a returning client requested a new-clients-only service."
     ),
+  deposit_captured_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Money actually taken online for the deposit, in minor units; the same meaning as on the booking detail. 0 for a booking with no online deposit (none due, or paid to the business by hand). With `deposit_refunded_minor` it tells staff, without opening the booking, whether a cancelled booking still holds a customer's money."
+    ),
+  deposit_refunded_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Money already returned to the customer, in minor units. Captured and not fully refunded on a cancelled booking means a refund is owed."
+    ),
   expires_at: z
     .union([z.iso.datetime(), z.null()])
     .optional()

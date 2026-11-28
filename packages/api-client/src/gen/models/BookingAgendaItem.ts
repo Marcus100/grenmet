@@ -84,6 +84,18 @@ export type BookingAgendaItem = {
    */
   returning_client?: boolean;
   /**
+   * @description Money actually taken online for the deposit, in minor units; the same meaning as on the booking detail. 0 for a booking with no online deposit (none due, or paid to the business by hand). With `deposit_refunded_minor` it tells staff, without opening the booking, whether a cancelled booking still holds a customer's money.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_captured_minor?: number;
+  /**
+   * @description Money already returned to the customer, in minor units. Captured and not fully refunded on a cancelled booking means a refund is owed.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_refunded_minor?: number;
+  /**
    * @description For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status.
    */
   expires_at?: string | null;

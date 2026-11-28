@@ -907,6 +907,23 @@ class BookingAgendaItem(BaseModel):
             "Staff only: a returning client requested a new-clients-only service."
         ),
     )
+    deposit_captured_minor: int = Field(
+        default=0,
+        description=(
+            "Money actually taken online for the deposit, in minor units; the same "
+            "meaning as on the booking detail. 0 for a booking with no online deposit "
+            "(none due, or paid to the business by hand). With "
+            "`deposit_refunded_minor` it tells staff, without opening the booking, "
+            "whether a cancelled booking still holds a customer's money."
+        ),
+    )
+    deposit_refunded_minor: int = Field(
+        default=0,
+        description=(
+            "Money already returned to the customer, in minor units. Captured and "
+            "not fully refunded on a cancelled booking means a refund is owed."
+        ),
+    )
     expires_at: UtcDateTime | None = Field(
         default=None,
         description=(

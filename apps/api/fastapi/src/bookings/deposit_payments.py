@@ -678,6 +678,30 @@ async def payment_summaries(
     return result
 
 
+async def deposit_totals(
+    session: AsyncSession, bookings: list[Booking]
+) -> dict[uuid.UUID, tuple[int, int]]:
+    """``(captured, refunded)`` minor units of each booking's own deposit intent, for
+    many bookings in one query. A booking with no deposit or no intent has no entry
+    and reads as ``(0, 0)``; the totals mean what they do on the booking detail.
+
+    The agenda uses this so a page of bookings costs one extra query, not one each.
+    """
+    owing = [b for b in bookings if b.deposit_minor > 0]
+    intents = await payments_service.find_by_idempotency_keys(
+        session,
+        organisation_ids={b.organisation_id for b in owing},
+        source_type=SOURCE_TYPE,
+        idempotency_keys={intent_key(b.id) for b in owing},
+    )
+    totals: dict[uuid.UUID, tuple[int, int]] = {}
+    for b in owing:
+        intent = intents.get((b.organisation_id, intent_key(b.id)))
+        if intent is not None:
+            totals[b.id] = (intent.captured_minor, intent.refunded_minor)
+    return totals
+
+
 async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
     """Create the manual deposit intent for a booking that has none (staff record
     a deposit that was never started online)."""
