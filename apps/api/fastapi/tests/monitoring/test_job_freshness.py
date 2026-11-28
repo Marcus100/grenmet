@@ -1,8 +1,8 @@
 """A stopped worker job must show in the freshness report and the probe (#1377).
 
-Nothing watched an individual job before: ARQ jobs are wrapped for Sentry Crons but
-``SENTRY_CRONS_ENABLED`` is unset in production, and the Better Stack heartbeat
-notices the worker being down rather than one job failing.
+Sentry Crons also alerts on a missed run; this is the platform's own view of the same
+thing, so staff see job health without a Sentry login and the Better Stack probe covers
+it too.
 """
 
 from datetime import timedelta

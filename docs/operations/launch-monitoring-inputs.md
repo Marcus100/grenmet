@@ -227,8 +227,13 @@ unless the table says otherwise. Use `gh variable set <name> --env <environment>
 
 ### Step 6: turn on worker telemetry (#646)
 
-- [ ] Set variable `TELEMETRY_ENABLED=true` in the existing **deploy**
+- [x] Set variable `TELEMETRY_ENABLED=true` in the existing **deploy**
   environments `staging` and `production` (read by `deploy.yml`), then deploy.
+  Done on `production` only; `staging` still has neither this nor
+  `SENTRY_CRONS_ENABLED` (checked 2026-11-28). Dates here were stale for two
+  weeks and sent an agent down the wrong path: read the environment with
+  `gh api repos/Marcus100/grenmet/environments/<env>/variables` rather than
+  trusting this table.
 - [ ] Wait one full UTC day. The worker-jobs check reads the previous, fully
   elapsed UTC day of job counters, and needs every tracked job
   (`process_cap_jobs`, `ingest_cap_feeds`, `send_notification_emails`,
@@ -352,9 +357,9 @@ owner something is down. Status on 2026-11-14 is from `gh secret list` and
 | production | `PROBE_HEARTBEAT_URL` | secret | present (set 2026-11-14) |
 | production-backup | `BACKUP_HEARTBEAT_URL` | secret | present (set 2026-11-14; read by `backup-database.yml`) |
 | production | `WORKER_HEARTBEAT_URL` | secret | present (set 2026-11-14) |
-| production | `TELEMETRY_ENABLED` | variable | still missing on 2026-11-14 |
+| production | `TELEMETRY_ENABLED` | variable | **present, `true`** (read from the GitHub environment on 2026-11-28). Still absent on `staging`, so telemetry records nothing there and the staging freshness probe answers 503 with `telemetry` failing |
 | production | `MONITORING_DEPLOY_ENABLED` | variable | still missing on 2026-11-14. Do not set it before the runner user can run the monitoring install: on staging the deploy step failed with "sudo: a password is required" on 2026-11-14 and the variable was removed again ([known gap](analytics-monitoring.md#known-gap-staging-probes-and-the-monitoring-install-2026-11-14)) |
-| production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | still missing on 2026-11-14; check plan limits first |
+| production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | **present, `true`** (read from the GitHub environment on 2026-11-28), and `SENTRY_DSN_PRODUCTION` reaches the worker (`render-env.py` includes `worker`), so every ARQ cron job does send Sentry check-ins. Still absent on `staging` |
 | production | `AUTH_TOTP_ENCRYPTION_KEYS`, `AUTH_PRIVILEGED_MFA_MODE` | secret, variable | the secret is present (set 2026-10-30); the variable is still missing, so nothing is enforced; see [launch checklist](launch-checklist.md) |
 | production | `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_PRODUCTION` | secrets | present |
 

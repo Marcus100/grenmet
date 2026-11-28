@@ -1306,10 +1306,12 @@ Success times are written to Redis (`telemetry:v1:<env>:feed-success` for feeds,
 `telemetry:v1:<env>:job-success` for jobs, the latter from inside `record_job`) only when
 `TELEMETRY_ENABLED=true`. Counts and times only: no recipients, payloads or error text.
 
-The job checks exist because nothing else watches one job: ARQ jobs are wrapped for
-Sentry Crons but `SENTRY_CRONS_ENABLED` is unset in production, and the Better Stack
-heartbeat notices the worker being down rather than a single job failing. If Sentry Crons
-is switched on later, these checks stay valid alongside it.
+The job checks sit alongside Sentry Crons, which alerts on a missed run of its own
+(`SENTRY_CRONS_ENABLED=true` in production, and the worker gets a DSN). They exist so job
+health is in the platform's own report, visible to staff without a Sentry login and
+covered by the Better Stack monitor already pointed at this probe, and so the check
+survives a change to the Sentry plan. The Better Stack worker heartbeat is a different
+thing again: it notices the worker being down, not one job failing.
 
 ## Rewards (Barrels ID)
 

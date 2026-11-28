@@ -96,9 +96,11 @@ def job_rules() -> tuple[JobRule, ...]:
     an alert. Schedules are in ``src/worker/main.py`` (and ``src/printix/register.py``
     for ``purge_scan_log``); keep the two in step.
 
-    Nothing watched an individual job before this: ARQ jobs are wrapped for Sentry
-    Crons, but ``SENTRY_CRONS_ENABLED`` is not set in production, and the Better Stack
-    heartbeat notices the worker being down rather than one job failing.
+    Sentry Crons already alerts on a missed run (``SENTRY_CRONS_ENABLED=true`` in
+    production, and the worker gets a DSN), so this is a second, free path rather than
+    the only one: it puts job health in the platform's own report, where staff see it
+    without a Sentry login, and folds it into the Better Stack probe. It also still
+    works if the Sentry plan or that variable changes.
     """
     return (
         # Every minute.
