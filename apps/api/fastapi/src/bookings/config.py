@@ -29,7 +29,7 @@ class BookingsConfig(BaseSettings):
     # Public address of the Babydoll Beauty Bar site. The seed builds the
     # public site row from it. Move it when the client's own domain goes live
     # (apps/web/babydoll/src/data/site.ts).
-    BABYDOLL_SITE_URL: str = "https://babydoll.barrels.gd"
+    BABYDOLL_SITE_URL: str = "https://babydollbeautybar.com"
 
     # Public address of the bookings app (BOOKINGS_APP_URL, the same variable
     # auth reads). The manage-booking page lives there, at
