@@ -38,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import apps as auth_apps
 from src.database import async_session_factory
 from src.exceptions import AppException, NotFoundError
-from src.organisations import entitlements
+from src.organisations import entitlements, grants
 from src.organisations import service as org_service
 from src.storage import image_metadata, transitions
 from src.storage import service as storage
@@ -88,6 +88,12 @@ class Purpose:
     strip_metadata: bool = False
     #: Decoded-size cap for the metadata step (width times height, in pixels).
     max_pixels: int = ORGANISER_LOGO_MAX_PIXELS
+    #: The product key a member needs to read a file of this purpose through
+    #: ``GET /storage/files/{id}``. Set for files a platform product owns, whose ids
+    #: only appear inside records a member may read; without it, a member who has
+    #: since lost the key (or never had it) could still fetch a file whose id they
+    #: once saw. ``None`` keeps the organisation-member rule (Events and Bookings).
+    read_key: str | None = None
 
 
 PURPOSES: dict[str, Purpose] = {
@@ -129,6 +135,7 @@ PURPOSES: dict[str, Purpose] = {
         public=False,
         strip_metadata=True,
         max_pixels=OPS_PHOTO_MAX_PIXELS,
+        read_key="opslog.entries.read",
     ),
     "incident-photo": Purpose(
         app="incidents",
@@ -136,6 +143,7 @@ PURPOSES: dict[str, Purpose] = {
         public=False,
         strip_metadata=True,
         max_pixels=OPS_PHOTO_MAX_PIXELS,
+        read_key="incidents.incidents.read",
     ),
 }
 
@@ -356,6 +364,18 @@ async def private_read_url(
 ) -> OrgUpload:
     row = await _own_upload(session, context.org.organisation_id, file_id)
     if row.status != UploadStatus.COMPLETE.value:
+        raise NotFoundError("File not found")
+    purpose = PURPOSES.get(row.purpose)
+    # An upload whose purpose is no longer known is refused, as `public_read_url` does:
+    # if a purpose were ever removed or renamed, its private files must not fall back to
+    # "any member of the organisation".
+    if purpose is None:
+        raise NotFoundError("File not found")
+    if purpose.read_key is not None and not await grants.has_org_permission(
+        session, membership=context.org.membership, permission_key=purpose.read_key
+    ):
+        # 404, not 403: the same answer as a file that is not there, so a member
+        # who lost the key learns nothing about whether the file exists.
         raise NotFoundError("File not found")
     return row
 

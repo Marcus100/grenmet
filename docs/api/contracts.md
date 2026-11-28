@@ -3352,7 +3352,7 @@ account token or an app-scoped token for the same app.
 | --- | --- |
 | `POST /storage/uploads` | `{app, purpose, content_type, size_bytes}`; purposes `organiser-logo` (2 MB) and `listing-image` (5 MB), JPEG/PNG/WebP only (422 otherwise); returns `{id, method: "PUT", url, headers, expires_at, max_bytes}`. The presigned PUT expires in 15 minutes and signs the content type and exact size. 503 `Uploads are not configured` without storage settings |
 | `POST /storage/uploads/{id}/complete` | Checks the object (HEAD) matches the declared type and size, then marks it complete. 409 until the object exists or after the link expires; 422 (object deleted) on a mismatch; repeatable |
-| `GET /storage/files/{id}` | `{url, expires_in}`: a 5-minute presigned GET for a completed file of the caller's organisation. Other organisations, pending files and unknown ids are all 404 |
+| `GET /storage/files/{id}` | `{url, expires_in}`: a 5-minute presigned GET for a completed file of the caller's organisation. Other organisations, pending files and unknown ids are all 404. A purpose a platform product owns carries a read key (`Purpose.read_key`: `opslog-photo` needs `opslog.entries.read`, `incident-photo` needs `incidents.incidents.read`), and a member without it gets the same 404, so a member who lost the key cannot fetch a photo whose id they saw earlier. Events and Bookings purposes have no read key and behave as before |
 | `GET /storage/public/{id}` | No sign-in. 307 to a 5-minute presigned GET with `Cache-Control: public, max-age=120`, only for completed files of public purposes (logo, listing image); 404 otherwise |
 
 Events stores the resulting file ids: `ListingUpsert.image_file_id`,
