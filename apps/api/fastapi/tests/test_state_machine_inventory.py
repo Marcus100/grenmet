@@ -250,7 +250,6 @@ STATUS_WRITERS: dict[str, str] = {
     "src/eregister/daily_import.py": "an import report object, not a stored row",
     "src/eregister/publisher.py": "send lifecycle (IN_PLACE)",
     "src/eregister/sends.py": "send lifecycle (IN_PLACE)",
-    "src/events/order_refunds.py": "requeues an outbox row it owns",
     "src/events/service/moderation.py": "report and suggestion labels (SWITCH)",
     "src/hr/employment_status.py": "changes employment status and ends roles (SWITCH)",
     "src/hr/leave/service.py": (

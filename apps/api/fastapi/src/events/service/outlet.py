@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from .. import activity, schemas, tickets
+from .. import activity, buyer_contacts, schemas, tickets
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import (
     Admission,
@@ -469,6 +469,10 @@ async def sell_tickets(
     except IntegrityError:
         await db.rollback()
         raise EventsConflict("That sale was just recorded; refresh to see it") from None
+    # The walk-in contact joins the sale's transaction (#1986): no sale without it.
+    await buyer_contacts.link_walk_in(
+        db, order, await buyer_contacts.organisation_for_listing(db, listing.id)
+    )
     issued: list[Ticket] = []
     for tier in tiers:
         db.add(

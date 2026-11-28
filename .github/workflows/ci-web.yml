@@ -449,6 +449,8 @@ jobs:
         # runner's Ubuntu mirrors have failed DNS for whole afternoons (#1262).
         run: |
           if command -v psql >/dev/null; then psql --version; exit 0; fi
+          # packages.microsoft.com returns 403 Forbidden and apt-get update fails hard on it; no package below comes from there (#1989).
+          sudo rm -f /etc/apt/sources.list.d/microsoft*.list /etc/apt/sources.list.d/microsoft*.sources
           for attempt in 1 2 3; do
             sudo apt-get update && sudo apt-get install -y postgresql-client && exit 0
             sleep $((attempt * 20))

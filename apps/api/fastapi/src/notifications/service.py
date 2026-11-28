@@ -900,6 +900,7 @@ def enqueue_email(
     template: str | None = None,
     props: dict[str, Any] | None = None,
     html: str | None = None,
+    organisation_id: str | None = None,
 ) -> OutboundEmail:
     """Queue an email for the worker, inside the caller's transaction.
 
@@ -907,6 +908,13 @@ def enqueue_email(
     ``email.deliver`` outbox row (same transaction) sends it and owns retry and
     backoff. Non-transactional mail is dropped at send time for suppressed
     addresses.
+
+    Pass ``organisation_id`` whenever the mail may go to an organisation's contact.
+    Contact erasure matches mail on the address AND this organisation, so a row
+    queued without it is one erasure will not reach: the person's address stays in
+    the delivery log after they asked us to forget them, and erasure still reports
+    success. Leave it out only for mail that belongs to no business (staff,
+    superuser, account or public mail; see ``contacts/AGENTS.md``, erasure).
     """
     row = OutboundEmail(
         id=uuid.uuid4(),
@@ -916,6 +924,7 @@ def enqueue_email(
         props=props or {},
         html=html,
         transactional=transactional,
+        organisation_id=organisation_id,
     )
     session.add(row)
     _queue_delivery(session, row.id)
@@ -931,6 +940,7 @@ async def enqueue_email_once(
     template: str,
     props: dict[str, Any],
     run_at: datetime | None = None,
+    organisation_id: str | None = None,
 ) -> bool:
     """Queue a non-transactional email unless ``dedupe_key`` was already queued.
 
@@ -939,6 +949,13 @@ async def enqueue_email_once(
     caller commits. The unique ``outbound_email.dedupe_key`` index decides, so rows
     queued before the outbox move (still draining through
     ``dispatch.process_outbound_emails``) count too.
+
+    Pass ``organisation_id`` whenever the mail may go to an organisation's contact.
+    Contact erasure matches mail on the address AND this organisation, so a row
+    queued without it is one erasure will not reach: the person's address stays in
+    the delivery log after they asked us to forget them, and erasure still reports
+    success. Leave it out only for mail that belongs to no business (staff,
+    superuser, account or public mail; see ``contacts/AGENTS.md``, erasure).
     """
     email = normalise_email(to_email)
     if await is_suppressed(session=session, email=email):
@@ -957,6 +974,7 @@ async def enqueue_email_once(
             status=OutboundEmailStatus.PENDING.value,
             attempts=0,
             created_at=utc_now(),
+            organisation_id=organisation_id,
         )
         .on_conflict_do_nothing(
             index_elements=["dedupe_key"],

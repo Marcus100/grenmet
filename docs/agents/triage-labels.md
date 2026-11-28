@@ -31,7 +31,7 @@ returns anything below `write` (`none`, `read` or `triage`). Bot pull requests (
 | ---------------------------------------- | ------------------------------------------------------------------------ |
 | `friction`                               | Something an agent worked around; filed by the `file-friction` skill     |
 | `agent-claimed`                          | An agent is working on it now; others skip it (see `routines.md`)        |
-| `risk:low`, `risk:standard`, `risk:high` | PR risk tier from `scripts/guardrails/risk-tier.mjs`; high needs a clean `security-reviewer` pass, an agent-rules PR a Codex review too, and an enforcement-file PR goes to the owner |
+| `risk:low`, `risk:standard`, `risk:high` | PR risk tier from `scripts/guardrails/risk-tier.mjs`; high needs a clean `security-reviewer` pass, and an agent-rules or enforcement-file PR goes to the owner to merge |
 | `breaking-change`                        | PR intentionally breaks the API contract; lets `api-breaking-changes` pass |
 
 ## Who may apply `ready-for-agent`

@@ -29,7 +29,7 @@ async def send_due_reminders(
     latest = day + timedelta(days=7)
     rows = (
         await session.execute(
-            select(Invoice, Customer.billing_email)
+            select(Invoice, Customer.billing_email, Customer.organisation_id)
             .join(Customer, Customer.id == Invoice.customer_id)
             .where(
                 Invoice.status.in_(OPEN_STATUSES),
@@ -39,7 +39,7 @@ async def send_due_reminders(
         )
     ).all()
     sent = 0
-    for invoice, email in rows:
+    for invoice, email, organisation_id in rows:
         assert invoice.due_date is not None
         stage = calc.due_reminder_stage(invoice.due_date, day, grace)
         if stage is None:
@@ -58,6 +58,7 @@ async def send_due_reminders(
             stage=stage,
             to_email=email,
             pdf_url=download_url(invoice),
+            organisation_id=organisation_id,
         )
         sent += 1
     await session.commit()

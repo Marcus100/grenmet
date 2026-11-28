@@ -376,6 +376,33 @@ async def public_read_url(session: AsyncSession, file_id: uuid.UUID) -> str:
     )
 
 
+async def lock_usable(
+    session: AsyncSession,
+    file_id: uuid.UUID,
+    *,
+    organisation_id: str,
+    purpose: str,
+) -> bool:
+    """``file_is_usable`` on the caller's own transaction, with the row locked
+    (``FOR SHARE``) until that transaction ends.
+
+    A caller that stores a reference to a ``booking-*`` upload must use this and write
+    the reference in the same transaction: the sweep (``src/storage/sweep.py``) cannot
+    delete a locked file, and a deleted file is not found here.
+    """
+    found = await session.scalar(
+        select(OrgUpload.id)
+        .where(
+            OrgUpload.id == file_id,
+            OrgUpload.organisation_id == organisation_id,
+            OrgUpload.purpose == purpose,
+            OrgUpload.status == UploadStatus.COMPLETE.value,
+        )
+        .with_for_update(read=True)
+    )
+    return found is not None
+
+
 async def file_is_usable(
     file_id: uuid.UUID, *, organisation_id: str, purpose: str
 ) -> bool:

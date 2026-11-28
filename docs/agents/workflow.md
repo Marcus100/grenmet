@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-27
 
 Detail behind the short rules in the root `AGENTS.md`. Read the matching section
 before parallel work, integrating or pushing, a cross-layer change, or editing
@@ -39,6 +39,13 @@ agent instructions. Nothing here relaxes a root rule.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).
+- **The migration chain moves under you.** When your branch adds an Alembic
+  revision, read `alembic heads` immediately before pushing rather than trusting
+  the revision you were told, and expect to re-point `down_revision` and bump the
+  head-pinning tests after any other branch lands. Three branches were sent back
+  in one day for this on 27 November 2026, one of them leaving two heads so the
+  merge could not be created at all. Those tests exist to catch exactly this, so
+  bumping them is the intended response, not a workaround.
 - **Shared stashes:** git stashes are shared across worktrees. Record and apply
   the exact stash SHA; never use an implicit latest stash during parallel work.
 - **Worktree cleanup:** a clean worktree may still back another live session.
@@ -61,8 +68,23 @@ agent instructions. Nothing here relaxes a root rule.
   names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
   no open finding first. Unattended routines do the same from their own branch.
   A PR that changes an agent-rules or enforcement file follows [Merging into dev](#merging-into-dev)
-  below. If `origin/dev` advances, integrate it and revalidate.
-  With `CI_PATH_SELECTION=on`, a skipped job on a `dev` PR is intended when the
+  below. If `origin/dev` advances, integrate it and revalidate only when it
+  conflicts, touches files the PR also changes, or changes a generated contract
+  (`openapi.json`, `packages/api-client/src/gen/`, migrations); see the next item.
+- Keep CI load low: every push to a PR starts a full round (about 60 jobs), and
+  the account runs 40 jobs at once, so extra pushes make every agent wait.
+  - Push when the change is ready, not after each commit: run the targeted tests
+    and lint locally first, and batch review fixes into one push.
+  - Do not push "update with dev" merges only to be current. The `dev` run after
+    the merge checks the combination.
+  - Land PRs that touch the same generated files one at a time.
+  - Do not re-run a failed check before reading its log; `auto-rerun.yml`
+    already retries infrastructure failures once.
+  - Never watch CI from a background shell on the shared machine: it holds the
+    heavy slot. Check with a short `gh pr checks <num>` instead.
+  - A test that fails at random goes on the quarantine list with an issue
+    (`docs/testing.md`, Flaky tests), not into a re-run loop.
+- With `CI_PATH_SELECTION=on`, a skipped job on a `dev` PR is intended when the
   path map did not select it (`scripts/ci/select-checks.mjs`); the `ci:full` label runs every check.
 - Promotion to staging: the owner decides when a `dev → staging` PR is opened
   (owner, 14 Nov 2026). Agents keep landing work on `dev` and do not open the
@@ -97,6 +119,14 @@ secrets, money and deletions.
 
 Every PR, in this order:
 
+0. The PR is **not a draft**. A repository or account default can open it as
+   one, and a draft can never merge (`gh pr merge` fails with `Pull Request is
+   still a draft`), so run `gh pr ready <num>` right after `gh pr create`:
+   `gh pr create` has no `--ready` flag on the pinned `gh`, and `gh pr ready`
+   exits 0 on a PR that is already ready. A cloud sandbox cannot clear the flag
+   — `gh pr` is blocked there and REST cannot unset `draft` — so read
+   `gh api repos/Marcus100/grenmet/pulls/<num> --jq .draft` and, when it is
+   `true`, stop and report it under step 5 rather than retrying.
 1. CI is green on the PR head.
 2. A fresh-context review of that head has no open blocking finding, posted as
    a PR comment that names the reviewer. A `risk:high` PR also has a clean
@@ -107,17 +137,32 @@ Every PR, in this order:
    `gh api -X PUT repos/Marcus100/grenmet/pulls/<num>/merge -f sha=<full head sha> -f merge_method=merge`.
    The other REST forms are in [tool-usage.md](tool-usage.md) → Cloud sessions.
 4. Send the owner a phone alert: the PR number, title and link.
+5. **If the PR did not merge, say so just as loudly.** Owner-merge, a draft you
+   could not clear, a refused or failed merge command, a check you cannot fix:
+   send the same phone alert marked `not merged`, quote the blocker verbatim,
+   set the run's outcome to `blocked` or `manual` with that reason
+   ([run-records.md](run-records.md)) and name the open PR in the recap. Two
+   routine PRs went green within minutes on 27 November and sat open and
+   unmergeable for seven and a half hours because nothing reported a problem
+   (#1990). A run never ends leaving an open PR nobody was told about.
 
 The merge command names the repository (`--repo Marcus100/grenmet`), pins the
 full 40-character sha of the PR's current head, and runs alone: no other git or
 gh command in the same command line.
 
+**Read the sha; never reconstruct one.** Take the head from
+`gh pr view <num> --json headRefOid --jq .headRefOid` (cloud:
+`gh api repos/Marcus100/grenmet/pulls/<num> --jq .head.sha`), and check it is
+still the sha CI and the review named. An agent that extended a 9-character
+prefix to 40 characters instead got it wrong and the hook refused the merge; a
+sha is never retyped, extended or inferred.
+
 Files fall into three groups:
 
 | Group | Files | Who merges |
 | --- | --- | --- |
-| Ordinary | everything not listed below | the agent, under steps 1 to 4 |
-| Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the agent, after both reviews below |
+| Ordinary | everything not listed below | the agent, under steps 0 to 5 |
+| Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the owner, after the security review below |
 | Enforcement | `.claude/hooks/`, `.claude/settings.json`, `.codex/`, `.agents/` settings, `.github/` (workflows, dependabot, CODEOWNERS), `infra/github/`, any `CODEOWNERS`, `.husky/`, `.devcontainer/`, `.vscode/`, `.mcp.json`, `.gitleaks.toml`, `skills-lock.json`, the root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `pnpm-lock.yaml`, `scripts/agents/`, `scripts/ci/`, `scripts/production/`, `scripts/ops/`, `scripts/monitoring/`, `scripts/verification/`, the guardrail scripts that are not tests | the owner, always; the hook refuses an agent merge whatever the PR body says |
 
 The lockfile and workspace files are owner-merge on their own, so dependency
@@ -127,24 +172,36 @@ Agents do not edit the hooks, `.claude/settings.json`, `.codex/` or
 makes those edits by hand. An agent may still prepare the change as a written
 proposal or a patch file for the owner.
 
-A PR that changes an **agent rules** file needs both of these first, for the
-exact head being merged, as two lines in the PR body, each alone on its line:
+A PR that changes an **agent rules** file is owner-merge. The agent gets CI
+green, gets the fresh-context review, and adds one line to the PR body for the
+exact head, alone on its line:
 
 ```text
 Security review: no open findings (<reviewer>, <full 40-character head sha>)
-Codex review: no blocking findings (<full 40-character head sha>)
 ```
 
-- Add the first line only after a Claude `security-reviewer` pass on that head
-  reported no open finding.
-- Add the second line only after reading Codex's GitHub review of that exact
-  head (its review comment names the commit) and finding no blocking finding in
-  it. No Codex review of that head means no line and no merge.
-- A new push changes the head, so both reviews run again and both lines are
-  rewritten with the new sha. The hook compares each line's sha with the merge
-  command's sha, and GitHub refuses the merge when that sha is not the head.
-- After the merge, send the owner a **separate** phone alert that names the PR
-  and lists the agent-rules files it changed.
+- Add it only after a Claude `security-reviewer` pass on that head reported no
+  open finding. A new push changes the head, so the review runs again and the
+  line is rewritten with the new sha.
+- Then stop and hand the PR to the owner, with a phone alert that names the PR
+  and lists the agent-rules files it changed. Say in the recap that the PR is
+  open and owner-merge, and set the outcome to `manual` (step 5 above).
+
+**Why the owner and not a second model.** This lane used to need a second body
+line, `Codex review: no blocking findings (<head sha>)`, and the point of it was
+that Codex is a *different* model: two Claude reviewers share most of their
+blind spots. The Codex GitHub connector is not connected to this repository, so
+`@codex review` only answers "create a Codex account and connect to github", and
+that line could never be obtained — every agent-rules PR was silently
+unmergeable (#1991, #1853). The owner is the second reviewer until the Codex app
+is connected; connecting it and reverting this section restores the two-reviewer
+bar. The merge hook still asks an agent for both lines, so it refuses an agent
+merge here either way — but that refusal is not proof: the lines are the agent's
+own statement (see the backstop note below), so it only holds for an agent that
+does not write a line it did not earn. Moving the agent-rules paths into the
+hook's `OWNER_ONLY_PATHS` would make this lane owner-merge unconditionally, as
+the enforcement lane already is. That is an enforcement-file change, so it is
+the owner's to make.
 
 **Phone alert.** Use the session's push-notification tool when it has one
 (Claude Code: `PushNotification`). Where there is none, post the same text as a
@@ -284,8 +341,10 @@ command, no `--repo`, or no pinned head. The PR's base must be `dev` and its
 current head must equal the pinned sha (base, head and body come from one REST
 call); an unknown base, head, file list or PR body blocks, and `staging` and
 `main` always block. A PR that changes an enforcement file always blocks; one
-that changes an agent-rules file needs both review lines for the head in its
-body (see [Merging into dev](#merging-into-dev)). The
+that changes an agent-rules file is owner-merge, and the hook blocks an agent
+merge of it while the unobtainable Codex review line is missing — a rule it
+states, not one it can prove, since the lines are self-attested
+(see [Merging into dev](#merging-into-dev)). The
 REST merge is accepted in one shape only, under the same rules:
 `gh api -X PUT repos/Marcus100/grenmet/pulls/<number>/merge -f sha=<full head sha> -f merge_method=merge`
 (plus `--jq`, `--silent` or a redirect). `gh alias`, GraphQL merge mutations,

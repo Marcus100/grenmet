@@ -395,6 +395,7 @@ counts only, never addresses or message text.
 | `org.contact` | Plaintext address, name and phone kept while the organisation serves the person. Erasure (`contacts` service, organisation admin) blanks them, revokes consent and keeps `email_hash` plus `erased_at` as a tombstone. No automatic purge yet; the organisation decides. |
 | `user_image` profile photo | Kept while the account exists; the person or HR can remove it at any time. Deleting the account deletes the row and the stored files. Uploads carry no EXIF or GPS metadata. |
 | `page_feedback` comments | Comment nulled after 24 months; the row stays so helpful / not helpful counts do not change. |
+| `booking-*` uploads (business logo, cover, gallery photographs) | Removing or replacing one takes it off the business's page at once. Its file is deleted by the hourly `sweep_booking_uploads` job (`src/storage/sweep.py`) once it is unreferenced and more than 24 hours old, so within 25 hours of removal. Until then its address still opens it. |
 
 Address hash: `hash_email` = HMAC-SHA256 keyed by the `EMAIL_HASH_PEPPER`
 secret over the stripped, lower-cased address, hex encoded. Pending and

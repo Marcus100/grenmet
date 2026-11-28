@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingEventReason } from "./BookingEventReason.js";
+
 export type BookingStudioCancel = {
   /**
    * @description Why the booking is cancelled. Shown to the customer in the email.
@@ -11,6 +13,10 @@ export type BookingStudioCancel = {
    * @type string
    */
   reason: string;
+  /**
+   * @description The reason for the business's history, from a fixed list. Staff only; the customer does not see it. Left out, the history has no reason.
+   */
+  reason_code?: BookingEventReason | null;
   /**
    * @description Whether to refund a captured deposit. Left out, the business policy applies: refunded when the booking starts at least `cancel_cutoff_hours` from now, kept inside the cutoff.
    */

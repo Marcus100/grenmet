@@ -95,8 +95,9 @@ async def add_photo(
     existing = await _by_file(session, organisation_id, file_id)
     if existing is not None:
         return existing
-    if not await uploads.file_is_usable(
-        file_id, organisation_id=organisation_id, purpose=GALLERY_PURPOSE
+    # Locked until the transaction ends, so the sweep cannot take the file first.
+    if not await uploads.lock_usable(
+        session, file_id, organisation_id=organisation_id, purpose=GALLERY_PURPOSE
     ):
         raise BookingConflictError(
             "That photograph is not a finished upload for this business"

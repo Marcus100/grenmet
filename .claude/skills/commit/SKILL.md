@@ -45,7 +45,14 @@ Claude Code fills these in; in Codex, run the commands.
    same from their `agent/<n>-<slug>` branch. Then, one command per call, with
    long text written to a file first (no heredocs, no long inline `--body`):
    1. Write the step 7 recap to a file and open the PR into `dev`:
-      `gh pr create --base dev --title "<title>" --body-file <file>`.
+      `gh pr create --base dev --title "<title>" --body-file <file>`. Then run
+      exactly: `gh pr ready <num>`. A repository or account default can open the
+      PR as a draft, and a draft can never be merged; `gh pr create` has no
+      `--ready` flag, so `gh pr ready` is the only way back, and it exits 0 on a
+      PR that is already ready. A cloud sandbox cannot un-draft (`gh pr` is
+      blocked and REST cannot clear the flag), so read
+      `gh api repos/Marcus100/grenmet/pulls/<num> --jq .draft` there instead and
+      treat `true` as merge-blocked under step 6.
    2. Wait for CI: `gh pr checks <num> --watch --fail-fast` until it exits 0 on
       the PR head.
    3. Get the fresh-context review of that head, write it to a file and post it,
@@ -53,26 +60,31 @@ Claude Code fills these in; in Codex, run the commands.
       answer each finding. A `risk:high` PR also needs a clean
       `security-reviewer` pass, named in the PR body. For a cross-tool review,
       post the block from `pnpm agents:handoff` as a PR comment the same way.
-   4. Enforcement files (hooks, `.claude/settings.json`, `.codex`, Codex
-      rules, `.github`, rulesets, `.husky`, root `package.json`, guardrail
-      scripts that are not tests): stop after CI and review; the owner merges
-      the PR (the hook refuses an agent merge). Agent-rules files (skills, role
-      briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`): run the
-      `security-reviewer` on the head, and read Codex's GitHub review of that
-      exact head. Only when both are clean, add both lines to the PR body
-      (`gh pr edit <num> --body-file <file>`), each alone on its line with the
-      full 40-character head sha:
-      `Security review: no open findings (<reviewer>, <sha>)` and
-      `Codex review: no blocking findings (<sha>)`. A new push means both
-      reviews and both lines again. No Codex review of that head: stop and say
-      so; do not merge.
-   5. Once CI is green on the head and the review has no open blocking finding,
-      merge it yourself, alone in its command:
+   4. Both owner-merge groups stop after CI and review. The hook refuses an
+      agent merge of an enforcement file outright; for an agent-rules file it
+      only checks for review lines you write yourself, so owner-merge there is
+      a rule you keep, not a mechanism that keeps you.
+      Enforcement files (hooks, `.claude/settings.json`,
+      `.codex`, Codex rules, `.github`, rulesets, `.husky`, root `package.json`,
+      guardrail scripts that are not tests): stop there. Agent-rules files
+      (skills, role briefs, `docs/agents`, guardrail tests, the root
+      `AGENTS.md`): also run the `security-reviewer` on the head and, once it is
+      clean, add this line to the PR body (`gh pr edit <num> --body-file <file>`)
+      alone on its line with the full 40-character head sha:
+      `Security review: no open findings (<reviewer>, <sha>)`. A new push means
+      a new review and a new line. Then stop and leave the merge to the owner,
+      who is the second reviewer (`docs/agents/workflow.md` → Merging into dev).
+   5. Otherwise, once CI is green on the head and the review has no open
+      blocking finding, merge it yourself, alone in its command:
       `gh pr merge <num> --repo Marcus100/grenmet --merge --match-head-commit <full head sha>`.
-   6. Send the owner a phone alert: the PR number, title and link. For a
-      agent-rules PR send a separate alert that lists the files changed.
-      Use `PushNotification` when the session has it; otherwise comment on the
-      open issue labelled `factory-landed`.
+   6. Send the owner a phone alert: the PR number, title and link. Send one just
+      as loudly when the PR is **not** merged — owner-merge, a draft you could
+      not clear, a refused or failed merge command, a red check you cannot fix:
+      say "not merged", quote the blocker verbatim, and set the step 7 outcome
+      to `blocked` or `manual` with that reason. Never end with an open PR
+      nobody was told about. For an agent-rules PR send a separate alert that
+      lists the files changed. Use `PushNotification` when the session has it;
+      otherwise comment on the open issue labelled `factory-landed`.
 
    In a cloud session `gh pr` is blocked: use the `gh api` forms in
    `docs/agents/tool-usage.md` → GitHub from a cloud session (create the PR,
@@ -92,9 +104,12 @@ Claude Code fills these in; in Codex, run the commands.
 7. End with a recap for the user (and the staging PR body when you promote):
    - **Changed:** one line per commit.
    - **Gates:** each check run and its result.
+   - **Landed:** `merged into dev` with the sha, or `PR #<num> open, not merged`
+     and the blocker verbatim. An open PR is never left unsaid.
    - **Outcome:** `success`, `flawed` (shipped but needed rework or left known gaps),
-     `blocked` (missing credential, service or decision) or `manual` (deliberately
-     left for a human), with the reason.
+     `blocked` (missing credential, service or decision, or a merge you could not
+     make) or `manual` (deliberately left for a human, owner-merge included),
+     with the reason.
    - **Friction:** issue numbers filed or commented, or `none`.
 
 8. When the work was an agent task, post a run record with

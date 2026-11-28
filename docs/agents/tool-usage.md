@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-27
 
 - When the user wants to inspect a file, return full contents — not a summary.
 - Before investigating a CI or build failure, list the top hypotheses with the
@@ -138,6 +138,28 @@ safe to run again and backs up every file it changes; see
 `scripts/agents/settings/README.md`. A parity test
 (`scripts/guardrails/agent-settings-parity.test.mjs`) fails when the Codex rules
 and the deny list in `.claude/settings.json` disagree on a dangerous command.
+
+## Waiting for a long job
+
+A wait that reports nothing is the expensive kind of failure: the job looks fine
+until it is hours late. Each of these cost an agent real time on 27 November 2026.
+
+- **A watch is not evidence until it has emitted something.** Before reading a
+  monitor's silence as "no failures yet", confirm it has produced at least one
+  line: a progress monitor piped into `jq` printed `command not found` every 45
+  seconds for half an hour, delivered nothing, and the silence was taken for good
+  news. Filter for the failure signatures too, not only the success marker — a
+  monitor grepping for `passed` alone stays quiet through a crash, a hang and an
+  out-of-memory kill, and all three look exactly like "still running".
+- **Never poll with a `pgrep` pattern that can match your own command line.**
+  `until ! pgrep -f "<command>"` in a shell whose own command line contains that
+  string waits for itself forever; one such loop held the single `heavy` slot and
+  stalled every job on the machine for twenty-five minutes, and only the owner
+  could clear it. Run the gate in the foreground, or poll a log file with a plain
+  `sleep` and a bounded number of attempts.
+- **`jq` is not installed on this machine.** `gh --jq` works because that is gh's
+  own embedded jq; a bare `jq` in a pipeline fails. Use `gh --jq`, or `python3 -c`
+  for JSON.
 
 ## Worktree sessions
 

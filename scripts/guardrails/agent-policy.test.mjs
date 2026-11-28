@@ -65,6 +65,16 @@ const RETIRED = [
     "pushing the task branch is the normal path",
   ],
   [/feature-to-dev PRs? unless/u, "a PR into `dev` is the normal path"],
+  // #1991: the Codex GitHub connector is not connected, so a required Codex
+  // review line made every agent-rules PR unmergeable by an agent.
+  [
+    /both review lines/iu,
+    "agent-rules files are owner-merge after a clean `security-reviewer` pass",
+  ],
+  [
+    /and a clean Codex review/iu,
+    "agent-rules files are owner-merge after a clean `security-reviewer` pass",
+  ],
   [
     /overrides the attended-session standing authorization/u,
     "dev → staging promotion keeps its standing authorization",
@@ -83,18 +93,25 @@ const DRIFT_WORKFLOW_RUNS_CHECK =
   /scripts\/guardrails\/github-rulesets\.mjs --check/u;
 const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/u;
 const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/u;
-// Owner decision, 21 Nov 2026: agents merge every PR into dev, safety files
-// included. A safety-file PR needs a clean Claude security review and a clean
-// Codex review of its exact head, recorded as two PR-body lines the hook
-// checks, and a phone alert to the owner. The old "owner merges owner-only
-// paths" rule must not come back.
+// Owner decision, 21 Nov 2026: agents merge every PR into dev, with two
+// owner-merge lanes. Amended 27 Nov 2026 (#1991): the agent-rules lane is
+// owner-merge too. Its second review line needed Codex's GitHub review, and the
+// Codex connector is not connected to this repository, so no agent could ever
+// satisfy it — every agent-rules PR was silently unmergeable. The agent still
+// records a clean Claude security review for the exact head and alerts the
+// owner. Neither the old "owner merges owner-only paths" rule nor a required
+// Codex review line may come back.
 const SECURITY_REVIEW_LINE = /Security review: no open findings \(/u;
-const CODEX_REVIEW_LINE = /Codex review: no blocking findings \(/u;
-// The two lanes: agent-rules files after both reviews, enforcement files owner-merge.
+const SECURITY_REVIEWER = /security-reviewer/u;
+// The two lanes: agent rules and enforcement files, both owner-merge.
 const SAFETY_FILE_RULE = /enforcement files?|agent-rules|owner-merge/iu;
 const OWNER_MERGE_ENFORCEMENT = /Enforcement files[\s\S]{0,200}?owner-merge/u;
-const BOTH_REVIEWS = /security-reviewer[\s\S]*Codex review/u;
 const PHONE_ALERT = /phone alert/iu;
+// #1990: two routine PRs went green and sat open and unmergeable for most of a
+// day because every signal a run emits assumed the merge had happened. A PR is
+// marked ready (a draft can never merge) and a PR left unmerged is reported.
+const MARK_PR_READY = /gh pr ready/u;
+const UNMERGED_IS_REPORTED = /not merged|left unmerged|could not merge/iu;
 // The old wording sent every agent-limits PR to the owner by a vague list.
 const RETIRED_OWNER_ONLY =
   /owner-only (?:files|paths) listed in `AGENTS\.md`/iu;
@@ -103,7 +120,7 @@ const NEVER_MERGE_ANYTHING = /or merge anything/u;
 const NO_EXTRA_SPENDING = /\$0 extra spending/u;
 const NO_API_KEYS = /ANTHROPIC_API_KEY/u;
 
-test("agent-rules merges need both reviews and a phone alert; enforcement files are owner-merge", () => {
+test("agent-rules and enforcement files are owner-merge, with a security review and a phone alert", () => {
   const reviewPolicyFiles = [
     "AGENTS.md",
     "docs/agents/workflow.md",
@@ -124,21 +141,47 @@ test("agent-rules merges need both reviews and a phone alert; enforcement files 
     );
   }
   for (const file of [
-    "AGENTS.md",
     "docs/agents/workflow.md",
     ".claude/skills/commit/SKILL.md",
   ]) {
     const text = read(file);
     assert.match(text, SECURITY_REVIEW_LINE, `${file}: security review line`);
-    assert.match(text, CODEX_REVIEW_LINE, `${file}: Codex review line`);
   }
-  assert.match(read("docs/agents/roles.md"), BOTH_REVIEWS);
+  assert.match(read("AGENTS.md"), SECURITY_REVIEWER);
   assert.match(read("AGENTS.md"), OWNER_MERGE_ENFORCEMENT);
   assert.match(read("AGENTS.md"), HIGH_RISK_SECURITY_REVIEW);
   assert.doesNotMatch(read("docs/agents/workflow.md"), NEVER_MERGE_ANYTHING);
   assert.match(read("docs/agents/factory.md"), NO_EXTRA_SPENDING);
   for (const file of ["docs/agents/factory.md", "docs/agents/routines.md"])
     assert.match(read(file), NO_API_KEYS, `${file}: no API keys in secrets`);
+});
+
+test("a PR is marked ready, and a PR left unmerged is reported, not left silent", () => {
+  for (const file of [
+    "docs/agents/workflow.md",
+    "docs/agents/routines.md",
+    ".claude/skills/commit/SKILL.md",
+  ]) {
+    const text = read(file);
+    assert.match(
+      text,
+      MARK_PR_READY,
+      `${file}: say to run gh pr ready (a draft PR can never merge)`
+    );
+  }
+  for (const file of [
+    "AGENTS.md",
+    "docs/agents/workflow.md",
+    "docs/agents/routines.md",
+    "docs/agents/run-records.md",
+    ".claude/skills/commit/SKILL.md",
+  ]) {
+    assert.match(
+      read(file),
+      UNMERGED_IS_REPORTED,
+      `${file}: a PR the agent could not merge is reported, not left silent`
+    );
+  }
 });
 
 test("no policy file still states retired git policy", () => {

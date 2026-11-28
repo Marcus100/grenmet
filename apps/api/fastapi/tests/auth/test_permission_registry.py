@@ -120,7 +120,7 @@ def test_default_roles_never_carry_organisation_keys() -> None:
 
 
 def test_audit_entries_read_is_a_global_admin_screen_key() -> None:
-    # ADR-0065 step 4: the global audit log is a staff key, never organisation-bound.
+    # ADR-0070 step 4: the global audit log is a staff key, never organisation-bound.
     by_key = {p.key: p for p in PERMISSIONS}
     pdef = by_key["audit.entries.read"]
     assert pdef.binding == "global"

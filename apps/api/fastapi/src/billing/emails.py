@@ -21,7 +21,10 @@ def queue_invoice_email(
     invoice: Invoice,
     to_email: str,
     pdf_url: str | None,
+    organisation_id: str,
 ) -> None:
+    """``organisation_id`` is the customer's organisation: the billing address is its
+    contact, so erasure must reach this mail (see ``notifications.service``)."""
     assert invoice.number is not None
     card = email_cards.invoice_issued(
         number=invoice.number,
@@ -32,7 +35,7 @@ def queue_invoice_email(
         due=invoice.due_date,
         pdf_url=pdf_url,
     )
-    _queue(session, card, to_email)
+    _queue(session, card, to_email, organisation_id)
 
 
 def queue_reminder_email(
@@ -42,7 +45,9 @@ def queue_reminder_email(
     stage: ReminderStage,
     to_email: str,
     pdf_url: str | None,
+    organisation_id: str,
 ) -> None:
+    """``organisation_id`` is the customer's organisation (see ``queue_invoice_email``)."""
     assert invoice.number is not None
     card = email_cards.invoice_reminder(
         stage=stage,
@@ -54,10 +59,12 @@ def queue_reminder_email(
         due=invoice.due_date,
         pdf_url=pdf_url,
     )
-    _queue(session, card, to_email)
+    _queue(session, card, to_email, organisation_id)
 
 
-def _queue(session: AsyncSession, card: layout.EmailCard, to_email: str) -> None:
+def _queue(
+    session: AsyncSession, card: layout.EmailCard, to_email: str, organisation_id: str
+) -> None:
     notifications_service.enqueue_email(
         session=session,
         to_email=to_email,
@@ -65,4 +72,5 @@ def _queue(session: AsyncSession, card: layout.EmailCard, to_email: str) -> None
         transactional=True,
         template=layout.CARD_TEMPLATE,
         props=layout.to_props(card),
+        organisation_id=organisation_id,
     )

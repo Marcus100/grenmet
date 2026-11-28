@@ -81,7 +81,7 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   Stripe adapter is test mode only with no live card rail; do not remove it
   before the ADR-0027 gate. Backend: `src/payments/AGENTS.md`.
 - **Superusers (ADR-0059).** `/superusers` (nav link "Superusers") invites a superuser by email and lists open invitations with Revoke (confirmed). Forms post to `app/(console)/superusers/actions.ts`; invite success clears the form, refusals keep it. 403 means set up or sign in again with the authenticator (not reported); `?notice=` codes are fixed (`superuserNoticeFor`). Backend: `apps/api/fastapi/src/auth/AGENTS.md`.
-- **Audit log (ADR-0065).** `/audit` lists `GET /audit/admin/entries` (`audit.entries.read`); render changes exactly as the API masks them.
+- **Audit log (ADR-0070).** `/audit` lists `GET /audit/admin/entries` (`audit.entries.read`); render changes exactly as the API masks them.
 - Backend logic stays in FastAPI. This app validates, proxies and renders; it
   has no database access and no business rules.
 

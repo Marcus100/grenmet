@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsRemoveGalleryPhoto.js";
 
 /**
- * @description Take one photograph out of the gallery. The photographs that are left keep their order with no gap in it.
+ * @description Take one photograph out of the gallery. The photographs that are left keep their order with no gap in it. The file is permanently deleted within 25 hours; until then its address still opens it.
  * @summary Remove a gallery photograph
  * {@link /api/v1/bookings/org/gallery/:photo_id}
  */

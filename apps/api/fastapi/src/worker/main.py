@@ -377,6 +377,24 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="*/10 * * * *", checkin_margin=5, max_runtime=5)
+async def backfill_event_buyer_contacts(ctx: dict[str, Any]) -> int:
+    """Link a bounded batch of cash walk-ins to contacts (#1986). Idempotent: a run
+    that dies before its commit is redone, and an empty backlog costs one query."""
+    from src.database import async_session_factory
+    from src.events import buyer_contacts
+
+    async with async_session_factory() as session:
+        linked = await buyer_contacts.backfill_batch(session, limit=200)
+        await session.commit()
+    logger.info(
+        "backfill_event_buyer_contacts linked=%s job_id=%s",
+        linked,
+        ctx.get("job_id", ""),
+    )
+    return linked
+
+
 @monitored(schedule="17 5 * * *", checkin_margin=30, max_runtime=15)
 async def evaluate_paused_businesses(ctx: dict[str, Any]) -> int:
     """Pause or resume Bookings businesses by their trial and subscription (ADR-0066
@@ -806,6 +824,48 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
     return result.total
 
 
+@monitored(schedule="20 * * * *", checkin_margin=30, max_runtime=300)
+async def sweep_booking_uploads(ctx: dict[str, Any]) -> int:
+    """Hourly sweep of unreferenced booking uploads, 24 hours after upload (#1972).
+
+    Removal in Studio is therefore permanent within 25 hours at most. Batched and
+    idempotent; see src/storage/sweep.py."""
+    from src.database import async_session_factory
+    from src.storage import sweep
+
+    async with async_session_factory() as session:
+        try:
+            result = await sweep.sweep_unreferenced(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "sweep_booking_uploads",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    if result.objects_failed:
+        # Rows are gone but these files are still in storage and still served.
+        logger.warning(
+            "Booking upload sweep left %s of %s file(s) in storage",
+            result.objects_failed,
+            result.swept,
+            extra={"area": "storage"},
+        )
+    if result.swept and result.objects_failed == result.swept:
+        # Every delete failed: an outage (credentials, reachability), not a bad object.
+        await operational_metrics.record_job(
+            ctx.get("redis"), "sweep_booking_uploads", str(ctx.get("job_id", "")), False
+        )
+        raise RuntimeError(
+            "Booking upload sweep could not delete any file from storage"
+        )
+    await operational_metrics.record_job(
+        ctx.get("redis"), "sweep_booking_uploads", str(ctx.get("job_id", "")), True
+    )
+    return result.swept
+
+
 @monitored(schedule="25 4 * * *", checkin_margin=30, max_runtime=60)
 async def purge_superuser_invitations(ctx: dict[str, Any]) -> int:
     """Delete superuser invitations that ended more than 90 days ago (ADR-0059).
@@ -954,6 +1014,7 @@ class WorkerSettings:
         complete_finished_bookings,
         evaluate_paused_businesses,
         expire_unpaid_event_orders,
+        backfill_event_buyer_contacts,
         reconcile_provider_refunds,
         send_wis2_publications,
         run_notification_sweeps,
@@ -963,6 +1024,7 @@ class WorkerSettings:
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
+        sweep_booking_uploads,
         purge_superuser_invitations,
         clear_former_staff_personal_details,
         check_nhc_failures,
@@ -1036,6 +1098,11 @@ class WorkerSettings:
         ),
         # eRegister observations queued for wis2box (retries live on the row).
         # Stripe refunds beyond a webhook's ten-refund list (#869), daily 00:40 Grenada.
+        cron(
+            backfill_event_buyer_contacts,
+            minute=set(range(0, 60, 10)),
+            run_at_startup=False,
+        ),
         cron(reconcile_provider_refunds, hour=4, minute=40, run_at_startup=False),
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
@@ -1061,6 +1128,8 @@ class WorkerSettings:
         cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
+        # Unreferenced booking uploads, hourly at :20 (#1972); see src/storage/sweep.py.
+        cron(sweep_booking_uploads, minute=20, run_at_startup=False),
         # Superuser invitations ended over 90 days ago, 04:25 UTC (00:25 Grenada).
         cron(purge_superuser_invitations, hour=4, minute=25, run_at_startup=False),
         # Former staff date of birth and address, 6 years after employment ends

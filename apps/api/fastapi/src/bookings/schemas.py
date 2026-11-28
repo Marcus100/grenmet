@@ -19,6 +19,7 @@ from .models import (
     BookingDepositCollection,
     BookingDepositMode,
     BookingDepositReceivedMethod,
+    BookingEventReason,
     BookingExceptionKind,
     BookingPaymentMode,
     BookingSource,
@@ -412,7 +413,8 @@ class BookingProfileUpdate(BaseModel):
         description=(
             "A completed `booking-logo` upload of this business (see "
             "`POST /storage/uploads`), shown at the top of its emails. Null clears "
-            "it. Left out, the stored logo is kept."
+            "it, and the old file is permanently deleted within 25 hours; until then "
+            "its address still opens it. Left out, the stored logo is kept."
         ),
     )
     cover_file_id: uuid.UUID | None = Field(
@@ -420,7 +422,9 @@ class BookingProfileUpdate(BaseModel):
         description=(
             "A completed `booking-cover` upload of this business (see "
             "`POST /storage/uploads`): the wide photo on its home page card and "
-            "storefront. Null clears it. Left out, the stored photo is kept."
+            "storefront. Null clears it, and the old file is permanently deleted "
+            "within 25 hours; until then its address still opens it. Left out, the "
+            "stored photo is kept."
         ),
     )
     business_type: BookingBusinessType | None = Field(
@@ -1020,6 +1024,13 @@ class BookingStudioDecline(BaseModel):
         max_length=300,
         description="Why the request is declined. Shown to the customer in the email.",
     )
+    reason_code: BookingEventReason | None = Field(
+        default=None,
+        description=(
+            "The reason for the business's history, from a fixed list. Staff only; "
+            "the customer does not see it. Left out, the history has no reason."
+        ),
+    )
 
 
 class BookingStudioReschedule(BaseModel):
@@ -1037,6 +1048,13 @@ class BookingStudioCancel(BaseModel):
         min_length=1,
         max_length=300,
         description="Why the booking is cancelled. Shown to the customer in the email.",
+    )
+    reason_code: BookingEventReason | None = Field(
+        default=None,
+        description=(
+            "The reason for the business's history, from a fixed list. Staff only; "
+            "the customer does not see it. Left out, the history has no reason."
+        ),
     )
     refund_deposit: bool | None = Field(
         default=None,
@@ -1062,6 +1080,10 @@ class BookingStudioEvent(BaseModel):
         description="The member who acted; null for the customer, an API key or the system."
     )
     note: str | None
+    reason: BookingEventReason | None = Field(
+        default=None,
+        description="Why staff declined or cancelled, from a fixed list; null when not given.",
+    )
     created_at: UtcDateTime
 
 
