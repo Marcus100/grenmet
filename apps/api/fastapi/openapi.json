@@ -87646,6 +87646,18 @@
             "title": "Accepted At",
             "description": "When the business accepted the request. With `pay_after_acceptance` and `status` `pending_payment`: accepted, waiting for the customer to pay."
           },
+          "deposit_captured_minor": {
+            "type": "integer",
+            "title": "Deposit Captured Minor",
+            "description": "Money taken online for the deposit so far (same meaning as on the booking detail). 0 when no online payment was taken.",
+            "default": 0
+          },
+          "deposit_refunded_minor": {
+            "type": "integer",
+            "title": "Deposit Refunded Minor",
+            "description": "Money handed back or being handed back from the online deposit (same meaning as on the booking detail).",
+            "default": 0
+          },
           "returning_client": {
             "type": "boolean",
             "title": "Returning Client",

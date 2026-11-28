@@ -901,6 +901,20 @@ class BookingAgendaItem(BaseModel):
             "`status` `pending_payment`: accepted, waiting for the customer to pay."
         ),
     )
+    deposit_captured_minor: int = Field(
+        default=0,
+        description=(
+            "Money taken online for the deposit so far (same meaning as on the booking "
+            "detail). 0 when no online payment was taken."
+        ),
+    )
+    deposit_refunded_minor: int = Field(
+        default=0,
+        description=(
+            "Money handed back or being handed back from the online deposit (same "
+            "meaning as on the booking detail)."
+        ),
+    )
     returning_client: bool = Field(
         default=False,
         description=(

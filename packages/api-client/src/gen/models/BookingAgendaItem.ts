@@ -78,6 +78,18 @@ export type BookingAgendaItem = {
    */
   accepted_at?: string | null;
   /**
+   * @description Money taken online for the deposit so far (same meaning as on the booking detail). 0 when no online payment was taken.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_captured_minor?: number;
+  /**
+   * @description Money handed back or being handed back from the online deposit (same meaning as on the booking detail).
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_refunded_minor?: number;
+  /**
    * @description Staff only: a returning client requested a new-clients-only service.
    * @default false
    * @type boolean | undefined
