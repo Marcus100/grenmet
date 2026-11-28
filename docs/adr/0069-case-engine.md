@@ -5,6 +5,9 @@
 Accepted 26 November 2026 after four review rounds; not built. Follows ADR-0067 decision 6, which
 asks for this record before the module is built. Issues #1877 to #1879.
 
+Amended 28 November 2026: the `<programme>.read|write` API key scopes are reserved, not
+wired (decision 2, #1956).
+
 ## Context
 
 Four programmes an airport authority must run work the same way:
@@ -106,6 +109,12 @@ investigator read occupational health cases, and the other way round.
      gets 403 on safety routes.
    - The `<programme>.read|write` API key scopes exist because every product
      has them. They never return confidential fields or reporter identity.
+     **Not wired yet (28 November 2026, #1956):** the case routes accept signed-in
+     sessions only, and `test_an_organisation_key_does_not_open_the_case_routes`
+     pins that. The scopes are reserved, not in use. Wiring them is a decision for
+     when an integration needs it, and must carry the rule above: a key never sees
+     confidential fields or reporter identity, so the route has to build its
+     response without them rather than rely on the caller filtering.
    - **Confidential keys are grant-only.** `<programme>.cases.confidential` is
      never held implicitly by an owner or admin role. It is excluded in
      `grants.effective_keys`, which amends ADR-0044, and must be granted to a

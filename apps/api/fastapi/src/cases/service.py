@@ -8,6 +8,7 @@ can never be accepted; a report in which no hazard was found closes as "no risk
 found" with a reason. Every corrective action must be verified first.
 """
 
+import re
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ from . import notifications as case_notifications
 from . import risk, transitions
 from .exceptions import CaseConflictError, CaseForbiddenError, CaseNotFoundError
 from .models import (
+    FACTOR_ID_PATTERN,
     Case,
     CaseAction,
     CaseActionStatus,
@@ -768,11 +770,26 @@ async def seed_default_factors(
     if await is_seeded(session, organisation_id=organisation_id, programme=programme):
         return
     now = utc_now()
-    session.add(
-        FactorSeed(
-            organisation_id=organisation_id, programme=programme.value, seeded_at=now
-        )
-    )
+    # Two first writes can both pass the check above. The marker's primary key lets
+    # exactly one win; the other waits for it, hits the key, and backs out because the
+    # winner seeds the list in its own transaction. A savepoint, not
+    # ON CONFLICT DO NOTHING: the marker is written through the ORM so the audit trail
+    # records it ("Contributing factor list seed"), and a Core insert would skip that.
+    # begin_nested() flushes whatever is already pending when it opens. Do that here,
+    # outside the try, so a conflict on some other pending row is not mistaken for a
+    # lost race and swallowed.
+    await session.flush()
+    try:
+        async with session.begin_nested():
+            session.add(
+                FactorSeed(
+                    organisation_id=organisation_id,
+                    programme=programme.value,
+                    seeded_at=now,
+                )
+            )
+    except IntegrityError:
+        return
     taken = set(
         (
             await session.scalars(
@@ -1070,6 +1087,21 @@ def _optional(value: str | None) -> str | None:
     return (value or "").strip() or None
 
 
+_FACTOR_ID = re.compile(FACTOR_ID_PATTERN)
+FACTOR_NOT_CHOOSABLE = "A contributing factor is not on this programme's active list"
+
+
+def require_factor_id_shape(factor_ids: list[str]) -> None:
+    """Refuse an id that is not the shape the service issues, before it reaches a query.
+
+    The body field stays a plain list of strings in the contract: tightening it there
+    would be a breaking change to the request schema, and a client that sends such an id
+    already got this 422 (the lookup found nothing). This keeps that answer and stops
+    a junk or oversized string from ever being sent to the database as a value."""
+    if not all(_FACTOR_ID.fullmatch(factor_id) for factor_id in factor_ids):
+        raise AppValidationError(FACTOR_NOT_CHOOSABLE)
+
+
 async def _set_factors(
     session: AsyncSession,
     *,
@@ -1079,6 +1111,7 @@ async def _set_factors(
     """Replace the chosen factors. A factor already chosen stays choosable even if it
     has since been retired; a newly added one must be active. Links keep the factor's
     name and category as they are now."""
+    require_factor_id_shape(factor_ids)
     wanted = list(dict.fromkeys(factor_ids))
     current = (
         await session.scalars(
@@ -1101,9 +1134,7 @@ async def _set_factors(
         for factor_id in wanted:
             factor = factors.get(factor_id)
             if factor is None or (not factor.is_active and factor_id not in linked):
-                raise AppValidationError(
-                    "A contributing factor is not on this programme's active list"
-                )
+                raise AppValidationError(FACTOR_NOT_CHOOSABLE)
     for row in current:
         if row.factor_id not in wanted:
             await session.delete(row)
