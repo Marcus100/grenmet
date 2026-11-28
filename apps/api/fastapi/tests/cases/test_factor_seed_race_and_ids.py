@@ -9,12 +9,13 @@ investigation body were also unbounded strings.
 import httpx
 import pytest
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.cases import service
-from src.cases.models import ContributingFactor, FactorSeed, Programme
-from tests.cases.test_cases_investigation import API, _world
+from src.cases.models import ContributingFactor, FactorSeed, Programme, new_factor_id
+from tests.cases.test_cases_investigation import API, _case, _world
 
 DEFAULTS = len(service.DEFAULT_CONTRIBUTING_FACTORS)
 
@@ -144,6 +145,32 @@ async def test_a_second_seed_after_a_normal_first_one_does_nothing(
     assert await _factor_count(db_async, world.org_id) == DEFAULTS
 
 
+async def test_a_conflict_on_other_pending_work_is_not_taken_for_a_lost_race(
+    db_async: AsyncSession,
+) -> None:
+    """Opening a savepoint flushes whatever is already pending. If that flush fails
+    because of some other row, it must surface: swallowing it as "someone else seeded
+    first" would hide the real error and leave the request on a dead transaction."""
+    world = await _world(db_async)
+    for _ in range(2):
+        db_async.add(
+            ContributingFactor(
+                id=new_factor_id(),
+                organisation_id=world.org_id,
+                programme=Programme.SAFETY.value,
+                category="training",
+                name="Same name twice",
+                is_active=True,
+                created_by=None,
+            )
+        )
+
+    with pytest.raises(IntegrityError):
+        await service.seed_default_factors(
+            db_async, organisation_id=world.org_id, programme=Programme.SAFETY
+        )
+
+
 @pytest.mark.parametrize(
     "bad",
     [
@@ -159,20 +186,7 @@ async def test_a_factor_id_that_is_not_the_issued_shape_is_refused_at_the_edge(
     async_client: httpx.AsyncClient, db_async: AsyncSession, bad: str
 ) -> None:
     world = await _world(db_async)
-    created = await async_client.post(
-        f"{API}/cases",
-        headers=world.h(world.officer),
-        json={
-            "title": "Id shape",
-            "description": "x",
-            "occurred_at": "2026-11-20T10:00:00Z",
-        },
-    )
-    if created.status_code != 201:
-        pytest.skip(
-            f"case creation shape differs: {created.status_code} {created.text}"
-        )
-    case_id = created.json()["id"]
+    case_id = await _case(async_client, world)
 
     response = await async_client.patch(
         f"{API}/cases/{case_id}/investigation",

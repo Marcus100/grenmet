@@ -773,6 +773,10 @@ async def seed_default_factors(
     # winner seeds the list in its own transaction. A savepoint, not
     # ON CONFLICT DO NOTHING: the marker is written through the ORM so the audit trail
     # records it ("Contributing factor list seed"), and a Core insert would skip that.
+    # begin_nested() flushes whatever is already pending when it opens. Do that here,
+    # outside the try, so a conflict on some other pending row is not mistaken for a
+    # lost race and swallowed.
+    await session.flush()
     try:
         async with session.begin_nested():
             session.add(
